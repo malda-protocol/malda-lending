@@ -19,8 +19,7 @@ jobs:
     - name: Install Foundry
       run: |
         curl -L https://foundry.paradigm.xyz | bash
-        source ~/.bashrc
-        ~/.foundry/bin/foundryup
+        bash -c "$(curl -fsSL https://raw.githubusercontent.com/foundry-rs/foundry/master/foundryup/install.sh)"
 
     - name: Cache foundry dependencies
       uses: actions/cache@v3
