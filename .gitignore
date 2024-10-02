@@ -1,0 +1,19 @@
+# code
+.vscode/
+
+# locals
+.DS_Store
+*.pem
+
+#foundry
+cache/
+out/
+bin/
+lcov.info
+
+#others
+.env
+docs
+node_modules
+coverage
+coverage.json
