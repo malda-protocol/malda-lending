@@ -1,0 +1,73 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity =0.8.27;
+
+/*
+ _____ _____ __    ____  _____ 
+|     |  _  |  |  |    \|  _  |
+| | | |     |  |__|  |  |     |
+|_|_|_|__|__|_____|____/|__|__|   
+*/
+
+import {ImTokenMinimal} from "../interfaces/ImToken.sol";
+import {IOracleOperator} from "../interfaces/IOracleOperator.sol";
+import {IAggregatorV3} from "../interfaces/external/chainlink/IAggregatorV3.sol";
+
+contract ChainlinkOracle is IOracleOperator {
+    // ----------- STORAGE ------------
+    mapping(string => IAggregatorV3) public priceFeeds;
+    mapping(string => uint256) public baseUnits;
+
+    uint8 public constant DECIMALS = 18;
+
+    error ChainlinkOracle_NoPriceFeed();
+    error ChainlinkOracle_ZeroPrice();
+
+    constructor(string[] memory symbols_, IAggregatorV3[] memory feeds_, uint256[] memory baseUnits_) {
+        for (uint256 i = 0; i < symbols_.length; i++) {
+            priceFeeds[symbols_[i]] = feeds_[i];
+            baseUnits[symbols_[i]] = baseUnits_[i];
+        }
+    }
+    // ----------- PUBLIC ------------
+    /**
+     * @inheritdoc IOracleOperator
+     */
+
+    function getPrice(address mToken) external view override returns (uint256) {
+        string memory symbol = ImTokenMinimal(mToken).symbol();
+        uint256 feedDecimals = priceFeeds[symbol].decimals();
+
+        (uint256 price,) = _getLatestPrice(symbol);
+
+        return price * 10 ** (18 - feedDecimals);
+    }
+
+    /**
+     * @inheritdoc IOracleOperator
+     */
+    function getUnderlyingPrice(address mToken) external view override returns (uint256) {
+        string memory symbol = ImTokenMinimal(mToken).symbol();
+        uint256 feedDecimals = priceFeeds[symbol].decimals();
+
+        (uint256 price,) = _getLatestPrice(symbol);
+        return (price * (10 ** (36 - feedDecimals))) / baseUnits[symbol];
+    }
+
+    // ----------- PRIVATE ------------
+    function _getLatestPrice(string memory symbol) internal view returns (uint256, uint256) {
+        require(address(priceFeeds[symbol]) != address(0), ChainlinkOracle_NoPriceFeed());
+
+        (
+            ,
+            //uint80 roundID
+            int256 price, //uint256 startedAt
+            ,
+            uint256 timeStamp, //uint80 answeredInRound
+        ) = priceFeeds[symbol].latestRoundData();
+
+        require(price > 0, ChainlinkOracle_ZeroPrice());
+        uint256 uPrice = uint256(price);
+
+        return (uPrice, timeStamp);
+    }
+}

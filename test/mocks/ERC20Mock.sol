@@ -9,10 +9,11 @@ contract ERC20Mock is ERC20 {
     constructor(string memory _name, string memory _symbol, uint8 _decimals) ERC20(_name, _symbol) {
         _d = _decimals;
     }
-    
-    function decimals() public view override returns(uint8) {
+
+    function decimals() public view override returns (uint8) {
         return _d;
     }
+
     function mint(address _to, uint256 _amount) public {
         _mint(_to, _amount);
     }

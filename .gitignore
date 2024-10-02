@@ -13,7 +13,6 @@ lcov.info
 
 #others
 .env
-docs
 node_modules
 coverage
 coverage.json
