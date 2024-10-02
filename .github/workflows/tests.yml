@@ -19,9 +19,11 @@ jobs:
     - name: Install Foundry
       run: |
         curl -L https://foundry.paradigm.xyz | bash
-        bash -c "$(curl -fsSL https://raw.githubusercontent.com/foundry-rs/foundry/master/foundryup/install.sh)"
-        export PATH="$HOME/.foundry/bin:$PATH"
-        foundryup
+        source ~/.bashrc
+        ~/.foundry/bin/foundryup
+
+    - name: Add Foundry to PATH
+      run: echo "$HOME/.foundry/bin" >> $GITHUB_PATH
 
     - name: Cache foundry dependencies
       uses: actions/cache@v3
@@ -32,11 +34,7 @@ jobs:
         key: ${{ runner.os }}-foundry-${{ hashFiles('foundry.toml') }}
 
     - name: Install Dependencies
-      run: |
-        export PATH="$HOME/.foundry/bin:$PATH"
-        forge install
+      run: forge install
 
     - name: Run Forge Tests
-      run: |
-        export PATH="$HOME/.foundry/bin:$PATH"
-        forge test --gas-report
+      run: forge test --gas-report
