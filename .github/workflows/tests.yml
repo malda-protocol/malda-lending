@@ -12,9 +12,6 @@ jobs:
   test:
     name: Foundry tests
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./src
 
     steps:
       - uses: actions/checkout@v4
