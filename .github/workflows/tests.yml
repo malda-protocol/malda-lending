@@ -1,0 +1,36 @@
+name: Run Foundry Forge Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Set up Foundry
+      run: |
+        curl -L https://foundry.paradigm.xyz | bash
+        foundryup
+
+    - name: Cache foundry dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.foundry/cache
+          lib
+        key: ${{ runner.os }}-foundry-${{ hashFiles('foundry.toml') }}
+
+    - name: Install Dependencies
+      run: forge install
+
+    - name: Run Forge Tests
+      run: forge test --gas-report
