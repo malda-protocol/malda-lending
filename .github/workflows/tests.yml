@@ -10,31 +10,29 @@ on:
 
 jobs:
   test:
+    name: Foundry tests
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./src
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
 
-    - name: Install Foundry
-      run: |
-        curl -L https://foundry.paradigm.xyz | bash
-        source ~/.bashrc
-        ~/.foundry/bin/foundryup
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
 
-    - name: Add Foundry to PATH
-      run: echo "$HOME/.foundry/bin" >> $GITHUB_PATH
+      - name: Install dependencies
+        run: forge install
 
-    - name: Cache foundry dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.foundry/cache
-          lib
-        key: ${{ runner.os }}-foundry-${{ hashFiles('foundry.toml') }}
+      - name: Check contract sizes
+        run: forge build --sizes
+        id: build
 
-    - name: Install Dependencies
-      run: forge install
-
-    - name: Run Forge Tests
-      run: forge test --gas-report
+      - name: Run tests
+        run: forge test --gas-report
+        id: test
