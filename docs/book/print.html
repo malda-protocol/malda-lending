@@ -1,0 +1,1372 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title></title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon.svg">
+        <link rel="shortcut icon" href="favicon.png">
+        <link rel="stylesheet" href="css/variables.css">
+        <link rel="stylesheet" href="css/general.css">
+        <link rel="stylesheet" href="css/chrome.css">
+        <link rel="stylesheet" href="css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="highlight.css">
+        <link rel="stylesheet" href="tomorrow-night.css">
+        <link rel="stylesheet" href="ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="book.css">
+
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('light')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item "><a href="index.html">Home</a></li><li class="chapter-item affix "><li class="part-title">src</li><li class="chapter-item "><a href="src/Operator/index.html">❱ Operator</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="src/Operator/Operator.sol/contract.Operator.html">Operator</a></li><li class="chapter-item "><a href="src/Operator/OperatorConfiguration.sol/contract.OperatorConfiguration.html">OperatorConfiguration</a></li></ol></li><li class="chapter-item "><a href="src/helpers/index.html">❱ helpers</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="src/helpers/mTokenHelper.sol/contract.mTokenHelper.html">mTokenHelper</a></li></ol></li><li class="chapter-item "><a href="src/interest/index.html">❱ interest</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="src/interest/JumpRateModelV2.sol/contract.JumpRateModelV2.html">JumpRateModelV2</a></li></ol></li><li class="chapter-item "><a href="src/interfaces/index.html">❱ interfaces</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="src/interfaces/external/index.html">❱ external</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="src/interfaces/external/chainlink/index.html">❱ chainlink</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="src/interfaces/external/chainlink/IAggregatorV3.sol/interface.IAggregatorV3.html">IAggregatorV3</a></li></ol></li></ol></li><li class="chapter-item "><a href="src/interfaces/IInterestRateModel.sol/interface.IInterestRateModel.html">IInterestRateModel</a></li><li class="chapter-item "><a href="src/interfaces/IOperator.sol/interface.IOperatorData.html">IOperatorData</a></li><li class="chapter-item "><a href="src/interfaces/IOperator.sol/interface.IOperator.html">IOperator</a></li><li class="chapter-item "><a href="src/interfaces/IOracleOperator.sol/interface.IOracleOperator.html">IOracleOperator</a></li><li class="chapter-item "><a href="src/interfaces/IRewardDistributor.sol/interface.IRewardDistributorData.html">IRewardDistributorData</a></li><li class="chapter-item "><a href="src/interfaces/IRewardDistributor.sol/interface.IRewardDistributor.html">IRewardDistributor</a></li><li class="chapter-item "><a href="src/interfaces/ImToken.sol/interface.ImTokenMinimal.html">ImTokenMinimal</a></li><li class="chapter-item "><a href="src/interfaces/ImToken.sol/interface.ImToken.html">ImToken</a></li><li class="chapter-item "><a href="src/interfaces/ImTokenHelper.sol/interface.ImTokenHelper.html">ImTokenHelper</a></li></ol></li><li class="chapter-item "><a href="src/libraries/index.html">❱ libraries</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="src/libraries/SafeApprove.sol/interface.IToken.html">IToken</a></li><li class="chapter-item "><a href="src/libraries/SafeApprove.sol/library.SafeApprove.html">SafeApprove</a></li></ol></li><li class="chapter-item "><a href="src/mToken/index.html">❱ mToken</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="src/mToken/mToken.sol/contract.mToken.html">mToken</a></li><li class="chapter-item "><a href="src/mToken/mTokenConfiguration.sol/abstract.mTokenConfiguration.html">mTokenConfiguration</a></li><li class="chapter-item "><a href="src/mToken/mTokenDefenser.sol/abstract.mTokenDefenser.html">mTokenDefenser</a></li></ol></li><li class="chapter-item "><a href="src/math/index.html">❱ math</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="src/math/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a></li></ol></li><li class="chapter-item "><a href="src/oracles/index.html">❱ oracles</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="src/oracles/ChainlinkOracle.sol/contract.ChainlinkOracle.html">ChainlinkOracle</a></li></ol></li><li class="chapter-item "><a href="src/verifier/index.html">❱ verifier</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="src/verifier/Verifier.sol/contract.Verifier.html">Verifier</a></li><li class="chapter-item "><a href="src/verifier/VerifierStorage.sol/abstract.VerifierStorage.html">VerifierStorage</a></li></ol></li><li class="chapter-item "><a href="src/Counter.sol/contract.Counter.html">Counter</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title"></h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/malda-protocol/malda-lending" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="malda-lending"><a class="header" href="#malda-lending">malda-lending</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents"><a class="header" href="#contents">Contents</a></h1>
+<ul>
+<li><a href="src%5COperator/Operator.sol%5Ccontract.Operator.html">Operator</a></li>
+<li><a href="src%5COperator/OperatorConfiguration.sol%5Ccontract.OperatorConfiguration.html">OperatorConfiguration</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="operator"><a class="header" href="#operator">Operator</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5COperator%5COperator.sol">Git Source</a></p>
+<p><strong>Inherits:</strong>
+<a href="src%5COperator%5COperator.sol//src%5COperator%5COperatorConfiguration.sol%5Ccontract.OperatorConfiguration.html">OperatorConfiguration</a></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="operatorconfiguration"><a class="header" href="#operatorconfiguration">OperatorConfiguration</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5COperator%5COperatorConfiguration.sol">Git Source</a></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-1"><a class="header" href="#contents-1">Contents</a></h1>
+<ul>
+<li><a href="src%5Chelpers/mTokenHelper.sol%5Ccontract.mTokenHelper.html">mTokenHelper</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="mtokenhelper"><a class="header" href="#mtokenhelper">mTokenHelper</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Chelpers%5CmTokenHelper.sol">Git Source</a></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-2"><a class="header" href="#contents-2">Contents</a></h1>
+<ul>
+<li><a href="src%5Cinterest/JumpRateModelV2.sol%5Ccontract.JumpRateModelV2.html">JumpRateModelV2</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="jumpratemodelv2"><a class="header" href="#jumpratemodelv2">JumpRateModelV2</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Cinterest%5CJumpRateModelV2.sol">Git Source</a></p>
+<p><strong>Inherits:</strong>
+<a href="src%5Cinterest%5CJumpRateModelV2.sol//src%5Cinterfaces%5CIInterestRateModel.sol%5Cinterface.IInterestRateModel.html">IInterestRateModel</a>, Ownable</p>
+<p>Implementation of the IInterestRateModel interface for calculating interest rates</p>
+<h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
+<h3 id="blocksperyear"><a class="header" href="#blocksperyear">blocksPerYear</a></h3>
+<p>The approximate number of blocks per year that is assumed by the interest rate model</p>
+<pre><code class="language-solidity">uint256 public override blocksPerYear;
+</code></pre>
+<h3 id="multiplierperblock"><a class="header" href="#multiplierperblock">multiplierPerBlock</a></h3>
+<p>The multiplier of utilization rate that gives the slope of the interest rate</p>
+<pre><code class="language-solidity">uint256 public override multiplierPerBlock;
+</code></pre>
+<h3 id="baserateperblock"><a class="header" href="#baserateperblock">baseRatePerBlock</a></h3>
+<p>The base interest rate which is the y-intercept when utilization rate is 0</p>
+<pre><code class="language-solidity">uint256 public override baseRatePerBlock;
+</code></pre>
+<h3 id="jumpmultiplierperblock"><a class="header" href="#jumpmultiplierperblock">jumpMultiplierPerBlock</a></h3>
+<p>The multiplierPerBlock after hitting a specified utilization point</p>
+<pre><code class="language-solidity">uint256 public override jumpMultiplierPerBlock;
+</code></pre>
+<h3 id="kink"><a class="header" href="#kink">kink</a></h3>
+<p>The utilization point at which the jump multiplier is applied</p>
+<pre><code class="language-solidity">uint256 public override kink;
+</code></pre>
+<h3 id="name"><a class="header" href="#name">name</a></h3>
+<p>A name for user-friendliness, e.g. WBTC</p>
+<pre><code class="language-solidity">string public override name;
+</code></pre>
+<h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
+<h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
+<p>Construct an interest rate model</p>
+<pre><code class="language-solidity">constructor(
+    uint256 blocksPerYear_,
+    uint256 baseRatePerYear,
+    uint256 multiplierPerYear,
+    uint256 jumpMultiplierPerYear,
+    uint256 kink_,
+    address owner_,
+    string memory name_
+) Ownable(owner_);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>blocksPerYear_</code></td><td><code>uint256</code></td><td>The estimated number of blocks per year</td></tr>
+<tr><td><code>baseRatePerYear</code></td><td><code>uint256</code></td><td>The base APR, scaled by 1e18</td></tr>
+<tr><td><code>multiplierPerYear</code></td><td><code>uint256</code></td><td>The rate increase in interest wrt utilization, scaled by 1e18</td></tr>
+<tr><td><code>jumpMultiplierPerYear</code></td><td><code>uint256</code></td><td>The multiplier per block after utilization point</td></tr>
+<tr><td><code>kink_</code></td><td><code>uint256</code></td><td>The utilization point where the jump multiplier applies</td></tr>
+<tr><td><code>owner_</code></td><td><code>address</code></td><td>The owner of the contract</td></tr>
+<tr><td><code>name_</code></td><td><code>string</code></td><td>A user-friendly name for the contract</td></tr>
+</tbody></table>
+</div>
+<h3 id="updatejumpratemodel"><a class="header" href="#updatejumpratemodel">updateJumpRateModel</a></h3>
+<p>Update the parameters of the interest rate model (only callable by owner, i.e. Timelock)</p>
+<pre><code class="language-solidity">function updateJumpRateModel(
+    uint256 baseRatePerYear,
+    uint256 multiplierPerYear,
+    uint256 jumpMultiplierPerYear,
+    uint256 kink_
+) external onlyOwner;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>baseRatePerYear</code></td><td><code>uint256</code></td><td>The approximate target base APR, as a mantissa (scaled by 1e18)</td></tr>
+<tr><td><code>multiplierPerYear</code></td><td><code>uint256</code></td><td>The rate of increase in interest rate wrt utilization (scaled by 1e18)</td></tr>
+<tr><td><code>jumpMultiplierPerYear</code></td><td><code>uint256</code></td><td>The multiplierPerBlock after hitting a specified utilization point</td></tr>
+<tr><td><code>kink_</code></td><td><code>uint256</code></td><td>The utilization point at which the jump multiplier is applied</td></tr>
+</tbody></table>
+</div>
+<h3 id="updateblocksperyear"><a class="header" href="#updateblocksperyear">updateBlocksPerYear</a></h3>
+<p>Updates the blocksPerYear in order to make interest calculations simpler</p>
+<pre><code class="language-solidity">function updateBlocksPerYear(uint256 blocksPerYear_) external onlyOwner;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>blocksPerYear_</code></td><td><code>uint256</code></td><td>The new estimated eth blocks per year.</td></tr>
+</tbody></table>
+</div>
+<h3 id="utilizationrate"><a class="header" href="#utilizationrate">utilizationRate</a></h3>
+<p>Calculates the utilization rate of the market</p>
+<pre><code class="language-solidity">function utilizationRate(uint256 cash, uint256 borrows, uint256 reserves) public pure override returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>cash</code></td><td><code>uint256</code></td><td>The total cash in the market</td></tr>
+<tr><td><code>borrows</code></td><td><code>uint256</code></td><td>The total borrows in the market</td></tr>
+<tr><td><code>reserves</code></td><td><code>uint256</code></td><td>The total reserves in the market</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The utilization rate as a mantissa between [0, 1e18]</td></tr>
+</tbody></table>
+</div>
+<h3 id="getborrowrate"><a class="header" href="#getborrowrate">getBorrowRate</a></h3>
+<p>Returns the current borrow rate per block for the market</p>
+<pre><code class="language-solidity">function getBorrowRate(uint256 cash, uint256 borrows, uint256 reserves) public view override returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>cash</code></td><td><code>uint256</code></td><td>The total cash in the market</td></tr>
+<tr><td><code>borrows</code></td><td><code>uint256</code></td><td>The total borrows in the market</td></tr>
+<tr><td><code>reserves</code></td><td><code>uint256</code></td><td>The total reserves in the market</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The current borrow rate per block, scaled by 1e18</td></tr>
+</tbody></table>
+</div>
+<h3 id="getsupplyrate"><a class="header" href="#getsupplyrate">getSupplyRate</a></h3>
+<p>Returns the current supply rate per block for the market</p>
+<pre><code class="language-solidity">function getSupplyRate(uint256 cash, uint256 borrows, uint256 reserves, uint256 reserveFactorMantissa)
+    external
+    view
+    override
+    returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>cash</code></td><td><code>uint256</code></td><td>The total cash in the market</td></tr>
+<tr><td><code>borrows</code></td><td><code>uint256</code></td><td>The total borrows in the market</td></tr>
+<tr><td><code>reserves</code></td><td><code>uint256</code></td><td>The total reserves in the market</td></tr>
+<tr><td><code>reserveFactorMantissa</code></td><td><code>uint256</code></td><td>The current reserve factor for the market</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The current supply rate per block, scaled by 1e18</td></tr>
+</tbody></table>
+</div>
+<h3 id="_updatejumpratemodel"><a class="header" href="#_updatejumpratemodel">_updateJumpRateModel</a></h3>
+<p>Internal function to update the parameters of the interest rate model</p>
+<pre><code class="language-solidity">function _updateJumpRateModel(
+    uint256 baseRatePerYear,
+    uint256 multiplierPerYear,
+    uint256 jumpMultiplierPerYear,
+    uint256 kink_
+) private;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>baseRatePerYear</code></td><td><code>uint256</code></td><td>The base APR, scaled by 1e18</td></tr>
+<tr><td><code>multiplierPerYear</code></td><td><code>uint256</code></td><td>The rate increase wrt utilization, scaled by 1e18</td></tr>
+<tr><td><code>jumpMultiplierPerYear</code></td><td><code>uint256</code></td><td>The multiplier per block after utilization point</td></tr>
+<tr><td><code>kink_</code></td><td><code>uint256</code></td><td>The utilization point where the jump multiplier applies</td></tr>
+</tbody></table>
+</div><div style="break-before: page; page-break-before: always;"></div><h1 id="contents-3"><a class="header" href="#contents-3">Contents</a></h1>
+<ul>
+<li><a href="src%5Cinterfaces//src%5Cinterfaces%5Cexternal">external</a></li>
+<li><a href="src%5Cinterfaces/IInterestRateModel.sol%5Cinterface.IInterestRateModel.html">IInterestRateModel</a></li>
+<li><a href="src%5Cinterfaces/IOperator.sol%5Cinterface.IOperatorData.html">IOperatorData</a></li>
+<li><a href="src%5Cinterfaces/IOperator.sol%5Cinterface.IOperator.html">IOperator</a></li>
+<li><a href="src%5Cinterfaces/IOracleOperator.sol%5Cinterface.IOracleOperator.html">IOracleOperator</a></li>
+<li><a href="src%5Cinterfaces/IRewardDistributor.sol%5Cinterface.IRewardDistributorData.html">IRewardDistributorData</a></li>
+<li><a href="src%5Cinterfaces/IRewardDistributor.sol%5Cinterface.IRewardDistributor.html">IRewardDistributor</a></li>
+<li><a href="src%5Cinterfaces/ImToken.sol%5Cinterface.ImTokenMinimal.html">ImTokenMinimal</a></li>
+<li><a href="src%5Cinterfaces/ImToken.sol%5Cinterface.ImToken.html">ImToken</a></li>
+<li><a href="src%5Cinterfaces/ImTokenHelper.sol%5Cinterface.ImTokenHelper.html">ImTokenHelper</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-4"><a class="header" href="#contents-4">Contents</a></h1>
+<ul>
+<li><a href="src%5Cinterfaces%5Cexternal//src%5Cinterfaces%5Cexternal%5Cchainlink">chainlink</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-5"><a class="header" href="#contents-5">Contents</a></h1>
+<ul>
+<li><a href="src%5Cinterfaces%5Cexternal%5Cchainlink/IAggregatorV3.sol%5Cinterface.IAggregatorV3.html">IAggregatorV3</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="iaggregatorv3"><a class="header" href="#iaggregatorv3">IAggregatorV3</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Cinterfaces%5Cexternal%5Cchainlink%5CIAggregatorV3.sol">Git Source</a></p>
+<h2 id="functions-1"><a class="header" href="#functions-1">Functions</a></h2>
+<h3 id="decimals"><a class="header" href="#decimals">decimals</a></h3>
+<pre><code class="language-solidity">function decimals() external view returns (uint8);
+</code></pre>
+<h3 id="latestrounddata"><a class="header" href="#latestrounddata">latestRoundData</a></h3>
+<pre><code class="language-solidity">function latestRoundData()
+    external
+    view
+    returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="iinterestratemodel"><a class="header" href="#iinterestratemodel">IInterestRateModel</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Cinterfaces%5CIInterestRateModel.sol">Git Source</a></p>
+<p>Interface for the interest rate contracts</p>
+<h2 id="functions-2"><a class="header" href="#functions-2">Functions</a></h2>
+<h3 id="blocksperyear-1"><a class="header" href="#blocksperyear-1">blocksPerYear</a></h3>
+<p>The approximate number of blocks per year that is assumed by the interest rate model</p>
+<pre><code class="language-solidity">function blocksPerYear() external view returns (uint256);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The number of blocks per year</td></tr>
+</tbody></table>
+</div>
+<h3 id="multiplierperblock-1"><a class="header" href="#multiplierperblock-1">multiplierPerBlock</a></h3>
+<p>The multiplier of utilization rate that gives the slope of the interest rate</p>
+<pre><code class="language-solidity">function multiplierPerBlock() external view returns (uint256);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The multiplier per block</td></tr>
+</tbody></table>
+</div>
+<h3 id="baserateperblock-1"><a class="header" href="#baserateperblock-1">baseRatePerBlock</a></h3>
+<p>The base interest rate which is the y-intercept when utilization rate is 0</p>
+<pre><code class="language-solidity">function baseRatePerBlock() external view returns (uint256);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The base rate per block</td></tr>
+</tbody></table>
+</div>
+<h3 id="jumpmultiplierperblock-1"><a class="header" href="#jumpmultiplierperblock-1">jumpMultiplierPerBlock</a></h3>
+<p>The multiplierPerBlock after hitting a specified utilization point</p>
+<pre><code class="language-solidity">function jumpMultiplierPerBlock() external view returns (uint256);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The jump multiplier per block</td></tr>
+</tbody></table>
+</div>
+<h3 id="kink-1"><a class="header" href="#kink-1">kink</a></h3>
+<p>The utilization point at which the jump multiplier is applied</p>
+<pre><code class="language-solidity">function kink() external view returns (uint256);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The utilization point (kink)</td></tr>
+</tbody></table>
+</div>
+<h3 id="name-1"><a class="header" href="#name-1">name</a></h3>
+<p>A name for user-friendliness, e.g. WBTC</p>
+<pre><code class="language-solidity">function name() external view returns (string memory);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>string</code></td><td>The name of the interest rate model</td></tr>
+</tbody></table>
+</div>
+<h3 id="utilizationrate-1"><a class="header" href="#utilizationrate-1">utilizationRate</a></h3>
+<p>Calculates the utilization rate of the market</p>
+<pre><code class="language-solidity">function utilizationRate(uint256 cash, uint256 borrows, uint256 reserves) external pure returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>cash</code></td><td><code>uint256</code></td><td>The total cash in the market</td></tr>
+<tr><td><code>borrows</code></td><td><code>uint256</code></td><td>The total borrows in the market</td></tr>
+<tr><td><code>reserves</code></td><td><code>uint256</code></td><td>The total reserves in the market</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The utilization rate as a mantissa between [0, 1e18]</td></tr>
+</tbody></table>
+</div>
+<h3 id="getborrowrate-1"><a class="header" href="#getborrowrate-1">getBorrowRate</a></h3>
+<p>Returns the current borrow rate per block for the market</p>
+<pre><code class="language-solidity">function getBorrowRate(uint256 cash, uint256 borrows, uint256 reserves) external view returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>cash</code></td><td><code>uint256</code></td><td>The total cash in the market</td></tr>
+<tr><td><code>borrows</code></td><td><code>uint256</code></td><td>The total borrows in the market</td></tr>
+<tr><td><code>reserves</code></td><td><code>uint256</code></td><td>The total reserves in the market</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The current borrow rate per block, scaled by 1e18</td></tr>
+</tbody></table>
+</div>
+<h3 id="getsupplyrate-1"><a class="header" href="#getsupplyrate-1">getSupplyRate</a></h3>
+<p>Returns the current supply rate per block for the market</p>
+<pre><code class="language-solidity">function getSupplyRate(uint256 cash, uint256 borrows, uint256 reserves, uint256 reserveFactorMantissa)
+    external
+    view
+    returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>cash</code></td><td><code>uint256</code></td><td>The total cash in the market</td></tr>
+<tr><td><code>borrows</code></td><td><code>uint256</code></td><td>The total borrows in the market</td></tr>
+<tr><td><code>reserves</code></td><td><code>uint256</code></td><td>The total reserves in the market</td></tr>
+<tr><td><code>reserveFactorMantissa</code></td><td><code>uint256</code></td><td>The current reserve factor for the market</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The current supply rate per block, scaled by 1e18</td></tr>
+</tbody></table>
+</div>
+<h2 id="events"><a class="header" href="#events">Events</a></h2>
+<h3 id="newinterestparams"><a class="header" href="#newinterestparams">NewInterestParams</a></h3>
+<p>Emitted when interest rate parameters are updated</p>
+<pre><code class="language-solidity">event NewInterestParams(
+    uint256 baseRatePerBlock, uint256 multiplierPerBlock, uint256 jumpMultiplierPerBlock, uint256 kink
+);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>baseRatePerBlock</code></td><td><code>uint256</code></td><td>The base rate per block</td></tr>
+<tr><td><code>multiplierPerBlock</code></td><td><code>uint256</code></td><td>The multiplier per block for the interest rate slope</td></tr>
+<tr><td><code>jumpMultiplierPerBlock</code></td><td><code>uint256</code></td><td>The multiplier after hitting the kink</td></tr>
+<tr><td><code>kink</code></td><td><code>uint256</code></td><td>The utilization point where the jump multiplier is applied</td></tr>
+</tbody></table>
+</div><div style="break-before: page; page-break-before: always;"></div><h1 id="ioperatordata"><a class="header" href="#ioperatordata">IOperatorData</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Cinterfaces%5CIOperator.sol">Git Source</a></p>
+<h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
+<h3 id="market"><a class="header" href="#market">Market</a></h3>
+<pre><code class="language-solidity">struct Market {
+    bool isListed;
+    uint256 collateralFactorMantissa;
+    mapping(address =&gt; bool) accountMembership;
+    bool isComped;
+}
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ioperator"><a class="header" href="#ioperator">IOperator</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Cinterfaces%5CIOperator.sol">Git Source</a></p>
+<h2 id="functions-3"><a class="header" href="#functions-3">Functions</a></h2>
+<h3 id="admin"><a class="header" href="#admin">admin</a></h3>
+<p>Administrator for this contract</p>
+<pre><code class="language-solidity">function admin() external view returns (address);
+</code></pre>
+<h3 id="pendingadmin"><a class="header" href="#pendingadmin">pendingAdmin</a></h3>
+<p>Pending administrator for this contract</p>
+<pre><code class="language-solidity">function pendingAdmin() external view returns (address);
+</code></pre>
+<h3 id="oracleoperator"><a class="header" href="#oracleoperator">oracleOperator</a></h3>
+<p>Oracle which gives the price of any given asset</p>
+<pre><code class="language-solidity">function oracleOperator() external view returns (address);
+</code></pre>
+<h3 id="closefactormantissa"><a class="header" href="#closefactormantissa">closeFactorMantissa</a></h3>
+<p>Multiplier used to calculate the maximum repayAmount when liquidating a borrow</p>
+<pre><code class="language-solidity">function closeFactorMantissa() external view returns (uint256);
+</code></pre>
+<h3 id="liquidationincentivemantissa"><a class="header" href="#liquidationincentivemantissa">liquidationIncentiveMantissa</a></h3>
+<p>Multiplier representing the discount on collateral that a liquidator receives</p>
+<pre><code class="language-solidity">function liquidationIncentiveMantissa() external view returns (uint256);
+</code></pre>
+<h3 id="accountassets"><a class="header" href="#accountassets">accountAssets</a></h3>
+<p>Per-account mapping of "assets you are in", capped by maxAssets</p>
+<pre><code class="language-solidity">function accountAssets(address _user) external view returns (address[] memory mTokens);
+</code></pre>
+<h3 id="allmarkets"><a class="header" href="#allmarkets">allMarkets</a></h3>
+<p>A list of all markets</p>
+<pre><code class="language-solidity">function allMarkets() external view returns (address[] memory mTokens);
+</code></pre>
+<h3 id="borrocaps"><a class="header" href="#borrocaps">borroCaps</a></h3>
+<p>Borrow caps enforced by borrowAllowed for each cToken address. Defaults to zero which corresponds to unlimited borrowing.</p>
+<pre><code class="language-solidity">function borroCaps(address _mToken) external view returns (uint256);
+</code></pre>
+<h3 id="supplycaps"><a class="header" href="#supplycaps">supplyCaps</a></h3>
+<p>Supply caps enforced by supplyAllowed for each cToken address. Defaults to zero which corresponds to unlimited supplying.</p>
+<pre><code class="language-solidity">function supplyCaps(address _mToken) external view returns (uint256);
+</code></pre>
+<h3 id="rewarddistributor"><a class="header" href="#rewarddistributor">rewardDistributor</a></h3>
+<p>Reward Distributor to markets supply and borrow (including protocol token)</p>
+<pre><code class="language-solidity">function rewardDistributor() external view returns (address);
+</code></pre>
+<h3 id="activate"><a class="header" href="#activate">activate</a></h3>
+<p>Add assets to be included in account liquidity calculation</p>
+<pre><code class="language-solidity">function activate(address[] calldata _mTokens) external;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_mTokens</code></td><td><code>address[]</code></td><td>The list of addresses of the mToken markets to be enabled</td></tr>
+</tbody></table>
+</div>
+<h3 id="deactivate"><a class="header" href="#deactivate">deactivate</a></h3>
+<p>Removes asset from sender's account liquidity calculation</p>
+<p><em>Sender must not have an outstanding borrow balance in the asset,
+or be providing necessary collateral for an outstanding borrow.</em></p>
+<pre><code class="language-solidity">function deactivate(address _mToken) external;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_mToken</code></td><td><code>address</code></td><td>The address of the asset to be removed</td></tr>
+</tbody></table>
+</div><div style="break-before: page; page-break-before: always;"></div><h1 id="ioracleoperator"><a class="header" href="#ioracleoperator">IOracleOperator</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Cinterfaces%5CIOracleOperator.sol">Git Source</a></p>
+<h2 id="functions-4"><a class="header" href="#functions-4">Functions</a></h2>
+<h3 id="getprice"><a class="header" href="#getprice">getPrice</a></h3>
+<p>Get the price of a mToken asset</p>
+<pre><code class="language-solidity">function getPrice(address mToken) external view returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The mToken to get the price of</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The underlying asset price mantissa (scaled by 1e18). Zero means the price is unavailable.</td></tr>
+</tbody></table>
+</div>
+<h3 id="getunderlyingprice"><a class="header" href="#getunderlyingprice">getUnderlyingPrice</a></h3>
+<p>Get the underlying price of a mToken asset</p>
+<pre><code class="language-solidity">function getUnderlyingPrice(address mToken) external view returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The mToken to get the underlying price of</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The underlying asset price mantissa (scaled by 1e18). Zero means the price is unavailable.</td></tr>
+</tbody></table>
+</div><div style="break-before: page; page-break-before: always;"></div><h1 id="irewarddistributordata"><a class="header" href="#irewarddistributordata">IRewardDistributorData</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Cinterfaces%5CIRewardDistributor.sol">Git Source</a></p>
+<h2 id="structs-1"><a class="header" href="#structs-1">Structs</a></h2>
+<h3 id="rewardmarketstate"><a class="header" href="#rewardmarketstate">RewardMarketState</a></h3>
+<pre><code class="language-solidity">struct RewardMarketState {
+    uint256 supplySpeed;
+    uint224 supplyIndex;
+    uint32 supplyBlock;
+    uint256 borrowSpeed;
+    uint224 borrowIndex;
+    uint32 borrowBlock;
+}
+</code></pre>
+<h3 id="rewardaccountstate"><a class="header" href="#rewardaccountstate">RewardAccountState</a></h3>
+<pre><code class="language-solidity">struct RewardAccountState {
+    mapping(address =&gt; uint256) supplierIndex;
+    mapping(address =&gt; uint256) borrowerIndex;
+    uint256 rewardAccrued;
+}
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="irewarddistributor"><a class="header" href="#irewarddistributor">IRewardDistributor</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Cinterfaces%5CIRewardDistributor.sol">Git Source</a></p>
+<h2 id="functions-5"><a class="header" href="#functions-5">Functions</a></h2>
+<h3 id="operator-1"><a class="header" href="#operator-1">operator</a></h3>
+<p>The operator that rewards are distributed to</p>
+<pre><code class="language-solidity">function operator() external view returns (address);
+</code></pre>
+<h3 id="isrewardtoken"><a class="header" href="#isrewardtoken">isRewardToken</a></h3>
+<p>Flag to check if reward token added before</p>
+<pre><code class="language-solidity">function isRewardToken(address _token) external view returns (bool);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_token</code></td><td><code>address</code></td><td>the token to check for</td></tr>
+</tbody></table>
+</div>
+<h3 id="getrewardtokens"><a class="header" href="#getrewardtokens">getRewardTokens</a></h3>
+<p>Added reward tokens</p>
+<pre><code class="language-solidity">function getRewardTokens() external view returns (address[] memory);
+</code></pre>
+<h3 id="getblocknumber"><a class="header" href="#getblocknumber">getBlockNumber</a></h3>
+<p>Get block number</p>
+<pre><code class="language-solidity">function getBlockNumber() external view returns (uint32);
+</code></pre>
+<h3 id="claim"><a class="header" href="#claim">claim</a></h3>
+<p>Claim tokens for `holders</p>
+<pre><code class="language-solidity">function claim(address[] memory holders) external;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>holders</code></td><td><code>address[]</code></td><td>the accounts to claim for</td></tr>
+</tbody></table>
+</div>
+<h2 id="events-1"><a class="header" href="#events-1">Events</a></h2>
+<h3 id="rewardaccrued"><a class="header" href="#rewardaccrued">RewardAccrued</a></h3>
+<pre><code class="language-solidity">event RewardAccrued(address indexed rewardToken, address indexed user, uint256 deltaAccrued, uint256 totalAccrued);
+</code></pre>
+<h3 id="rewardgranted"><a class="header" href="#rewardgranted">RewardGranted</a></h3>
+<pre><code class="language-solidity">event RewardGranted(address indexed rewardToken, address indexed user, uint256 amount);
+</code></pre>
+<h3 id="supplyspeedupdated"><a class="header" href="#supplyspeedupdated">SupplySpeedUpdated</a></h3>
+<pre><code class="language-solidity">event SupplySpeedUpdated(address indexed rewardToken, address indexed cToken, uint256 supplySpeed);
+</code></pre>
+<h3 id="borrowspeedupdated"><a class="header" href="#borrowspeedupdated">BorrowSpeedUpdated</a></h3>
+<pre><code class="language-solidity">event BorrowSpeedUpdated(address indexed rewardToken, address indexed cToken, uint256 borrowSpeed);
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="imtokenminimal"><a class="header" href="#imtokenminimal">ImTokenMinimal</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Cinterfaces%5CImToken.sol">Git Source</a></p>
+<h2 id="functions-6"><a class="header" href="#functions-6">Functions</a></h2>
+<h3 id="symbol"><a class="header" href="#symbol">symbol</a></h3>
+<pre><code class="language-solidity">function symbol() external view returns (string memory);
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="imtoken"><a class="header" href="#imtoken">ImToken</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Cinterfaces%5CImToken.sol">Git Source</a></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="imtokenhelper"><a class="header" href="#imtokenhelper">ImTokenHelper</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Cinterfaces%5CImTokenHelper.sol">Git Source</a></p>
+<h2 id="functions-7"><a class="header" href="#functions-7">Functions</a></h2>
+<h3 id="ismintvalid"><a class="header" href="#ismintvalid">isMintValid</a></h3>
+<p>Mint **</p>
+<p>Checks if the account should be allowed to mint tokens in the given market</p>
+<pre><code class="language-solidity">function isMintValid(address mToken, address minter, uint256 mintAmount, uint256 mintTokens)
+    external
+    view
+    returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Asset being minted</td></tr>
+<tr><td><code>minter</code></td><td><code>address</code></td><td>The address minting the tokens</td></tr>
+<tr><td><code>mintAmount</code></td><td><code>uint256</code></td><td>The amount of the underlying asset being minted</td></tr>
+<tr><td><code>mintTokens</code></td><td><code>uint256</code></td><td>The number of tokens being minted</td></tr>
+</tbody></table>
+</div>
+<h3 id="isredeemvalid"><a class="header" href="#isredeemvalid">isRedeemValid</a></h3>
+<p>Redeem **</p>
+<p>Checks if the account should be allowed to redeem tokens in the given market</p>
+<pre><code class="language-solidity">function isRedeemValid(address mToken, address redeemer, uint256 redeemAmount, uint256 redeemTokens)
+    external
+    view
+    returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Asset being redeemed</td></tr>
+<tr><td><code>redeemer</code></td><td><code>address</code></td><td>The address redeeming the tokens</td></tr>
+<tr><td><code>redeemAmount</code></td><td><code>uint256</code></td><td>The amount of the underlying asset being redeemed</td></tr>
+<tr><td><code>redeemTokens</code></td><td><code>uint256</code></td><td>The number of tokens being redeemed</td></tr>
+</tbody></table>
+</div>
+<h3 id="isborrowvalid"><a class="header" href="#isborrowvalid">isBorrowValid</a></h3>
+<p>Borrow **</p>
+<p>Checks if the account should be allowed to borrow the underlying asset of the given market</p>
+<pre><code class="language-solidity">function isBorrowValid(address mToken, address borrower, uint256 borrowAmount) external view returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The market to verify the borrow against</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>The account which would borrow the asset</td></tr>
+<tr><td><code>borrowAmount</code></td><td><code>uint256</code></td><td>The amount of underlying the account would borrow</td></tr>
+</tbody></table>
+</div>
+<h3 id="isrepayvalid"><a class="header" href="#isrepayvalid">isRepayValid</a></h3>
+<p>Repay **</p>
+<p>Checks if the account should be allowed to repay a borrow in the given market</p>
+<pre><code class="language-solidity">function isRepayValid(address mToken, address payer, address borrower, uint256 repayAmount)
+    external
+    view
+    returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The market to verify the repay against</td></tr>
+<tr><td><code>payer</code></td><td><code>address</code></td><td>The account which would repay the asset</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>The account which would borrowed the asset</td></tr>
+<tr><td><code>repayAmount</code></td><td><code>uint256</code></td><td>The amount of the underlying asset the account would repay</td></tr>
+</tbody></table>
+</div>
+<h3 id="isliquidatevalid"><a class="header" href="#isliquidatevalid">isLiquidateValid</a></h3>
+<p>Liquidate **</p>
+<p>Checks if the liquidation should be allowed to occur</p>
+<pre><code class="language-solidity">function isLiquidateValid(
+    address mTokenBorrowed,
+    address mTokenCollateral,
+    address liquidator,
+    address borrower,
+    uint256 repayAmount
+) external view returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mTokenBorrowed</code></td><td><code>address</code></td><td>Asset which was borrowed by the borrower</td></tr>
+<tr><td><code>mTokenCollateral</code></td><td><code>address</code></td><td>Asset which was used as collateral and will be seized</td></tr>
+<tr><td><code>liquidator</code></td><td><code>address</code></td><td>The address repaying the borrow and seizing the collateral</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>The address of the borrower</td></tr>
+<tr><td><code>repayAmount</code></td><td><code>uint256</code></td><td>The amount of underlying being repaid</td></tr>
+</tbody></table>
+</div>
+<h3 id="liquidatecalculateseizetokens"><a class="header" href="#liquidatecalculateseizetokens">liquidateCalculateSeizeTokens</a></h3>
+<p>Calculate number of tokens of collateral asset to seize given an underlying amount</p>
+<p><em>Used in liquidation (called in mTokenBorrowed.liquidate)</em></p>
+<pre><code class="language-solidity">function liquidateCalculateSeizeTokens(address mTokenBorrowed, address mTokenCollateral, uint256 actualRepayAmount)
+    external
+    view
+    returns (uint256, uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mTokenBorrowed</code></td><td><code>address</code></td><td>The address of the borrowed cToken</td></tr>
+<tr><td><code>mTokenCollateral</code></td><td><code>address</code></td><td>The address of the collateral cToken</td></tr>
+<tr><td><code>actualRepayAmount</code></td><td><code>uint256</code></td><td>The amount of mTokenBorrowed underlying to convert into mTokenCollateral tokens</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>(errorCode, number of mTokenCollateral tokens to be seized in a liquidation)</td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td></td></tr>
+</tbody></table>
+</div>
+<h3 id="isseizevalid"><a class="header" href="#isseizevalid">isSeizeValid</a></h3>
+<p>Seize **</p>
+<p>Checks if the seizing of assets should be allowed to occur</p>
+<pre><code class="language-solidity">function isSeizeValid(
+    address mTokenCollateral,
+    address mTokenBorrowed,
+    address liquidator,
+    address borrower,
+    uint256 seizeTokens
+) external view returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mTokenCollateral</code></td><td><code>address</code></td><td>Asset which was used as collateral and will be seized</td></tr>
+<tr><td><code>mTokenBorrowed</code></td><td><code>address</code></td><td>Asset which was borrowed by the borrower</td></tr>
+<tr><td><code>liquidator</code></td><td><code>address</code></td><td>The address repaying the borrow and seizing the collateral</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>The address of the borrower</td></tr>
+<tr><td><code>seizeTokens</code></td><td><code>uint256</code></td><td>The number of collateral tokens to seize</td></tr>
+</tbody></table>
+</div>
+<h3 id="istransfervalid"><a class="header" href="#istransfervalid">isTransferValid</a></h3>
+<p>Transfer **</p>
+<p>Checks if the account should be allowed to transfer tokens in the given market</p>
+<pre><code class="language-solidity">function isTransferValid(address mToken, address src, address dst, uint256 transferTokens)
+    external
+    view
+    returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The market to verify the transfer against</td></tr>
+<tr><td><code>src</code></td><td><code>address</code></td><td>The account which sources the tokens</td></tr>
+<tr><td><code>dst</code></td><td><code>address</code></td><td>The account which receives the tokens</td></tr>
+<tr><td><code>transferTokens</code></td><td><code>uint256</code></td><td>The number of mTokens to transfer</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>0 if the transfer is allowed, otherwise a semi-opaque error code (See ErrorReporter.sol)</td></tr>
+</tbody></table>
+</div><div style="break-before: page; page-break-before: always;"></div><h1 id="contents-6"><a class="header" href="#contents-6">Contents</a></h1>
+<ul>
+<li><a href="src%5Clibraries/SafeApprove.sol%5Cinterface.IToken.html">IToken</a></li>
+<li><a href="src%5Clibraries/SafeApprove.sol%5Clibrary.SafeApprove.html">SafeApprove</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="itoken"><a class="header" href="#itoken">IToken</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Clibraries%5CSafeApprove.sol">Git Source</a></p>
+<h2 id="functions-8"><a class="header" href="#functions-8">Functions</a></h2>
+<h3 id="approve"><a class="header" href="#approve">approve</a></h3>
+<pre><code class="language-solidity">function approve(address spender, uint256 amount) external returns (bool);
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="safeapprove"><a class="header" href="#safeapprove">SafeApprove</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Clibraries%5CSafeApprove.sol">Git Source</a></p>
+<h2 id="functions-9"><a class="header" href="#functions-9">Functions</a></h2>
+<h3 id="safeapprove-1"><a class="header" href="#safeapprove-1">safeApprove</a></h3>
+<pre><code class="language-solidity">function safeApprove(address token, address to, uint256 value) internal;
+</code></pre>
+<h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
+<h3 id="safeapprove_nocontract"><a class="header" href="#safeapprove_nocontract">SafeApprove_NoContract</a></h3>
+<pre><code class="language-solidity">error SafeApprove_NoContract();
+</code></pre>
+<h3 id="safeapprove_failed"><a class="header" href="#safeapprove_failed">SafeApprove_Failed</a></h3>
+<pre><code class="language-solidity">error SafeApprove_Failed();
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-7"><a class="header" href="#contents-7">Contents</a></h1>
+<ul>
+<li><a href="src%5CmToken/mToken.sol%5Ccontract.mToken.html">mToken</a></li>
+<li><a href="src%5CmToken/mTokenConfiguration.sol%5Cabstract.mTokenConfiguration.html">mTokenConfiguration</a></li>
+<li><a href="src%5CmToken/mTokenDefenser.sol%5Cabstract.mTokenDefenser.html">mTokenDefenser</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="mtoken"><a class="header" href="#mtoken">mToken</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5CmToken%5CmToken.sol">Git Source</a></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="mtokenconfiguration"><a class="header" href="#mtokenconfiguration">mTokenConfiguration</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5CmToken%5CmTokenConfiguration.sol">Git Source</a></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="mtokendefenser"><a class="header" href="#mtokendefenser">mTokenDefenser</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5CmToken%5CmTokenDefenser.sol">Git Source</a></p>
+<p><strong>Inherits:</strong>
+<a href="src%5CmToken%5CmTokenDefenser.sol//src%5CmToken%5CmTokenConfiguration.sol%5Cabstract.mTokenConfiguration.html">mTokenConfiguration</a></p>
+<h2 id="functions-10"><a class="header" href="#functions-10">Functions</a></h2>
+<h3 id="_beforemint"><a class="header" href="#_beforemint">_beforeMint</a></h3>
+<p>Checks if the account should be allowed to mint tokens in the given market</p>
+<pre><code class="language-solidity">function _beforeMint(address mToken, address minter, uint256 mintAmount) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The market to verify the mint against</td></tr>
+<tr><td><code>minter</code></td><td><code>address</code></td><td>The account which would get the minted tokens</td></tr>
+<tr><td><code>mintAmount</code></td><td><code>uint256</code></td><td>The amount of underlying being supplied to the market in exchange for tokens</td></tr>
+</tbody></table>
+</div>
+<h3 id="_aftermint"><a class="header" href="#_aftermint">_afterMint</a></h3>
+<p>Defense hook for mint</p>
+<pre><code class="language-solidity">function _afterMint(address mToken, address minter, uint256 mintAmount, uint256 mintTokens) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Asset being minted</td></tr>
+<tr><td><code>minter</code></td><td><code>address</code></td><td>The address minting the tokens</td></tr>
+<tr><td><code>mintAmount</code></td><td><code>uint256</code></td><td>The amount of the underlying asset being minted</td></tr>
+<tr><td><code>mintTokens</code></td><td><code>uint256</code></td><td>The number of tokens being minted</td></tr>
+</tbody></table>
+</div>
+<h3 id="_beforemintexternal"><a class="header" href="#_beforemintexternal">_beforeMintExternal</a></h3>
+<p>Checks if the account should be allowed to mint tokens in the given market</p>
+<pre><code class="language-solidity">function _beforeMintExternal(address mToken, address minter, uint256 mintAmount) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The market to verify the mint against</td></tr>
+<tr><td><code>minter</code></td><td><code>address</code></td><td>The account which would get the minted tokens</td></tr>
+<tr><td><code>mintAmount</code></td><td><code>uint256</code></td><td>The amount of underlying being supplied to the market in exchange for tokens</td></tr>
+</tbody></table>
+</div>
+<h3 id="_beforeredeem"><a class="header" href="#_beforeredeem">_beforeRedeem</a></h3>
+<p>Redeem **</p>
+<p>Checks if the account should be allowed to redeem tokens in the given market</p>
+<pre><code class="language-solidity">function _beforeRedeem(address mToken, address redeemer, uint256 redeemTokens) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The market to verify the redeem against</td></tr>
+<tr><td><code>redeemer</code></td><td><code>address</code></td><td>The account which would redeem the tokens</td></tr>
+<tr><td><code>redeemTokens</code></td><td><code>uint256</code></td><td>The number of mToken to exchange for the underlying asset in the market</td></tr>
+</tbody></table>
+</div>
+<h3 id="_afterredeem"><a class="header" href="#_afterredeem">_afterRedeem</a></h3>
+<p>Validates redeem and reverts on rejection. May emit logs.</p>
+<pre><code class="language-solidity">function _afterRedeem(address mToken, address redeemer, uint256 redeemAmount, uint256 redeemTokens) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Asset being redeemed</td></tr>
+<tr><td><code>redeemer</code></td><td><code>address</code></td><td>The address redeeming the tokens</td></tr>
+<tr><td><code>redeemAmount</code></td><td><code>uint256</code></td><td>The amount of the underlying asset being redeemed</td></tr>
+<tr><td><code>redeemTokens</code></td><td><code>uint256</code></td><td>The number of tokens being redeemed</td></tr>
+</tbody></table>
+</div>
+<h3 id="_beforeborrow"><a class="header" href="#_beforeborrow">_beforeBorrow</a></h3>
+<p>Borrow **</p>
+<p>Checks if the account should be allowed to borrow the underlying asset of the given market</p>
+<pre><code class="language-solidity">function _beforeBorrow(address mToken, address borrower, uint256 borrowAmount) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The market to verify the borrow against</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>The account which would borrow the asset</td></tr>
+<tr><td><code>borrowAmount</code></td><td><code>uint256</code></td><td>The amount of underlying the account would borrow</td></tr>
+</tbody></table>
+</div>
+<h3 id="_afterborrow"><a class="header" href="#_afterborrow">_afterBorrow</a></h3>
+<p>Validates borrow and reverts on rejection. May emit logs.</p>
+<pre><code class="language-solidity">function _afterBorrow(address mToken, address borrower, uint256 borrowAmount) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Asset whose underlying is being borrowed</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>The address borrowing the underlying</td></tr>
+<tr><td><code>borrowAmount</code></td><td><code>uint256</code></td><td>The amount of the underlying asset requested to borrow</td></tr>
+</tbody></table>
+</div>
+<h3 id="_beforeborrowexternal"><a class="header" href="#_beforeborrowexternal">_beforeBorrowExternal</a></h3>
+<p>Checks if the account should be allowed to borrow the underlying asset of the given market</p>
+<pre><code class="language-solidity">function _beforeBorrowExternal(address mToken, address borrower, uint256 borrowAmount) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The market to verify the borrow against</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>The account which would borrow the asset</td></tr>
+<tr><td><code>borrowAmount</code></td><td><code>uint256</code></td><td>The amount of underlying the account would borrow</td></tr>
+</tbody></table>
+</div>
+<h3 id="_beforerepay"><a class="header" href="#_beforerepay">_beforeRepay</a></h3>
+<p>Repay **</p>
+<p>Checks if the account should be allowed to repay a borrow in the given market</p>
+<pre><code class="language-solidity">function _beforeRepay(address mToken, address payer, address borrower, uint256 repayAmount) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The market to verify the repay against</td></tr>
+<tr><td><code>payer</code></td><td><code>address</code></td><td>The account which would repay the asset</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>The account which would borrowed the asset</td></tr>
+<tr><td><code>repayAmount</code></td><td><code>uint256</code></td><td>The amount of the underlying asset the account would repay</td></tr>
+</tbody></table>
+</div>
+<h3 id="_afterrepay"><a class="header" href="#_afterrepay">_afterRepay</a></h3>
+<p>Validates repayBorrow and reverts on rejection. May emit logs.</p>
+<pre><code class="language-solidity">function _afterRepay(address mToken, address payer, address borrower, uint256 actualRepayAmount, uint256 borrowerIndex)
+    internal
+    virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Asset being repaid</td></tr>
+<tr><td><code>payer</code></td><td><code>address</code></td><td>The address repaying the borrow</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>The address of the borrower</td></tr>
+<tr><td><code>actualRepayAmount</code></td><td><code>uint256</code></td><td>The amount of underlying being repaid</td></tr>
+<tr><td><code>borrowerIndex</code></td><td><code>uint256</code></td><td></td></tr>
+</tbody></table>
+</div>
+<h3 id="_beforeliquidate"><a class="header" href="#_beforeliquidate">_beforeLiquidate</a></h3>
+<p>Liquidate **</p>
+<p>Checks if the liquidation should be allowed to occur</p>
+<pre><code class="language-solidity">function _beforeLiquidate(
+    address mTokenBorrowed,
+    address mTokenCollateral,
+    address liquidator,
+    address borrower,
+    uint256 repayAmount
+) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mTokenBorrowed</code></td><td><code>address</code></td><td>Asset which was borrowed by the borrower</td></tr>
+<tr><td><code>mTokenCollateral</code></td><td><code>address</code></td><td>Asset which was used as collateral and will be seized</td></tr>
+<tr><td><code>liquidator</code></td><td><code>address</code></td><td>The address repaying the borrow and seizing the collateral</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>The address of the borrower</td></tr>
+<tr><td><code>repayAmount</code></td><td><code>uint256</code></td><td>The amount of underlying being repaid</td></tr>
+</tbody></table>
+</div>
+<h3 id="_afterliquidate"><a class="header" href="#_afterliquidate">_afterLiquidate</a></h3>
+<p>Validates liquidateBorrow and reverts on rejection. May emit logs.</p>
+<pre><code class="language-solidity">function _afterLiquidate(
+    address mTokenBorrowed,
+    address mTokenCollateral,
+    address liquidator,
+    address borrower,
+    uint256 actualRepayAmount,
+    uint256 seizeTokens
+) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mTokenBorrowed</code></td><td><code>address</code></td><td>Asset which was borrowed by the borrower</td></tr>
+<tr><td><code>mTokenCollateral</code></td><td><code>address</code></td><td>Asset which was used as collateral and will be seized</td></tr>
+<tr><td><code>liquidator</code></td><td><code>address</code></td><td>The address repaying the borrow and seizing the collateral</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>The address of the borrower</td></tr>
+<tr><td><code>actualRepayAmount</code></td><td><code>uint256</code></td><td>The amount of underlying being repaid</td></tr>
+<tr><td><code>seizeTokens</code></td><td><code>uint256</code></td><td></td></tr>
+</tbody></table>
+</div>
+<h3 id="_beforeseize"><a class="header" href="#_beforeseize">_beforeSeize</a></h3>
+<p>Seize **</p>
+<p>Checks if the seizing of assets should be allowed to occur</p>
+<pre><code class="language-solidity">function _beforeSeize(
+    address mTokenCollateral,
+    address mTokenBorrowed,
+    address liquidator,
+    address borrower,
+    uint256 seizeTokens
+) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mTokenCollateral</code></td><td><code>address</code></td><td>Asset which was used as collateral and will be seized</td></tr>
+<tr><td><code>mTokenBorrowed</code></td><td><code>address</code></td><td>Asset which was borrowed by the borrower</td></tr>
+<tr><td><code>liquidator</code></td><td><code>address</code></td><td>The address repaying the borrow and seizing the collateral</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>The address of the borrower</td></tr>
+<tr><td><code>seizeTokens</code></td><td><code>uint256</code></td><td>The number of collateral tokens to seize</td></tr>
+</tbody></table>
+</div>
+<h3 id="_afterseize"><a class="header" href="#_afterseize">_afterSeize</a></h3>
+<p>Validates seize and reverts on rejection. May emit logs.</p>
+<pre><code class="language-solidity">function _afterSeize(
+    address mTokenCollateral,
+    address mTokenBorrowed,
+    address liquidator,
+    address borrower,
+    uint256 seizeTokens
+) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mTokenCollateral</code></td><td><code>address</code></td><td>Asset which was used as collateral and will be seized</td></tr>
+<tr><td><code>mTokenBorrowed</code></td><td><code>address</code></td><td>Asset which was borrowed by the borrower</td></tr>
+<tr><td><code>liquidator</code></td><td><code>address</code></td><td>The address repaying the borrow and seizing the collateral</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>The address of the borrower</td></tr>
+<tr><td><code>seizeTokens</code></td><td><code>uint256</code></td><td>The number of collateral tokens to seize</td></tr>
+</tbody></table>
+</div>
+<h3 id="_beforetransfer"><a class="header" href="#_beforetransfer">_beforeTransfer</a></h3>
+<p>Transfer **</p>
+<p>Checks if the account should be allowed to transfer tokens in the given market</p>
+<pre><code class="language-solidity">function _beforeTransfer(address mToken, address src, address dst, uint256 transferTokens) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The market to verify the transfer against</td></tr>
+<tr><td><code>src</code></td><td><code>address</code></td><td>The account which sources the tokens</td></tr>
+<tr><td><code>dst</code></td><td><code>address</code></td><td>The account which receives the tokens</td></tr>
+<tr><td><code>transferTokens</code></td><td><code>uint256</code></td><td>The number of mTokens to transfer</td></tr>
+</tbody></table>
+</div>
+<h3 id="_aftertransfer"><a class="header" href="#_aftertransfer">_afterTransfer</a></h3>
+<p>Validates transfer and reverts on rejection. May emit logs.</p>
+<pre><code class="language-solidity">function _afterTransfer(address mToken, address src, address dst, uint256 transferTokens) internal virtual;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Asset being transferred</td></tr>
+<tr><td><code>src</code></td><td><code>address</code></td><td>The account which sources the tokens</td></tr>
+<tr><td><code>dst</code></td><td><code>address</code></td><td>The account which receives the tokens</td></tr>
+<tr><td><code>transferTokens</code></td><td><code>uint256</code></td><td>The number of mTokens to transfer</td></tr>
+</tbody></table>
+</div><div style="break-before: page; page-break-before: always;"></div><h1 id="contents-8"><a class="header" href="#contents-8">Contents</a></h1>
+<ul>
+<li><a href="src%5Cmath/ExponentialNoError.sol%5Cabstract.ExponentialNoError.html">ExponentialNoError</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="exponentialnoerror"><a class="header" href="#exponentialnoerror">ExponentialNoError</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Cmath%5CExponentialNoError.sol">Git Source</a></p>
+<p><strong>Author:</strong>
+Compound</p>
+<p>Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
+Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
+<code>Exp({mantissa: 5100000000000000000})</code>.</p>
+<h2 id="state-variables-1"><a class="header" href="#state-variables-1">State Variables</a></h2>
+<h3 id="expscale"><a class="header" href="#expscale">expScale</a></h3>
+<pre><code class="language-solidity">uint256 constant expScale = 1e18;
+</code></pre>
+<h3 id="doublescale"><a class="header" href="#doublescale">doubleScale</a></h3>
+<pre><code class="language-solidity">uint256 constant doubleScale = 1e36;
+</code></pre>
+<h3 id="halfexpscale"><a class="header" href="#halfexpscale">halfExpScale</a></h3>
+<pre><code class="language-solidity">uint256 constant halfExpScale = expScale / 2;
+</code></pre>
+<h3 id="mantissaone"><a class="header" href="#mantissaone">mantissaOne</a></h3>
+<pre><code class="language-solidity">uint256 constant mantissaOne = expScale;
+</code></pre>
+<h2 id="functions-11"><a class="header" href="#functions-11">Functions</a></h2>
+<h3 id="truncate"><a class="header" href="#truncate">truncate</a></h3>
+<p><em>Truncates the given exp to a whole number value.
+For example, truncate(Exp{mantissa: 15 * expScale}) = 15</em></p>
+<pre><code class="language-solidity">function truncate(Exp memory exp) internal pure returns (uint256);
+</code></pre>
+<h3 id="mul_scalartruncate"><a class="header" href="#mul_scalartruncate">mul_ScalarTruncate</a></h3>
+<p><em>Multiply an Exp by a scalar, then truncate to return an unsigned integer.</em></p>
+<pre><code class="language-solidity">function mul_ScalarTruncate(Exp memory a, uint256 scalar) internal pure returns (uint256);
+</code></pre>
+<h3 id="mul_scalartruncateadduint"><a class="header" href="#mul_scalartruncateadduint">mul_ScalarTruncateAddUInt</a></h3>
+<p><em>Multiply an Exp by a scalar, truncate, then add an to an unsigned integer, returning an unsigned integer.</em></p>
+<pre><code class="language-solidity">function mul_ScalarTruncateAddUInt(Exp memory a, uint256 scalar, uint256 addend) internal pure returns (uint256);
+</code></pre>
+<h3 id="lessthanexp"><a class="header" href="#lessthanexp">lessThanExp</a></h3>
+<p><em>Checks if first Exp is less than second Exp.</em></p>
+<pre><code class="language-solidity">function lessThanExp(Exp memory left, Exp memory right) internal pure returns (bool);
+</code></pre>
+<h3 id="lessthanorequalexp"><a class="header" href="#lessthanorequalexp">lessThanOrEqualExp</a></h3>
+<p><em>Checks if left Exp &lt;= right Exp.</em></p>
+<pre><code class="language-solidity">function lessThanOrEqualExp(Exp memory left, Exp memory right) internal pure returns (bool);
+</code></pre>
+<h3 id="greaterthanexp"><a class="header" href="#greaterthanexp">greaterThanExp</a></h3>
+<p><em>Checks if left Exp &gt; right Exp.</em></p>
+<pre><code class="language-solidity">function greaterThanExp(Exp memory left, Exp memory right) internal pure returns (bool);
+</code></pre>
+<h3 id="iszeroexp"><a class="header" href="#iszeroexp">isZeroExp</a></h3>
+<p><em>returns true if Exp is exactly zero</em></p>
+<pre><code class="language-solidity">function isZeroExp(Exp memory value) internal pure returns (bool);
+</code></pre>
+<h3 id="safe224"><a class="header" href="#safe224">safe224</a></h3>
+<pre><code class="language-solidity">function safe224(uint256 n, string memory errorMessage) internal pure returns (uint224);
+</code></pre>
+<h3 id="safe32"><a class="header" href="#safe32">safe32</a></h3>
+<pre><code class="language-solidity">function safe32(uint256 n, string memory errorMessage) internal pure returns (uint32);
+</code></pre>
+<h3 id="add_"><a class="header" href="#add_">add_</a></h3>
+<pre><code class="language-solidity">function add_(Exp memory a, Exp memory b) internal pure returns (Exp memory);
+</code></pre>
+<h3 id="add_-1"><a class="header" href="#add_-1">add_</a></h3>
+<pre><code class="language-solidity">function add_(Double memory a, Double memory b) internal pure returns (Double memory);
+</code></pre>
+<h3 id="add_-2"><a class="header" href="#add_-2">add_</a></h3>
+<pre><code class="language-solidity">function add_(uint256 a, uint256 b) internal pure returns (uint256);
+</code></pre>
+<h3 id="sub_"><a class="header" href="#sub_">sub_</a></h3>
+<pre><code class="language-solidity">function sub_(Exp memory a, Exp memory b) internal pure returns (Exp memory);
+</code></pre>
+<h3 id="sub_-1"><a class="header" href="#sub_-1">sub_</a></h3>
+<pre><code class="language-solidity">function sub_(Double memory a, Double memory b) internal pure returns (Double memory);
+</code></pre>
+<h3 id="sub_-2"><a class="header" href="#sub_-2">sub_</a></h3>
+<pre><code class="language-solidity">function sub_(uint256 a, uint256 b) internal pure returns (uint256);
+</code></pre>
+<h3 id="mul_"><a class="header" href="#mul_">mul_</a></h3>
+<pre><code class="language-solidity">function mul_(Exp memory a, Exp memory b) internal pure returns (Exp memory);
+</code></pre>
+<h3 id="mul_-1"><a class="header" href="#mul_-1">mul_</a></h3>
+<pre><code class="language-solidity">function mul_(Exp memory a, uint256 b) internal pure returns (Exp memory);
+</code></pre>
+<h3 id="mul_-2"><a class="header" href="#mul_-2">mul_</a></h3>
+<pre><code class="language-solidity">function mul_(uint256 a, Exp memory b) internal pure returns (uint256);
+</code></pre>
+<h3 id="mul_-3"><a class="header" href="#mul_-3">mul_</a></h3>
+<pre><code class="language-solidity">function mul_(Double memory a, Double memory b) internal pure returns (Double memory);
+</code></pre>
+<h3 id="mul_-4"><a class="header" href="#mul_-4">mul_</a></h3>
+<pre><code class="language-solidity">function mul_(Double memory a, uint256 b) internal pure returns (Double memory);
+</code></pre>
+<h3 id="mul_-5"><a class="header" href="#mul_-5">mul_</a></h3>
+<pre><code class="language-solidity">function mul_(uint256 a, Double memory b) internal pure returns (uint256);
+</code></pre>
+<h3 id="mul_-6"><a class="header" href="#mul_-6">mul_</a></h3>
+<pre><code class="language-solidity">function mul_(uint256 a, uint256 b) internal pure returns (uint256);
+</code></pre>
+<h3 id="div_"><a class="header" href="#div_">div_</a></h3>
+<pre><code class="language-solidity">function div_(Exp memory a, Exp memory b) internal pure returns (Exp memory);
+</code></pre>
+<h3 id="div_-1"><a class="header" href="#div_-1">div_</a></h3>
+<pre><code class="language-solidity">function div_(Exp memory a, uint256 b) internal pure returns (Exp memory);
+</code></pre>
+<h3 id="div_-2"><a class="header" href="#div_-2">div_</a></h3>
+<pre><code class="language-solidity">function div_(uint256 a, Exp memory b) internal pure returns (uint256);
+</code></pre>
+<h3 id="div_-3"><a class="header" href="#div_-3">div_</a></h3>
+<pre><code class="language-solidity">function div_(Double memory a, Double memory b) internal pure returns (Double memory);
+</code></pre>
+<h3 id="div_-4"><a class="header" href="#div_-4">div_</a></h3>
+<pre><code class="language-solidity">function div_(Double memory a, uint256 b) internal pure returns (Double memory);
+</code></pre>
+<h3 id="div_-5"><a class="header" href="#div_-5">div_</a></h3>
+<pre><code class="language-solidity">function div_(uint256 a, Double memory b) internal pure returns (uint256);
+</code></pre>
+<h3 id="div_-6"><a class="header" href="#div_-6">div_</a></h3>
+<pre><code class="language-solidity">function div_(uint256 a, uint256 b) internal pure returns (uint256);
+</code></pre>
+<h3 id="fraction"><a class="header" href="#fraction">fraction</a></h3>
+<pre><code class="language-solidity">function fraction(uint256 a, uint256 b) internal pure returns (Double memory);
+</code></pre>
+<h2 id="structs-2"><a class="header" href="#structs-2">Structs</a></h2>
+<h3 id="exp"><a class="header" href="#exp">Exp</a></h3>
+<pre><code class="language-solidity">struct Exp {
+    uint256 mantissa;
+}
+</code></pre>
+<h3 id="double"><a class="header" href="#double">Double</a></h3>
+<pre><code class="language-solidity">struct Double {
+    uint256 mantissa;
+}
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-9"><a class="header" href="#contents-9">Contents</a></h1>
+<ul>
+<li><a href="src%5Coracles/ChainlinkOracle.sol%5Ccontract.ChainlinkOracle.html">ChainlinkOracle</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="chainlinkoracle"><a class="header" href="#chainlinkoracle">ChainlinkOracle</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Coracles%5CChainlinkOracle.sol">Git Source</a></p>
+<p><strong>Inherits:</strong>
+<a href="src%5Coracles%5CChainlinkOracle.sol//src%5Cinterfaces%5CIOracleOperator.sol%5Cinterface.IOracleOperator.html">IOracleOperator</a></p>
+<h2 id="state-variables-2"><a class="header" href="#state-variables-2">State Variables</a></h2>
+<h3 id="pricefeeds"><a class="header" href="#pricefeeds">priceFeeds</a></h3>
+<pre><code class="language-solidity">mapping(string =&gt; IAggregatorV3) public priceFeeds;
+</code></pre>
+<h3 id="baseunits"><a class="header" href="#baseunits">baseUnits</a></h3>
+<pre><code class="language-solidity">mapping(string =&gt; uint256) public baseUnits;
+</code></pre>
+<h3 id="decimals-1"><a class="header" href="#decimals-1">DECIMALS</a></h3>
+<pre><code class="language-solidity">uint8 public constant DECIMALS = 18;
+</code></pre>
+<h2 id="functions-12"><a class="header" href="#functions-12">Functions</a></h2>
+<h3 id="constructor-1"><a class="header" href="#constructor-1">constructor</a></h3>
+<pre><code class="language-solidity">constructor(string[] memory symbols_, IAggregatorV3[] memory feeds_, uint256[] memory baseUnits_);
+</code></pre>
+<h3 id="getprice-1"><a class="header" href="#getprice-1">getPrice</a></h3>
+<p>Get the price of a mToken asset</p>
+<pre><code class="language-solidity">function getPrice(address mToken) external view override returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The mToken to get the price of</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The underlying asset price mantissa (scaled by 1e18). Zero means the price is unavailable.</td></tr>
+</tbody></table>
+</div>
+<h3 id="getunderlyingprice-1"><a class="header" href="#getunderlyingprice-1">getUnderlyingPrice</a></h3>
+<p>Get the underlying price of a mToken asset</p>
+<pre><code class="language-solidity">function getUnderlyingPrice(address mToken) external view override returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The mToken to get the underlying price of</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The underlying asset price mantissa (scaled by 1e18). Zero means the price is unavailable.</td></tr>
+</tbody></table>
+</div>
+<h3 id="_getlatestprice"><a class="header" href="#_getlatestprice">_getLatestPrice</a></h3>
+<pre><code class="language-solidity">function _getLatestPrice(string memory symbol) internal view returns (uint256, uint256);
+</code></pre>
+<h2 id="errors-1"><a class="header" href="#errors-1">Errors</a></h2>
+<h3 id="chainlinkoracle_nopricefeed"><a class="header" href="#chainlinkoracle_nopricefeed">ChainlinkOracle_NoPriceFeed</a></h3>
+<pre><code class="language-solidity">error ChainlinkOracle_NoPriceFeed();
+</code></pre>
+<h3 id="chainlinkoracle_zeroprice"><a class="header" href="#chainlinkoracle_zeroprice">ChainlinkOracle_ZeroPrice</a></h3>
+<pre><code class="language-solidity">error ChainlinkOracle_ZeroPrice();
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="contents-10"><a class="header" href="#contents-10">Contents</a></h1>
+<ul>
+<li><a href="src%5Cverifier/Verifier.sol%5Ccontract.Verifier.html">Verifier</a></li>
+<li><a href="src%5Cverifier/VerifierStorage.sol%5Cabstract.VerifierStorage.html">VerifierStorage</a></li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="verifier"><a class="header" href="#verifier">Verifier</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Cverifier%5CVerifier.sol">Git Source</a></p>
+<p><strong>Inherits:</strong>
+<a href="src%5Cverifier%5CVerifier.sol//src%5Cverifier%5CVerifierStorage.sol%5Cabstract.VerifierStorage.html">VerifierStorage</a></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="verifierstorage"><a class="header" href="#verifierstorage">VerifierStorage</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5Cverifier%5CVerifierStorage.sol">Git Source</a></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="counter"><a class="header" href="#counter">Counter</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src%5CCounter.sol">Git Source</a></p>
+<h2 id="state-variables-3"><a class="header" href="#state-variables-3">State Variables</a></h2>
+<h3 id="number"><a class="header" href="#number">number</a></h3>
+<pre><code class="language-solidity">uint256 public number;
+</code></pre>
+<h2 id="functions-13"><a class="header" href="#functions-13">Functions</a></h2>
+<h3 id="setnumber"><a class="header" href="#setnumber">setNumber</a></h3>
+<pre><code class="language-solidity">function setNumber(uint256 newNumber) public;
+</code></pre>
+<h3 id="increment"><a class="header" href="#increment">increment</a></h3>
+<pre><code class="language-solidity">function increment() public;
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+        <!-- Livereload script (if served using the cli tool) -->
+        <script>
+            const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsAddress = wsProtocol + "//" + location.host + "/" + "__livereload";
+            const socket = new WebSocket(wsAddress);
+            socket.onmessage = function (event) {
+                if (event.data === "reload") {
+                    socket.close();
+                    location.reload();
+                }
+            };
+
+            window.onbeforeunload = function() {
+                socket.close();
+            }
+        </script>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr.min.js"></script>
+        <script src="mark.min.js"></script>
+        <script src="searcher.js"></script>
+
+        <script src="clipboard.min.js"></script>
+        <script src="highlight.js"></script>
+        <script src="book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="solidity.min.js"></script>
+
+        <script>
+        window.addEventListener('load', function() {
+            window.setTimeout(window.print, 100);
+        });
+        </script>
+
+    </div>
+    </body>
+</html>
