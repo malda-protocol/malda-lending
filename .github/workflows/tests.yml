@@ -10,26 +10,34 @@ on:
 
 jobs:
   test:
-    name: Foundry tests
+    name: Solidity tests
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
+          
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 'latest' 
+
+      - name: Install Dependencies
+        run: yarn install
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
 
-      - name: Install dependencies
+      - name: Install Foundry dependencies
         run: forge install
 
       - name: Check contract sizes
         run: forge build --sizes
         id: build
 
-      - name: Run tests
+      - name: Run Solidity tests
         run: forge test --gas-report
         id: test
