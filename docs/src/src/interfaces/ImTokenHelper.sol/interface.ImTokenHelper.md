@@ -1,5 +1,5 @@
 # ImTokenHelper
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src\interfaces\ImTokenHelper.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/00d040411754d9ec62fde1c26b93be292ca3e328/src\interfaces\ImTokenHelper.sol)
 
 
 ## Functions
@@ -116,35 +116,6 @@ function isLiquidateValid(
 |`liquidator`|`address`|The address repaying the borrow and seizing the collateral|
 |`borrower`|`address`|The address of the borrower|
 |`repayAmount`|`uint256`|The amount of underlying being repaid|
-
-
-### liquidateCalculateSeizeTokens
-
-Calculate number of tokens of collateral asset to seize given an underlying amount
-
-*Used in liquidation (called in mTokenBorrowed.liquidate)*
-
-
-```solidity
-function liquidateCalculateSeizeTokens(address mTokenBorrowed, address mTokenCollateral, uint256 actualRepayAmount)
-    external
-    view
-    returns (uint256, uint256);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`mTokenBorrowed`|`address`|The address of the borrowed cToken|
-|`mTokenCollateral`|`address`|The address of the collateral cToken|
-|`actualRepayAmount`|`uint256`|The amount of mTokenBorrowed underlying to convert into mTokenCollateral tokens|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|(errorCode, number of mTokenCollateral tokens to be seized in a liquidation)|
-|`<none>`|`uint256`||
 
 
 ### isSeizeValid

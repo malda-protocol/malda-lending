@@ -1,5 +1,5 @@
 # IInterestRateModel
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src\interfaces\IInterestRateModel.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/00d040411754d9ec62fde1c26b93be292ca3e328/src\interfaces\IInterestRateModel.sol)
 
 Interface for the interest rate contracts
 

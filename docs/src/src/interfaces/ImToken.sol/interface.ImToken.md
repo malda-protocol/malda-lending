@@ -1,4 +1,86 @@
 # ImToken
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/179a048ba4fdf7caff4add1e6a0986ba27ae405c/src\interfaces\ImToken.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/00d040411754d9ec62fde1c26b93be292ca3e328/src\interfaces\ImToken.sol)
 
+**Inherits:**
+[ImTokenMinimal](/src\interfaces\ImToken.sol\interface.ImTokenMinimal.md)
+
+
+## Functions
+### totalBorrows
+
+Total amount of outstanding borrows of the underlying in this market
+
+
+```solidity
+function totalBorrows() external view returns (uint256);
+```
+
+### borrowIndex
+
+Accumulator of the total earned interest rate since the opening of the market
+
+
+```solidity
+function borrowIndex() external view returns (uint256);
+```
+
+### borrowBalanceStored
+
+Returns Borrow balance for account
+
+
+```solidity
+function borrowBalanceStored(address account) external view returns (uint256);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`account`|`address`|The account to check for|
+
+
+### transfer
+
+Moves a `value` amount of tokens from the caller's account to `dst`.
+Returns a boolean value indicating whether the operation succeeded.
+
+
+```solidity
+function transfer(address dst, uint256 amount) external returns (bool);
+```
+
+### getAccountSnapshot
+
+Get a snapshot of the account's balances, and the cached exchange rate
+
+*This is used by comptroller to more efficiently perform liquidity checks.*
+
+
+```solidity
+function getAccountSnapshot(address account) external view returns (uint256, uint256, uint256, uint256);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`account`|`address`|Address of the account to snapshot|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|(possible error, token balance, borrow balance, exchange rate mantissa)|
+|`<none>`|`uint256`||
+|`<none>`|`uint256`||
+|`<none>`|`uint256`||
+
+
+### exchangeRateStored
+
+Returns exchange rate
+
+
+```solidity
+function exchangeRateStored() external view returns (uint256);
+```
 

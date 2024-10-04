@@ -9,5 +9,7 @@
 - [mToken](/src\mToken)
 - [math](/src\math)
 - [oracles](/src\oracles)
+- [rewards](/src\rewards)
 - [verifier](/src\verifier)
 - [Counter](Counter.sol\contract.Counter.md)
+- [Roles](Roles.sol\contract.Roles.md)
