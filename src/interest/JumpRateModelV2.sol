@@ -4,6 +4,13 @@ pragma solidity =0.8.27;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IInterestRateModel} from "../interfaces/IInterestRateModel.sol";
 
+/*
+ _____ _____ __    ____  _____ 
+|     |  _  |  |  |    \|  _  |
+| | | |     |  |__|  |  |     |
+|_|_|_|__|__|_____|____/|__|__|   
+*/
+
 /**
  * @title JumpRateModelV2
  * @notice Implementation of the IInterestRateModel interface for calculating interest rates

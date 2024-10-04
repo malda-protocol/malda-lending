@@ -8,6 +8,8 @@ pragma solidity =0.8.27;
 |_|_|_|__|__|_____|____/|__|__|   
 */
 
+import {IRoles} from "./IRoles.sol";
+
 interface IOperatorData {
     struct Market {
         // Whether or not this market is listed
@@ -23,8 +25,7 @@ interface IOperatorData {
     }
 }
 
-interface IOperator {
-    // ----------- VIEW ------------
+interface IOperatorAccess {
     /**
      * @notice Administrator for this contract
      */
@@ -33,35 +34,49 @@ interface IOperator {
      * @notice Pending administrator for this contract
      */
     function pendingAdmin() external view returns (address);
+}
+
+interface IOperator {
+    // ----------- VIEW ------------
+    /**
+     * @notice Roles manager
+     */
+    function rolesOpeartor() external view returns (IRoles);
+
     /**
      * @notice Oracle which gives the price of any given asset
      */
     function oracleOperator() external view returns (address);
+
     /**
      * @notice Multiplier used to calculate the maximum repayAmount when liquidating a borrow
      */
     function closeFactorMantissa() external view returns (uint256);
+
     /**
      * @notice Multiplier representing the discount on collateral that a liquidator receives
      */
     function liquidationIncentiveMantissa() external view returns (uint256);
+
     /**
-     * @notice Per-account mapping of "assets you are in", capped by maxAssets
+     * @notice Returns the assets an account has entered
+     * @param _user The address of the account to pull assets for
+     * @return mTokens A dynamic list with the assets the account has entered
      */
-    function accountAssets(address _user) external view returns (address[] memory mTokens);
+    function getAssetsIn(address _user) external view returns (address[] memory mTokens);
 
     /**
      * @notice A list of all markets
      */
-    function allMarkets() external view returns (address[] memory mTokens);
+    function getAllMarkets() external view returns (address[] memory mTokens);
 
     /**
-     * @notice Borrow caps enforced by borrowAllowed for each cToken address. Defaults to zero which corresponds to unlimited borrowing.
+     * @notice Borrow caps enforced by borrowAllowed for each mToken address. Defaults to zero which corresponds to unlimited borrowing.
      */
-    function borroCaps(address _mToken) external view returns (uint256);
+    function borrowCaps(address _mToken) external view returns (uint256);
 
     /**
-     * @notice Supply caps enforced by supplyAllowed for each cToken address. Defaults to zero which corresponds to unlimited supplying.
+     * @notice Supply caps enforced by supplyAllowed for each mToken address. Defaults to zero which corresponds to unlimited supplying.
      */
     function supplyCaps(address _mToken) external view returns (uint256);
 
@@ -69,6 +84,50 @@ interface IOperator {
      * @notice Reward Distributor to markets supply and borrow (including protocol token)
      */
     function rewardDistributor() external view returns (address);
+
+    /**
+     * @notice Returns whether the given account is entered in the given asset
+     * @param account The address of the account to check
+     * @param mToken The mToken to check
+     * @return True if the account is in the asset, otherwise false.
+     */
+    function checkMembership(address account, address mToken) external view returns (bool);
+
+    /**
+     * @notice Determine the current account liquidity wrt collateral requirements
+     * @return  account liquidity in excess of collateral requirements,
+     *          account shortfall below collateral requirements)
+     */
+    function getAccountLiquidity(address account) external view returns (uint256, uint256);
+
+    /**
+     * @notice Determine what the account liquidity would be if the given amounts were redeemed/borrowed
+     * @param mTokenModify The market to hypothetically redeem/borrow in
+     * @param account The account to determine liquidity for
+     * @param redeemTokens The number of tokens to hypothetically redeem
+     * @param borrowAmount The amount of underlying to hypothetically borrow
+     * @return hypothetical account liquidity in excess of collateral requirements,
+     *         hypothetical account shortfall below collateral requirements)
+     */
+    function getHypotheticalAccountLiquidity(
+        address account,
+        address mTokenModify,
+        uint256 redeemTokens,
+        uint256 borrowAmount
+    ) external view returns (uint256, uint256);
+
+    /**
+     * @notice Calculate number of tokens of collateral asset to seize given an underlying amount
+     * @dev Used in liquidation (called in mTokenBorrowed.liquidate)
+     * @param mTokenBorrowed The address of the borrowed cToken
+     * @param mTokenCollateral The address of the collateral cToken
+     * @param actualRepayAmount The amount of mTokenBorrowed underlying to convert into mTokenCollateral tokens
+     * @return number of mTokenCollateral tokens to be seized in a liquidation
+     */
+    function liquidateCalculateSeizeTokens(address mTokenBorrowed, address mTokenCollateral, uint256 actualRepayAmount)
+        external
+        view
+        returns (uint256);
 
     //TODO:  add market membership view method
 

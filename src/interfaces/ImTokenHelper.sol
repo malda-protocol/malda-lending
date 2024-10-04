@@ -87,19 +87,6 @@ interface ImTokenHelper {
     ) external view returns (uint256);
 
     /**
-     * @notice Calculate number of tokens of collateral asset to seize given an underlying amount
-     * @dev Used in liquidation (called in mTokenBorrowed.liquidate)
-     * @param mTokenBorrowed The address of the borrowed cToken
-     * @param mTokenCollateral The address of the collateral cToken
-     * @param actualRepayAmount The amount of mTokenBorrowed underlying to convert into mTokenCollateral tokens
-     * @return (errorCode, number of mTokenCollateral tokens to be seized in a liquidation)
-     */
-    function liquidateCalculateSeizeTokens(address mTokenBorrowed, address mTokenCollateral, uint256 actualRepayAmount)
-        external
-        view
-        returns (uint256, uint256);
-
-    /**
      * Seize **
      */
     /**

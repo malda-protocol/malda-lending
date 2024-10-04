@@ -1,0 +1,292 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity =0.8.27;
+
+/*
+ _____ _____ __    ____  _____ 
+|     |  _  |  |  |    \|  _  |
+| | | |     |  |__|  |  |     |
+|_|_|_|__|__|_____|____/|__|__|                           
+*/
+
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+
+import {ImToken} from "../interfaces/ImToken.sol";
+import {ExponentialNoError} from "../math/ExponentialNoError.sol";
+import {IRewardDistributor, IRewardDistributorData} from "../interfaces/IRewardDistributor.sol";
+
+contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializable, OwnableUpgradeable {
+    // ----------- STORAGE ------------
+    uint224 public constant REWARD_INITIAL_INDEX = 1e36;
+
+    /**
+     * @inheritdoc IRewardDistributor
+     */
+    address public override operator;
+
+    /**
+     * @notice The Reward state for each reward token for each market
+     */
+    mapping(address => mapping(address => IRewardDistributorData.RewardMarketState)) public rewardMarketState;
+    /**
+     * @notice The Reward state for each reward token for each account
+     */
+    mapping(address => mapping(address => IRewardDistributorData.RewardAccountState)) public rewardAccountState;
+
+    /**
+     * @notice Added reward tokens
+     */
+    address[] public rewardTokens;
+
+    /**
+     * @inheritdoc IRewardDistributor
+     */
+    mapping(address => bool) public isRewardToken;
+
+    error RewardDistributor_OnlyOperator();
+    error RewardDistributor_AddressNotValid();
+    error RewardDistributor_AddressAlreadyRegistered();
+    error RewardDistributor_RewardNotValid();
+    error RewardDistributor_SupplySpeedArrayLengthMismatch();
+    error RewardDistributor_BorrowSpeedArrayLengthMismatch();
+
+    // ----------- MODIFIERS ------------
+    modifier onlyOperator() {
+        require(msg.sender == operator, RewardDistributor_OnlyOperator());
+        _;
+    }
+
+    // ----------- PUBLIC ------------
+    function claim(address[] memory holders) public override {
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            _claim(rewardTokens[i], holders);
+        }
+    }
+
+    /**
+     * @inheritdoc IRewardDistributor
+     */
+    function getBlockNumber() public view override returns (uint32) {
+        // needs to have a string error message
+        return safe32(block.timestamp, "block number exceeds 32 bits");
+    }
+
+    /**
+     * @inheritdoc IRewardDistributor
+     */
+    function getRewardTokens() public view override returns (address[] memory) {
+        return rewardTokens;
+    }
+
+    // ----------- OWNER ------------
+    function initialize(address _operator) public initializer {
+        require(_operator != address(0), RewardDistributor_AddressNotValid());
+
+        __Ownable_init(msg.sender);
+
+        operator = _operator;
+    }
+
+    function whitelistToken(address rewardToken_) public onlyOwner {
+        require(rewardToken_ != address(0), RewardDistributor_AddressNotValid());
+        require(!isRewardToken[rewardToken_], RewardDistributor_AddressAlreadyRegistered());
+
+        rewardTokens.push(rewardToken_);
+        isRewardToken[rewardToken_] = true;
+    }
+
+    function updateRewardSpeeds(
+        address rewardToken_,
+        address[] memory mTokens,
+        uint256[] memory supplySpeeds,
+        uint256[] memory borrowSpeeds
+    ) public onlyOwner {
+        require(isRewardToken[rewardToken_], RewardDistributor_RewardNotValid());
+        require(mTokens.length == supplySpeeds.length, RewardDistributor_SupplySpeedArrayLengthMismatch());
+        require(mTokens.length == borrowSpeeds.length, RewardDistributor_BorrowSpeedArrayLengthMismatch());
+
+        for (uint256 i = 0; i < mTokens.length; i++) {
+            _updateRewardSpeed(rewardToken_, mTokens[i], supplySpeeds[i], borrowSpeeds[i]);
+        }
+    }
+
+    function grantReward(address token, address user, uint256 amount) public onlyOwner {
+        require(isRewardToken[token], RewardDistributor_RewardNotValid());
+        _grantReward(token, user, amount);
+    }
+
+    // ----------- OPERATOR ------------
+    function notifySupplyIndex(address mToken) external onlyOperator {
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            _notifySupplyIndex(rewardTokens[i], mToken);
+        }
+    }
+
+    function notifyBorrowIndex(address mToken) external onlyOperator {
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            _notifyBorrowIndex(rewardTokens[i], mToken);
+        }
+    }
+
+    function notifySupplier(address mToken, address supplier) external onlyOperator {
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            _notifySupplier(rewardTokens[i], mToken, supplier);
+        }
+    }
+
+    function notifyBorrower(address mToken, address borrower) external onlyOperator {
+        for (uint256 i = 0; i < rewardTokens.length; i++) {
+            _notifyBorrower(rewardTokens[i], mToken, borrower);
+        }
+    }
+
+    // ----------- PRIVATE ------------
+    function _updateRewardSpeed(address rewardToken, address mToken, uint256 supplySpeed, uint256 borrowSpeed)
+        private
+    {
+        IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
+
+        if (marketState.supplySpeed != supplySpeed) {
+            if (marketState.supplyIndex == 0) {
+                marketState.supplyIndex = REWARD_INITIAL_INDEX;
+            }
+
+            _notifySupplyIndex(rewardToken, mToken);
+            marketState.supplySpeed = supplySpeed;
+            emit SupplySpeedUpdated(rewardToken, mToken, supplySpeed);
+        }
+
+        if (marketState.borrowSpeed != borrowSpeed) {
+            if (marketState.borrowIndex == 0) {
+                marketState.borrowIndex = REWARD_INITIAL_INDEX;
+            }
+
+            _notifyBorrowIndex(rewardToken, mToken);
+            marketState.borrowSpeed = borrowSpeed;
+            emit BorrowSpeedUpdated(rewardToken, mToken, borrowSpeed);
+        }
+    }
+
+    function _notifySupplyIndex(address rewardToken, address mToken) private {
+        IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
+
+        uint32 blockNumber = getBlockNumber();
+
+        if (blockNumber > marketState.supplyBlock) {
+            if (marketState.supplySpeed > 0) {
+                uint256 deltaBlocks = blockNumber - marketState.supplyBlock;
+                uint256 supplyTokens = ImToken(mToken).totalSupply();
+                uint256 accrued = mul_(deltaBlocks, marketState.supplySpeed);
+                Double memory ratio = supplyTokens > 0 ? fraction(accrued, supplyTokens) : Double({mantissa: 0});
+                marketState.supplyIndex = safe224(
+                    add_(Double({mantissa: marketState.supplyIndex}), ratio).mantissa,
+                    "new index exceeds 224 bits" // needs to be a string
+                );
+            }
+
+            marketState.supplyBlock = blockNumber;
+        }
+    }
+
+    function _notifyBorrowIndex(address rewardToken, address mToken) private {
+        Exp memory marketBorrowIndex = Exp({mantissa: ImToken(mToken).borrowIndex()});
+
+        IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
+
+        uint32 blockNumber = getBlockNumber();
+
+        if (blockNumber > marketState.borrowBlock) {
+            if (marketState.borrowSpeed > 0) {
+                uint256 deltaBlocks = blockNumber - marketState.borrowBlock;
+                uint256 borrowAmount = div_(ImToken(mToken).totalBorrows(), marketBorrowIndex);
+                uint256 accrued = mul_(deltaBlocks, marketState.borrowSpeed);
+                Double memory ratio = borrowAmount > 0 ? fraction(accrued, borrowAmount) : Double({mantissa: 0});
+                marketState.borrowIndex = safe224(
+                    add_(Double({mantissa: marketState.borrowIndex}), ratio).mantissa,
+                    "new index exceeds 224 bits" // needs to be a string
+                );
+            }
+
+            marketState.borrowBlock = blockNumber;
+        }
+    }
+
+    function _notifySupplier(address rewardToken, address mToken, address supplier) private {
+        IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
+        IRewardDistributorData.RewardAccountState storage accountState = rewardAccountState[rewardToken][supplier];
+
+        uint256 supplyIndex = marketState.supplyIndex;
+        uint256 supplierIndex = accountState.supplierIndex[mToken];
+
+        // Update supplier's index to the current index since we are distributing accrued Reward
+        accountState.supplierIndex[mToken] = supplyIndex;
+
+        if (supplierIndex == 0 && supplyIndex >= REWARD_INITIAL_INDEX) {
+            supplierIndex = REWARD_INITIAL_INDEX;
+        }
+
+        // Calculate change in the cumulative sum of the Reward per mToken accrued
+        Double memory deltaIndex = Double({mantissa: sub_(supplyIndex, supplierIndex)});
+
+        uint256 supplierTokens = ImToken(mToken).balanceOf(supplier);
+
+        // Calculate Reward accrued: mTokenAmount * accruedPerMToken
+        uint256 supplierDelta = mul_(supplierTokens, deltaIndex);
+
+        accountState.rewardAccrued = add_(accountState.rewardAccrued, supplierDelta);
+
+        emit RewardAccrued(rewardToken, supplier, supplierDelta, accountState.rewardAccrued);
+    }
+
+    function _notifyBorrower(address rewardToken, address mToken, address borrower) private {
+        Exp memory marketBorrowIndex = Exp({mantissa: ImToken(mToken).borrowIndex()});
+
+        IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
+        IRewardDistributorData.RewardAccountState storage accountState = rewardAccountState[rewardToken][borrower];
+
+        uint256 borrowIndex = marketState.borrowIndex;
+        uint256 borrowerIndex = accountState.borrowerIndex[mToken];
+
+        // Update borrowers's index to the current index since we are distributing accrued Reward
+        accountState.borrowerIndex[mToken] = borrowIndex;
+
+        if (borrowerIndex == 0 && borrowIndex >= REWARD_INITIAL_INDEX) {
+            // Covers the case where users borrowed tokens before the market's borrow state index was set.
+            // Rewards the user with Reward accrued from the start of when borrower rewards were first
+            // set for the market.
+            borrowerIndex = REWARD_INITIAL_INDEX;
+        }
+
+        // Calculate change in the cumulative sum of the Reward per borrowed unit accrued
+        Double memory deltaIndex = Double({mantissa: sub_(borrowIndex, borrowerIndex)});
+
+        uint256 borrowerAmount = div_(ImToken(mToken).borrowBalanceStored(borrower), marketBorrowIndex);
+
+        // Calculate Reward accrued: mTokenAmount * accruedPerBorrowedUnit
+        uint256 borrowerDelta = mul_(borrowerAmount, deltaIndex);
+
+        accountState.rewardAccrued = add_(accountState.rewardAccrued, borrowerDelta);
+
+        emit RewardAccrued(rewardToken, borrower, borrowerDelta, accountState.rewardAccrued);
+    }
+
+    function _claim(address rewardToken, address[] memory holders) internal {
+        for (uint256 j = 0; j < holders.length; j++) {
+            IRewardDistributorData.RewardAccountState storage accountState = rewardAccountState[rewardToken][holders[j]];
+
+            accountState.rewardAccrued = _grantReward(rewardToken, holders[j], accountState.rewardAccrued);
+        }
+    }
+
+    function _grantReward(address token, address user, uint256 amount) internal returns (uint256) {
+        uint256 remaining = ImToken(token).balanceOf(address(this));
+        if (amount > 0 && amount <= remaining) {
+            ImToken(token).transfer(user, amount);
+
+            emit RewardGranted(token, user, amount);
+
+            return 0;
+        }
+        return amount;
+    }
+}
