@@ -23,6 +23,11 @@ interface IInterestRateModel {
     );
 
     /**
+     * @notice Should return true
+     */
+    function isInterestRateModel() external view returns (bool);
+
+    /**
      * @notice The approximate number of blocks per year that is assumed by the interest rate model
      * @return The number of blocks per year
      */

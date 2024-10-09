@@ -1,8 +1,44 @@
 # ImTokenMinimal
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/b62e113034d94e880ebb241b8fad49eb27118646/src\interfaces\ImToken.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\interfaces\ImToken.sol)
 
 
 ## Functions
+### name
+
+EIP-20 token name for this token
+
+
+```solidity
+function name() external view returns (string memory);
+```
+
+### symbol
+
+EIP-20 token symbol for this token
+
+
+```solidity
+function symbol() external view returns (string memory);
+```
+
+### decimals
+
+EIP-20 token decimals for this token
+
+
+```solidity
+function decimals() external view returns (uint8);
+```
+
+### totalSupply
+
+Returns the value of tokens in existence.
+
+
+```solidity
+function totalSupply() external view returns (uint256);
+```
+
 ### balanceOf
 
 Returns the value of tokens owned by `account`.
@@ -18,22 +54,13 @@ function balanceOf(address account) external view returns (uint256);
 |`account`|`address`|The account to check for|
 
 
-### symbol
+### isMToken
 
-*Returns the symbol of the token, usually a shorter version of the
+*Returns true
 name.*
 
 
 ```solidity
-function symbol() external view returns (string memory);
-```
-
-### totalSupply
-
-Returns the value of tokens in existence.
-
-
-```solidity
-function totalSupply() external view returns (uint256);
+function isMToken() external view returns (bool);
 ```
 

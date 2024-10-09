@@ -65,6 +65,26 @@ interface IRewardDistributor {
     function getBlockNumber() external view returns (uint32);
 
     /**
+     * @notice Notifies supply index
+     */
+    function notifySupplyIndex(address mToken) external;
+
+    /**
+     * @notice Notifies borrow index
+     */
+    function notifyBorrowIndex(address mToken) external;
+
+    /**
+     * @notice Notifies supplier
+     */
+    function notifySupplier(address mToken, address supplier) external;
+
+    /**
+     * @notice Notifies borrower
+     */
+    function notifyBorrower(address mToken, address borrower) external;
+
+    /**
      * @notice Claim tokens for `holders
      * @param holders the accounts to claim for
      */

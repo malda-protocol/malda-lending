@@ -25,23 +25,95 @@ interface IOperatorData {
     }
 }
 
-interface IOperatorAccess {
+interface IOperatorDefender {
     /**
-     * @notice Administrator for this contract
+     * @notice Checks if the account should be allowed to transfer tokens in the given market
+     * @param mToken The market to verify the transfer against
+     * @param src The account which sources the tokens
+     * @param dst The account which receives the tokens
+     * @param transferTokens The number of mTokens to transfer
      */
-    function admin() external view returns (address);
+    function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external;
+
     /**
-     * @notice Pending administrator for this contract
+     * @notice Checks if the account should be allowed to mint tokens in the given market
+     * @param mToken The market to verify the mint against
+     * @param minter The account which would get the minted tokens
      */
-    function pendingAdmin() external view returns (address);
+    function beforeMTokenMint(address mToken, address minter) external;
+
+    /**
+     * @notice Validates mint and reverts on rejection. May emit logs.
+     * @param mToken Asset being minted
+     */
+    function afterMTokenMint(address mToken) external view;
+
+    /**
+     * @notice Checks if the account should be allowed to redeem tokens in the given market
+     * @param mToken The market to verify the redeem against
+     * @param redeemer The account which would redeem the tokens
+     * @param redeemTokens The number of mTokens to exchange for the underlying asset in the market
+     */
+    function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external;
+
+    /**
+     * @notice Checks if the account should be allowed to borrow the underlying asset of the given market
+     * @param mToken The market to verify the borrow against
+     * @param borrower The account which would borrow the asset
+     * @param borrowAmount The amount of underlying the account would borrow
+     */
+    function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external;
+
+    /**
+     * @notice Checks if the account should be allowed to repay a borrow in the given market
+     * @param mToken The market to verify the repay against
+     * @param borrower The account which would borrowed the asset
+     */
+    function beforeMTokenRepay(address mToken, address borrower) external;
+
+    /**
+     * @notice Checks if the liquidation should be allowed to occur
+     * @param mTokenBorrowed Asset which was borrowed by the borrower
+     * @param mTokenCollateral Asset which was used as collateral and will be seized
+     * @param borrower The address of the borrower
+     * @param repayAmount The amount of underlying being repaid
+     */
+    function beforeMTokenLiquidate(
+        address mTokenBorrowed,
+        address mTokenCollateral,
+        address borrower,
+        uint256 repayAmount
+    ) external view;
+
+    /**
+     * @notice Checks if the seizing of assets should be allowed to occur
+     * @param mTokenCollateral Asset which was used as collateral and will be seized
+     * @param mTokenBorrowed Asset which was borrowed by the borrower
+     * @param liquidator The address repaying the borrow and seizing the collateral
+     * @param borrower The address of the borrower
+     */
+    function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator, address borrower)
+        external;
 }
 
 interface IOperator {
     // ----------- VIEW ------------
     /**
+     * @notice Should return true
+     */
+    function isOperator() external view returns (bool);
+
+    /**
+     * @notice Returns if operation is paused
+     * @param mToken The mToken to check
+     * @param _type the operation type
+     */
+    function isPaused(address mToken, IRoles.Pause _type) external view returns (bool);
+
+    /**
      * @notice Roles manager
      */
-    function rolesOpeartor() external view returns (IRoles);
+    function rolesOperator() external view returns (IRoles);
 
     /**
      * @notice Oracle which gives the price of any given asset
@@ -129,14 +201,19 @@ interface IOperator {
         view
         returns (uint256);
 
-    //TODO:  add market membership view method
+    /**
+     * @notice Returns true if the given mToken market has been deprecated
+     * @dev All borrows in a deprecated mToken market can be immediately liquidated
+     * @param mToken The market to check if deprecated
+     */
+    function isDeprecated(address mToken) external view returns (bool);
 
     // ----------- ACTIONS ------------
     /**
      * @notice Add assets to be included in account liquidity calculation
      * @param _mTokens The list of addresses of the mToken markets to be enabled
      */
-    function activate(address[] calldata _mTokens) external;
+    function enterMarket(address[] calldata _mTokens) external;
 
     /**
      * @notice Removes asset from sender's account liquidity calculation
@@ -144,5 +221,27 @@ interface IOperator {
      *  or be providing necessary collateral for an outstanding borrow.
      * @param _mToken The address of the asset to be removed
      */
-    function deactivate(address _mToken) external;
+    function exitMarket(address _mToken) external;
+
+    /**
+     * @notice Claim all the MELDA accrued by holder in all markets
+     * @param holder The address to claim MELDA for
+     */
+    function claimMelda(address holder) external;
+
+    /**
+     * @notice Claim all the MELDA accrued by holder in the specified markets
+     * @param holder The address to claim MELDA for
+     * @param mTokens The list of markets to claim MELDA in
+     */
+    function claimMelda(address holder, address[] memory mTokens) external;
+
+    /**
+     * @notice Claim all MELDA accrued by the holders
+     * @param holders The addresses to claim MELDA for
+     * @param mTokens The list of markets to claim MELDA in
+     * @param borrowers Whether or not to claim MELDA earned by borrowing
+     * @param suppliers Whether or not to claim MELDA earned by supplying
+     */
+    function claimMelda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers) external;
 }

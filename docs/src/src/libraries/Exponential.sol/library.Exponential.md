@@ -1,12 +1,5 @@
-# ExponentialNoError
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/b62e113034d94e880ebb241b8fad49eb27118646/src\math\ExponentialNoError.sol)
-
-**Author:**
-Compound
-
-Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
-Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
-`Exp({mantissa: 5100000000000000000})`.
+# Exponential
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\libraries\Exponential.sol)
 
 
 ## State Variables
@@ -41,17 +34,12 @@ uint256 constant mantissaOne = expScale;
 ## Functions
 ### truncate
 
-*Truncates the given exp to a whole number value.
-For example, truncate(Exp{mantissa: 15 * expScale}) = 15*
-
 
 ```solidity
 function truncate(Exp memory exp) internal pure returns (uint256);
 ```
 
 ### mul_ScalarTruncate
-
-*Multiply an Exp by a scalar, then truncate to return an unsigned integer.*
 
 
 ```solidity
@@ -60,16 +48,12 @@ function mul_ScalarTruncate(Exp memory a, uint256 scalar) internal pure returns 
 
 ### mul_ScalarTruncateAddUInt
 
-*Multiply an Exp by a scalar, truncate, then add an to an unsigned integer, returning an unsigned integer.*
-
 
 ```solidity
 function mul_ScalarTruncateAddUInt(Exp memory a, uint256 scalar, uint256 addend) internal pure returns (uint256);
 ```
 
 ### lessThanExp
-
-*Checks if first Exp is less than second Exp.*
 
 
 ```solidity
@@ -78,8 +62,6 @@ function lessThanExp(Exp memory left, Exp memory right) internal pure returns (b
 
 ### lessThanOrEqualExp
 
-*Checks if left Exp <= right Exp.*
-
 
 ```solidity
 function lessThanOrEqualExp(Exp memory left, Exp memory right) internal pure returns (bool);
@@ -87,16 +69,12 @@ function lessThanOrEqualExp(Exp memory left, Exp memory right) internal pure ret
 
 ### greaterThanExp
 
-*Checks if left Exp > right Exp.*
-
 
 ```solidity
 function greaterThanExp(Exp memory left, Exp memory right) internal pure returns (bool);
 ```
 
 ### isZeroExp
-
-*returns true if Exp is exactly zero*
 
 
 ```solidity

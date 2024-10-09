@@ -1,8 +1,8 @@
 # RewardDistributor
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/b62e113034d94e880ebb241b8fad49eb27118646/src\rewards\RewardDistributor.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\rewards\RewardDistributor.sol)
 
 **Inherits:**
-[IRewardDistributor](/src\interfaces\IRewardDistributor.sol\interface.IRewardDistributor.md), [ExponentialNoError](/src\math\ExponentialNoError.sol\abstract.ExponentialNoError.md), Initializable, OwnableUpgradeable
+[IRewardDistributor](/src\interfaces\IRewardDistributor.sol\interface.IRewardDistributor.md), [ExponentialNoError](/src\utils\ExponentialNoError.sol\abstract.ExponentialNoError.md), Initializable, OwnableUpgradeable
 
 
 ## State Variables
@@ -18,7 +18,7 @@ The operator that rewards are distributed to
 
 
 ```solidity
-address public override operator;
+address public operator;
 ```
 
 
@@ -126,30 +126,38 @@ function grantReward(address token, address user, uint256 amount) public onlyOwn
 
 ### notifySupplyIndex
 
+Notifies supply index
+
 
 ```solidity
-function notifySupplyIndex(address mToken) external onlyOperator;
+function notifySupplyIndex(address mToken) external override onlyOperator;
 ```
 
 ### notifyBorrowIndex
 
+Notifies borrow index
+
 
 ```solidity
-function notifyBorrowIndex(address mToken) external onlyOperator;
+function notifyBorrowIndex(address mToken) external override onlyOperator;
 ```
 
 ### notifySupplier
 
+Notifies supplier
+
 
 ```solidity
-function notifySupplier(address mToken, address supplier) external onlyOperator;
+function notifySupplier(address mToken, address supplier) external override onlyOperator;
 ```
 
 ### notifyBorrower
 
+Notifies borrower
+
 
 ```solidity
-function notifyBorrower(address mToken, address borrower) external onlyOperator;
+function notifyBorrower(address mToken, address borrower) external override onlyOperator;
 ```
 
 ### _updateRewardSpeed

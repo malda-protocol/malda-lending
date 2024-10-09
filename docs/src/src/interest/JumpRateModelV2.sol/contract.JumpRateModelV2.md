@@ -1,5 +1,5 @@
 # JumpRateModelV2
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/b62e113034d94e880ebb241b8fad49eb27118646/src\interest\JumpRateModelV2.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\interest\JumpRateModelV2.sol)
 
 **Inherits:**
 [IInterestRateModel](/src\interfaces\IInterestRateModel.sol\interface.IInterestRateModel.md), Ownable
@@ -129,6 +129,15 @@ function updateBlocksPerYear(uint256 blocksPerYear_) external onlyOwner;
 |----|----|-----------|
 |`blocksPerYear_`|`uint256`|The new estimated eth blocks per year.|
 
+
+### isInterestRateModel
+
+Should return true
+
+
+```solidity
+function isInterestRateModel() external pure override returns (bool);
+```
 
 ### utilizationRate
 

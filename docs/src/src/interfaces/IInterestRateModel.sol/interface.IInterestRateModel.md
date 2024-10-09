@@ -1,10 +1,19 @@
 # IInterestRateModel
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/b62e113034d94e880ebb241b8fad49eb27118646/src\interfaces\IInterestRateModel.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\interfaces\IInterestRateModel.sol)
 
 Interface for the interest rate contracts
 
 
 ## Functions
+### isInterestRateModel
+
+Should return true
+
+
+```solidity
+function isInterestRateModel() external view returns (bool);
+```
+
 ### blocksPerYear
 
 The approximate number of blocks per year that is assumed by the interest rate model

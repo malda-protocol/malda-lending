@@ -1,15 +1,40 @@
 # IOperator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/b62e113034d94e880ebb241b8fad49eb27118646/src\interfaces\IOperator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\interfaces\IOperator.sol)
 
 
 ## Functions
-### rolesOpeartor
+### isOperator
+
+Should return true
+
+
+```solidity
+function isOperator() external view returns (bool);
+```
+
+### isPaused
+
+Returns if operation is paused
+
+
+```solidity
+function isPaused(address mToken, IRoles.Pause _type) external view returns (bool);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The mToken to check|
+|`_type`|`IRoles.Pause`|the operation type|
+
+
+### rolesOperator
 
 Roles manager
 
 
 ```solidity
-function rolesOpeartor() external view returns (IRoles);
+function rolesOperator() external view returns (IRoles);
 ```
 
 ### oracleOperator
@@ -192,13 +217,30 @@ function liquidateCalculateSeizeTokens(address mTokenBorrowed, address mTokenCol
 |`<none>`|`uint256`|number of mTokenCollateral tokens to be seized in a liquidation|
 
 
-### activate
+### isDeprecated
+
+Returns true if the given mToken market has been deprecated
+
+*All borrows in a deprecated mToken market can be immediately liquidated*
+
+
+```solidity
+function isDeprecated(address mToken) external view returns (bool);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market to check if deprecated|
+
+
+### enterMarket
 
 Add assets to be included in account liquidity calculation
 
 
 ```solidity
-function activate(address[] calldata _mTokens) external;
+function enterMarket(address[] calldata _mTokens) external;
 ```
 **Parameters**
 
@@ -207,7 +249,7 @@ function activate(address[] calldata _mTokens) external;
 |`_mTokens`|`address[]`|The list of addresses of the mToken markets to be enabled|
 
 
-### deactivate
+### exitMarket
 
 Removes asset from sender's account liquidity calculation
 
@@ -216,12 +258,61 @@ or be providing necessary collateral for an outstanding borrow.*
 
 
 ```solidity
-function deactivate(address _mToken) external;
+function exitMarket(address _mToken) external;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`_mToken`|`address`|The address of the asset to be removed|
+
+
+### claimMelda
+
+Claim all the MELDA accrued by holder in all markets
+
+
+```solidity
+function claimMelda(address holder) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`holder`|`address`|The address to claim MELDA for|
+
+
+### claimMelda
+
+Claim all the MELDA accrued by holder in the specified markets
+
+
+```solidity
+function claimMelda(address holder, address[] memory mTokens) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`holder`|`address`|The address to claim MELDA for|
+|`mTokens`|`address[]`|The list of markets to claim MELDA in|
+
+
+### claimMelda
+
+Claim all MELDA accrued by the holders
+
+
+```solidity
+function claimMelda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`holders`|`address[]`|The addresses to claim MELDA for|
+|`mTokens`|`address[]`|The list of markets to claim MELDA in|
+|`borrowers`|`bool`|Whether or not to claim MELDA earned by borrowing|
+|`suppliers`|`bool`|Whether or not to claim MELDA earned by supplying|
 
 

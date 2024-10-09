@@ -1,155 +1,55 @@
 # Operator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/b62e113034d94e880ebb241b8fad49eb27118646/src\Operator\Operator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\Operator\Operator.sol)
 
 **Inherits:**
-[IOperatorAccess](/src\interfaces\IOperator.sol\interface.IOperatorAccess.md), [IOperator](/src\interfaces\IOperator.sol\interface.IOperator.md), [ExponentialNoError](/src\math\ExponentialNoError.sol\abstract.ExponentialNoError.md)
-
-
-## State Variables
-### CLOSE_FACTOR_MIN_MANTISSA
-
-```solidity
-uint256 internal constant CLOSE_FACTOR_MIN_MANTISSA = 0.05e18;
-```
-
-
-### CLOSE_FACTOR_MAX_MANTISSA
-
-```solidity
-uint256 internal constant CLOSE_FACTOR_MAX_MANTISSA = 0.9e18;
-```
-
-
-### COLLATERAL_FACTOR_MAX_MANTISSA
-
-```solidity
-uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18;
-```
-
-
-### admin
-Administrator for this contract
-
-
-```solidity
-address public override admin;
-```
-
-
-### pendingAdmin
-Pending administrator for this contract
-
-
-```solidity
-address public override pendingAdmin;
-```
-
-
-### rolesOpeartor
-Roles manager
-
-
-```solidity
-IRoles public override rolesOpeartor;
-```
-
-
-### oracleOperator
-Oracle which gives the price of any given asset
-
-
-```solidity
-address public override oracleOperator;
-```
-
-
-### closeFactorMantissa
-Multiplier used to calculate the maximum repayAmount when liquidating a borrow
-
-
-```solidity
-uint256 public override closeFactorMantissa;
-```
-
-
-### liquidationIncentiveMantissa
-Multiplier representing the discount on collateral that a liquidator receives
-
-
-```solidity
-uint256 public override liquidationIncentiveMantissa;
-```
-
-
-### accountAssets
-Per-account mapping of "assets you are in", capped by maxAssets
-
-
-```solidity
-mapping(address => address[]) public accountAssets;
-```
-
-
-### markets
-Official mapping of mTokens -> Market metadata
-
-*Used e.g. to determine if a market is supported*
-
-
-```solidity
-mapping(address => IOperatorData.Market) public markets;
-```
-
-
-### allMarkets
-A list of all markets
-
-
-```solidity
-address[] public allMarkets;
-```
-
-
-### borrowCaps
-Borrow caps enforced by borrowAllowed for each mToken address. Defaults to zero which corresponds to unlimited borrowing.
-
-
-```solidity
-mapping(address => uint256) public override borrowCaps;
-```
-
-
-### supplyCaps
-Supply caps enforced by supplyAllowed for each mToken address. Defaults to zero which corresponds to unlimited supplying.
-
-
-```solidity
-mapping(address => uint256) public override supplyCaps;
-```
-
-
-### rewardDistributor
-Reward Distributor to markets supply and borrow (including protocol token)
-
-
-```solidity
-address public override rewardDistributor;
-```
+[OperatorStorage](/src\Operator\OperatorStorage.sol\abstract.OperatorStorage.md)
 
 
 ## Functions
-### onlyAdmin
-
-
-```solidity
-modifier onlyAdmin();
-```
-
 ### constructor
 
 
 ```solidity
-constructor();
+constructor(address _rolesOperator, address _rewardDistributor);
+```
+
+### setRolesOperator
+
+Sets a new Operator for the market
+
+*Admin function to set a new operator*
+
+
+```solidity
+function setRolesOperator(address _roles) external onlyAdmin;
+```
+
+### setPendingAdmin
+
+Begins transfer of admin rights. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.
+
+*Admin function to begin change of admin. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.*
+
+
+```solidity
+function setPendingAdmin(address newPendingAdmin) external onlyAdmin;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`newPendingAdmin`|`address`|New pending admin.|
+
+
+### acceptAdmin
+
+Accepts transfer of admin rights. msg.sender must be pendingAdmin
+
+*Admin function for pending admin to accept role and update admin*
+
+
+```solidity
+function acceptAdmin() external;
 ```
 
 ### setPriceOracle
@@ -178,6 +78,162 @@ function setCloseFactor(uint256 newCloseFactorMantissa) external onlyAdmin;
 |Name|Type|Description|
 |----|----|-----------|
 |`newCloseFactorMantissa`|`uint256`|New close factor, scaled by 1e18|
+
+
+### setCollateralFactor
+
+Sets the collateralFactor for a market
+
+*Admin function to set per-market collateralFactor*
+
+
+```solidity
+function setCollateralFactor(address mToken, uint256 newCollateralFactorMantissa) external onlyAdmin;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market to set the factor on|
+|`newCollateralFactorMantissa`|`uint256`|The new collateral factor, scaled by 1e18|
+
+
+### setLiquidationIncentive
+
+Sets liquidationIncentive
+
+*Admin function to set liquidationIncentive*
+
+
+```solidity
+function setLiquidationIncentive(uint256 newLiquidationIncentiveMantissa) external onlyAdmin;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`newLiquidationIncentiveMantissa`|`uint256`|New liquidationIncentive scaled by 1e18|
+
+
+### supportMarket
+
+Add the market to the markets mapping and set it as listed
+
+*Admin function to set isListed and add support for the market*
+
+
+```solidity
+function supportMarket(address mToken) external onlyAdmin;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The address of the market (token) to list|
+
+
+### setMarketBorrowCaps
+
+Set the given borrow caps for the given cToken markets. Borrowing that brings total borrows to or above borrow cap will revert.
+
+
+```solidity
+function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newBorrowCaps) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mTokens`|`address[]`|The addresses of the markets (tokens) to change the borrow caps for|
+|`newBorrowCaps`|`uint256[]`|The new borrow cap values in underlying to be set. A value of 0 corresponds to unlimited borrowing.|
+
+
+### setMarketSupplyCaps
+
+Set the given supply caps for the given cToken markets. Supplying that brings total supply to or above supply cap will revert.
+
+
+```solidity
+function setMarketSupplyCaps(address[] calldata mTokens, uint256[] calldata newSupplyCaps) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mTokens`|`address[]`|The addresses of the markets (tokens) to change the supply caps for|
+|`newSupplyCaps`|`uint256[]`|The new supply cap values in underlying to be set. A value of 0 corresponds to unlimited supplying.|
+
+
+### setPaused
+
+Set pause for a specific operation
+
+
+```solidity
+function setPaused(address mToken, IRoles.Pause _type, bool state) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market token address|
+|`_type`|`IRoles.Pause`|The pause operation type|
+|`state`|`bool`|The pause operation status|
+
+
+### setRewardDistributor
+
+Admin function to change the Reward Distributor
+
+
+```solidity
+function setRewardDistributor(address newRewardDistributor) external onlyAdmin;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`newRewardDistributor`|`address`|The address of the new Reward Distributor|
+
+
+### become
+
+Accepts IUnit implementation
+
+
+```solidity
+function become(address _unit) public;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_unit`|`address`|the new unit implementation|
+
+
+### isOperator
+
+Should return true
+
+
+```solidity
+function isOperator() external pure override returns (bool);
+```
+
+### isPaused
+
+Returns if operation is paused
+
+
+```solidity
+function isPaused(address mToken, IRoles.Pause _type) external view override returns (bool);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The mToken to check|
+|`_type`|`IRoles.Pause`|the operation type|
 
 
 ### getAssetsIn
@@ -231,6 +287,23 @@ A list of all markets
 ```solidity
 function getAllMarkets() external view returns (address[] memory mTokens);
 ```
+
+### isDeprecated
+
+Returns true if the given mToken market has been deprecated
+
+*All borrows in a deprecated mToken market can be immediately liquidated*
+
+
+```solidity
+function isDeprecated(address mToken) external view override returns (bool);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market to check if deprecated|
+
 
 ### getAccountLiquidity
 
@@ -306,13 +379,13 @@ function liquidateCalculateSeizeTokens(address mTokenBorrowed, address mTokenCol
 |`<none>`|`uint256`|number of mTokenCollateral tokens to be seized in a liquidation|
 
 
-### activate
+### enterMarket
 
 Add assets to be included in account liquidity calculation
 
 
 ```solidity
-function activate(address[] calldata _mTokens) external override;
+function enterMarket(address[] calldata _mTokens) external override;
 ```
 **Parameters**
 
@@ -321,7 +394,7 @@ function activate(address[] calldata _mTokens) external override;
 |`_mTokens`|`address[]`|The list of addresses of the mToken markets to be enabled|
 
 
-### deactivate
+### exitMarket
 
 Removes asset from sender's account liquidity calculation
 
@@ -330,13 +403,204 @@ or be providing necessary collateral for an outstanding borrow.*
 
 
 ```solidity
-function deactivate(address _mToken) external override;
+function exitMarket(address _mToken) external override;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`_mToken`|`address`|The address of the asset to be removed|
+
+
+### claimMelda
+
+Claim all the MELDA accrued by holder in all markets
+
+
+```solidity
+function claimMelda(address holder) external override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`holder`|`address`|The address to claim MELDA for|
+
+
+### claimMelda
+
+Claim all the MELDA accrued by holder in the specified markets
+
+
+```solidity
+function claimMelda(address holder, address[] memory mTokens) external override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`holder`|`address`|The address to claim MELDA for|
+|`mTokens`|`address[]`|The list of markets to claim MELDA in|
+
+
+### claimMelda
+
+Claim all MELDA accrued by the holders
+
+
+```solidity
+function claimMelda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers)
+    external
+    override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`holders`|`address[]`|The addresses to claim MELDA for|
+|`mTokens`|`address[]`|The list of markets to claim MELDA in|
+|`borrowers`|`bool`|Whether or not to claim MELDA earned by borrowing|
+|`suppliers`|`bool`|Whether or not to claim MELDA earned by supplying|
+
+
+### beforeMTokenTransfer
+
+Checks if the account should be allowed to transfer tokens in the given market
+
+
+```solidity
+function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market to verify the transfer against|
+|`src`|`address`|The account which sources the tokens|
+|`dst`|`address`|The account which receives the tokens|
+|`transferTokens`|`uint256`|The number of mTokens to transfer|
+
+
+### beforeMTokenMint
+
+Checks if the account should be allowed to mint tokens in the given market
+
+
+```solidity
+function beforeMTokenMint(address mToken, address minter) external override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market to verify the mint against|
+|`minter`|`address`|The account which would get the minted tokens|
+
+
+### afterMTokenMint
+
+Validates mint and reverts on rejection. May emit logs.
+
+
+```solidity
+function afterMTokenMint(address mToken) external view override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|Asset being minted|
+
+
+### beforeMTokenRedeem
+
+Checks if the account should be allowed to redeem tokens in the given market
+
+
+```solidity
+function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market to verify the redeem against|
+|`redeemer`|`address`|The account which would redeem the tokens|
+|`redeemTokens`|`uint256`|The number of mTokens to exchange for the underlying asset in the market|
+
+
+### beforeMTokenBorrow
+
+Checks if the account should be allowed to borrow the underlying asset of the given market
+
+
+```solidity
+function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market to verify the borrow against|
+|`borrower`|`address`|The account which would borrow the asset|
+|`borrowAmount`|`uint256`|The amount of underlying the account would borrow|
+
+
+### beforeMTokenRepay
+
+Checks if the account should be allowed to repay a borrow in the given market
+
+
+```solidity
+function beforeMTokenRepay(address mToken, address borrower) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market to verify the repay against|
+|`borrower`|`address`|The account which would borrowed the asset|
+
+
+### beforeMTokenLiquidate
+
+Checks if the liquidation should be allowed to occur
+
+
+```solidity
+function beforeMTokenLiquidate(address mTokenBorrowed, address mTokenCollateral, address borrower, uint256 repayAmount)
+    external
+    view
+    override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mTokenBorrowed`|`address`|Asset which was borrowed by the borrower|
+|`mTokenCollateral`|`address`|Asset which was used as collateral and will be seized|
+|`borrower`|`address`|The address of the borrower|
+|`repayAmount`|`uint256`|The amount of underlying being repaid|
+
+
+### beforeMTokenSeize
+
+Checks if the seizing of assets should be allowed to occur
+
+
+```solidity
+function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator, address borrower)
+    external
+    override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mTokenCollateral`|`address`|Asset which was used as collateral and will be seized|
+|`mTokenBorrowed`|`address`|Asset which was borrowed by the borrower|
+|`liquidator`|`address`|The address repaying the borrow and seizing the collateral|
+|`borrower`|`address`|The address of the borrower|
 
 
 ### _activateMarket
@@ -346,17 +610,11 @@ function deactivate(address _mToken) external override;
 function _activateMarket(address _mToken, address borrower) private;
 ```
 
-### _redeemCheck
+### _beforeRedeem
 
 
 ```solidity
-function _redeemCheck(
-    address mToken,
-    address redeemer,
-    uint256 redeemTokens,
-    uint256 amountOwed,
-    uint256 exchangeRateMantissa
-) private view;
+function _beforeRedeem(address mToken, address redeemer, uint256 redeemTokens) private view;
 ```
 
 ### _getHypotheticalAccountLiquidity
@@ -367,162 +625,85 @@ function _getHypotheticalAccountLiquidity(
     address account,
     address mTokenModify,
     uint256 redeemTokens,
-    uint256 borrowAmount,
-    uint256 tokensHeld,
-    uint256 amountOwed,
-    uint256 exchangeRateMantissa
+    uint256 borrowAmount
 ) private view returns (uint256, uint256);
 ```
 
-## Events
-### MarketEntered
-Emitted when an account enters a market
+### _updateMeldaSupplyIndex
+
+Notify reward distributor for supply index update
 
 
 ```solidity
-event MarketEntered(address indexed mToken, address indexed account);
+function _updateMeldaSupplyIndex(address mToken) private;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market whose supply index to update|
+
+
+### _updateMeldaBorrowIndex
+
+Notify reward distributor for borrow index update
+
+
+```solidity
+function _updateMeldaBorrowIndex(address mToken) private;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market whose borrow index to update|
+
+
+### _distributeSupplierMelda
+
+Notify reward distributor for supplier update
+
+
+```solidity
+function _distributeSupplierMelda(address mToken, address supplier) private;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market in which the supplier is interacting|
+|`supplier`|`address`|The address of the supplier to distribute MELDA to|
+
+
+### _distributeBorrowerMelda
+
+Notify reward distributor for borrower update
+
+*Borrowers will not begin to accrue until after the first interaction with the protocol.*
+
+
+```solidity
+function _distributeBorrowerMelda(address mToken, address borrower) private;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market in which the borrower is interacting|
+|`borrower`|`address`|The address of the borrower to distribute MELDA to|
+
+
+### _claim
+
+
+```solidity
+function _claim(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers) private;
 ```
 
-### MarketExited
-Emitted when an account exits a market
+### _isDeprecated
 
 
 ```solidity
-event MarketExited(address indexed mToken, address indexed account);
-```
-
-### NewCloseFactor
-Emitted Emitted when close factor is changed by admin
-
-
-```solidity
-event NewCloseFactor(uint256 oldCloseFactorMantissa, uint256 newCloseFactorMantissa);
-```
-
-### NewCollateralFactor
-Emitted when a collateral factor is changed by admin
-
-
-```solidity
-event NewCollateralFactor(
-    address indexed mToken, uint256 oldCollateralFactorMantissa, uint256 newCollateralFactorMantissa
-);
-```
-
-### NewLiquidationIncentive
-Emitted when liquidation incentive is changed by admin
-
-
-```solidity
-event NewLiquidationIncentive(uint256 oldLiquidationIncentiveMantissa, uint256 newLiquidationIncentiveMantissa);
-```
-
-### NewPriceOracle
-Emitted when price oracle is changed
-
-
-```solidity
-event NewPriceOracle(address indexed oldPriceOracle, address indexed newPriceOracle);
-```
-
-## Errors
-### Operator_MarketNotListed
-
-```solidity
-error Operator_MarketNotListed();
-```
-
-### Operator_MarketAlreadyListed
-
-```solidity
-error Operator_MarketAlreadyListed();
-```
-
-### Operator_Deactivate_SnapshotFetchingFailed
-
-```solidity
-error Operator_Deactivate_SnapshotFetchingFailed();
-```
-
-### Operator_Deactivate_MarketBalanceOwed
-
-```solidity
-error Operator_Deactivate_MarketBalanceOwed();
-```
-
-### Operator_OracleUnderlyingFetchError
-
-```solidity
-error Operator_OracleUnderlyingFetchError();
-```
-
-### Operator_InsufficientLiquidity
-
-```solidity
-error Operator_InsufficientLiquidity();
-```
-
-### Operator_AssetNotFound
-
-```solidity
-error Operator_AssetNotFound();
-```
-
-### Operator_PriceFetchFailed
-
-```solidity
-error Operator_PriceFetchFailed();
-```
-
-### Operator_OnlyAdmin
-
-```solidity
-error Operator_OnlyAdmin();
-```
-
-### Operator_OnlyAdminOrRole
-
-```solidity
-error Operator_OnlyAdminOrRole();
-```
-
-### Operator_InvalidCollateralFactor
-
-```solidity
-error Operator_InvalidCollateralFactor();
-```
-
-### Operator_EmptyPrice
-
-```solidity
-error Operator_EmptyPrice();
-```
-
-### Operator_WrongMarket
-
-```solidity
-error Operator_WrongMarket();
-```
-
-## Structs
-### AccountLiquidityLocalVars
-*Local vars for avoiding stack-depth limits in calculating account liquidity.
-Note that `mTokenBalance` is the number of mTokens the account owns in the market,
-whereas `borrowBalance` is the amount of underlying that the account has borrowed.*
-
-
-```solidity
-struct AccountLiquidityLocalVars {
-    uint256 sumCollateral;
-    uint256 sumBorrowPlusEffects;
-    uint256 mTokenBalance;
-    uint256 borrowBalance;
-    uint256 exchangeRateMantissa;
-    uint256 oraclePriceMantissa;
-    Exp collateralFactor;
-    Exp exchangeRate;
-    Exp oraclePrice;
-    Exp tokensToDenom;
-}
+function _isDeprecated(address mToken) private view returns (bool);
 ```
 

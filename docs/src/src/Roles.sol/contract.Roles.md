@@ -1,5 +1,5 @@
 # Roles
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/b62e113034d94e880ebb241b8fad49eb27118646/src\Roles.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\Roles.sol)
 
 **Inherits:**
 Ownable, [IRoles](/src\interfaces\IRoles.sol\interface.IRoles.md)
@@ -62,6 +62,13 @@ bytes32 public constant GUARDIAN_SUPPLY_CAP = keccak256("GUARDIAN_SUPPLY_CAP");
 ```
 
 
+### GUARDIAN_RESERVE
+
+```solidity
+bytes32 public constant GUARDIAN_RESERVE = keccak256("GUARDIAN_RESERVE");
+```
+
+
 ## Functions
 ### constructor
 
@@ -70,11 +77,11 @@ bytes32 public constant GUARDIAN_SUPPLY_CAP = keccak256("GUARDIAN_SUPPLY_CAP");
 constructor(address _owner) Ownable(_owner);
 ```
 
-### allowedFor
+### isAllowedFor
 
 
 ```solidity
-function allowedFor(address _contract, bytes32 _role) external view override returns (bool);
+function isAllowedFor(address _contract, bytes32 _role) external view override returns (bool);
 ```
 
 ### allowFor

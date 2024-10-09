@@ -102,6 +102,13 @@ contract JumpRateModelV2 is IInterestRateModel, Ownable {
     /**
      * @inheritdoc IInterestRateModel
      */
+    function isInterestRateModel() external pure override returns (bool) {
+        return true;
+    }
+
+    /**
+     * @inheritdoc IInterestRateModel
+     */
     function utilizationRate(uint256 cash, uint256 borrows, uint256 reserves) public pure override returns (uint256) {
         if (borrows == 0) {
             return 0;

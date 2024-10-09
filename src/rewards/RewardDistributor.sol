@@ -12,7 +12,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 import {ImToken} from "../interfaces/ImToken.sol";
-import {ExponentialNoError} from "../math/ExponentialNoError.sol";
+import {ExponentialNoError} from "../utils/ExponentialNoError.sol";
 import {IRewardDistributor, IRewardDistributorData} from "../interfaces/IRewardDistributor.sol";
 
 contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializable, OwnableUpgradeable {
@@ -22,7 +22,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     /**
      * @inheritdoc IRewardDistributor
      */
-    address public override operator;
+    address public operator;
 
     /**
      * @notice The Reward state for each reward token for each market
@@ -116,25 +116,37 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     }
 
     // ----------- OPERATOR ------------
-    function notifySupplyIndex(address mToken) external onlyOperator {
+    /**
+     * @inheritdoc IRewardDistributor
+     */
+    function notifySupplyIndex(address mToken) external override onlyOperator {
         for (uint256 i = 0; i < rewardTokens.length; i++) {
             _notifySupplyIndex(rewardTokens[i], mToken);
         }
     }
 
-    function notifyBorrowIndex(address mToken) external onlyOperator {
+    /**
+     * @inheritdoc IRewardDistributor
+     */
+    function notifyBorrowIndex(address mToken) external override onlyOperator {
         for (uint256 i = 0; i < rewardTokens.length; i++) {
             _notifyBorrowIndex(rewardTokens[i], mToken);
         }
     }
 
-    function notifySupplier(address mToken, address supplier) external onlyOperator {
+    /**
+     * @inheritdoc IRewardDistributor
+     */
+    function notifySupplier(address mToken, address supplier) external override onlyOperator {
         for (uint256 i = 0; i < rewardTokens.length; i++) {
             _notifySupplier(rewardTokens[i], mToken, supplier);
         }
     }
 
-    function notifyBorrower(address mToken, address borrower) external onlyOperator {
+    /**
+     * @inheritdoc IRewardDistributor
+     */
+    function notifyBorrower(address mToken, address borrower) external override onlyOperator {
         for (uint256 i = 0; i < rewardTokens.length; i++) {
             _notifyBorrower(rewardTokens[i], mToken, borrower);
         }
