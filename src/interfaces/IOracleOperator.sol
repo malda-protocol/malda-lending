@@ -8,6 +8,9 @@ pragma solidity =0.8.27;
 |_|_|_|__|__|_____|____/|__|__|   
 */
 
+/**
+ * @notice Prices are returned in USD
+ */
 interface IOracleOperator {
     /**
      * @notice Get the price of a mToken asset
