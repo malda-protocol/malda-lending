@@ -389,34 +389,34 @@ contract Operator is OperatorStorage {
     }
 
     /**
-     * @notice Claim all the MELDA accrued by holder in all markets
-     * @param holder The address to claim MELDA for
+     * @notice Claim all the MALDA accrued by holder in all markets
+     * @param holder The address to claim MALDA for
      */
-    function claimMelda(address holder) external override {
+    function claimMalda(address holder) external override {
         address[] memory holders = new address[](1);
         holders[0] = holder;
         return _claim(holders, allMarkets, true, true);
     }
 
     /**
-     * @notice Claim all the MELDA accrued by holder in the specified markets
-     * @param holder The address to claim MELDA for
-     * @param mTokens The list of markets to claim MELDA in
+     * @notice Claim all the MALDA accrued by holder in the specified markets
+     * @param holder The address to claim MALDA for
+     * @param mTokens The list of markets to claim MALDA in
      */
-    function claimMelda(address holder, address[] memory mTokens) external override {
+    function claimMalda(address holder, address[] memory mTokens) external override {
         address[] memory holders = new address[](1);
         holders[0] = holder;
         _claim(holders, mTokens, true, true);
     }
 
     /**
-     * @notice Claim all MELDA accrued by the holders
-     * @param holders The addresses to claim MELDA for
-     * @param mTokens The list of markets to claim MELDA in
-     * @param borrowers Whether or not to claim MELDA earned by borrowing
-     * @param suppliers Whether or not to claim MELDA earned by supplying
+     * @notice Claim all MALDA accrued by the holders
+     * @param holders The addresses to claim MALDA for
+     * @param mTokens The list of markets to claim MALDA in
+     * @param borrowers Whether or not to claim MALDA earned by borrowing
+     * @param suppliers Whether or not to claim MALDA earned by supplying
      */
-    function claimMelda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers)
+    function claimMalda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers)
         external
         override
     {
@@ -662,7 +662,7 @@ contract Operator is OperatorStorage {
     /**
      * @notice Notify reward distributor for supplier update
      * @param mToken The market in which the supplier is interacting
-     * @param supplier The address of the supplier to distribute MELDA to
+     * @param supplier The address of the supplier to distribute MALDA to
      */
     function _distributeSupplierMelda(address mToken, address supplier) private {
         IRewardDistributor(rewardDistributor).notifySupplier(mToken, supplier);
@@ -672,7 +672,7 @@ contract Operator is OperatorStorage {
      * @notice Notify reward distributor for borrower update
      * @dev Borrowers will not begin to accrue until after the first interaction with the protocol.
      * @param mToken The market in which the borrower is interacting
-     * @param borrower The address of the borrower to distribute MELDA to
+     * @param borrower The address of the borrower to distribute MALDA to
      */
     function _distributeBorrowerMelda(address mToken, address borrower) private {
         IRewardDistributor(rewardDistributor).notifyBorrower(mToken, borrower);
