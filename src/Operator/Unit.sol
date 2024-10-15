@@ -63,9 +63,9 @@ contract Unit is IUnit, IUnitAccess {
         _;
     }
 
-    constructor() {
+    constructor(address _admin) {
         // Set admin to caller
-        admin = msg.sender;
+        admin = _admin;
     }
 
     // ----------- OWNER ------------
@@ -83,9 +83,7 @@ contract Unit is IUnit, IUnitAccess {
      */
     function acceptImplementation() external override {
         // Check caller is pendingImplementation and pendingImplementation ≠ address(0)
-        require(
-            msg.sender == pendingOperatorImplementation && pendingOperatorImplementation != address(0), Unit_OnlyAdmin()
-        );
+        require(msg.sender == pendingOperatorImplementation && msg.sender != address(0), Unit_OnlyAdmin());
         // Check caller is pendingImplementation and pendingImplementation ≠ address(0)
 
         // Save current values for inclusion in log
@@ -115,7 +113,7 @@ contract Unit is IUnit, IUnitAccess {
      */
     function acceptAdmin() external override {
         // Check caller is pendingAdmin and pendingAdmin ≠ address(0)
-        require(msg.sender == pendingAdmin && pendingAdmin != address(0), Unit_OnlyAdmin());
+        require(msg.sender == pendingAdmin && msg.sender != address(0), Unit_OnlyAdmin());
 
         // Save current values for inclusion in log
         address oldAdmin = admin;

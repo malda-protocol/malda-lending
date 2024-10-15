@@ -37,7 +37,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
         uint8 decimals_
     ) public onlyAdmin {
         require(accrualBlockNumber == 0 && borrowIndex == 0, mToken_AlreadyInitialized());
-        require(initialExchangeRateMantissa > 0, mToken_ExchangeRateNotValid());
+        require(initialExchangeRateMantissa_ > 0, mToken_ExchangeRateNotValid());
         // Set initial exchange rate
         initialExchangeRateMantissa = initialExchangeRateMantissa_;
 
@@ -81,7 +81,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
     }
 
     // ----------- MARKETS VIEW ------------
-
     /**
      * @inheritdoc ImToken
      */
@@ -247,10 +246,10 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
      * @dev Accrues interest whether or not the operation succeeds, unless reverted
      * @param mintAmount The amount of the underlying asset to supply
      */
-    function _mint(uint256 mintAmount) internal nonReentrant {
+    function _mint(uint256 mintAmount, bool doTransfer) internal nonReentrant {
         _accrueInterest();
         // emits the actual Mint event if successful and logs on errors, so we don't need to
-        __mint(msg.sender, mintAmount);
+        __mint(msg.sender, mintAmount, doTransfer);
     }
 
     /**
@@ -324,7 +323,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
 
     /**
      * @notice Transfers collateral tokens (this market) to the liquidator.
-     * @dev Called only during an in-kind liquidation, or by liquidateBorrow during the liquidation of another CToken.
+     * @dev Called only during an in-kind liquidation, or by liquidateBorrow during the liquidation of another mToken.
      *  Its absolutely critical to use msg.sender as the seizer mToken and not a parameter.
      * @param seizerToken The contract seizing the collateral (i.e. borrowed mToken)
      * @param liquidator The account receiving seized collateral
@@ -382,8 +381,8 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
 
         /*
          * We call doTransferIn for the caller and the addAmount
-         *  Note: The cToken must handle variations between ERC-20 and ETH underlying.
-         *  On success, the cToken holds an additional addAmount of cash.
+         *  Note: The mToken must handle variations between ERC-20 and ETH underlying.
+         *  On success, the mToken holds an additional addAmount of cash.
          *  doTransferIn reverts if anything goes wrong, since we can't be sure if side effects occurred.
          *  it returns the amount actually transferred, in case of a fee.
          */
@@ -565,7 +564,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
             redeemTokens = div_(redeemAmountIn, exchangeRate);
             redeemAmount = redeemAmountIn;
         }
-        require(redeemTokens != 0 || redeemAmount != 0, mToken_RedeemEmpty());
+        if (redeemTokens == 0 && redeemAmount > 0) revert mToken_RedeemEmpty();
 
         /* Fail if redeem not allowed */
         IOperatorDefender(operator).beforeMTokenRedeem(address(this), redeemer, redeemTokens);
@@ -603,7 +602,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
      * @param mintAmount The amount of the underlying asset to supply
      */
 
-    function __mint(address minter, uint256 mintAmount) private {
+    function __mint(address minter, uint256 mintAmount, bool doTransfer) private {
         IOperatorDefender(operator).beforeMTokenMint(address(this), minter);
 
         require(accrualBlockNumber == _getBlockNumber(), mToken_BlockNumberNotValid());
@@ -622,7 +621,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
          *  in case of a fee. On success, the mToken holds an additional `actualMintAmount`
          *  of cash.
          */
-        uint256 actualMintAmount = _doTransferIn(minter, mintAmount);
+        uint256 actualMintAmount = doTransfer ? _doTransferIn(minter, mintAmount) : mintAmount;
 
         /*
          * We get the current exchange rate and calculate the number of mTokens to be minted:
@@ -666,7 +665,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
     function _transferTokens(address spender, address src, address dst, uint256 tokens) private {
         IOperatorDefender(operator).beforeMTokenTransfer(address(this), src, dst, tokens);
 
-        require(src == dst, mToken_TransferNotValid());
+        require(src != dst, mToken_TransferNotValid());
 
         /* Get the allowance, infinite for the account owner */
         uint256 startingAllowance = 0;

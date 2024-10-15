@@ -8,6 +8,11 @@ evm_version='Cancun'
 optimizer = true
 optimizer_runs = 9000
 
+remappings = [
+	"@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+	"@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+	"risc0/=lib/risc0-ethereum/contracts/src/"
+]
 
 # forge-dpeloy
 fs_permissions = [

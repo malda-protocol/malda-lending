@@ -20,10 +20,10 @@ import {IOperatorData, IOperator, IOperatorDefender} from "../interfaces/IOperat
 import {OperatorStorage} from "./OperatorStorage.sol";
 
 contract Operator is OperatorStorage {
-    constructor(address _rolesOperator, address _rewardDistributor) {
+    constructor(address _rolesOperator, address _rewardDistributor, address _admin) {
         require(_rolesOperator != address(0), Operator_InvalidRolesOperator());
         require(_rewardDistributor != address(0), Operator_InvalidRolesOperator());
-        admin = msg.sender;
+        admin = _admin;
         rolesOperator = IRoles(_rolesOperator);
         rewardDistributor = _rewardDistributor;
     }
@@ -142,10 +142,10 @@ contract Operator is OperatorStorage {
         require(!markets[address(mToken)].isListed, Operator_MarketAlreadyListed());
         require(ImToken(mToken).isMToken(), Operator_WrongMarket());
 
-        // Note that isComped is not in active use anymore
+        // Note that isMalded is not in active use anymore
         IOperatorData.Market storage newMarket = markets[mToken];
         newMarket.isListed = true;
-        newMarket.isComped = false;
+        newMarket.isMalded = false;
         newMarket.collateralFactorMantissa = 0;
 
         for (uint256 i = 0; i < allMarkets.length; i++) {
@@ -157,7 +157,7 @@ contract Operator is OperatorStorage {
     }
 
     /**
-     * @notice Set the given borrow caps for the given cToken markets. Borrowing that brings total borrows to or above borrow cap will revert.
+     * @notice Set the given borrow caps for the given mToken markets. Borrowing that brings total borrows to or above borrow cap will revert.
      * @param mTokens The addresses of the markets (tokens) to change the borrow caps for
      * @param newBorrowCaps The new borrow cap values in underlying to be set. A value of 0 corresponds to unlimited borrowing.
      */
@@ -179,7 +179,7 @@ contract Operator is OperatorStorage {
     }
 
     /**
-     * @notice Set the given supply caps for the given cToken markets. Supplying that brings total supply to or above supply cap will revert.
+     * @notice Set the given supply caps for the given mToken markets. Supplying that brings total supply to or above supply cap will revert.
      * @param mTokens The addresses of the markets (tokens) to change the supply caps for
      * @param newSupplyCaps The new supply cap values in underlying to be set. A value of 0 corresponds to unlimited supplying.
      */
@@ -236,7 +236,7 @@ contract Operator is OperatorStorage {
      * @notice Accepts IUnit implementation
      * @param _unit the new unit implementation
      */
-    function become(address _unit) public {
+    function become(address _unit) external {
         require(msg.sender == IUnitAccess(_unit).admin(), Operator_OnlyAdmin());
         IUnit(_unit).acceptImplementation();
     }
@@ -314,7 +314,7 @@ contract Operator is OperatorStorage {
         /* Read oracle prices for borrowed and collateral markets */
         uint256 priceBorrowedMantissa = IOracleOperator(oracleOperator).getUnderlyingPrice(mTokenBorrowed);
         uint256 priceCollateralMantissa = IOracleOperator(oracleOperator).getUnderlyingPrice(mTokenCollateral);
-        require(priceBorrowedMantissa > 0 || priceCollateralMantissa > 0, Operator_PriceFetchFailed());
+        require(priceBorrowedMantissa > 0 && priceCollateralMantissa > 0, Operator_PriceFetchFailed());
 
         /*
          * Get the exchange rate and calculate the number of collateral tokens to seize:
@@ -338,7 +338,7 @@ contract Operator is OperatorStorage {
     /**
      * @inheritdoc IOperator
      */
-    function enterMarket(address[] calldata _mTokens) external override {
+    function enterMarkets(address[] calldata _mTokens) external override {
         uint256 len = _mTokens.length;
         for (uint256 i = 0; i < len; i++) {
             address __mToken = _mTokens[i];
@@ -600,9 +600,9 @@ contract Operator is OperatorStorage {
         for (uint256 i; i < len; i++) {
             address _asset = accountAssets[account][i];
 
-            // Read the balances and exchange rate from the cToken
+            // Read the balances and exchange rate from the mToken
             (vars.mTokenBalance, vars.borrowBalance, vars.exchangeRateMantissa) =
-                ImToken(_asset).getAccountSnapshot(msg.sender);
+                ImToken(_asset).getAccountSnapshot(account);
 
             vars.collateralFactor = Exp({mantissa: markets[_asset].collateralFactorMantissa});
             vars.exchangeRate = Exp({mantissa: vars.exchangeRateMantissa});
@@ -637,12 +637,10 @@ contract Operator is OperatorStorage {
             }
         }
 
-        return (
-            vars.sumCollateral > vars.sumBorrowPlusEffects
-                ? vars.sumCollateral - vars.sumBorrowPlusEffects
-                : vars.sumBorrowPlusEffects - vars.sumCollateral,
-            0
-        );
+        if (vars.sumCollateral > vars.sumBorrowPlusEffects) 
+            return (vars.sumCollateral - vars.sumBorrowPlusEffects, 0);
+        else 
+            return(0, vars.sumBorrowPlusEffects - vars.sumCollateral);
     }
 
     /**

@@ -39,9 +39,9 @@ interface IRewardDistributor {
 
     event RewardGranted(address indexed rewardToken, address indexed user, uint256 amount);
 
-    event SupplySpeedUpdated(address indexed rewardToken, address indexed cToken, uint256 supplySpeed);
+    event SupplySpeedUpdated(address indexed rewardToken, address indexed mToken, uint256 supplySpeed);
 
-    event BorrowSpeedUpdated(address indexed rewardToken, address indexed cToken, uint256 borrowSpeed);
+    event BorrowSpeedUpdated(address indexed rewardToken, address indexed mToken, uint256 borrowSpeed);
 
     /**
      * @notice The operator that rewards are distributed to

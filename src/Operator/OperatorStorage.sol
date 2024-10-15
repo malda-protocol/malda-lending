@@ -144,17 +144,17 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     /**
      * @notice Emitted when borrow cap for a mToken is changed
      */
-    event NewBorrowCap(address indexed cToken, uint256 newBorrowCap);
+    event NewBorrowCap(address indexed mToken, uint256 newBorrowCap);
 
     /**
      * @notice Emitted when supply cap for a mToken is changed
      */
-    event NewSupplyCap(address indexed cToken, uint256 newBorrowCap);
+    event NewSupplyCap(address indexed mToken, uint256 newBorrowCap);
 
     /**
      * @notice Emitted when an admin supports a market
      */
-    event MarketListed(address cToken);
+    event MarketListed(address mToken);
     /**
      * @notice Emitted when an account enters a market
      */

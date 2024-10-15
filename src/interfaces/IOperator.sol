@@ -20,8 +20,8 @@ interface IOperatorData {
         uint256 collateralFactorMantissa;
         // Per-market mapping of "accounts in this asset"
         mapping(address => bool) accountMembership;
-        // Whether or not this market receives COMP
-        bool isComped;
+        // Whether or not this market receives MELDA
+        bool isMalded;
     }
 }
 
@@ -191,8 +191,8 @@ interface IOperator {
     /**
      * @notice Calculate number of tokens of collateral asset to seize given an underlying amount
      * @dev Used in liquidation (called in mTokenBorrowed.liquidate)
-     * @param mTokenBorrowed The address of the borrowed cToken
-     * @param mTokenCollateral The address of the collateral cToken
+     * @param mTokenBorrowed The address of the borrowed mToken
+     * @param mTokenCollateral The address of the collateral mToken
      * @param actualRepayAmount The amount of mTokenBorrowed underlying to convert into mTokenCollateral tokens
      * @return number of mTokenCollateral tokens to be seized in a liquidation
      */
@@ -213,7 +213,7 @@ interface IOperator {
      * @notice Add assets to be included in account liquidity calculation
      * @param _mTokens The list of addresses of the mToken markets to be enabled
      */
-    function enterMarket(address[] calldata _mTokens) external;
+    function enterMarkets(address[] calldata _mTokens) external;
 
     /**
      * @notice Removes asset from sender's account liquidity calculation
