@@ -1,0 +1,33 @@
+mErc20Host_mint.t.sol
+├── given market is paused for minting
+│   ├── it should revert for mint
+│   └── it should revert for mintExternal
+├── given market is not listed
+│   ├── it should revert for mint
+│   └── it should revert for mintExternal
+├── given amount is 0
+│   ├── it should revert for mint
+│   └── it should revert for mintExternal
+└── given amount is greater than 0
+    ├── when mint is called and supply cap is reached
+    │   └── it should revert with Operator_MarketSupplyReached
+    ├── when mint is called and supply cap is greater
+    │   ├── it should increse balanceOf account
+    │   ├── it should increase total supply by amount
+    │   └── it should transfer underlying from user
+    └── when mintExternal is called
+        ├── given journal is empty
+        │   └── it should revert
+        ├── given journal is non empty but length is not valid
+        │   └── it should revert
+        ├── given decoded amount is 0
+        │   └── it should revert with mErc20Host_AmountNotValid
+        ├── given decoded amount is valid
+        │   ├── when seal verification fails
+        │   │   └── it should revert
+        │   └── when seal verification was ok
+        │       ├── it should increse balanceOf account
+        │       ├── it should increase total supply by amount
+        │       └── it should not transfer underlying from user
+        └── given the same commitment id is used
+            └── it should revert

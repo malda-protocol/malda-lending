@@ -1,0 +1,26 @@
+mErc20_borrow.t.sol
+├── given market is paused for borrow
+│   └── it should revert
+├── given market is not listed
+│   └── it should revert
+├── given oracle returns empty price
+│   └── it should revert
+└── given amount is greater than 0
+    ├── when there is not enough supply
+    │   └── it should revert with mToken_BorrowCashNotAvailable
+    ├── when borrow cap is reached
+    │   └── it should revert with Operator_MarketBorrowCapReached
+    ├── when borrow too much
+    │   └── it should revert with InsufficientLiquidity
+    └── when state is valid
+        ├── given market is not entered
+        │   ├── it shoud activate ther market for sender
+        │   ├── it should transfer underlying token to sender
+        │   ├── it should not modify underlying supply
+        │   ├── it should decrease balance of underlying from mToken
+        │   └── it should increase totalBorrows
+        └── given market is active
+            ├── it should transfer underlying token to sender
+            ├── it should not modify underlying supply
+            ├── it should decrease balance of underlying from mToken
+            └── it should increase totalBorrows

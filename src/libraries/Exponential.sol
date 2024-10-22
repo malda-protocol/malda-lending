@@ -8,7 +8,7 @@ pragma solidity =0.8.27;
 |_|_|_|__|__|_____|____/|__|__|                            
 */
 
-//todo: might remove it
+//TODO: might remove it
 library Exponential {
     uint256 constant expScale = 1e18;
     uint256 constant doubleScale = 1e36;

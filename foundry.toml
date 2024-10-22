@@ -14,7 +14,7 @@ remappings = [
 	"risc0/=lib/risc0-ethereum/contracts/src/"
 ]
 
-# forge-dpeloy
+# forge-deploy
 fs_permissions = [
 	{ access = "read-write", path = "./deployments"},
 	{ access = "read", path = "./out"}

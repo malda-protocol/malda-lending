@@ -31,8 +31,6 @@ contract Roles is Ownable, IRoles {
      */
     event Allowed(address indexed _contract, bytes32 indexed _role, bool _allowed);
 
-    error Roles_NotAuthorized();
-
     constructor(address _owner) Ownable(_owner) {}
 
     // ----------- VIEW ------------

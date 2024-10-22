@@ -48,7 +48,7 @@ abstract contract mTokenConfiguration is mTokenStorage {
      * @dev Admin function to accrue interest and update the interest rate model
      * @param newInterestRateModel the new interest rate model to use
      */
-    function setInterestRateModel(address newInterestRateModel) external {
+    function setInterestRateModel(address newInterestRateModel) external onlyAdmin {
         _accrueInterest();
         // emits interest-rate-model-update-specific logs on errors, so we don't need to.
         return _setInterestRateModel(newInterestRateModel);
@@ -63,7 +63,7 @@ abstract contract mTokenConfiguration is mTokenStorage {
 
         require(accrualBlockNumber == _getBlockNumber(), mToken_BlockNumberNotValid());
 
-        require(newReserveFactorMantissa <= RESERVE_FACTOR_MAX_MANTISSA, mToken_RserveFactorTooHigh());
+        require(newReserveFactorMantissa <= RESERVE_FACTOR_MAX_MANTISSA, mToken_ReserveFactorTooHigh());
 
         emit NewReserveFactor(reserveFactorMantissa, newReserveFactorMantissa);
         reserveFactorMantissa = newReserveFactorMantissa;

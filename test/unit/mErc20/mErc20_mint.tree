@@ -1,0 +1,14 @@
+mErc20_mint.t.sol
+├── given market is paused for minting
+│   └── it should revert
+├── given market is not listed
+│   └── it should revert
+├── given amount is greater than 0
+│   ├── when supply cap is reached
+│   │   └── it should revert with Operator_MarketSupplyReached
+│   └── when supply cap is greater
+│       ├── it should increse balanceOf account
+│       ├── it should increase total supply by amount
+│       └── it should transfer underlying from user
+└── given amount is 0
+    └── it should revert

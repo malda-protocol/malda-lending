@@ -8,11 +8,18 @@ pragma solidity =0.8.27;
 |_|_|_|__|__|_____|____/|__|__|                           
 */
 
+//contracts
+import {Roles} from "src/Roles.sol";
+import {Operator} from "src/Operator/Operator.sol";
+import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
+import {JumpRateModelV2} from "src/interest/JumpRateModelV2.sol";
+
 import {Types} from "./utils/Types.sol";
 import {Events} from "./utils/Events.sol";
 import {Helpers} from "./utils/Helpers.sol";
 
 import {ERC20Mock} from "./mocks/ERC20Mock.sol";
+import {OracleMock} from "./mocks/OracleMock.sol";
 
 abstract contract Base_Unit_Test is Events, Helpers, Types {
     // ----------- USERS ------------
@@ -24,6 +31,13 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
     ERC20Mock public usdc;
     ERC20Mock public weth;
 
+    // ----------- MALDA ------------
+    Roles public roles;
+    Operator public operator;
+    OracleMock public oracleOperator;
+    RewardDistributor public rewards;
+    JumpRateModelV2 public interestModel;
+
     function setUp() public virtual {
         alice = _spawnAccount(ALICE_KEY, "Alice");
         bob = _spawnAccount(BOB_KEY, "Bob");
@@ -31,9 +45,40 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
 
         usdc = _deployToken("USDC", "USDC", 6);
         weth = _deployToken("WETH", "WETH", 18);
+
+        roles = new Roles(address(this));
+        vm.label(address(roles), "Roles");
+
+        rewards = new RewardDistributor();
+        vm.label(address(rewards), "RewardDistributor");
+
+        operator = new Operator(address(roles), address(rewards), address(this));
+        vm.label(address(operator), "Operator");
+
+        interestModel = new JumpRateModelV2(
+            31536000, 0, 1981861998, 43283866057, 800000000000000000, address(this), "InterestModel"
+        );
+        vm.label(address(interestModel), "InterestModel");
+
+        oracleOperator = new OracleMock();
+        vm.label(address(oracleOperator), "oracleOperator");
+
+        // **** SETUP ****
+        rewards.initialize(address(operator));
+        operator.setPriceOracle(address(oracleOperator));
     }
 
     // ----------- MODIFIERS ------------
+    modifier whenPriceIs(uint256 price) {
+        oracleOperator.setPrice(price);
+        _;
+    }
+
+    modifier whenUnderlyingPriceIs(uint256 price) {
+        oracleOperator.setUnderlyingPrice(price);
+        _;
+    }
+
     modifier inRange(uint256 _value, uint256 _min, uint256 _max) {
         vm.assume(_value >= _min && _value <= _max);
         _;

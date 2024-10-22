@@ -389,8 +389,8 @@ contract Operator is OperatorStorage {
     }
 
     /**
-     * @notice Claim all the MELDA accrued by holder in all markets
-     * @param holder The address to claim MELDA for
+     * @notice Claim all the MALDA accrued by holder in all markets
+     * @param holder The address to claim MALDA for
      */
     function claimMelda(address holder) external override {
         address[] memory holders = new address[](1);
@@ -399,9 +399,9 @@ contract Operator is OperatorStorage {
     }
 
     /**
-     * @notice Claim all the MELDA accrued by holder in the specified markets
-     * @param holder The address to claim MELDA for
-     * @param mTokens The list of markets to claim MELDA in
+     * @notice Claim all the MALDA accrued by holder in the specified markets
+     * @param holder The address to claim MALDA for
+     * @param mTokens The list of markets to claim MALDA in
      */
     function claimMelda(address holder, address[] memory mTokens) external override {
         address[] memory holders = new address[](1);
@@ -410,11 +410,11 @@ contract Operator is OperatorStorage {
     }
 
     /**
-     * @notice Claim all MELDA accrued by the holders
-     * @param holders The addresses to claim MELDA for
-     * @param mTokens The list of markets to claim MELDA in
-     * @param borrowers Whether or not to claim MELDA earned by borrowing
-     * @param suppliers Whether or not to claim MELDA earned by supplying
+     * @notice Claim all MALDA accrued by the holders
+     * @param holders The addresses to claim MALDA for
+     * @param mTokens The list of markets to claim MALDA in
+     * @param borrowers Whether or not to claim MALDA earned by borrowing
+     * @param suppliers Whether or not to claim MALDA earned by supplying
      */
     function claimMelda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers)
         external
@@ -511,6 +511,7 @@ contract Operator is OperatorStorage {
      * @inheritdoc IOperatorDefender
      */
     function beforeMTokenRepay(address mToken, address borrower) external {
+        require(!_paused[mToken][IRoles.Pause.Repay], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
         // Keep the flywheel moving
@@ -578,6 +579,7 @@ contract Operator is OperatorStorage {
     }
 
     function _beforeRedeem(address mToken, address redeemer, uint256 redeemTokens) private view {
+        require(!_paused[mToken][IRoles.Pause.Redeem], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
         /* If the redeemer is not 'in' the market, then we can bypass the liquidity check */
@@ -637,10 +639,11 @@ contract Operator is OperatorStorage {
             }
         }
 
-        if (vars.sumCollateral > vars.sumBorrowPlusEffects) 
+        if (vars.sumCollateral > vars.sumBorrowPlusEffects) {
             return (vars.sumCollateral - vars.sumBorrowPlusEffects, 0);
-        else 
-            return(0, vars.sumBorrowPlusEffects - vars.sumCollateral);
+        } else {
+            return (0, vars.sumBorrowPlusEffects - vars.sumCollateral);
+        }
     }
 
     /**
@@ -662,7 +665,7 @@ contract Operator is OperatorStorage {
     /**
      * @notice Notify reward distributor for supplier update
      * @param mToken The market in which the supplier is interacting
-     * @param supplier The address of the supplier to distribute MELDA to
+     * @param supplier The address of the supplier to distribute MALDA to
      */
     function _distributeSupplierMelda(address mToken, address supplier) private {
         IRewardDistributor(rewardDistributor).notifySupplier(mToken, supplier);
@@ -672,7 +675,7 @@ contract Operator is OperatorStorage {
      * @notice Notify reward distributor for borrower update
      * @dev Borrowers will not begin to accrue until after the first interaction with the protocol.
      * @param mToken The market in which the borrower is interacting
-     * @param borrower The address of the borrower to distribute MELDA to
+     * @param borrower The address of the borrower to distribute MALDA to
      */
     function _distributeBorrowerMelda(address mToken, address borrower) private {
         IRewardDistributor(rewardDistributor).notifyBorrower(mToken, borrower);

@@ -20,7 +20,7 @@ interface IOperatorData {
         uint256 collateralFactorMantissa;
         // Per-market mapping of "accounts in this asset"
         mapping(address => bool) accountMembership;
-        // Whether or not this market receives MELDA
+        // Whether or not this market receives MALDA
         bool isMalded;
     }
 }
@@ -224,24 +224,24 @@ interface IOperator {
     function exitMarket(address _mToken) external;
 
     /**
-     * @notice Claim all the MELDA accrued by holder in all markets
-     * @param holder The address to claim MELDA for
+     * @notice Claim all the MALDA accrued by holder in all markets
+     * @param holder The address to claim MALDA for
      */
     function claimMelda(address holder) external;
 
     /**
-     * @notice Claim all the MELDA accrued by holder in the specified markets
-     * @param holder The address to claim MELDA for
-     * @param mTokens The list of markets to claim MELDA in
+     * @notice Claim all the MALDA accrued by holder in the specified markets
+     * @param holder The address to claim MALDA for
+     * @param mTokens The list of markets to claim MALDA in
      */
     function claimMelda(address holder, address[] memory mTokens) external;
 
     /**
-     * @notice Claim all MELDA accrued by the holders
-     * @param holders The addresses to claim MELDA for
-     * @param mTokens The list of markets to claim MELDA in
-     * @param borrowers Whether or not to claim MELDA earned by borrowing
-     * @param suppliers Whether or not to claim MELDA earned by supplying
+     * @notice Claim all MALDA accrued by the holders
+     * @param holders The addresses to claim MALDA for
+     * @param mTokens The list of markets to claim MALDA in
+     * @param borrowers Whether or not to claim MALDA earned by borrowing
+     * @param suppliers Whether or not to claim MALDA earned by supplying
      */
     function claimMelda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers) external;
 }
