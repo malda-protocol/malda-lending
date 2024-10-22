@@ -227,14 +227,14 @@ interface IOperator {
      * @notice Claim all the MALDA accrued by holder in all markets
      * @param holder The address to claim MALDA for
      */
-    function claimMelda(address holder) external;
+    function claimMalda(address holder) external;
 
     /**
      * @notice Claim all the MALDA accrued by holder in the specified markets
      * @param holder The address to claim MALDA for
      * @param mTokens The list of markets to claim MALDA in
      */
-    function claimMelda(address holder, address[] memory mTokens) external;
+    function claimMalda(address holder, address[] memory mTokens) external;
 
     /**
      * @notice Claim all MALDA accrued by the holders
@@ -243,5 +243,5 @@ interface IOperator {
      * @param borrowers Whether or not to claim MALDA earned by borrowing
      * @param suppliers Whether or not to claim MALDA earned by supplying
      */
-    function claimMelda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers) external;
+    function claimMalda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers) external;
 }

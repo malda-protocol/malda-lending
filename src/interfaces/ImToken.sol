@@ -46,7 +46,6 @@ interface ImTokenMinimal {
 
     /**
      * @dev Returns true
-     * name.
      */
     function isMToken() external view returns (bool);
 }

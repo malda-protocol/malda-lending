@@ -392,7 +392,7 @@ contract Operator is OperatorStorage {
      * @notice Claim all the MALDA accrued by holder in all markets
      * @param holder The address to claim MALDA for
      */
-    function claimMelda(address holder) external override {
+    function claimMalda(address holder) external override {
         address[] memory holders = new address[](1);
         holders[0] = holder;
         return _claim(holders, allMarkets, true, true);
@@ -403,7 +403,7 @@ contract Operator is OperatorStorage {
      * @param holder The address to claim MALDA for
      * @param mTokens The list of markets to claim MALDA in
      */
-    function claimMelda(address holder, address[] memory mTokens) external override {
+    function claimMalda(address holder, address[] memory mTokens) external override {
         address[] memory holders = new address[](1);
         holders[0] = holder;
         _claim(holders, mTokens, true, true);
@@ -416,7 +416,7 @@ contract Operator is OperatorStorage {
      * @param borrowers Whether or not to claim MALDA earned by borrowing
      * @param suppliers Whether or not to claim MALDA earned by supplying
      */
-    function claimMelda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers)
+    function claimMalda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers)
         external
         override
     {
