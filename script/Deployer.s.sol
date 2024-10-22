@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.27;
 
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/Script.sol";
 import {Deployer} from "../src/utils/Deployer.sol";
+import {DeployBase} from "./DeployBase.sol";
 
-contract DeployerScript is Script {
+contract DeployerScript is DeployBase {
     Deployer deployer;
 
     function run() public {
@@ -18,28 +19,5 @@ contract DeployerScript is Script {
         console.log("Deployer contract deployed at: %s", deployedAddress);
 
         vm.stopBroadcast();
-    }
-
-    function _computeCreate2Address(bytes32 salt, bytes memory bytecode) public view returns (address) {
-        bytes32 bytecodeHash = keccak256(bytecode);
-        bytes32 _data = keccak256(abi.encodePacked(bytes1(0xff), address(this), salt, bytecodeHash));
-
-        return address(uint160(uint256(_data)));
-    }
-
-    function _deployCreate2(bytes32 salt, bytes memory bytecode, bytes memory constructorArgs)
-        public
-        returns (address)
-    {
-        bytes memory bytecodeWithConstructor = abi.encodePacked(bytecode, constructorArgs);
-
-        address deployedAddress;
-        assembly {
-            deployedAddress := create2(0, add(bytecodeWithConstructor, 0x20), mload(bytecodeWithConstructor), salt)
-
-            if iszero(deployedAddress) { revert(0, 0) }
-        }
-
-        return deployedAddress;
     }
 }
