@@ -214,11 +214,11 @@ interface ImToken is ImTokenMinimal {
 
     /**
      * @notice Transfers collateral tokens (this market) to the liquidator.
-     * @dev Will fail unless called by another cToken during the process of liquidation.
-     *  Its absolutely critical to use msg.sender as the borrowed cToken and not a parameter.
+     * @dev Will fail unless called by another mToken during the process of liquidation.
+     *  Its absolutely critical to use msg.sender as the borrowed mToken and not a parameter.
      * @param liquidator The account receiving seized collateral
      * @param borrower The account having collateral seized
-     * @param seizeTokens The number of cTokens to seize
+     * @param seizeTokens The number of mTokens to seize
      */
     function seize(address liquidator, address borrower, uint256 seizeTokens) external;
 
