@@ -13,7 +13,9 @@ interface IRoles {
         Mint,
         Borrow,
         Transfer,
-        Seize
+        Seize,
+        Repay,
+        Redeem
     }
 
     /**

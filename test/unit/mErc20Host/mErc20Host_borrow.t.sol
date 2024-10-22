@@ -1,0 +1,325 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity =0.8.27;
+
+// interfaces
+import {IRoles} from "src/interfaces/IRoles.sol";
+
+// contracts
+import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
+import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
+import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
+
+// tests
+import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
+
+contract mErc20Host_borrow is mToken_Unit_Shared {
+    function test_RevertGiven_MarketIsPausedForBorrow(uint256 amount)
+        external
+        whenPaused(address(mWethHost), IRoles.Pause.Borrow)
+        inRange(amount, SMALL, LARGE)
+    {
+        vm.expectRevert(OperatorStorage.Operator_Paused.selector);
+        mWethHost.borrow(amount);
+    }
+
+    function test_RevertGiven_MarketIsNotListed(uint256 amount)
+        external
+        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        inRange(amount, SMALL, LARGE)
+    {
+        vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
+        mWethHost.borrow(amount);
+    }
+
+    function test_RevertGiven_OracleReturnsEmptyPrice(uint256 amount)
+        external
+        whenPriceIs(ZERO_VALUE)
+        whenMarketIsListed(address(mWethHost))
+        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        inRange(amount, SMALL, LARGE)
+    {
+        // it should revert
+        vm.expectRevert(OperatorStorage.Operator_EmptyPrice.selector);
+        mWethHost.borrow(amount);
+    }
+
+    modifier givenAmountIsGreaterThan0() {
+        // does nothing; only for readability purposes
+        _;
+    }
+
+    function test_WhenThereIsNotEnoughSupply(uint256 amount)
+        external
+        givenAmountIsGreaterThan0
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+        whenMarketIsListed(address(mWethHost))
+        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        inRange(amount, SMALL, LARGE)
+        whenMarketEntered(address(mWethHost))
+    {
+        // it should revert with mToken_BorrowCashNotAvailable but it actually reverts with InsufficientLiquidity for non cross-chain tokens
+        // cannot test this in a non-external flow
+        vm.expectRevert();
+        mWethHost.borrow(amount);
+    }
+
+    function test_WhenBorrowCapIsReached(uint256 amount)
+        external
+        givenAmountIsGreaterThan0
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+        whenMarketIsListed(address(mWethHost))
+        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        inRange(amount, SMALL, LARGE)
+        whenBorrowCapReached(address(mWethHost), amount)
+    {
+        // it should revert with Operator_MarketBorrowCapReached
+        vm.expectRevert(OperatorStorage.Operator_MarketBorrowCapReached.selector);
+        mWethHost.borrow(amount);
+    }
+
+    function test_WhenBorrowTooMuch(uint256 amount)
+        external
+        givenAmountIsGreaterThan0
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+        whenMarketIsListed(address(mWethHost))
+        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        inRange(amount, SMALL, LARGE)
+        whenMarketEntered(address(mWethHost))
+    {
+        _borrowPrerequisites(address(mWethHost), amount);
+
+        vm.expectRevert(OperatorStorage.Operator_InsufficientLiquidity.selector);
+        mWethHost.borrow(amount);
+    }
+
+    modifier whenStateIsValid() {
+        // does nothing; only for readability purposes
+        _;
+    }
+
+    function test_GivenMarketIsNotEntered(uint256 amount)
+        external
+        givenAmountIsGreaterThan0
+        whenStateIsValid
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+        whenMarketIsListed(address(mWethHost))
+        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        inRange(amount, SMALL, LARGE)
+    {
+        // supply tokens; assure collateral factor is met
+        _borrowPrerequisites(address(mWethHost), amount * 2);
+
+        // before state
+        bool memberBefore = operator.checkMembership(address(this), address(mWethHost));
+        uint256 balanceUnderlyingBefore = weth.balanceOf(address(this));
+        uint256 balanceUnderlyingMTokenBefore = weth.balanceOf(address(mWethHost));
+        uint256 supplyUnderlyingBefore = weth.totalSupply();
+        uint256 totalBorrowsBefore = mWethHost.totalBorrows();
+
+        assertFalse(memberBefore);
+
+        // borrow; should fail
+        vm.expectRevert(OperatorStorage.Operator_InsufficientLiquidity.selector);
+        mWethHost.borrow(amount);
+
+        // borrow; try again
+        operator.setCollateralFactor(address(mWethHost), DEFAULT_COLLATERAL_FACTOR);
+        mWethHost.borrow(amount);
+
+        _afterBorrowChecks(
+            amount, balanceUnderlyingBefore, balanceUnderlyingMTokenBefore, supplyUnderlyingBefore, totalBorrowsBefore
+        );
+    }
+
+    function test_GivenMarketIsActive(uint256 amount)
+        external
+        givenAmountIsGreaterThan0
+        whenStateIsValid
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+        whenMarketIsListed(address(mWethHost))
+        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        inRange(amount, SMALL, LARGE)
+        whenMarketEntered(address(mWethHost))
+    {
+        // supply tokens; assure collateral factor is met
+        _borrowPrerequisites(address(mWethHost), amount * 2);
+
+        // before state
+        uint256 balanceUnderlyingBefore = weth.balanceOf(address(this));
+        uint256 balanceUnderlyingMTokenBefore = weth.balanceOf(address(mWethHost));
+        uint256 supplyUnderlyingBefore = weth.totalSupply();
+        uint256 totalBorrowsBefore = mWethHost.totalBorrows();
+
+        _borrowAndCheck(
+            amount, balanceUnderlyingBefore, balanceUnderlyingMTokenBefore, supplyUnderlyingBefore, totalBorrowsBefore
+        );
+    }
+
+    // stack too deep
+    function _borrowAndCheck(
+        uint256 amount,
+        uint256 balanceUnderlyingBefore,
+        uint256 balanceUnderlyingMTokenBefore,
+        uint256 supplyUnderlyingBefore,
+        uint256 totalBorrowsBefore
+    ) private {
+        // borrow
+        mWethHost.borrow(amount);
+
+        _afterBorrowChecks(
+            amount, balanceUnderlyingBefore, balanceUnderlyingMTokenBefore, supplyUnderlyingBefore, totalBorrowsBefore
+        );
+    }
+
+    // stack too deep
+    function _borrowExternalAndCheck(
+        uint256 amount,
+        uint256 balanceUnderlyingBefore,
+        uint256 balanceUnderlyingMTokenBefore,
+        uint256 supplyUnderlyingBefore,
+        uint256 totalBorrowsBefore
+    ) private {
+        bytes memory journalData =
+            _createCommitment(amount, address(this), mWethHost.nonces(address(this), mErc20Host.OperationType.Borrow));
+
+        // borrow
+        mWethHost.borrowExternal(journalData, "0x123");
+
+        _afterBorrowChecks(
+            amount, balanceUnderlyingBefore, balanceUnderlyingMTokenBefore, supplyUnderlyingBefore, totalBorrowsBefore
+        );
+    }
+
+    function _afterBorrowChecks(
+        uint256 amount,
+        uint256 balanceUnderlyingBefore,
+        uint256 balanceUnderlyingMTokenBefore,
+        uint256 supplyUnderlyingBefore,
+        uint256 totalBorrowsBefore
+    ) private view {
+        // after state
+        bool memberAfter = operator.checkMembership(address(this), address(mWethHost));
+        uint256 balanceUnderlyingAfter = weth.balanceOf(address(this));
+        uint256 balanceUnderlyingMTokenAfter = weth.balanceOf(address(mWethHost));
+        uint256 supplyUnderlyingAfter = weth.totalSupply();
+        uint256 totalBorrowsAfter = mWethHost.totalBorrows();
+
+        // it shoud activate ther market for sender
+        assertTrue(memberAfter);
+
+        // it should transfer underlying token to sender
+        assertGt(balanceUnderlyingAfter, balanceUnderlyingBefore);
+        assertEq(balanceUnderlyingAfter - amount, balanceUnderlyingBefore);
+
+        // it should not modify underlying supply
+        assertEq(supplyUnderlyingBefore, supplyUnderlyingAfter);
+
+        // it should decrease balance of underlying from mToken
+        assertGt(balanceUnderlyingMTokenBefore, balanceUnderlyingMTokenAfter);
+
+        // it should increase totalBorrows
+        assertGt(totalBorrowsAfter, totalBorrowsBefore);
+    }
+
+    modifier whenBorrowExternalIsCalled() {
+        // @dev does nothing; just to know `mintExternal` is called for the method
+        _;
+    }
+
+    modifier givenDecodedAmountIsValid() {
+        // @dev does nothing; just to know bytes sent have a valid format
+        _;
+    }
+
+    function test_RevertGiven_JournalIsEmpty(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+        whenBorrowExternalIsCalled
+    {
+        vm.expectRevert(mErc20Host.mErc20Host_JournalNotValid.selector);
+        mWethHost.borrowExternal("", "0x123");
+    }
+
+    function test_RevertGiven_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+        whenBorrowExternalIsCalled
+    {
+        vm.expectRevert(mErc20Host.mErc20Host_JournalNotValid.selector);
+        mWethHost.borrowExternal("0x123", "0x123");
+    }
+
+    function test_GivenDecodedAmountIs0() external whenBorrowExternalIsCalled whenImageIdExists {
+        uint256 amount = 0;
+        bytes memory journalData =
+            _createCommitment(amount, address(this), mWethHost.nonces(address(this), mErc20Host.OperationType.Borrow));
+
+        vm.expectRevert(mErc20Host.mErc20Host_AmountNotValid.selector);
+        mWethHost.borrowExternal(journalData, "0x123");
+    }
+
+    function test_RevertWhen_SealVerificationFails(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+        whenBorrowExternalIsCalled
+        whenImageIdExists
+        givenDecodedAmountIsValid
+    {
+        bytes memory journalData =
+            _createCommitment(amount, address(this), mWethHost.nonces(address(this), mErc20Host.OperationType.Borrow));
+
+        verifierMock.setStatus(true); // set for failure
+
+        vm.expectRevert();
+        mWethHost.borrowExternal(journalData, "0x123");
+    }
+
+    function test_WhenSealVerificationWasOk(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+        whenBorrowExternalIsCalled
+        whenImageIdExists
+        givenDecodedAmountIsValid
+        whenMarketIsListed(address(mWethHost))
+        whenMarketEntered(address(mWethHost))
+    {
+        // supply tokens; assure collateral factor is met
+        _borrowPrerequisites(address(mWethHost), amount * 2);
+
+        // before state
+        uint256 balanceUnderlyingBefore = weth.balanceOf(address(this));
+        uint256 balanceUnderlyingMTokenBefore = weth.balanceOf(address(mWethHost));
+        uint256 supplyUnderlyingBefore = weth.totalSupply();
+        uint256 totalBorrowsBefore = mWethHost.totalBorrows();
+
+        _borrowExternalAndCheck(
+            amount, balanceUnderlyingBefore, balanceUnderlyingMTokenBefore, supplyUnderlyingBefore, totalBorrowsBefore
+        );
+    }
+
+    function test_RevertGiven_TheSameCommitmentIdIsUsedX(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+        whenBorrowExternalIsCalled
+        whenImageIdExists
+        givenDecodedAmountIsValid
+        whenMarketIsListed(address(mWethHost))
+        whenMarketEntered(address(mWethHost))
+    {
+        // supply tokens; assure collateral factor is met
+        _borrowPrerequisites(address(mWethHost), amount * 2);
+
+        // it should revert
+        bytes memory journalData =
+            _createCommitment(amount, address(this), mWethHost.nonces(address(this), mErc20Host.OperationType.Borrow));
+        mWethHost.borrowExternal(journalData, "0x123");
+
+        vm.expectRevert(abi.encodePacked(ZkVerifier.ZkVerifier_AlreadyVerified.selector, uint256(1)));
+        mWethHost.borrowExternal(journalData, "0x123");
+    }
+}

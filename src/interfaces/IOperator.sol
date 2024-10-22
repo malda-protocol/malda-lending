@@ -20,7 +20,7 @@ interface IOperatorData {
         uint256 collateralFactorMantissa;
         // Per-market mapping of "accounts in this asset"
         mapping(address => bool) accountMembership;
-        // Whether or not this market receives MELDA
+        // Whether or not this market receives MALDA
         bool isMalded;
     }
 }

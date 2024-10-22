@@ -1,0 +1,37 @@
+mErc20Host_redeem.t.sol
+├── given market is paused for redeem
+│   └── it should revert
+├── given market is paused for redeemUnderlying
+│   └── it should revert
+├── given market is not listed
+│   ├── it should revert with Operator_MarketNotListed for redeem
+│   └── it should revert with Operator_MarketNotListed for redeemUnderlying
+├── given redeemer is not part of the market
+│   └── it should not perform any redeem operations for neither of the redeem operations
+└── given amount is greater than 0
+    ├── when the market does not have enough assets for the redeem operations 
+    │   └── it should revert with mToken_RedeemCashNotAvailable
+    ├── when state is valid for redeem
+    │   ├── it should transfer underlying to redeemer
+    │   ├── it should decrease totalSupply of mToken
+    │   └── it should decrease redeemer balance of mToken
+    ├── when state is valid for redeemUnderlying
+    │   ├── it should transfer underlying to redeemer
+    │   ├── it should decrease totalSupply of mToken
+    │   └── it should decrease redeemer balance of mToken
+    └── when redeemExternal is called
+        ├── given journal is empty
+        │   └── it should revert
+        ├── given journal is non empty but length is not valid
+        │   └── it should revert
+        ├── given decoded amount is 0
+        │   └── it should revert with mErc20Host_AmountNotValid
+        ├── given decoded amount is valid
+        │   ├── when seal verification fails
+        │   │   └── it should revert
+        │   └── when seal verification was ok
+        │       ├── it should not transfer underlying to redeemer
+        │       ├── it should decrease totalSupply of mToken
+        │       └── it should decrease redeemer balance of mToken
+        └── given the same commitment id is used
+            └── it should revert

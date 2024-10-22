@@ -1,0 +1,42 @@
+mErc20Host_borrow.t.sol
+├── given market is paused for borrow
+│   └── it should revert
+├── given market is not listed
+│   └── it should revert
+├── given oracle returns empty price
+│   └── it should revert
+└── given amount is greater than 0
+    ├── when there is not enough supply
+    │   └── it should revert with mToken_BorrowCashNotAvailable
+    ├── when borrow cap is reached
+    │   └── it should revert with Operator_MarketBorrowCapReached
+    ├── when borrow too much
+    │   └── it should revert with InsufficientLiquidity
+    ├── when state is valid
+    │   ├── given market is not entered
+    │   │   ├── it shoud activate ther market for sender
+    │   │   ├── it should transfer underlying token to sender
+    │   │   ├── it should not modify underlying supply
+    │   │   ├── it should decrease balance of underlying from mToken
+    │   │   └── it should increase totalBorrows
+    │   └── given market is active
+    │       ├── it should transfer underlying token to sender
+    │       ├── it should not modify underlying supply
+    │       ├── it should decrease balance of underlying from mToken
+    │       └── it should increase totalBorrows
+    └── when borrowExternal is called
+        ├── given journal is empty
+        │   └── it should revert
+        ├── given journal is non empty but length is not valid
+        │   └── it should revert
+        ├── given decoded amount is 0
+        │   └── it should revert with mErc20Host_AmountNotValid
+        ├── given decoded amount is valid
+        │   ├── when seal verification fails
+        │   │   └── it should revert
+        │   └── when seal verification was ok
+        │       ├── it should increse balanceOf account
+        │       ├── it should increase total supply by amount
+        │       └── it should not transfer underlying from user
+        └── given the same commitment id is used
+            └── it should revert

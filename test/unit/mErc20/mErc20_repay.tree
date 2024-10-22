@@ -1,0 +1,21 @@
+mErc20_repay.t.sol
+├── given market is paused for repay
+│   └── it should revert
+├── given market is not listed
+│   └── it should revert
+├── given amount is 0
+│   └── it should not revert
+└── given amount is greater than 0
+    └── when state is valid
+        ├── when repay too much
+        │   ├── it should use only the amount borrowed
+        │   ├── it should decrease balance of underlying from user
+        │   ├── it should have same mToken balance
+        │   ├── it should decrease totalBorrows
+        │   └── it should decrease accountBorrows
+        └── when repay less 
+            ├── it should use only the repay amount
+            ├── it should decrease balance of underlying from user
+        │   ├── it should have same mToken balance
+            ├── it should decrease totalBorrows
+            └── it should decrease accountBorrows

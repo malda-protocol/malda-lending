@@ -28,6 +28,10 @@ abstract contract Helpers is Test, Constants {
     }
 
     // ----------- DEPLOYERS ------------
+    function _getTokens(ERC20Mock _token, address _to, uint256 _amount) internal {
+        _token.mint(_to, _amount);
+    }
+
     function _spawnAccount(uint256 _key, string memory _name) internal returns (address) {
         address _user = vm.addr(_key);
         vm.deal(_user, LARGE);

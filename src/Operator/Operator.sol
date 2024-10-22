@@ -511,6 +511,7 @@ contract Operator is OperatorStorage {
      * @inheritdoc IOperatorDefender
      */
     function beforeMTokenRepay(address mToken, address borrower) external {
+        require(!_paused[mToken][IRoles.Pause.Repay], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
         // Keep the flywheel moving
@@ -578,6 +579,7 @@ contract Operator is OperatorStorage {
     }
 
     function _beforeRedeem(address mToken, address redeemer, uint256 redeemTokens) private view {
+        require(!_paused[mToken][IRoles.Pause.Redeem], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
         /* If the redeemer is not 'in' the market, then we can bypass the liquidity check */
@@ -637,10 +639,11 @@ contract Operator is OperatorStorage {
             }
         }
 
-        if (vars.sumCollateral > vars.sumBorrowPlusEffects) 
+        if (vars.sumCollateral > vars.sumBorrowPlusEffects) {
             return (vars.sumCollateral - vars.sumBorrowPlusEffects, 0);
-        else 
-            return(0, vars.sumBorrowPlusEffects - vars.sumCollateral);
+        } else {
+            return (0, vars.sumBorrowPlusEffects - vars.sumCollateral);
+        }
     }
 
     /**

@@ -1,0 +1,44 @@
+mErc20_repay.t.sol
+├── given market is paused for repay
+│   └── it should revert
+├── given market is not listed
+│   └── it should revert
+├── given oracle returns empty price
+│   └── it should revert
+├── given amount is 0
+│   └── it should not revert
+└── given amount is greater than 0
+    ├── when there is not enough supply
+    │   └── it should revert with mToken_BorrowCashNotAvailable
+    ├── when state is valid
+    │   ├── when repay too much
+    │   │   ├── it should use only the amount borrowed
+    │   │   ├── it should transfer underlying token to sender
+    │   │   ├── it should not modify underlying supply
+    │   │   ├── it should decrease balance of underlying from user
+    │   │   ├── it should decrease totalBorrows
+    │   │   └── it should decrease accountBorrows
+    │   └── when repay less 
+    │       ├── it should use only the repay amount
+    │       ├── it should transfer underlying token to sender
+    │       ├── it should not modify underlying supply
+    │       ├── it should decrease balance of underlying from user
+    │       ├── it should decrease totalBorrows
+    │       └── it should decrease accountBorrows
+    └── when borrowExternal is called
+        ├── given journal is empty
+        │   └── it should revert
+        ├── given journal is non empty but length is not valid
+        │   └── it should revert
+        ├── given decoded amount is 0
+        │   └── it should revert with mErc20Host_AmountNotValid
+        ├── given decoded amount is valid
+        │   ├── when seal verification fails
+        │   │   └── it should revert
+        │   └── when seal verification was ok
+        │       ├── it should not transfer underlyinbg
+        │       ├── it should increse balanceOf account
+        │       ├── it should increase total supply by amount
+        │       └── it should not transfer underlying from user
+        └── given the same commitment id is used
+            └── it should revert

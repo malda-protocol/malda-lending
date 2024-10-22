@@ -1,0 +1,23 @@
+mErc20_redeem.t.sol
+├── given market is paused for redeem
+│   └── it should revert
+├── given market is paused for redeemUnderlying
+│   └── it should revert
+├── given market is not listed
+│   ├── it should revert with Operator_MarketNotListed for redeem
+│   └── it should revert with Operator_MarketNotListed for redeemUnderlying
+├── given redeemer is not part of the market
+│   └── it should not perform any redeem operation for neither of the redeem operations
+├── given redeem amounts are 0 
+│   └── it should not redeem anything
+└── given amount is greater than 0
+    ├── when the market does not have enough assets for the redeem operations
+    │   └── it should revert with mToken_RedeemCashNotAvailable
+    ├── when state is valid for redeem
+    │   ├── it should transfer underlying to redeemer
+    │   ├── it should decrease totalSupply of mToken
+    │   └── it should decrease redeemer balance of mToken
+    └── when state is valid for redeemUnderlying
+        ├── it should transfer underlying to redeemer
+        ├── it should decrease totalSupply of mToken
+        └── it should decrease redeemer balance of mToken
