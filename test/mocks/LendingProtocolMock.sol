@@ -94,13 +94,6 @@ contract LendingProtocolMock is Ownable {
     function _verifyProof(bytes calldata journalData, bytes calldata seal, bytes32 imageId) private view {
         require(journalData.length > 95, LendingProtocolMock_JournalNotValid());
 
-        // get commitment data
-        bytes memory commitmentData = journalData[:96];
-        Steel.Commitment memory commitment = abi.decode(commitmentData, (Steel.Commitment));
-
-        // validate commitment
-        require(Steel.validateCommitment(commitment), LendingProtocolMock_InvalidCommitment(commitment.id));
-
         // verify proof
         verifier.verify(seal, imageId, sha256(journalData));
     }
