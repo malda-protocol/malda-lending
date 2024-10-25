@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity =0.8.27;
+pragma solidity =0.8.28;
 
 import {console} from "forge-std/Script.sol";
 import {DeployBase} from "./DeployBase.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0
-pragma solidity =0.8.27;
+pragma solidity =0.8.28;
 
 /*
  _____ _____ __    ____  _____ 
@@ -79,6 +79,24 @@ abstract contract ZkVerifier {
     }
 
     /**
+     * @notice Verifies an input on an extension chain
+     * @param journalEntry the risc0 journal entry
+     * @param seal the risc0 seal
+     * @param imageIdIndex the risc0 imageId index available in the registry
+     */
+    function _verifyInput(bytes calldata journalEntry, bytes calldata seal, uint256 imageIdIndex) internal virtual {
+        // generic checks
+        _checkAddresses();
+
+        // check image
+        bytes32 _imageId;
+        _imageId = _checkImage(_imageId, imageIdIndex);
+
+        // verify input
+        verifier.verify(seal, _imageId, sha256(journalEntry));
+    }
+
+    /**
      * @notice Verifies an input
      * @param journalEntry the risc0 journal entry
      * @param commitment the risc0 journal comittment
@@ -100,6 +118,23 @@ abstract contract ZkVerifier {
 
         // verify input
         __verify(journalEntry, commitment, seal, _imageId);
+    }
+
+    /**
+     * @notice Verifies an input on an extension chain
+     * @param journalEntry the risc0 journal entry
+     * @param seal the risc0 seal
+     * @param imageId the risc0 imageId
+     */
+    function _verifyInput(bytes calldata journalEntry, bytes calldata seal, bytes32 imageId) internal virtual {
+        // generic checks
+        _checkAddresses();
+
+        // check image
+        _checkImage(imageId, 0);
+
+        // verify input
+        verifier.verify(seal, imageId, sha256(journalEntry));
     }
 
     /**

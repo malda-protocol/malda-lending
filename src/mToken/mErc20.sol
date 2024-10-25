@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity =0.8.27;
+pragma solidity =0.8.28;
 
 /*
  _____ _____ __    ____  _____ 
@@ -33,7 +33,6 @@ contract mErc20 is mToken, ImErc20 {
     // ----------- ERRORS ------------
     error mErc20_TokenNotValid();
 
-    //TODO: check if we can refactor this
     constructor(address payable _admin) {
         admin = _admin;
     }

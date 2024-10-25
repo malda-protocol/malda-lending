@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity =0.8.27;
+pragma solidity =0.8.28;
 
-//TODO: replace with OZ 5.1
 import {StorageSlot} from "./StorageSlot.sol";
 
 /**

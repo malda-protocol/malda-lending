@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity =0.8.27;
+pragma solidity =0.8.28;
 
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
+import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 
 // contracts
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
@@ -180,7 +181,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         uint256 totalBorrowsBefore
     ) private {
         bytes memory journalData =
-            _createCommitment(amount, address(this), mWethHost.nonces(address(this), mErc20Host.OperationType.Borrow));
+            _createCommitment(amount, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Borrow));
 
         // borrow
         mWethHost.borrowExternal(journalData, "0x123");
@@ -222,12 +223,12 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
     }
 
     modifier whenBorrowExternalIsCalled() {
-        // @dev does nothing; just to know `mintExternal` is called for the method
+        // @dev does nothing; for readability only
         _;
     }
 
     modifier givenDecodedAmountIsValid() {
-        // @dev does nothing; just to know bytes sent have a valid format
+        // @dev does nothing; for readability only
         _;
     }
 
@@ -237,7 +238,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenBorrowExternalIsCalled
     {
-        vm.expectRevert(mErc20Host.mErc20Host_JournalNotValid.selector);
+        vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
         mWethHost.borrowExternal("", "0x123");
     }
 
@@ -247,16 +248,16 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenBorrowExternalIsCalled
     {
-        vm.expectRevert(mErc20Host.mErc20Host_JournalNotValid.selector);
+        vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
         mWethHost.borrowExternal("0x123", "0x123");
     }
 
     function test_GivenDecodedAmountIs0() external whenBorrowExternalIsCalled whenImageIdExists {
         uint256 amount = 0;
         bytes memory journalData =
-            _createCommitment(amount, address(this), mWethHost.nonces(address(this), mErc20Host.OperationType.Borrow));
+            _createCommitment(amount, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Borrow));
 
-        vm.expectRevert(mErc20Host.mErc20Host_AmountNotValid.selector);
+        vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
         mWethHost.borrowExternal(journalData, "0x123");
     }
 
@@ -269,7 +270,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         givenDecodedAmountIsValid
     {
         bytes memory journalData =
-            _createCommitment(amount, address(this), mWethHost.nonces(address(this), mErc20Host.OperationType.Borrow));
+            _createCommitment(amount, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Borrow));
 
         verifierMock.setStatus(true); // set for failure
 
@@ -316,7 +317,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
 
         // it should revert
         bytes memory journalData =
-            _createCommitment(amount, address(this), mWethHost.nonces(address(this), mErc20Host.OperationType.Borrow));
+            _createCommitment(amount, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Borrow));
         mWethHost.borrowExternal(journalData, "0x123");
 
         vm.expectRevert(abi.encodePacked(ZkVerifier.ZkVerifier_AlreadyVerified.selector, uint256(1)));

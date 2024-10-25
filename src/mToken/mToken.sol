@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity =0.8.27;
+pragma solidity =0.8.28;
 
 /*
  _____ _____ __    ____  _____ 
@@ -7,8 +7,6 @@ pragma solidity =0.8.27;
 | | | |     |  |__|  |  |     |
 |_|_|_|__|__|_____|____/|__|__|   
 */
-
-//TODO: use solidity 0.8.28
 
 // interfaces
 import {IRoles} from "../interfaces/IRoles.sol";

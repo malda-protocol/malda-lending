@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity =0.8.27;
+pragma solidity =0.8.28;
 
 //interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
@@ -8,6 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 //contracts
 import {mErc20} from "src/mToken/mErc20.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
+import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
 import {ZkVerifierImageRegistry} from "src/verifier/ZkVerifierImageRegistry.sol";
 
 import {Base_Unit_Test} from "../../Base_Unit_Test.t.sol";
@@ -19,6 +20,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
     // ----------- STORAGE ------------
     mErc20 public mWeth;
     mErc20Host public mWethHost;
+    mTokenGateway public mWethExtension;
 
     Risc0VerifierMock public verifierMock;
     ZkVerifierImageRegistry public verifierImageRegistry;
@@ -55,6 +57,10 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             address(verifierImageRegistry)
         );
         vm.label(address(mWethHost), "mWethHost");
+
+        mWethExtension = new mTokenGateway(
+            payable(address(this)), address(weth), address(verifierMock), address(verifierImageRegistry)
+        );
     }
     // ----------- HELPERS ------------
 
@@ -87,6 +93,13 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         _getTokens(ERC20Mock(underlying), address(this), supplyAmount);
         IERC20(underlying).approve(mToken, supplyAmount);
         mErc20(mToken).mint(supplyAmount);
+    }
+
+    function _borrowGatewayPrerequisites(address mGateway, uint256 supplyAmount) internal {
+        address underlying = mTokenGateway(mGateway).underlying();
+        _getTokens(ERC20Mock(underlying), address(this), supplyAmount);
+        IERC20(underlying).approve(mGateway, supplyAmount);
+        mTokenGateway(mGateway).mint(supplyAmount);
     }
 
     function _repayPrerequisites(address mToken, uint256 supplyAmount, uint256 borrowAmount) internal {
