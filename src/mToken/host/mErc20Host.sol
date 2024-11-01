@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity =0.8.27;
+pragma solidity =0.8.28;
 
 /*
  _____ _____ __    ____  _____ 
@@ -9,41 +9,21 @@ pragma solidity =0.8.27;
 */
 
 // interfaces
-import {ImErc20Host} from "../../interfaces/ImErc20Host.sol";
 import {IZkVerifierImageRegistry} from "../../interfaces/IZkVerifierImageRegistry.sol";
+
+import {Steel} from "risc0/steel/Steel.sol";
 
 // contracts
 import {mErc20} from "../mErc20.sol";
-import {Steel} from "risc0/steel/Steel.sol";
 import {ZkVerifier} from "../../verifier/ZkVerifier.sol";
+
+import {ImErc20Host} from "../../interfaces/ImErc20Host.sol";
 
 contract mErc20Host is mErc20, ZkVerifier, ImErc20Host {
     // ----------- STORAGE ------------
-    // TODO: move to interfaces
-    enum ImageIdIndexes {
-        Mint, //0
-        Borrow, //1
-        Repay, //2
-        Redeem //3
-
-    }
-
-    // TODO: move to interfaces
-    enum OperationType {
-        Mint, //0
-        Borrow, //1
-        Repay, //2
-        Redeem //3
-
-    }
-
     //TODO: add chainId
     // user -> operation type -> nonce
     mapping(address => mapping(OperationType => uint256)) public nonces;
-
-    error mErc20Host_AmountNotValid();
-    error mErc20Host_JournalNotValid();
-    error mErc20Host_NonceNotValid();
 
     constructor(address payable _admin) mErc20(_admin) {}
 
@@ -77,6 +57,11 @@ contract mErc20Host is mErc20, ZkVerifier, ImErc20Host {
 
         // Initialize the ZkVerifier
         ZkVerifier.initialize(zkVerifier_, zkVerifierImageRegistry_);
+    }
+
+    // ----------- VIEW ------------
+    function getNonce(address user, OperationType opType) external view returns (uint256) {
+        return nonces[user][opType];
     }
 
     // ----------- OWNER ------------

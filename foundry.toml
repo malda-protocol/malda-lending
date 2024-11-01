@@ -3,7 +3,7 @@ src = "src"
 out = "out"
 libs = ['node_modules', 'lib']
 
-solc_version='0.8.27'
+solc_version='0.8.28'
 evm_version='Cancun'
 optimizer = true
 optimizer_runs = 9000

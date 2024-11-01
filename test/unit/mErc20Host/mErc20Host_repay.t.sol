@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity =0.8.27;
+pragma solidity =0.8.28;
 
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
+import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 
 // contracts
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
@@ -177,12 +178,12 @@ contract mErc20Host_repay is mToken_Unit_Shared {
     }
 
     modifier whenRepayExternalIsCalled() {
-        // @dev does nothing; just to know `mintExternal` is called for the method
+        // @dev does nothing; for readability only
         _;
     }
 
     modifier givenDecodedAmountIsValid() {
-        // @dev does nothing; just to know bytes sent have a valid format
+        // @dev does nothing; for readability only
         _;
     }
 
@@ -192,7 +193,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenRepayExternalIsCalled
     {
-        vm.expectRevert(mErc20Host.mErc20Host_JournalNotValid.selector);
+        vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
         mWethHost.repayExternal("", "0x123");
     }
 
@@ -202,7 +203,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenRepayExternalIsCalled
     {
-        vm.expectRevert(mErc20Host.mErc20Host_JournalNotValid.selector);
+        vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
         mWethHost.repayExternal("0x123", "0x123");
     }
 
@@ -218,9 +219,9 @@ contract mErc20Host_repay is mToken_Unit_Shared {
     {
         uint256 amount = 0;
         bytes memory journalData =
-            _createCommitment(amount, address(this), mWethHost.nonces(address(this), mErc20Host.OperationType.Repay));
+            _createCommitment(amount, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Repay));
 
-        vm.expectRevert(mErc20Host.mErc20Host_AmountNotValid.selector);
+        vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
         mWethHost.repayExternal(journalData, "0x123");
     }
 
@@ -234,7 +235,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         whenMarketEntered(address(mWethHost))
     {
         bytes memory journalData =
-            _createCommitment(amount, address(this), mWethHost.nonces(address(this), mErc20Host.OperationType.Repay));
+            _createCommitment(amount, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Repay));
 
         verifierMock.setStatus(true); // set for failure
 
@@ -263,7 +264,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         vars.accountBorrowBefore = mWethHost.borrowBalanceStored(address(this));
 
         bytes memory journalData = _createCommitment(
-            type(uint256).max, address(this), mWethHost.nonces(address(this), mErc20Host.OperationType.Repay)
+            type(uint256).max, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Repay)
         );
         mWethHost.repayExternal(journalData, "0x123");
 
@@ -302,7 +303,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
 
         // it should revert
         bytes memory journalData =
-            _createCommitment(amount, address(this), mWethHost.nonces(address(this), mErc20Host.OperationType.Repay));
+            _createCommitment(amount, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Repay));
         mWethHost.repayExternal(journalData, "0x123");
 
         vm.expectRevert(abi.encodePacked(ZkVerifier.ZkVerifier_AlreadyVerified.selector, uint256(1)));

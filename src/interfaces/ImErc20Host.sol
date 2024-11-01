@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity =0.8.27;
+pragma solidity =0.8.28;
 
 /*
  _____ _____ __    ____  _____ 
@@ -9,6 +9,42 @@ pragma solidity =0.8.27;
 */
 
 interface ImErc20Host {
+    // ----------- STRUCTS -----------
+    enum ImageIdIndexes {
+        Mint, //0
+        Borrow, //1
+        Repay, //2
+        Redeem //3
+
+    }
+
+    // TODO: move to interfaces
+    enum OperationType {
+        Mint, //0
+        Borrow, //1
+        Repay, //2
+        Redeem //3
+
+    }
+    // ----------- EVENTS -----------
+
+    // ----------- ERRORS -----------
+    /**
+     * @notice Thrown when the amount specified is invalid (e.g., zero)
+     */
+    error mErc20Host_AmountNotValid();
+
+    /**
+     * @notice Thrown when the journal data provided is invalid or corrupted
+     */
+    error mErc20Host_JournalNotValid();
+
+    /**
+     * @notice Thrown when the nonce provided is invalid or does not match the expected value
+     */
+    error mErc20Host_NonceNotValid();
+
+    // ----------- PUBLIC -----------
     /**
      * @notice Initializes the mErc20Host contract
      * @param underlying_ The address of the underlying asset

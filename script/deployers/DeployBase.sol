@@ -1,25 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity =0.8.27;
+pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
-import {Deployer} from "../src/utils/Deployer.sol";
+import {Script} from "forge-std/Script.sol";
 
-contract DeployerScript is Script {
-    Deployer deployer;
-
-    function run() public {
-        uint256 key = vm.envUint("PRIVATE_KEY");
-
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOYER_SALT"))));
-
-        vm.startBroadcast(key);
-
-        address deployedAddress = _deployCreate2(salt, type(Deployer).creationCode, "");
-        console.log("Deployer contract deployed at: %s", deployedAddress);
-
-        vm.stopBroadcast();
-    }
-
+abstract contract DeployBase is Script {
     function _computeCreate2Address(bytes32 salt, bytes memory bytecode) public view returns (address) {
         bytes32 bytecodeHash = keccak256(bytecode);
         bytes32 _data = keccak256(abi.encodePacked(bytes1(0xff), address(this), salt, bytecodeHash));

@@ -1,0 +1,40 @@
+LendingProtocolMock
+├── when setVerifier is called
+│   ├── given the caller is not the owner
+│   │   └── it should revert with
+│   └── given the caller is the owner
+│       └── it should update the verifier contract address
+├── when setBorrowImageId is called
+│   ├── given the caller is not owner
+│   │   └── it should revert with
+│   └── given the caller is owner
+│       └── it should update the borrow image ID
+├── when deposit is called
+│   ├── given the amount is zero
+│   │   └── it should not update the balance
+│   └── when the amount is greater than zero
+│       ├── it should transfer tokens to the contract
+│       └── it should increase the recipient’s balance
+├── when borrow is called
+│   ├── given the journal data is invalid
+│   │   └── it should revert with LendingProtocolMock_JournalNotValid
+│   ├── given the liquidity is insufficient
+│   │   └── it should revert with LendingProtocolMock_InsufficientLiquidity
+│   └── when liquidity is sufficient
+│       ├── when there are enough tokens in the contract
+│       │   ├── it should transfer tokens to the user
+│       │   └── it should increase the user's borrow balance
+│       └── given there are not enough tokens in the contract
+│           └── it should revert with LendingProtocolMock_InsufficientBalance
+├── when repay is called
+│   ├── given the borrow balance is insufficient
+│   │   └── it should revert with LendingProtocolMock_InsufficientBalance
+│   └── when the borrow balance is sufficient
+│       ├── it should reduce the borrow balance
+│       └── it should transfer tokens from the user to the contract
+└── when withdraw is called
+    ├── given the user's balance is insufficient
+    │   └── it should revert with LendingProtocolMock_InsufficientBalance
+    └── when the user's balance is sufficient
+        ├── it should reduce the user's balance
+        └── it should transfer tokens to the user
