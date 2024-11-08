@@ -8,7 +8,7 @@ import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 // contracts
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-import {OperatorStorage} from "src/operator/OperatorStorage.sol";
+import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
 
 // tests
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
