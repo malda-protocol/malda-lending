@@ -283,11 +283,12 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
      * @notice Sender borrows assets from the protocol to their own address
      * @param user The user address
      * @param borrowAmount The amount of the underlying asset to borrow
+     * @param doTransfer If an actual transfer should be performed
      */
-    function _borrow(address user, uint256 borrowAmount) internal nonReentrant {
+    function _borrow(address user, uint256 borrowAmount, bool doTransfer) internal nonReentrant {
         _accrueInterest();
         // emits borrow-specific logs on errors, so we don't need to
-        __borrow(payable(user), borrowAmount);
+        __borrow(payable(user), borrowAmount, doTransfer);
     }
 
     /**
@@ -507,7 +508,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
      * @notice Users borrow assets from the protocol to their own address
      * @param borrowAmount The amount of the underlying asset to borrow
      */
-    function __borrow(address payable borrower, uint256 borrowAmount) private {
+    function __borrow(address payable borrower, uint256 borrowAmount, bool doTransfer) private {
         IOperatorDefender(operator).beforeMTokenBorrow(address(this), borrower, borrowAmount);
 
         require(accrualBlockNumber == _getBlockNumber(), mToken_BlockNumberNotValid());
@@ -535,13 +536,15 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
         accountBorrows[borrower].interestIndex = borrowIndex;
         totalBorrows = totalBorrowsNew;
 
-        /*
-         * We invoke _doTransferOut for the borrower and the borrowAmount.
-         *  Note: The mToken must handle variations between ERC-20 and ETH underlying.
-         *  On success, the mToken borrowAmount less of cash.
-         *  _doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
-         */
-        _doTransferOut(borrower, borrowAmount);
+        if (doTransfer) {
+            /*
+            * We invoke _doTransferOut for the borrower and the borrowAmount.
+            *  Note: The mToken must handle variations between ERC-20 and ETH underlying.
+            *  On success, the mToken borrowAmount less of cash.
+            *  _doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
+            */
+            _doTransferOut(borrower, borrowAmount);
+        }
 
         /* We emit a Borrow event */
         emit Borrow(borrower, borrowAmount, accountBorrowsNew, totalBorrowsNew);

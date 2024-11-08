@@ -11,7 +11,7 @@ contract mTokenGateway_mint is mToken_Unit_Shared {
     function test_RevertWhen_AmountIs0() external {
         // it should revert
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountNotValid.selector);
-        mWethExtension.mint(0);
+        mWethExtension.mintOnHost(0);
     }
 
     modifier whenAmountGreaterThan0() {
@@ -27,7 +27,7 @@ contract mTokenGateway_mint is mToken_Unit_Shared {
         // it should revert
         weth.approve(address(mWethExtension), amount);
         vm.expectRevert();
-        mWethExtension.mint(amount);
+        mWethExtension.mintOnHost(amount);
     }
 
     function test_GivenUserHasEnoughBalance(uint256 amount)
@@ -41,7 +41,7 @@ contract mTokenGateway_mint is mToken_Unit_Shared {
         uint256 balanceOfBefore = mWethExtension.balanceOf(address(this));
 
         weth.approve(address(mWethExtension), amount);
-        mWethExtension.mint(amount);
+        mWethExtension.mintOnHost(amount);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 balanceOfAfter = mWethExtension.balanceOf(address(this));
@@ -53,12 +53,12 @@ contract mTokenGateway_mint is mToken_Unit_Shared {
         assertEq(balanceOfBefore + amount, balanceOfAfter);
 
         // it should update the logs for the caller
-        assertEq(mWethExtension.getLogsLength(address(this), ImTokenGateway.OperationType.Mint), 1);
+        assertEq(mWethExtension.getLogsLength(address(this), block.chainid, ImTokenGateway.OperationType.Mint), 1);
 
         // it should increase nonce for this operation type
-        assertEq(mWethExtension.getNonce(address(this), ImTokenGateway.OperationType.Mint), 1);
+        assertEq(mWethExtension.getNonce(address(this), block.chainid, ImTokenGateway.OperationType.Mint), 1);
 
         // it should not increase nonce for any other operation type
-        assertEq(mWethExtension.getNonce(address(this), ImTokenGateway.OperationType.Borrow), 0);
+        assertEq(mWethExtension.getNonce(address(this), block.chainid, ImTokenGateway.OperationType.Borrow), 0);
     }
 }

@@ -33,10 +33,6 @@ contract mErc20 is mToken, ImErc20 {
     // ----------- ERRORS ------------
     error mErc20_TokenNotValid();
 
-    constructor(address payable _admin) {
-        admin = _admin;
-    }
-
     /**
      * @notice Initialize the new money market
      * @param underlying_ The address of the underlying asset
@@ -110,7 +106,7 @@ contract mErc20 is mToken, ImErc20 {
      * @inheritdoc ImErc20
      */
     function borrow(uint256 borrowAmount) external {
-        _borrow(msg.sender, borrowAmount);
+        _borrow(msg.sender, borrowAmount, true);
     }
 
     /**

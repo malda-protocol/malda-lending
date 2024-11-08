@@ -112,8 +112,9 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
     function test_GivenDecodedAmountIs0() external whenMintExternalIsCalled whenImageIdExists {
         uint256 amount = 0;
-        bytes memory journalData =
-            _createCommitment(amount, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Mint));
+        bytes memory journalData = _createCommitment(
+            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Mint)
+        );
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
         mWethHost.mintExternal(journalData, "0x123");
@@ -126,8 +127,9 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         whenImageIdExists
         givenDecodedAmountIsValid
     {
-        bytes memory journalData =
-            _createCommitment(amount, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Mint));
+        bytes memory journalData = _createCommitment(
+            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Mint)
+        );
 
         verifierMock.setStatus(true); // set for failure
 
@@ -147,8 +149,9 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
-        bytes memory journalData =
-            _createCommitment(amount, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Mint));
+        bytes memory journalData = _createCommitment(
+            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Mint)
+        );
         mWethHost.mintExternal(journalData, "0x123");
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
@@ -177,8 +180,9 @@ contract mErc20Host_mint is mToken_Unit_Shared {
     {
         // it should revert
 
-        bytes memory journalData =
-            _createCommitment(amount, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Mint));
+        bytes memory journalData = _createCommitment(
+            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Mint)
+        );
         mWethHost.mintExternal(journalData, "0x123");
 
         vm.expectRevert(abi.encodePacked(ZkVerifier.ZkVerifier_AlreadyVerified.selector, uint256(1)));

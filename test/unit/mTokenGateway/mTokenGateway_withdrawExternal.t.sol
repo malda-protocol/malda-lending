@@ -10,29 +10,39 @@ import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
 contract mTokenGateway_release is mToken_Unit_Shared {
     modifier existingImageId() {
         verifierImageRegistry.addImageId(bytes32("0x1233"));
+        verifierImageRegistry.addImageId(bytes32("0x1234"));
+        verifierImageRegistry.addImageId(bytes32("0x1235"));
+        verifierImageRegistry.addImageId(bytes32("0x1236"));
+        verifierImageRegistry.addImageId(bytes32("0x1237"));
+        verifierImageRegistry.addImageId(bytes32("0x1238"));
+        verifierImageRegistry.addImageId(bytes32("0x1239"));
+        verifierImageRegistry.addImageId(bytes32("0x1240"));
+        verifierImageRegistry.addImageId(bytes32("0x1241"));
         _;
     }
 
     function test_RevertGiven_JournalIsEmpty() external {
         vm.expectRevert(ImTokenGateway.mTokenGateway_JournalNotValid.selector);
-        mWethExtension.release("", "0x123");
+        mWethExtension.withdrawExternal("", "0x123");
     }
 
     function test_RevertGiven_JournalIsNonEmptyButLengthIsNotValid() external {
         // it should revert
         vm.expectRevert(ImTokenGateway.mTokenGateway_JournalNotValid.selector);
-        mWethExtension.release("0x123", "0x123");
+        mWethExtension.withdrawExternal("0x123", "0x123");
     }
 
     function test_GivenDecodedAmountIs0X() external existingImageId {
         uint256 amount = 0;
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethExtension.nonces(address(this), ImTokenGateway.OperationType.Release)
+            amount,
+            address(this),
+            mWethExtension.nonces(address(this), block.chainid, ImTokenGateway.OperationType.WithdrawExternal)
         );
 
         // it should revert with mErc20Host_AmountNotValid
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountNotValid.selector);
-        mWethExtension.release(journalData, "0x123");
+        mWethExtension.withdrawExternal(journalData, "0x123");
     }
 
     modifier givenDecodedAmountIsValid() {
@@ -47,13 +57,15 @@ contract mTokenGateway_release is mToken_Unit_Shared {
         existingImageId
     {
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethExtension.nonces(address(this), ImTokenGateway.OperationType.Release)
+            amount,
+            address(this),
+            mWethExtension.nonces(address(this), block.chainid, ImTokenGateway.OperationType.WithdrawExternal)
         );
 
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
-        mWethExtension.release(journalData, "0x123");
+        mWethExtension.withdrawExternal(journalData, "0x123");
     }
 
     modifier whenSealVerificationWasOk() {
@@ -69,12 +81,14 @@ contract mTokenGateway_release is mToken_Unit_Shared {
         existingImageId
     {
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethExtension.nonces(address(this), ImTokenGateway.OperationType.Release)
+            amount,
+            address(this),
+            mWethExtension.nonces(address(this), block.chainid, ImTokenGateway.OperationType.WithdrawExternal)
         );
 
         // it should revert
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountTooBig.selector);
-        mWethExtension.release(journalData, "0x123");
+        mWethExtension.withdrawExternal(journalData, "0x123");
     }
 
     modifier givenTheContractHasUnderlying() {
@@ -93,7 +107,7 @@ contract mTokenGateway_release is mToken_Unit_Shared {
         bytes memory journalData = _createCommitment(amount, address(this), 100);
         // it should revert
         vm.expectRevert(ImTokenGateway.mTokenGateway_NonceNotValid.selector);
-        mWethExtension.release(journalData, "0x123");
+        mWethExtension.withdrawExternal(journalData, "0x123");
     }
 
     function test_WhenNonceIsValid()
