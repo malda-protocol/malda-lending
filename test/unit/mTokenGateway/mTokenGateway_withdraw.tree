@@ -1,0 +1,14 @@
+mTokenGateway_withdraw.t.sol
+├── when amount is 0
+│   └── it should revert
+└── when amount greater than 0
+    ├── given user has not enough balance
+    │   └── it should revert
+    └── given user has enough balance
+        ├── it should decrease the caller balance
+        ├── it should update the logs for the caller
+        ├── it should decrease total supply
+        ├── it should increase pending amounts
+        ├── it should not change underlying balance
+        ├── it should increase nonce for this operation type
+        └── it should not increase nonce for any other operation type
