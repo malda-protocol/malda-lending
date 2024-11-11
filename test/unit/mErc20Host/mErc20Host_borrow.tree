@@ -24,19 +24,35 @@ mErc20Host_borrow.t.sol
     │       ├── it should not modify underlying supply
     │       ├── it should decrease balance of underlying from mToken
     │       └── it should increase totalBorrows
-    └── when borrowExternal is called
-        ├── given journal is empty
+    ├── when borrowExternal is called
+    │   ├── given journal is empty
+    │   │   └── it should revert
+    │   ├── given journal is non empty but length is not valid
+    │   │   └── it should revert
+    │   ├── given decoded amount is 0
+    │   │   └── it should revert with mErc20Host_AmountNotValid
+    │   ├── given decoded amount is valid
+    │   │   ├── when seal verification fails
+    │   │   │   └── it should revert
+    │   │   └── when seal verification was ok
+    │   │       ├── it should transfer underlying to user
+    │   │       ├── it should increse borrow balance account
+    │   │       └── it should increase total borrows by amount
+    │   └── given the same commitment id is used
+    │       └── it should revert
+    └── when borrowOnExtension is called
+        ├── given liquidity journal is empty
         │   └── it should revert
-        ├── given journal is non empty but length is not valid
+        ├── given liquidity journal is non empty but length is not valid
         │   └── it should revert
-        ├── given decoded amount is 0
+        ├── given decoded liquidity is 0 or amount is higher than the liquidity
         │   └── it should revert with mErc20Host_AmountNotValid
-        ├── given decoded amount is valid
-        │   ├── when seal verification fails
+        ├── given decoded liquidity is valid
+        │   ├── when seal of the liquidity call fails
         │   │   └── it should revert
-        │   └── when seal verification was ok
-        │       ├── it should increse balanceOf account
-        │       ├── it should increase total supply by amount
-        │       └── it should not transfer underlying from user
-        └── given the same commitment id is used
+        │   └── when seal of the liquidity call was ok
+    │   │       ├── it should not transfer underlying to user
+    │   │       ├── it should increse borrow balance account
+    │   │       └── it should increase total borrows by amount
+        └── given a previous commitment id is used
             └── it should revert

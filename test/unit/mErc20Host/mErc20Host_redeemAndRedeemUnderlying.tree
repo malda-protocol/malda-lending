@@ -19,19 +19,35 @@ mErc20Host_redeem.t.sol
     │   ├── it should transfer underlying to redeemer
     │   ├── it should decrease totalSupply of mToken
     │   └── it should decrease redeemer balance of mToken
-    └── when redeemExternal is called
-        ├── given journal is empty
+    ├── when withdrawExternal is called
+    │   ├── given journal is empty
+    │   │   └── it should revert
+    │   ├── given journal is non empty but length is not valid
+    │   │   └── it should revert
+    │   ├── given decoded amount is 0
+    │   │   └── it should revert with mErc20Host_AmountNotValid
+    │   ├── given decoded amount is valid
+    │   │   ├── when seal verification fails
+    │   │   │   └── it should revert
+    │   │   └── when seal verification was ok
+    │   │       ├── it should transfer underlying to redeemer
+    │   │       ├── it should decrease totalSupply of mToken
+    │   │       └── it should decrease redeemer balance of mToken
+    │   └── given the same commitment id is used
+    │       └── it should revert
+    └── when withdrawOnExtension is called
+        ├── given liquidity journal is empty
         │   └── it should revert
-        ├── given journal is non empty but length is not valid
+        ├── given liquidity journal is non empty but length is not valid
         │   └── it should revert
-        ├── given decoded amount is 0
+        ├── given decoded liquidity is 0
         │   └── it should revert with mErc20Host_AmountNotValid
-        ├── given decoded amount is valid
-        │   ├── when seal verification fails
+        ├── given decoded liquidity is valid
+        │   ├── when liquidity seal verification fails
         │   │   └── it should revert
-        │   └── when seal verification was ok
+        │   └── when liquidity seal verification was ok
         │       ├── it should not transfer underlying to redeemer
         │       ├── it should decrease totalSupply of mToken
         │       └── it should decrease redeemer balance of mToken
-        └── given the same commitment id is used
+        └── given the same liquidity commitment id is used
             └── it should revert

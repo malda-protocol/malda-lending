@@ -218,8 +218,9 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         whenMarketEntered(address(mWethHost))
     {
         uint256 amount = 0;
-        bytes memory journalData =
-            _createCommitment(amount, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Repay));
+        bytes memory journalData = _createCommitment(
+            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Repay)
+        );
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
         mWethHost.repayExternal(journalData, "0x123");
@@ -234,8 +235,9 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {
-        bytes memory journalData =
-            _createCommitment(amount, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Repay));
+        bytes memory journalData = _createCommitment(
+            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Repay)
+        );
 
         verifierMock.setStatus(true); // set for failure
 
@@ -264,7 +266,9 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         vars.accountBorrowBefore = mWethHost.borrowBalanceStored(address(this));
 
         bytes memory journalData = _createCommitment(
-            type(uint256).max, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Repay)
+            type(uint256).max,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Repay)
         );
         mWethHost.repayExternal(journalData, "0x123");
 
@@ -302,8 +306,9 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         _repayPrerequisites(address(mWethHost), amount * 2, amount);
 
         // it should revert
-        bytes memory journalData =
-            _createCommitment(amount, address(this), mWethHost.nonces(address(this), ImErc20Host.OperationType.Repay));
+        bytes memory journalData = _createCommitment(
+            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Repay)
+        );
         mWethHost.repayExternal(journalData, "0x123");
 
         vm.expectRevert(abi.encodePacked(ZkVerifier.ZkVerifier_AlreadyVerified.selector, uint256(1)));

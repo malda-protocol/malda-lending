@@ -59,6 +59,11 @@ interface IRoles {
     function GUARDIAN_RESERVE() external view returns (bytes32);
 
     /**
+     * @notice Returns PROOF_FORWARDER role
+     */
+    function PROOF_FORWARDER() external view returns (bytes32);
+
+    /**
      * @notice Returns allowance status for a contract and a role
      * @param _contract the contract address
      * @param _role the bytes32 role

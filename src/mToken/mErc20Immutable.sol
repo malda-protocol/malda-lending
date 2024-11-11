@@ -31,8 +31,8 @@ contract mErc20Immutable is mErc20 {
         string memory symbol_,
         uint8 decimals_,
         address payable admin_
-    ) mErc20(payable(msg.sender)) {
-        // Creator of the contract is admin during initialization
+    ) {
+        admin = payable(msg.sender);
 
         // Initialize the market
         super.initialize(

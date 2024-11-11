@@ -35,10 +35,13 @@ abstract contract ZkVerifier {
         uint256[] imageIdIndexes;
     }
 
+    bool private _verifierInitialized;
+
     error ZkVerifier_OnlyAdmin();
     error ZkVerifier_ImageNotValid();
     error ZkVerifier_InputNotValid();
     error ZkVerifier_VerifierNotSet();
+    error ZkVerifier_AlreadyInitialized();
     error ZkVerifier_VerifierImageRegistryNotSet();
     error ZkVerifier_AlreadyVerified(uint256 commitmentId);
     error ZkVerifier_InvalidCommitment(uint256 commitmentId);
@@ -52,9 +55,13 @@ abstract contract ZkVerifier {
      * @param _verifier IRiscZeroVerifier contract implementation
      */
     function initialize(address _verifier, address _verifierImageRegistry) public {
+        if (_verifierInitialized) revert ZkVerifier_AlreadyInitialized();
+
         verifier = IRiscZeroVerifier(_verifier);
 
         verifierImageRegistry = IZkVerifierImageRegistry(_verifierImageRegistry);
+
+        _verifierInitialized = true;
     }
 
     // ----------- INTERNAL ------------

@@ -6,8 +6,8 @@ import {IRoles} from "src/interfaces/IRoles.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 //contracts
-import {mErc20} from "src/mToken/mErc20.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
+import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
 import {ZkVerifierImageRegistry} from "src/verifier/ZkVerifierImageRegistry.sol";
 
@@ -18,8 +18,8 @@ import {Risc0VerifierMock} from "../../mocks/Risc0VerifierMock.sol";
 
 abstract contract mToken_Unit_Shared is Base_Unit_Test {
     // ----------- STORAGE ------------
-    mErc20 public mWeth;
     mErc20Host public mWethHost;
+    mErc20Immutable public mWeth;
     mTokenGateway public mWethExtension;
 
     Risc0VerifierMock public verifierMock;
@@ -40,12 +40,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         verifierImageRegistry = new ZkVerifierImageRegistry(address(this));
         vm.label(address(verifierImageRegistry), "verifierImageRegistry");
 
-        mWeth = new mErc20(payable(address(this)));
-        mWeth.initialize(address(weth), address(operator), address(interestModel), 1e18, "Market WETH", "mWeth", 18);
-        vm.label(address(mWeth), "mWeth");
-
-        mWethHost = new mErc20Host(payable(address(this)));
-        mWethHost.initialize(
+        mWeth = new mErc20Immutable(
             address(weth),
             address(operator),
             address(interestModel),
@@ -53,13 +48,26 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             "Market WETH",
             "mWeth",
             18,
+            payable(address(this))
+        );
+        vm.label(address(mWeth), "mWeth");
+
+        mWethHost = new mErc20Host(
+            address(weth),
+            address(operator),
+            address(interestModel),
+            1e18,
+            "Market WETH",
+            "mWeth",
+            18,
+            payable(address(this)),
             address(verifierMock),
             address(verifierImageRegistry)
         );
         vm.label(address(mWethHost), "mWethHost");
 
         mWethExtension = new mTokenGateway(
-            payable(address(this)), address(weth), address(verifierMock), address(verifierImageRegistry)
+            payable(address(this)), address(weth), address(roles), address(verifierMock), address(verifierImageRegistry)
         );
     }
     // ----------- HELPERS ------------
@@ -82,29 +90,29 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         return abi.encode(data, amount, user);
     }
 
-    function _createCommitment(uint256 amount, address user, uint256 nonce) internal pure returns (bytes memory) {
+    function _createCommitment(uint256 amount, address user, uint256 nonce) internal view returns (bytes memory) {
         uint256 encodedID = uint256(0) << 240 | uint256(1); //version and value
         Commitment memory data = Commitment(encodedID, "", "0x123");
-        return abi.encode(data, amount, user, nonce);
+        return abi.encode(data, amount, user, nonce, block.chainid);
     }
 
     function _borrowPrerequisites(address mToken, uint256 supplyAmount) internal {
-        address underlying = mErc20(mToken).underlying();
+        address underlying = mErc20Immutable(mToken).underlying();
         _getTokens(ERC20Mock(underlying), address(this), supplyAmount);
         IERC20(underlying).approve(mToken, supplyAmount);
-        mErc20(mToken).mint(supplyAmount);
+        mErc20Immutable(mToken).mint(supplyAmount);
     }
 
     function _borrowGatewayPrerequisites(address mGateway, uint256 supplyAmount) internal {
         address underlying = mTokenGateway(mGateway).underlying();
         _getTokens(ERC20Mock(underlying), address(this), supplyAmount);
         IERC20(underlying).approve(mGateway, supplyAmount);
-        mTokenGateway(mGateway).mint(supplyAmount);
+        mTokenGateway(mGateway).mintOnHost(supplyAmount);
     }
 
     function _repayPrerequisites(address mToken, uint256 supplyAmount, uint256 borrowAmount) internal {
         _borrowPrerequisites(mToken, supplyAmount);
-        mErc20(mToken).borrow(borrowAmount);
+        mErc20Immutable(mToken).borrow(borrowAmount);
     }
 
     // ----------- MODIFIERS ------------
@@ -148,6 +156,10 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         verifierImageRegistry.addImageId(bytes32("0x1236"));
         verifierImageRegistry.addImageId(bytes32("0x1237"));
         verifierImageRegistry.addImageId(bytes32("0x1238"));
+        verifierImageRegistry.addImageId(bytes32("0x1239"));
+        verifierImageRegistry.addImageId(bytes32("0x1240"));
+        verifierImageRegistry.addImageId(bytes32("0x1241"));
+        verifierImageRegistry.addImageId(bytes32("0x1242"));
         _;
     }
 

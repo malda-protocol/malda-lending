@@ -12,8 +12,6 @@ import {mErc20} from "./mErc20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 contract mErc20Upgradable is mErc20, Initializable {
-    constructor(address payable _admin) mErc20(_admin) {}
-
     /**
      * @notice Initialize the new money market
      * @param underlying_ The address of the underlying asset

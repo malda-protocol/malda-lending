@@ -8,18 +8,23 @@ pragma solidity =0.8.28;
 |_|_|_|__|__|_____|____/|__|__|                          
 */
 
+import {IRoles} from "./IRoles.sol";
+
 interface ImTokenGateway {
     // ----------- STRUCTS -----------
     enum ImageIdIndexes {
-        Release
+        BorrowExternal, // finalize a borrow initiated from host chain
+        WithdrawExternal
     }
 
     enum OperationType {
-        Mint,
-        Borrow,
-        Repay,
-        Withdraw,
-        Release
+        Mint, // initiate a mint operation; finalized by `mintExternal` on host chain
+        Borrow, // initiate a borrow; finalized by `borrowExternal` on host chain
+        BorrowExternal, // finalize a borrow initiated from host chain
+        Repay, // initiate a repay operation; finalized by `repayExternal` on host chain
+        Withdraw, // initialte withdraw operation; finalized by `withdrawExternal` on host chain
+        WithdrawExternal // finalize a withdraw initiated from host chain
+
     }
 
     struct LogData {
@@ -31,43 +36,33 @@ interface ImTokenGateway {
 
     /**
      * @notice Emitted when a mint operation is initiated
-     * @param from The address of the user initiating the mint
-     * @param amount The amount of tokens to mint
-     * @param nonce The nonce for this operation
      */
-    event mTokenGateway_MintInitiated(address indexed from, uint256 amount, uint256 nonce);
+    event mTokenGateway_MintInitiated(address indexed from, uint256 amount, uint256 nonce, uint256 chainId);
 
     /**
      * @notice Emitted when a borrow operation is initiated
-     * @param from The address of the user initiating the borrow
-     * @param amount The amount to borrow
-     * @param nonce The nonce for this operation
      */
-    event mTokenGateway_BorrowInitiated(address indexed from, uint256 amount, uint256 nonce);
+    event mTokenGateway_BorrowInitiated(address indexed from, uint256 amount, uint256 nonce, uint256 chainId);
 
     /**
      * @notice Emitted when a repay operation is initiated
-     * @param from The address of the user initiating the repayment
-     * @param amount The amount to repay
-     * @param nonce The nonce for this operation
      */
-    event mTokenGateway_RepayInitiated(address indexed from, uint256 amount, uint256 nonce);
+    event mTokenGateway_RepayInitiated(address indexed from, uint256 amount, uint256 nonce, uint256 chainId);
 
     /**
      * @notice Emitted when a withdrawal is initiated
-     * @param from The address of the user initiating the withdrawal
-     * @param amount The amount to withdraw
-     * @param nonce The nonce for this operation
      */
-    event mTokenGateway_WithdrawInitiated(address indexed from, uint256 amount, uint256 nonce);
+    event mTokenGateway_WithdrawInitiated(address indexed from, uint256 amount, uint256 nonce, uint256 chainId);
 
     /**
      * @notice Emitted when a release operation is executed
-     * @param from The address of the user receiving the released tokens
-     * @param amount The amount of tokens released
-     * @param nonce The nonce for this operation
      */
-    event mTokenGateway_Released(address indexed from, uint256 amount, uint256 nonce);
+    event mTokenGateway_Released(address indexed from, uint256 amount, uint256 nonce, uint256 chainId);
+
+    /**
+     * @notice Emitted when a borrow operation is finalized
+     */
+    event mTokenGateway_BorrowExternal(address indexed from, uint256 amount, uint256 nonce, uint256 chainId);
 
     // ----------- ERRORS -----------
 
@@ -96,7 +91,22 @@ interface ImTokenGateway {
      */
     error mTokenGateway_ReleaseCashNotAvailable();
 
+    /**
+     * @notice Thrown when token is tranferred
+     */
+    error mTokenGateway_NonTransferable();
+
+    /**
+     * @notice Thrown when caller is not allowed
+     */
+    error mTokenGateway_CallerNotAllowed();
+
     // ----------- VIEW -----------
+    /**
+     * @notice Roles manager
+     */
+    function rolesOperator() external view returns (IRoles);
+
     /**
      * @notice Returns the address of the underlying token
      * @return The address of the underlying token
@@ -106,27 +116,33 @@ interface ImTokenGateway {
     /**
      * @notice Retrieves the current nonce for a user and operation type
      * @param user The address of the user
+     * @param chainId The chainId to get the data for
      * @param opType The operation type (Mint, Borrow, Repay, Withdraw, Release)
      * @return The current nonce for the specified user and operation type
      */
-    function getNonce(address user, OperationType opType) external view returns (uint256);
+    function getNonce(address user, uint256 chainId, OperationType opType) external view returns (uint256);
 
     /**
      * @notice Retrieves log data for a specific user, operation type, and index
      * @param user The address of the user
+     * @param chainId The chainId to get the data for
      * @param opType The operation type (Mint, Borrow, Repay, Withdraw, Release)
      * @param index The index of the log entry
      * @return The LogData struct containing the nonce and associated data
      */
-    function getLogsAt(address user, OperationType opType, uint256 index) external view returns (LogData memory);
+    function getLogsAt(address user, uint256 chainId, OperationType opType, uint256 index)
+        external
+        view
+        returns (LogData memory);
 
     /**
      * @notice Returns the number of log entries for a user and operation type
      * @param user The address of the user
+     * @param chainId The chainId to get the data for
      * @param opType The operation type (Mint, Borrow, Repay, Withdraw, Release)
      * @return The number of log entries for the specified user and operation type
      */
-    function getLogsLength(address user, OperationType opType) external view returns (uint256);
+    function getLogsLength(address user, uint256 chainId, OperationType opType) external view returns (uint256);
 
     /**
      * @notice Retrieves the pending amount for a user
@@ -138,10 +154,11 @@ interface ImTokenGateway {
     /**
      * @notice Retrieves the current nonce for a user and a specific operation type
      * @param user The address of the user
+     * @param chainId The chainId to get the data for
      * @param opType The operation type (Mint, Borrow, Repay, Withdraw, Release)
      * @return The nonce for the specified user and operation type
      */
-    function nonces(address user, OperationType opType) external view returns (uint256);
+    function nonces(address user, uint256 chainId, OperationType opType) external view returns (uint256);
 
     // ----------- PUBLIC -----------
 
@@ -149,30 +166,37 @@ interface ImTokenGateway {
      * @notice Mints new tokens by transferring the underlying token from the user
      * @param amount The amount of tokens to mint
      */
-    function mint(uint256 amount) external;
+    function mintOnHost(uint256 amount) external;
 
     /**
      * @notice Initiates a borrowing operation
      * @param amount The amount to borrow
      */
-    function borrow(uint256 amount) external;
+    function borrowOnHost(uint256 amount) external;
+
+    /**
+     * @notice Finalizes a borrow action initiated from host chain
+     * @param journalData The journal data containing the release information
+     * @param seal The zk-proof data required to verify the release
+     */
+    function borrowExternal(bytes calldata journalData, bytes calldata seal) external;
 
     /**
      * @notice Repays a borrowed amount by transferring the underlying token from the user
      * @param amount The amount to repay
      */
-    function repay(uint256 amount) external;
+    function repayOnHost(uint256 amount) external;
 
     /**
      * @notice Withdraws tokens and burns the corresponding minted tokens
      * @param amount The amount to withdraw
      */
-    function withdraw(uint256 amount) external;
+    function withdrawOnHost(uint256 amount) external;
 
     /**
      * @notice Releases tokens to a user based on a validated zk-proof and journal data
      * @param journalData The journal data containing the release information
      * @param seal The zk-proof data required to verify the release
      */
-    function release(bytes calldata journalData, bytes calldata seal) external;
+    function withdrawExternal(bytes calldata journalData, bytes calldata seal) external;
 }

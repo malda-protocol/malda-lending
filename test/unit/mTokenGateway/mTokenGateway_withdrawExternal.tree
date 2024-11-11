@@ -1,4 +1,4 @@
-mTokenGateway_release.t.sol
+mTokenGateway_withdrawExternal.t.sol
 ├── given journal is empty
 │   └── it should revert
 ├── given journal is non empty but length is not valid

@@ -11,7 +11,7 @@ contract mTokenGateway_repay is mToken_Unit_Shared {
     function test_RevertWhen_AmountIs0() external {
         // it should revert
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountNotValid.selector);
-        mWethExtension.repay(0);
+        mWethExtension.repayOnHost(0);
     }
 
     modifier whenAmountGreaterThan0() {
@@ -26,7 +26,7 @@ contract mTokenGateway_repay is mToken_Unit_Shared {
     {
         // it should revert
         vm.expectRevert(); // ERC20InsufficientAllowance
-        mWethExtension.repay(amount);
+        mWethExtension.repayOnHost(amount);
     }
 
     function test_GivenUserHasEnoughBalance(uint256 amount)
@@ -39,7 +39,7 @@ contract mTokenGateway_repay is mToken_Unit_Shared {
 
         uint256 balanceWethBefore = weth.balanceOf(address(this));
 
-        mWethExtension.repay(amount);
+        mWethExtension.repayOnHost(amount);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
 
@@ -47,13 +47,13 @@ contract mTokenGateway_repay is mToken_Unit_Shared {
         assertEq(balanceWethAfter + amount, balanceWethBefore);
 
         // it should update the logs for the caller
-        assertEq(mWethExtension.getLogsLength(address(this), ImTokenGateway.OperationType.Repay), 1);
-        assertEq(mWethExtension.getLogsLength(address(this), ImTokenGateway.OperationType.Borrow), 0);
+        assertEq(mWethExtension.getLogsLength(address(this), block.chainid, ImTokenGateway.OperationType.Repay), 1);
+        assertEq(mWethExtension.getLogsLength(address(this), block.chainid, ImTokenGateway.OperationType.Borrow), 0);
 
         // it should increase nonce for this operation type
-        assertEq(mWethExtension.getNonce(address(this), ImTokenGateway.OperationType.Repay), 1);
+        assertEq(mWethExtension.getNonce(address(this), block.chainid, ImTokenGateway.OperationType.Repay), 1);
 
         // it should not increase nonce for any other operation type
-        assertEq(mWethExtension.getNonce(address(this), ImTokenGateway.OperationType.Mint), 0);
+        assertEq(mWethExtension.getNonce(address(this), block.chainid, ImTokenGateway.OperationType.Mint), 0);
     }
 }

@@ -17,6 +17,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 // contracts
 import {ImTokenGateway} from "../../interfaces/ImTokenGateway.sol";
+import {IRoles} from "../../interfaces/IRoles.sol";
 
 import {Steel} from "risc0/steel/Steel.sol";
 import {ZkVerifier} from "../../verifier/ZkVerifier.sol";
@@ -25,20 +26,31 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE -----------
+    /**
+     * @inheritdoc ImTokenGateway
+     */
+    IRoles public rolesOperator;
+
+    /**
+     * @inheritdoc ImTokenGateway
+     */
     address public underlying;
     // user -> amount
     mapping(address => uint256) public pendingAmounts;
-    // user -> operation type -> nonce
-    mapping(address => mapping(OperationType => uint256)) public nonces;
-
-    // user -> operation type -> LogData
-    mapping(address => mapping(OperationType => LogData[])) public logs;
+    // user -> chainId -> operation type -> nonce
+    mapping(address => mapping(uint256 => mapping(OperationType => uint256))) public nonces;
+    // user -> chainId -> operation type -> LogData
+    mapping(address => mapping(uint256 => mapping(OperationType => LogData[]))) public logs;
 
     uint8 private _underlyingDecimals;
 
-    // ----------- ERRORS ------------
-
-    constructor(address payable _owner, address _underlying, address zkVerifier_, address zkVerifierImageRegistry_)
+    constructor(
+        address payable _owner,
+        address _underlying,
+        address _roles,
+        address zkVerifier_,
+        address zkVerifierImageRegistry_
+    )
         Ownable(_owner)
         ERC20(
             string.concat("pending_", IERC20Metadata(_underlying).name()),
@@ -47,6 +59,8 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
     {
         underlying = _underlying;
         _underlyingDecimals = IERC20Metadata(_underlying).decimals();
+
+        rolesOperator = IRoles(_roles);
 
         // Initialize the ZkVerifier
         ZkVerifier.initialize(zkVerifier_, zkVerifierImageRegistry_);
@@ -60,22 +74,26 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
      * @inheritdoc ImTokenGateway
      */
 
-    function getNonce(address user, OperationType opType) external view returns (uint256) {
-        return nonces[user][opType];
+    function getNonce(address user, uint256 chainId, OperationType opType) external view returns (uint256) {
+        return nonces[user][chainId][opType];
     }
 
     /**
      * @inheritdoc ImTokenGateway
      */
-    function getLogsAt(address user, OperationType opType, uint256 index) external view returns (LogData memory) {
-        return logs[user][opType][index];
+    function getLogsAt(address user, uint256 chainId, OperationType opType, uint256 index)
+        external
+        view
+        returns (LogData memory)
+    {
+        return logs[user][chainId][opType][index];
     }
 
     /**
      * @inheritdoc ImTokenGateway
      */
-    function getLogsLength(address user, OperationType opType) external view returns (uint256) {
-        return logs[user][opType].length;
+    function getLogsLength(address user, uint256 chainId, OperationType opType) external view returns (uint256) {
+        return logs[user][chainId][opType].length;
     }
 
     // ----------- OWNER ------------
@@ -99,97 +117,140 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
     /**
      * @inheritdoc ImTokenGateway
      */
-    function mint(uint256 amount) external {
+    function mintOnHost(uint256 amount) external {
         require(amount > 0, mTokenGateway_AmountNotValid());
 
         IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
 
-        uint256 _nonce = _getNonce(msg.sender, OperationType.Mint);
-        _increaseNonce(msg.sender, OperationType.Mint);
+        uint256 _nonce = _getNonce(msg.sender, block.chainid, OperationType.Mint);
+        _increaseNonce(msg.sender, block.chainid, OperationType.Mint);
 
-        logs[msg.sender][OperationType.Mint].push(LogData(_nonce, abi.encode(amount)));
+        logs[msg.sender][block.chainid][OperationType.Mint].push(LogData(_nonce, abi.encode(amount)));
 
         _mint(msg.sender, amount);
-        emit mTokenGateway_MintInitiated(msg.sender, amount, _nonce);
+        emit mTokenGateway_MintInitiated(msg.sender, amount, _nonce, block.chainid);
     }
 
     /**
      * @inheritdoc ImTokenGateway
      */
-    function borrow(uint256 amount) external {
+    function borrowOnHost(uint256 amount) external override {
         require(amount > 0, mTokenGateway_AmountNotValid());
 
-        uint256 _nonce = _getNonce(msg.sender, OperationType.Borrow);
-        _increaseNonce(msg.sender, OperationType.Borrow);
+        uint256 _nonce = _getNonce(msg.sender, block.chainid, OperationType.Borrow);
+        _increaseNonce(msg.sender, block.chainid, OperationType.Borrow);
 
-        logs[msg.sender][OperationType.Borrow].push(LogData(_nonce, abi.encode(amount)));
+        logs[msg.sender][block.chainid][OperationType.Borrow].push(LogData(_nonce, abi.encode(amount)));
 
-        emit mTokenGateway_BorrowInitiated(msg.sender, amount, _nonce);
+        emit mTokenGateway_BorrowInitiated(msg.sender, amount, _nonce, block.chainid);
     }
 
     /**
      * @inheritdoc ImTokenGateway
      */
-    function repay(uint256 amount) external {
+    function borrowExternal(bytes calldata journalData, bytes calldata seal) external override {
+        // verify received data
+        _verifyProof(ImageIdIndexes.BorrowExternal, journalData, seal);
+
+        // decode action data
+        (uint256 amount, address user, uint256 nonce, uint256 chainId) =
+            abi.decode(journalData[96:], (uint256, address, uint256, uint256));
+
+        // checks
+        _checkSender(msg.sender, user);
+        require(amount > 0, mTokenGateway_AmountNotValid());
+        uint256 _nonce = _getNonce(user, chainId, OperationType.BorrowExternal);
+        require(_nonce == nonce, mTokenGateway_NonceNotValid());
+        require(IERC20(underlying).balanceOf(address(this)) >= amount, mTokenGateway_ReleaseCashNotAvailable());
+
+        // effects
+        _increaseNonce(user, chainId, OperationType.BorrowExternal);
+        logs[user][chainId][OperationType.BorrowExternal].push(LogData(_nonce, abi.encode(amount)));
+
+        // interactions
+        IERC20(underlying).safeTransfer(user, amount);
+
+        emit mTokenGateway_BorrowExternal(user, amount, _nonce, chainId);
+    }
+
+    /**
+     * @inheritdoc ImTokenGateway
+     */
+    function repayOnHost(uint256 amount) external {
         require(amount > 0, mTokenGateway_AmountNotValid());
 
         IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
 
-        uint256 _nonce = _getNonce(msg.sender, OperationType.Repay);
-        _increaseNonce(msg.sender, OperationType.Repay);
+        uint256 _nonce = _getNonce(msg.sender, block.chainid, OperationType.Repay);
+        _increaseNonce(msg.sender, block.chainid, OperationType.Repay);
 
-        logs[msg.sender][OperationType.Repay].push(LogData(_nonce, abi.encode(amount)));
+        logs[msg.sender][block.chainid][OperationType.Repay].push(LogData(_nonce, abi.encode(amount)));
 
-        emit mTokenGateway_RepayInitiated(msg.sender, amount, _nonce);
+        emit mTokenGateway_RepayInitiated(msg.sender, amount, _nonce, block.chainid);
     }
 
     /**
      * @inheritdoc ImTokenGateway
      */
-    function withdraw(uint256 amount) external {
+    function withdrawOnHost(uint256 amount) external {
         require(amount > 0, mTokenGateway_AmountNotValid());
 
         _burn(msg.sender, amount);
 
-        uint256 _nonce = _getNonce(msg.sender, OperationType.Withdraw);
-        _increaseNonce(msg.sender, OperationType.Withdraw);
+        uint256 _nonce = _getNonce(msg.sender, block.chainid, OperationType.Withdraw);
+        _increaseNonce(msg.sender, block.chainid, OperationType.Withdraw);
 
-        logs[msg.sender][OperationType.Withdraw].push(LogData(_nonce, abi.encode(amount)));
+        logs[msg.sender][block.chainid][OperationType.Withdraw].push(LogData(_nonce, abi.encode(amount)));
         pendingAmounts[msg.sender] += amount;
 
-        emit mTokenGateway_WithdrawInitiated(msg.sender, amount, _nonce);
+        emit mTokenGateway_WithdrawInitiated(msg.sender, amount, _nonce, block.chainid);
     }
 
     /**
      * @inheritdoc ImTokenGateway
      */
-    function release(bytes calldata journalData, bytes calldata seal) external {
+    function withdrawExternal(bytes calldata journalData, bytes calldata seal) external {
         // verify received data
-        _verifyProof(ImageIdIndexes.Release, journalData, seal);
+        _verifyProof(ImageIdIndexes.WithdrawExternal, journalData, seal);
 
         // decode action data
-        (uint256 amount, address user, uint256 nonce) = abi.decode(journalData[96:], (uint256, address, uint256));
+        (uint256 amount, address user, uint256 nonce, uint256 chainId) =
+            abi.decode(journalData[96:], (uint256, address, uint256, uint256));
 
+        // checks
+        _checkSender(msg.sender, user);
         require(amount > 0, mTokenGateway_AmountNotValid());
-
-        uint256 _nonce = _getNonce(user, OperationType.Release);
+        uint256 _nonce = _getNonce(user, chainId, OperationType.WithdrawExternal);
         require(_nonce == nonce, mTokenGateway_NonceNotValid());
-
         require(pendingAmounts[msg.sender] >= amount, mTokenGateway_AmountTooBig());
-        pendingAmounts[msg.sender] -= amount;
-
         require(IERC20(underlying).balanceOf(address(this)) >= amount, mTokenGateway_ReleaseCashNotAvailable());
 
-        _increaseNonce(user, OperationType.Release);
-        logs[user][OperationType.Release].push(LogData(_nonce, abi.encode(amount)));
+        // effects
+        pendingAmounts[msg.sender] -= amount;
+        _increaseNonce(user, chainId, OperationType.WithdrawExternal);
+        logs[user][chainId][OperationType.WithdrawExternal].push(LogData(_nonce, abi.encode(amount)));
 
+        // interactions
         IERC20(underlying).safeTransfer(user, amount);
 
-        emit mTokenGateway_Released(user, amount, _nonce);
+        emit mTokenGateway_Released(user, amount, _nonce, chainId);
+    }
+
+    /**
+     * @dev Non-transferable
+     */
+    function transfer(address, uint256) public pure override returns (bool) {
+        revert mTokenGateway_NonTransferable();
+    }
+
+    /**
+     * @dev Non-transferable
+     */
+    function transferFrom(address, address, uint256) public pure override returns (bool) {
+        revert mTokenGateway_NonTransferable();
     }
 
     // ----------- PRIVATE ------------
-
     function _verifyProof(ImageIdIndexes imageType, bytes calldata journalData, bytes calldata seal) private {
         require(journalData.length > 95, mTokenGateway_JournalNotValid());
 
@@ -197,11 +258,20 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
         _verifyInput(journalData, seal, uint256(imageType));
     }
 
-    function _getNonce(address from, OperationType operation) private view returns (uint256) {
-        return nonces[from][operation];
+    function _getNonce(address from, uint256 chainId, OperationType operation) private view returns (uint256) {
+        return nonces[from][chainId][operation];
     }
 
-    function _increaseNonce(address from, OperationType operation) private {
-        nonces[from][operation]++;
+    function _increaseNonce(address from, uint256 chainId, OperationType operation) private {
+        nonces[from][chainId][operation]++;
+    }
+
+    function _checkSender(address sender, address user) private view {
+        if (sender != user) {
+            require(
+                sender == owner() || rolesOperator.isAllowedFor(sender, rolesOperator.PROOF_FORWARDER()),
+                mTokenGateway_CallerNotAllowed()
+            );
+        }
     }
 }

@@ -25,6 +25,7 @@ contract Roles is Ownable, IRoles {
     bytes32 public constant GUARDIAN_BORROW_CAP = keccak256("GUARDIAN_BORROW_CAP");
     bytes32 public constant GUARDIAN_SUPPLY_CAP = keccak256("GUARDIAN_SUPPLY_CAP");
     bytes32 public constant GUARDIAN_RESERVE = keccak256("GUARDIAN_RESERVE");
+    bytes32 public constant PROOF_FORWARDER = keccak256("PROOF_FORWARDER");
 
     /**
      * @notice emitted when role is set
