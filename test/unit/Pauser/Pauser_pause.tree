@@ -1,0 +1,12 @@
+Pauser_pause.t.sol
+├── when contract does not have the PAUSE_MANAGER role
+│   ├── it should revert for emergencyPauseMarket
+│   ├── it should revert for emergencyPauseMarketFor
+│   └── it should revert for emergencyPauseAll
+└── when contract has the PAUSE_MANAGER role
+    ├── given emergencyPauseMarket is called
+    │   └── it should pause all market operations
+    ├── given emergencyPauseMarketFor is called
+    │   └── it should only pause a specific operation type
+    └── given emergencyPauseAll is called
+        └── it should pause all registered markets

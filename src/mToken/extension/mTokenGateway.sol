@@ -22,6 +22,8 @@ import {IRoles} from "../../interfaces/IRoles.sol";
 import {Steel} from "risc0/steel/Steel.sol";
 import {ZkVerifier} from "../../verifier/ZkVerifier.sol";
 
+import "forge-std/console.sol";
+
 contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
     using SafeERC20 for IERC20;
 
@@ -37,6 +39,7 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
     address public underlying;
     // user -> amount
     mapping(address => uint256) public pendingAmounts;
+    mapping(IRoles.Pause => bool) public paused;
     // user -> chainId -> operation type -> nonce
     mapping(address => mapping(uint256 => mapping(OperationType => uint256))) public nonces;
     // user -> chainId -> operation type -> LogData
@@ -66,14 +69,26 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
         ZkVerifier.initialize(zkVerifier_, zkVerifierImageRegistry_);
     }
 
-    function decimals() public view override returns (uint8) {
-        return _underlyingDecimals;
+    modifier notPaused(IRoles.Pause _type) {
+        require(!paused[_type], mTokenGateway_Paused(_type));
+        _;
     }
+
     // ----------- VIEW ------------
     /**
      * @inheritdoc ImTokenGateway
      */
+    function isPaused(IRoles.Pause _type) external view returns (bool) {
+        return paused[_type];
+    }
 
+    function decimals() public view override returns (uint8) {
+        return _underlyingDecimals;
+    }
+
+    /**
+     * @inheritdoc ImTokenGateway
+     */
     function getNonce(address user, uint256 chainId, OperationType opType) external view returns (uint256) {
         return nonces[user][chainId][opType];
     }
@@ -98,6 +113,25 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
 
     // ----------- OWNER ------------
     /**
+     * @inheritdoc ImTokenGateway
+     */
+    function setPaused(IRoles.Pause _type, bool state) external override {
+        console.log("-----------setting pause");
+        if (state) {
+            console.log("--------------- with true");
+            require(
+                msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_PAUSE()),
+                mTokenGateway_CallerNotAllowed()
+            );
+        } else {
+            console.log("--------------- with false");
+            require(msg.sender == owner(), mTokenGateway_CallerNotAllowed());
+        }
+
+        paused[_type] = state;
+    }
+
+    /**
      * @notice Sets the _risc0Verifier address
      * @param _risc0Verifier the new IRiscZeroVerifier address
      */
@@ -117,7 +151,7 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
     /**
      * @inheritdoc ImTokenGateway
      */
-    function mintOnHost(uint256 amount) external {
+    function mintOnHost(uint256 amount) external notPaused(IRoles.Pause.MintOnOtherChain) {
         require(amount > 0, mTokenGateway_AmountNotValid());
 
         IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
@@ -134,7 +168,7 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
     /**
      * @inheritdoc ImTokenGateway
      */
-    function borrowOnHost(uint256 amount) external override {
+    function borrowOnHost(uint256 amount) external override notPaused(IRoles.Pause.BorrowOnOtherChain) {
         require(amount > 0, mTokenGateway_AmountNotValid());
 
         uint256 _nonce = _getNonce(msg.sender, block.chainid, OperationType.Borrow);
@@ -148,7 +182,11 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
     /**
      * @inheritdoc ImTokenGateway
      */
-    function borrowExternal(bytes calldata journalData, bytes calldata seal) external override {
+    function borrowExternal(bytes calldata journalData, bytes calldata seal)
+        external
+        override
+        notPaused(IRoles.Pause.Borrow)
+    {
         // verify received data
         _verifyProof(ImageIdIndexes.BorrowExternal, journalData, seal);
 
@@ -176,7 +214,7 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
     /**
      * @inheritdoc ImTokenGateway
      */
-    function repayOnHost(uint256 amount) external {
+    function repayOnHost(uint256 amount) external notPaused(IRoles.Pause.RepayOnOtherChain) {
         require(amount > 0, mTokenGateway_AmountNotValid());
 
         IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
@@ -192,7 +230,7 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
     /**
      * @inheritdoc ImTokenGateway
      */
-    function withdrawOnHost(uint256 amount) external {
+    function withdrawOnHost(uint256 amount) external notPaused(IRoles.Pause.RedeemOnOtherChain) {
         require(amount > 0, mTokenGateway_AmountNotValid());
 
         _burn(msg.sender, amount);
@@ -209,7 +247,10 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway {
     /**
      * @inheritdoc ImTokenGateway
      */
-    function withdrawExternal(bytes calldata journalData, bytes calldata seal) external {
+    function withdrawExternal(bytes calldata journalData, bytes calldata seal)
+        external
+        notPaused(IRoles.Pause.Redeem)
+    {
         // verify received data
         _verifyProof(ImageIdIndexes.WithdrawExternal, journalData, seal);
 

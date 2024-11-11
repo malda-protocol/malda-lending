@@ -11,12 +11,21 @@ pragma solidity =0.8.28;
 interface IRoles {
     enum Pause {
         Mint,
+        MintOnOtherChain,
         Borrow,
-        Transfer,
-        Seize,
+        BorrowOnOtherChain,
         Repay,
-        Redeem
+        RepayOnOtherChain,
+        Redeem,
+        RedeemOnOtherChain,
+        Seize,
+        Transfer
     }
+
+    /**
+     * @notice Returns PAUSE_MANAGER role
+     */
+    function PAUSE_MANAGER() external view returns (bytes32);
 
     /**
      * @notice Returns GUARDIAN_PAUSE role

@@ -200,10 +200,7 @@ contract Operator is OperatorStorage {
     }
 
     /**
-     * @notice Set pause for a specific operation
-     * @param mToken The market token address
-     * @param _type The pause operation type
-     * @param state The pause operation status
+     * @inheritdoc IOperator
      */
     function setPaused(address mToken, IRoles.Pause _type, bool state) external {
         if (state) {

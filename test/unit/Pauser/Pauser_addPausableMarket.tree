@@ -1,0 +1,9 @@
+Pauser_addPausableMarket.t.sol
+├── when contract is address0
+│   └── it should revert
+├── when contract already registered
+│   └── it should revert
+└── when contract is not registered
+    ├── it should add it to the pausable contracts array
+    ├── it should set its type
+    └── it should set it as registered

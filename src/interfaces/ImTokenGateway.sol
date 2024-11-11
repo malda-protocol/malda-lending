@@ -101,7 +101,18 @@ interface ImTokenGateway {
      */
     error mTokenGateway_CallerNotAllowed();
 
+    /**
+     * @notice Thrown when market is paused for operation type
+     */
+    error mTokenGateway_Paused(IRoles.Pause _type);
+
     // ----------- VIEW -----------
+    /**
+     * @notice returns pause state for operation
+     * @param _type the operation type
+     */
+    function isPaused(IRoles.Pause _type) external view returns (bool);
+
     /**
      * @notice Roles manager
      */
@@ -161,6 +172,12 @@ interface ImTokenGateway {
     function nonces(address user, uint256 chainId, OperationType opType) external view returns (uint256);
 
     // ----------- PUBLIC -----------
+    /**
+     * @notice Set pause for a specific operation
+     * @param _type The pause operation type
+     * @param state The pause operation status
+     */
+    function setPaused(IRoles.Pause _type, bool state) external;
 
     /**
      * @notice Mints new tokens by transferring the underlying token from the user

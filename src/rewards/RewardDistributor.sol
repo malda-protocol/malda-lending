@@ -79,11 +79,12 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     }
 
     // ----------- OWNER ------------
-    function initialize(address _operator) public initializer {
+    function initialize(address _owner) public initializer {
+        __Ownable_init(_owner);
+    }
+
+    function setOperator(address _operator) external onlyOwner {
         require(_operator != address(0), RewardDistributor_AddressNotValid());
-
-        __Ownable_init(msg.sender);
-
         operator = _operator;
     }
 

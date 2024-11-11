@@ -66,7 +66,9 @@ contract mTokenGateway_borrow is mToken_Unit_Shared {
     function test_GivenDecodedAmountIs0XXXX() external whenBorrowExternalIsCalled whenImageIdExists {
         uint256 amount = 0;
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethExtension.nonces(address(this), block.chainid, ImTokenGateway.OperationType.BorrowExternal)
+            amount,
+            address(this),
+            mWethExtension.nonces(address(this), block.chainid, ImTokenGateway.OperationType.BorrowExternal)
         );
 
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountNotValid.selector);
@@ -82,7 +84,9 @@ contract mTokenGateway_borrow is mToken_Unit_Shared {
         givenDecodedAmountIsValid
     {
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethExtension.nonces(address(this), block.chainid, ImTokenGateway.OperationType.BorrowExternal)
+            amount,
+            address(this),
+            mWethExtension.nonces(address(this), block.chainid, ImTokenGateway.OperationType.BorrowExternal)
         );
 
         verifierMock.setStatus(true); // set for failure
@@ -108,7 +112,9 @@ contract mTokenGateway_borrow is mToken_Unit_Shared {
         uint256 supplyUnderlyingBefore = weth.totalSupply();
 
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethExtension.nonces(address(this), block.chainid, ImTokenGateway.OperationType.BorrowExternal)
+            amount,
+            address(this),
+            mWethExtension.nonces(address(this), block.chainid, ImTokenGateway.OperationType.BorrowExternal)
         );
         mWethExtension.borrowExternal(journalData, "0x123");
 
@@ -117,7 +123,7 @@ contract mTokenGateway_borrow is mToken_Unit_Shared {
             uint256 balanceUnderlyingMTokenAfter = weth.balanceOf(address(mWethExtension));
             uint256 supplyUnderlyingAfter = weth.totalSupply();
 
-             // it should transfer underlying token to sender
+            // it should transfer underlying token to sender
             assertGt(balanceUnderlyingAfter, balanceUnderlyingBefore);
             assertEq(balanceUnderlyingAfter - amount, balanceUnderlyingBefore);
 
@@ -127,6 +133,5 @@ contract mTokenGateway_borrow is mToken_Unit_Shared {
             // it should decrease balance of underlying from mToken
             assertGt(balanceUnderlyingMTokenBefore, balanceUnderlyingMTokenAfter);
         }
-
     }
 }
