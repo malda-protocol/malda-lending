@@ -361,7 +361,9 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
     function test_GivenDecodedLiquidityIs0() external whenBorrowOnExtensionIsCalled whenImageIdExists {
         uint256 liquidity = 0;
         bytes memory journalData = _createCommitment(
-            liquidity, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.BorrowOnExtension)
+            liquidity,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.BorrowOnExtension)
         );
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
@@ -377,7 +379,9 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         givenDecodedLiquidityIsValid
     {
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.BorrowOnExtension)
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.BorrowOnExtension)
         );
 
         verifierMock.setStatus(true); // set for failure
@@ -403,9 +407,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         uint256 balanceUnderlyingBefore = weth.balanceOf(address(this));
         uint256 totalBorrowsBefore = mWethHost.totalBorrows();
 
-        bytes memory journalData = _createCommitment(
-            amount, address(this)
-        );
+        bytes memory journalData = _createCommitment(amount, address(this));
         mWethHost.borrowOnExtension(amount, journalData, "0x123");
 
         {
@@ -432,7 +434,9 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
 
         // it should revert
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.BorrowOnExtension)
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.BorrowOnExtension)
         );
         mWethHost.borrowOnExtension(amount, journalData, "0x123");
 

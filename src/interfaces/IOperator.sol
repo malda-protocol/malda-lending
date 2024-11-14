@@ -210,6 +210,14 @@ interface IOperator {
 
     // ----------- ACTIONS ------------
     /**
+     * @notice Set pause for a specific operation
+     * @param mToken The market token address
+     * @param _type The pause operation type
+     * @param state The pause operation status
+     */
+    function setPaused(address mToken, IRoles.Pause _type, bool state) external;
+
+    /**
      * @notice Add assets to be included in account liquidity calculation
      * @param _mTokens The list of addresses of the mToken markets to be enabled
      */

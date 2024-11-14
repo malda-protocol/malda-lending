@@ -236,7 +236,6 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
 
         amount = amount - DEFAULT_INFLATION_INCREASE;
 
-
         bytes memory journalData = _createCommitment(
             amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Redeem)
         );
@@ -276,9 +275,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
 
     function test_GivenDecodedLiquidityIs0() external whenWithdrawOnExtensionIsCalled whenImageIdExists {
         uint256 amount = 0;
-        bytes memory journalData = _createCommitment(
-            amount, address(this)
-        );
+        bytes memory journalData = _createCommitment(amount, address(this));
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
         mWethHost.withdrawOnExtension(amount, journalData, "0x123");
@@ -291,9 +288,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         whenImageIdExists
         givenDecodedLiquidityIsValid
     {
-        bytes memory journalData = _createCommitment(
-            amount, address(this)
-        );
+        bytes memory journalData = _createCommitment(amount, address(this));
 
         verifierMock.setStatus(true); // set for failure
 
@@ -310,16 +305,14 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         whenMarketIsListed(address(mWethHost))
     {
         _borrowPrerequisites(address(mWethHost), amount);
-        
+
         amount = amount - DEFAULT_INFLATION_INCREASE;
 
         uint256 balanceWethBefore = weth.balanceOf(address(this));
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
-        bytes memory journalData = _createCommitment(
-            amount, address(this)
-        );
+        bytes memory journalData = _createCommitment(amount, address(this));
         mWethHost.withdrawOnExtension(amount, journalData, "0x123");
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
@@ -346,12 +339,10 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         whenMarketIsListed(address(mWethHost))
     {
         _borrowPrerequisites(address(mWethHost), amount);
-        
+
         amount = amount - DEFAULT_INFLATION_INCREASE;
 
-        bytes memory journalData = _createCommitment(
-            amount, address(this)
-        );
+        bytes memory journalData = _createCommitment(amount, address(this));
         mWethHost.withdrawOnExtension(amount, journalData, "0x123");
 
         vm.expectRevert(abi.encodePacked(ZkVerifier.ZkVerifier_AlreadyVerified.selector, uint256(1)));

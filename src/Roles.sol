@@ -17,15 +17,16 @@ contract Roles is Ownable, IRoles {
 
     mapping(address => mapping(bytes32 => bool)) private _roles;
 
-    bytes32 public constant GUARDIAN_PAUSE = keccak256("GUARDIAN_PAUSE");
-    bytes32 public constant GUARDIAN_TRANSFER = keccak256("GUARDIAN_TRANSFER");
-    bytes32 public constant GUARDIAN_SEIZE = keccak256("GUARDIAN_SEIZE");
+    bytes32 public constant PAUSE_MANAGER = keccak256("PAUSE_MANAGER");
     bytes32 public constant GUARDIAN_MINT = keccak256("GUARDIAN_MINT");
+    bytes32 public constant GUARDIAN_PAUSE = keccak256("GUARDIAN_PAUSE");
+    bytes32 public constant GUARDIAN_SEIZE = keccak256("GUARDIAN_SEIZE");
+    bytes32 public constant PROOF_FORWARDER = keccak256("PROOF_FORWARDER");
     bytes32 public constant GUARDIAN_BORROW = keccak256("GUARDIAN_BORROW");
+    bytes32 public constant GUARDIAN_RESERVE = keccak256("GUARDIAN_RESERVE");
+    bytes32 public constant GUARDIAN_TRANSFER = keccak256("GUARDIAN_TRANSFER");
     bytes32 public constant GUARDIAN_BORROW_CAP = keccak256("GUARDIAN_BORROW_CAP");
     bytes32 public constant GUARDIAN_SUPPLY_CAP = keccak256("GUARDIAN_SUPPLY_CAP");
-    bytes32 public constant GUARDIAN_RESERVE = keccak256("GUARDIAN_RESERVE");
-    bytes32 public constant PROOF_FORWARDER = keccak256("PROOF_FORWARDER");
 
     /**
      * @notice emitted when role is set

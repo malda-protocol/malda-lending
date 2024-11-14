@@ -64,7 +64,8 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
         vm.label(address(oracleOperator), "oracleOperator");
 
         // **** SETUP ****
-        rewards.initialize(address(operator));
+        rewards.initialize(address(this));
+        rewards.setOperator(address(operator));
         operator.setPriceOracle(address(oracleOperator));
     }
 

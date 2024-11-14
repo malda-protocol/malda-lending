@@ -1,0 +1,129 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity =0.8.28;
+
+/*
+ _____ _____ __    ____  _____ 
+|     |  _  |  |  |    \|  _  |
+| | | |     |  |__|  |  |     |
+|_|_|_|__|__|_____|____/|__|__|                           
+*/
+
+// contracts
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
+// interfaces
+import {IRoles} from "src/interfaces/IRoles.sol";
+import {IPauser} from "src/interfaces/IPauser.sol";
+import {IOperator} from "src/interfaces/IOperator.sol";
+import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
+
+contract Pauser is Ownable, IPauser {
+    // ----------- STORAGE ------------
+    IRoles public immutable roles;
+    IOperator public immutable operator;
+
+    PausableContract[] public pausableContracts;
+    mapping(address _contract => bool _registered) public registeredContracts;
+    mapping(address _contract => PausableType _type) public contractTypes;
+
+    constructor(address _roles, address _operator, address _owner) Ownable(_owner) {
+        require(_roles != address(0), Pauser_AddressNotValid());
+        require(_operator != address(0), Pauser_AddressNotValid());
+        roles = IRoles(_roles);
+        operator = IOperator(_operator);
+    }
+
+    // ----------- OWNER ------------
+    /**
+     * @notice add pauable contract
+     * @param _contract the pausable contract
+     * @param _contractType the pausable contract type
+     */
+    function addPausableMarket(address _contract, PausableType _contractType) external onlyOwner {
+        require(_contract != address(0), Pauser_AddressNotValid());
+        require(!registeredContracts[_contract], Pauser_AlreadyRegistered());
+        registeredContracts[_contract] = true;
+        pausableContracts.push(PausableContract(_contract, _contractType));
+        contractTypes[_contract] = _contractType;
+        emit MarketAdded(_contract, _contractType);
+    }
+
+    /**
+     * @notice removes pauable contract
+     * @param _contract the pausable contract
+     */
+    function removePausableMarket(address _contract) external onlyOwner {
+        if (!registeredContracts[_contract]) revert Pauser_EntryNotFound();
+        uint256 index = _findIndex(_contract);
+        pausableContracts[index] = pausableContracts[pausableContracts.length - 1];
+        pausableContracts.pop();
+        registeredContracts[_contract] = false;
+        emit MarketRemoved(_contract);
+    }
+    // ----------- PUBLIC ------------
+    /**
+     * @inheritdoc IPauser
+     */
+
+    function emergencyPauseMarket(address _market) external {
+        _pauseAllMarketOperations(_market);
+    }
+
+    /**
+     * @inheritdoc IPauser
+     */
+    function emergencyPauseMarketFor(address _market, IRoles.Pause _pauseType) external {
+        _pauseMarketOperation(_market, _pauseType);
+    }
+
+    /**
+     * @inheritdoc IPauser
+     */
+    function emergencyPauseAll() external {
+        uint256 len = pausableContracts.length;
+        for (uint256 i; i < len; i++) {
+            _pauseAllMarketOperations(pausableContracts[i].market);
+        }
+        emit PauseAll();
+    }
+
+    // ----------- PRIVATE ------------
+    function _pauseAllMarketOperations(address _market) private {
+        _pauseMarketOperation(_market, IRoles.Pause.Mint);
+        _pauseMarketOperation(_market, IRoles.Pause.MintOnOtherChain);
+        _pauseMarketOperation(_market, IRoles.Pause.Borrow);
+        _pauseMarketOperation(_market, IRoles.Pause.BorrowOnOtherChain);
+        _pauseMarketOperation(_market, IRoles.Pause.Transfer);
+        _pauseMarketOperation(_market, IRoles.Pause.Seize);
+        _pauseMarketOperation(_market, IRoles.Pause.Repay);
+        _pauseMarketOperation(_market, IRoles.Pause.RepayOnOtherChain);
+        _pauseMarketOperation(_market, IRoles.Pause.Redeem);
+        _pauseMarketOperation(_market, IRoles.Pause.RedeemOnOtherChain);
+        emit MarketPaused(_market);
+    }
+
+    function _pauseMarketOperation(address _market, IRoles.Pause _pauseType) private {
+        _pause(_market, _pauseType);
+        emit MarketPausedFor(_market, _pauseType);
+    }
+
+    function _pause(address _market, IRoles.Pause _pauseType) private {
+        require(roles.isAllowedFor(msg.sender, roles.PAUSE_MANAGER()), Pauser_NotAuthorized());
+        PausableType _type = contractTypes[_market];
+        if (_type == PausableType.Host) {
+            operator.setPaused(_market, _pauseType, true);
+        } else {
+            ImTokenGateway(_market).setPaused(_pauseType, true);
+        }
+    }
+
+    function _findIndex(address _address) private view returns (uint256) {
+        uint256 len = pausableContracts.length;
+        for (uint256 i; i < len; i++) {
+            if (pausableContracts[i].market == _address) {
+                return i;
+            }
+        }
+        revert Pauser_EntryNotFound();
+    }
+}

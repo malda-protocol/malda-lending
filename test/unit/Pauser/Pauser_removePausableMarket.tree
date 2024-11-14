@@ -1,0 +1,6 @@
+Pauser_removePausableMarket.t.sol
+├── when contract is not registered
+│   └── it should revert
+└── when contract is registered
+    ├── it should remove it from the pausable contracts array
+    └── it should remove the registered entry
