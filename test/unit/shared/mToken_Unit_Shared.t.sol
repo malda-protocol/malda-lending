@@ -6,8 +6,10 @@ import {IRoles} from "src/interfaces/IRoles.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 //contracts
+import {mTokenLogs} from "src/mToken/mTokenLogs.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
 import {ZkVerifierImageRegistry} from "src/verifier/ZkVerifierImageRegistry.sol";
 
@@ -21,6 +23,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
     mErc20Host public mWethHost;
     mErc20Immutable public mWeth;
     mTokenGateway public mWethExtension;
+    mTokenLogs public operationsLog;
 
     Risc0VerifierMock public verifierMock;
     ZkVerifierImageRegistry public verifierImageRegistry;
@@ -39,6 +42,9 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
 
         verifierImageRegistry = new ZkVerifierImageRegistry(address(this));
         vm.label(address(verifierImageRegistry), "verifierImageRegistry");
+
+        operationsLog = new mTokenLogs(address(roles));
+        vm.label(address(operationsLog), "mTokenLogs");
 
         mWeth = new mErc20Immutable(
             address(weth),
@@ -62,13 +68,23 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             18,
             payable(address(this)),
             address(verifierMock),
-            address(verifierImageRegistry)
+            address(verifierImageRegistry),
+            address(operationsLog)
         );
         vm.label(address(mWethHost), "mWethHost");
 
         mWethExtension = new mTokenGateway(
-            payable(address(this)), address(weth), address(roles), address(verifierMock), address(verifierImageRegistry)
+            payable(address(this)),
+            address(weth),
+            address(roles),
+            address(verifierMock),
+            address(verifierImageRegistry),
+            address(operationsLog)
         );
+
+        // post deployment roles
+        roles.allowFor(address(mWethHost), roles.LOGS_ADD(), true);
+        roles.allowFor(address(mWethExtension), roles.LOGS_ADD(), true);
     }
     // ----------- HELPERS ------------
 
@@ -96,6 +112,26 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         return abi.encode(data, amount, user, nonce, block.chainid);
     }
 
+    function _createCommitmentWithDstChain(uint256 amount, address user, uint256 chainId)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        uint256 encodedID = uint256(0) << 240 | uint256(1); //version and value
+        Commitment memory data = Commitment(encodedID, "", "0x123");
+        return abi.encode(data, amount, user, chainId);
+    }
+
+    function _createCommitmentWithDstChain(uint256 amount, address user, uint256 nonce, uint256 chainId)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        uint256 encodedID = uint256(0) << 240 | uint256(1); //version and value
+        Commitment memory data = Commitment(encodedID, "", "0x123");
+        return abi.encode(data, amount, user, nonce, chainId);
+    }
+
     function _borrowPrerequisites(address mToken, uint256 supplyAmount) internal {
         address underlying = mErc20Immutable(mToken).underlying();
         _getTokens(ERC20Mock(underlying), address(this), supplyAmount);
@@ -116,12 +152,12 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
     }
 
     // ----------- MODIFIERS ------------
-    modifier whenPaused(address mToken, IRoles.Pause pauseType) {
+    modifier whenPaused(address mToken, ImTokenOperationTypes.OperationType pauseType) {
         operator.setPaused(mToken, pauseType, true);
         _;
     }
 
-    modifier whenNotPaused(address mToken, IRoles.Pause pauseType) {
+    modifier whenNotPaused(address mToken, ImTokenOperationTypes.OperationType pauseType) {
         operator.setPaused(mToken, pauseType, false);
         _;
     }
@@ -160,6 +196,9 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         verifierImageRegistry.addImageId(bytes32("0x1240"));
         verifierImageRegistry.addImageId(bytes32("0x1241"));
         verifierImageRegistry.addImageId(bytes32("0x1242"));
+        verifierImageRegistry.addImageId(bytes32("0x1243"));
+        verifierImageRegistry.addImageId(bytes32("0x1244"));
+        verifierImageRegistry.addImageId(bytes32("0x1245"));
         _;
     }
 

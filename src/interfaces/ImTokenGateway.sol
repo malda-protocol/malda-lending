@@ -9,31 +9,11 @@ pragma solidity =0.8.28;
 */
 
 import {IRoles} from "./IRoles.sol";
+import {ImTokenLogs} from "./ImTokenLogs.sol";
+import {ImTokenOperationTypes} from "./ImToken.sol";
 
 interface ImTokenGateway {
-    // ----------- STRUCTS -----------
-    enum ImageIdIndexes {
-        BorrowExternal, // finalize a borrow initiated from host chain
-        WithdrawExternal
-    }
-
-    enum OperationType {
-        Mint, // initiate a mint operation; finalized by `mintExternal` on host chain
-        Borrow, // initiate a borrow; finalized by `borrowExternal` on host chain
-        BorrowExternal, // finalize a borrow initiated from host chain
-        Repay, // initiate a repay operation; finalized by `repayExternal` on host chain
-        Withdraw, // initialte withdraw operation; finalized by `withdrawExternal` on host chain
-        WithdrawExternal // finalize a withdraw initiated from host chain
-
-    }
-
-    struct LogData {
-        uint256 nonce;
-        bytes data;
-    }
-
     // ----------- EVENTS -----------
-
     /**
      * @notice Emitted when a mint operation is initiated
      */
@@ -104,19 +84,18 @@ interface ImTokenGateway {
     /**
      * @notice Thrown when market is paused for operation type
      */
-    error mTokenGateway_Paused(IRoles.Pause _type);
+    error mTokenGateway_Paused(ImTokenOperationTypes.OperationType _type);
 
     // ----------- VIEW -----------
-    /**
-     * @notice returns pause state for operation
-     * @param _type the operation type
-     */
-    function isPaused(IRoles.Pause _type) external view returns (bool);
-
     /**
      * @notice Roles manager
      */
     function rolesOperator() external view returns (IRoles);
+
+    /**
+     * @notice Logs manager
+     */
+    function logsOperator() external view returns (ImTokenLogs);
 
     /**
      * @notice Returns the address of the underlying token
@@ -131,36 +110,10 @@ interface ImTokenGateway {
      * @param opType The operation type (Mint, Borrow, Repay, Withdraw, Release)
      * @return The current nonce for the specified user and operation type
      */
-    function getNonce(address user, uint256 chainId, OperationType opType) external view returns (uint256);
-
-    /**
-     * @notice Retrieves log data for a specific user, operation type, and index
-     * @param user The address of the user
-     * @param chainId The chainId to get the data for
-     * @param opType The operation type (Mint, Borrow, Repay, Withdraw, Release)
-     * @param index The index of the log entry
-     * @return The LogData struct containing the nonce and associated data
-     */
-    function getLogsAt(address user, uint256 chainId, OperationType opType, uint256 index)
+    function getNonce(address user, uint256 chainId, ImTokenOperationTypes.OperationType opType)
         external
         view
-        returns (LogData memory);
-
-    /**
-     * @notice Returns the number of log entries for a user and operation type
-     * @param user The address of the user
-     * @param chainId The chainId to get the data for
-     * @param opType The operation type (Mint, Borrow, Repay, Withdraw, Release)
-     * @return The number of log entries for the specified user and operation type
-     */
-    function getLogsLength(address user, uint256 chainId, OperationType opType) external view returns (uint256);
-
-    /**
-     * @notice Retrieves the pending amount for a user
-     * @param user The address of the user
-     * @return The pending amount for the specified user
-     */
-    function pendingAmounts(address user) external view returns (uint256);
+        returns (uint256);
 
     /**
      * @notice Retrieves the current nonce for a user and a specific operation type
@@ -169,7 +122,16 @@ interface ImTokenGateway {
      * @param opType The operation type (Mint, Borrow, Repay, Withdraw, Release)
      * @return The nonce for the specified user and operation type
      */
-    function nonces(address user, uint256 chainId, OperationType opType) external view returns (uint256);
+    function nonces(address user, uint256 chainId, ImTokenOperationTypes.OperationType opType)
+        external
+        view
+        returns (uint256);
+
+    /**
+     * @notice returns pause state for operation
+     * @param _type the operation type
+     */
+    function isPaused(ImTokenOperationTypes.OperationType _type) external view returns (bool);
 
     // ----------- PUBLIC -----------
     /**
@@ -177,7 +139,7 @@ interface ImTokenGateway {
      * @param _type The pause operation type
      * @param state The pause operation status
      */
-    function setPaused(IRoles.Pause _type, bool state) external;
+    function setPaused(ImTokenOperationTypes.OperationType _type, bool state) external;
 
     /**
      * @notice Mints new tokens by transferring the underlying token from the user

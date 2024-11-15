@@ -2,6 +2,7 @@
 pragma solidity =0.8.28;
 
 import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
@@ -52,13 +53,13 @@ contract mTokenGateway_mint is mToken_Unit_Shared {
         // it should increase pending token balance
         assertEq(balanceOfBefore + amount, balanceOfAfter);
 
-        // it should update the logs for the caller
-        assertEq(mWethExtension.getLogsLength(address(this), block.chainid, ImTokenGateway.OperationType.Mint), 1);
-
         // it should increase nonce for this operation type
-        assertEq(mWethExtension.getNonce(address(this), block.chainid, ImTokenGateway.OperationType.Mint), 1);
+        assertEq(
+            mWethExtension.getNonce(address(this), block.chainid, ImTokenOperationTypes.OperationType.MintOnOtherChain),
+            1
+        );
 
         // it should not increase nonce for any other operation type
-        assertEq(mWethExtension.getNonce(address(this), block.chainid, ImTokenGateway.OperationType.Borrow), 0);
+        assertEq(mWethExtension.getNonce(address(this), block.chainid, ImTokenOperationTypes.OperationType.Borrow), 0);
     }
 }

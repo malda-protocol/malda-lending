@@ -4,6 +4,7 @@ pragma solidity =0.8.28;
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
@@ -16,7 +17,7 @@ import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 contract mErc20Host_repay is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsPausedForRepay(uint256 amount)
         external
-        whenPaused(address(mWethHost), IRoles.Pause.Repay)
+        whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
         whenMarketIsListed(address(mWethHost))
         inRange(amount, SMALL, LARGE)
     {
@@ -26,7 +27,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
 
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
         external
-        whenNotPaused(address(mWethHost), IRoles.Pause.Repay)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
@@ -36,8 +37,8 @@ contract mErc20Host_repay is mToken_Unit_Shared {
     function test_GivenAmountIs0(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)
-        whenNotPaused(address(mWethHost), IRoles.Pause.Repay)
-        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
@@ -83,8 +84,8 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         givenAmountIsGreaterThan0
         whenStateIsValid
         inRange(amount, SMALL, LARGE)
-        whenNotPaused(address(mWethHost), IRoles.Pause.Repay)
-        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
@@ -133,8 +134,8 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         givenAmountIsGreaterThan0
         whenStateIsValid
         inRange(amount, SMALL, LARGE)
-        whenNotPaused(address(mWethHost), IRoles.Pause.Repay)
-        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
@@ -219,7 +220,9 @@ contract mErc20Host_repay is mToken_Unit_Shared {
     {
         uint256 amount = 0;
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Repay)
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Repay)
         );
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
@@ -236,7 +239,9 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         whenMarketEntered(address(mWethHost))
     {
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Repay)
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Repay)
         );
 
         verifierMock.setStatus(true); // set for failure
@@ -268,7 +273,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         bytes memory journalData = _createCommitment(
             type(uint256).max,
             address(this),
-            mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Repay)
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Repay)
         );
         mWethHost.repayExternal(journalData, "0x123");
 
@@ -307,7 +312,9 @@ contract mErc20Host_repay is mToken_Unit_Shared {
 
         // it should revert
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Repay)
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Repay)
         );
         mWethHost.repayExternal(journalData, "0x123");
 

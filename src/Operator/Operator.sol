@@ -9,17 +9,17 @@ pragma solidity =0.8.28;
 */
 
 // interfaces
-import {IRoles} from "../interfaces/IRoles.sol";
-import {ImToken} from "../interfaces/ImToken.sol";
-import {IUnit, IUnitAccess} from "../interfaces/IUnit.sol";
-import {IOracleOperator} from "../interfaces/IOracleOperator.sol";
-import {IRewardDistributor} from "../interfaces/IRewardDistributor.sol";
-import {IOperatorData, IOperator, IOperatorDefender} from "../interfaces/IOperator.sol";
+import {IRoles} from "src/interfaces/IRoles.sol";
+import {IUnit, IUnitAccess} from "src/interfaces/IUnit.sol";
+import {IOracleOperator} from "src/interfaces/IOracleOperator.sol";
+import {IRewardDistributor} from "src/interfaces/IRewardDistributor.sol";
+import {ImToken, ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
+import {IOperatorData, IOperator, IOperatorDefender} from "src/interfaces/IOperator.sol";
 
 // contracts
 import {OperatorStorage} from "./OperatorStorage.sol";
 
-contract Operator is OperatorStorage {
+contract Operator is OperatorStorage, ImTokenOperationTypes {
     constructor(address _rolesOperator, address _rewardDistributor, address _admin) {
         require(_rolesOperator != address(0), Operator_InvalidRolesOperator());
         require(_rewardDistributor != address(0), Operator_InvalidRolesOperator());
@@ -202,7 +202,7 @@ contract Operator is OperatorStorage {
     /**
      * @inheritdoc IOperator
      */
-    function setPaused(address mToken, IRoles.Pause _type, bool state) external {
+    function setPaused(address mToken, ImTokenOperationTypes.OperationType _type, bool state) external {
         if (state) {
             require(
                 msg.sender == admin || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_PAUSE()),
@@ -249,7 +249,12 @@ contract Operator is OperatorStorage {
     /**
      * @inheritdoc IOperator
      */
-    function isPaused(address mToken, IRoles.Pause _type) external view override returns (bool) {
+    function isPaused(address mToken, ImTokenOperationTypes.OperationType _type)
+        external
+        view
+        override
+        returns (bool)
+    {
         return _paused[mToken][_type];
     }
 
@@ -424,7 +429,7 @@ contract Operator is OperatorStorage {
      * @inheritdoc IOperatorDefender
      */
     function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external override {
-        require(!_paused[mToken][IRoles.Pause.Transfer], Operator_Paused());
+        require(!_paused[mToken][OperationType.Transfer], Operator_Paused());
 
         /* Get sender tokensHeld and amountOwed underlying from the mToken */
         _beforeRedeem(mToken, src, transferTokens);
@@ -439,7 +444,7 @@ contract Operator is OperatorStorage {
      * @inheritdoc IOperatorDefender
      */
     function beforeMTokenMint(address mToken, address minter) external override {
-        require(!_paused[mToken][IRoles.Pause.Mint], Operator_Paused());
+        require(!_paused[mToken][OperationType.Mint], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
         // Keep the flywheel moving
         _updateMeldaSupplyIndex(mToken);
@@ -475,7 +480,7 @@ contract Operator is OperatorStorage {
      * @inheritdoc IOperatorDefender
      */
     function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external override {
-        require(!_paused[mToken][IRoles.Pause.Borrow], Operator_Paused());
+        require(!_paused[mToken][OperationType.Borrow], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
         if (!markets[mToken].accountMembership[borrower]) {
@@ -508,7 +513,7 @@ contract Operator is OperatorStorage {
      * @inheritdoc IOperatorDefender
      */
     function beforeMTokenRepay(address mToken, address borrower) external {
-        require(!_paused[mToken][IRoles.Pause.Repay], Operator_Paused());
+        require(!_paused[mToken][OperationType.Repay], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
         // Keep the flywheel moving
@@ -550,7 +555,7 @@ contract Operator is OperatorStorage {
         override
     {
         require(
-            !_paused[mTokenCollateral][IRoles.Pause.Seize] && !_paused[mTokenBorrowed][IRoles.Pause.Seize],
+            !_paused[mTokenCollateral][OperationType.Seize] && !_paused[mTokenBorrowed][OperationType.Seize],
             Operator_Paused()
         );
         require(markets[mTokenBorrowed].isListed, Operator_MarketNotListed());
@@ -576,7 +581,7 @@ contract Operator is OperatorStorage {
     }
 
     function _beforeRedeem(address mToken, address redeemer, uint256 redeemTokens) private view {
-        require(!_paused[mToken][IRoles.Pause.Redeem], Operator_Paused());
+        require(!_paused[mToken][OperationType.Redeem], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
         /* If the redeemer is not 'in' the market, then we can bypass the liquidity check */
@@ -701,7 +706,7 @@ contract Operator is OperatorStorage {
     }
 
     function _isDeprecated(address mToken) private view returns (bool) {
-        return markets[mToken].collateralFactorMantissa == 0 && _paused[mToken][IRoles.Pause.Borrow]
+        return markets[mToken].collateralFactorMantissa == 0 && _paused[mToken][OperationType.Borrow]
             && ImToken(mToken).reserveFactorMantissa() == 1e18;
     }
 }

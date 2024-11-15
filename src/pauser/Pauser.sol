@@ -15,6 +15,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {IPauser} from "src/interfaces/IPauser.sol";
 import {IOperator} from "src/interfaces/IOperator.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
 
 contract Pauser is Ownable, IPauser {
@@ -72,7 +73,7 @@ contract Pauser is Ownable, IPauser {
     /**
      * @inheritdoc IPauser
      */
-    function emergencyPauseMarketFor(address _market, IRoles.Pause _pauseType) external {
+    function emergencyPauseMarketFor(address _market, ImTokenOperationTypes.OperationType _pauseType) external {
         _pauseMarketOperation(_market, _pauseType);
     }
 
@@ -89,25 +90,25 @@ contract Pauser is Ownable, IPauser {
 
     // ----------- PRIVATE ------------
     function _pauseAllMarketOperations(address _market) private {
-        _pauseMarketOperation(_market, IRoles.Pause.Mint);
-        _pauseMarketOperation(_market, IRoles.Pause.MintOnOtherChain);
-        _pauseMarketOperation(_market, IRoles.Pause.Borrow);
-        _pauseMarketOperation(_market, IRoles.Pause.BorrowOnOtherChain);
-        _pauseMarketOperation(_market, IRoles.Pause.Transfer);
-        _pauseMarketOperation(_market, IRoles.Pause.Seize);
-        _pauseMarketOperation(_market, IRoles.Pause.Repay);
-        _pauseMarketOperation(_market, IRoles.Pause.RepayOnOtherChain);
-        _pauseMarketOperation(_market, IRoles.Pause.Redeem);
-        _pauseMarketOperation(_market, IRoles.Pause.RedeemOnOtherChain);
+        _pauseMarketOperation(_market, OperationType.Mint);
+        _pauseMarketOperation(_market, OperationType.MintOnOtherChain);
+        _pauseMarketOperation(_market, OperationType.Borrow);
+        _pauseMarketOperation(_market, OperationType.BorrowOnOtherChain);
+        _pauseMarketOperation(_market, OperationType.Transfer);
+        _pauseMarketOperation(_market, OperationType.Seize);
+        _pauseMarketOperation(_market, OperationType.Repay);
+        _pauseMarketOperation(_market, OperationType.RepayOnOtherChain);
+        _pauseMarketOperation(_market, OperationType.Redeem);
+        _pauseMarketOperation(_market, OperationType.RedeemOnOtherChain);
         emit MarketPaused(_market);
     }
 
-    function _pauseMarketOperation(address _market, IRoles.Pause _pauseType) private {
+    function _pauseMarketOperation(address _market, ImTokenOperationTypes.OperationType _pauseType) private {
         _pause(_market, _pauseType);
         emit MarketPausedFor(_market, _pauseType);
     }
 
-    function _pause(address _market, IRoles.Pause _pauseType) private {
+    function _pause(address _market, ImTokenOperationTypes.OperationType _pauseType) private {
         require(roles.isAllowedFor(msg.sender, roles.PAUSE_MANAGER()), Pauser_NotAuthorized());
         PausableType _type = contractTypes[_market];
         if (_type == PausableType.Host) {

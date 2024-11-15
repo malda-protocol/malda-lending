@@ -8,33 +8,10 @@ pragma solidity =0.8.28;
 |_|_|_|__|__|_____|____/|__|__|   
 */
 
+import {ImTokenLogs} from "./ImTokenLogs.sol";
+import {ImTokenOperationTypes} from "./ImToken.sol";
+
 interface ImErc20Host {
-    // ----------- STRUCTS -----------
-    enum ImageIdIndexes {
-        Mint, // finalizes a mint operation requested from an extension chain
-        Borrow, // finalizes a borrow operation requested from an extension chain
-        BorrowOnExtension, // requests a borrow on an extension chain
-        Repay, // finalizes a repay operation requested from an extension chain
-        Redeem, // finalizes a withdraw operation requested from an extension chain
-        RedeemOnExtension // requests a withdraw on an extension chain
-
-    }
-
-    enum OperationType {
-        Mint, // finalizes a mint operation requested from an extension chain
-        Borrow, // finalizes a borrow operation requested from an extension chain
-        BorrowOnExtension, // requests a borrow on an extension chain
-        Repay, // finalizes a repay operation requested from an extension chain
-        Redeem, // finalizes a withdraw operation requested from an extension chain
-        RedeemOnExtension // requests a withdraw on an extension chain
-
-    }
-
-    struct LogData {
-        uint256 nonce;
-        bytes data;
-    }
-
     // ----------- EVENTS -----------
     /**
      * @notice Emitted when a mint operation is executed
@@ -101,35 +78,21 @@ interface ImErc20Host {
 
     // ----------- VIEW -----------
     /**
+     * @notice Logs manager
+     */
+    function logsOperator() external view returns (ImTokenLogs);
+
+    /**
      * @notice Retrieves the current nonce for a user and operation type
      * @param user The address of the user
      * @param chainId The chainId to get the data for
      * @param opType The operation type (Mint, Borrow, Repay, Redeem)
      * @return The current nonce for the specified user and operation type
      */
-    function getNonce(address user, uint256 chainId, OperationType opType) external view returns (uint256);
-
-    /**
-     * @notice Retrieves log data for a specific user, operation type, and index
-     * @param user The address of the user
-     * @param chainId The chainId to get the data for
-     * @param opType The operation type (Mint, Borrow, Repay, Withdraw, Release)
-     * @param index The index of the log entry
-     * @return The LogData struct containing the nonce and associated data
-     */
-    function getLogsAt(address user, uint256 chainId, OperationType opType, uint256 index)
+    function getNonce(address user, uint256 chainId, ImTokenOperationTypes.OperationType opType)
         external
         view
-        returns (LogData memory);
-
-    /**
-     * @notice Returns the number of log entries for a user and operation type
-     * @param user The address of the user
-     * @param chainId The chainId to get the data for
-     * @param opType The operation type (Mint, Borrow, Repay, Withdraw, Release)
-     * @return The number of log entries for the specified user and operation type
-     */
-    function getLogsLength(address user, uint256 chainId, OperationType opType) external view returns (uint256);
+        returns (uint256);
 
     // ----------- PUBLIC -----------
     /**

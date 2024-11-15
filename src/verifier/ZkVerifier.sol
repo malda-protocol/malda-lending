@@ -10,7 +10,7 @@ pragma solidity =0.8.28;
 
 // interfaces
 import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
-import {IZkVerifierImageRegistry} from "../interfaces/IZkVerifierImageRegistry.sol";
+import {IZkVerifierImageRegistry} from "src/interfaces/IZkVerifierImageRegistry.sol";
 
 // contracts
 import {Steel} from "risc0/steel/Steel.sol";

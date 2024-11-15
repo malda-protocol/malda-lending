@@ -4,6 +4,7 @@ pragma solidity =0.8.28;
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
@@ -16,7 +17,7 @@ import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 contract mErc20Host_borrow is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsPausedForBorrow(uint256 amount)
         external
-        whenPaused(address(mWethHost), IRoles.Pause.Borrow)
+        whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
@@ -25,7 +26,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
 
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
         external
-        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
@@ -36,7 +37,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         external
         whenPriceIs(ZERO_VALUE)
         whenMarketIsListed(address(mWethHost))
-        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
     {
         // it should revert
@@ -54,7 +55,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         givenAmountIsGreaterThan0
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
-        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
         whenMarketEntered(address(mWethHost))
     {
@@ -69,7 +70,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         givenAmountIsGreaterThan0
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
-        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
         whenBorrowCapReached(address(mWethHost), amount)
     {
@@ -83,7 +84,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         givenAmountIsGreaterThan0
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
-        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
         whenMarketEntered(address(mWethHost))
     {
@@ -104,7 +105,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenStateIsValid
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
-        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
     {
         // supply tokens; assure collateral factor is met
@@ -138,7 +139,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenStateIsValid
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
-        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
         whenMarketEntered(address(mWethHost))
     {
@@ -181,7 +182,9 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         uint256 totalBorrowsBefore
     ) private {
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Borrow)
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Borrow)
         );
 
         // borrow
@@ -256,7 +259,9 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
     function test_GivenDecodedAmountIs0() external whenBorrowExternalIsCalled whenImageIdExists {
         uint256 amount = 0;
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Borrow)
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Borrow)
         );
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
@@ -272,7 +277,9 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         givenDecodedAmountIsValid
     {
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Borrow)
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Borrow)
         );
 
         verifierMock.setStatus(true); // set for failure
@@ -320,7 +327,9 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
 
         // it should revert
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Borrow)
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Borrow)
         );
         mWethHost.borrowExternal(journalData, "0x123");
 
@@ -363,7 +372,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         bytes memory journalData = _createCommitment(
             liquidity,
             address(this),
-            mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.BorrowOnExtension)
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.BorrowOnOtherChain)
         );
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
@@ -381,7 +390,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         bytes memory journalData = _createCommitment(
             amount,
             address(this),
-            mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.BorrowOnExtension)
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.BorrowOnOtherChain)
         );
 
         verifierMock.setStatus(true); // set for failure
@@ -407,7 +416,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         uint256 balanceUnderlyingBefore = weth.balanceOf(address(this));
         uint256 totalBorrowsBefore = mWethHost.totalBorrows();
 
-        bytes memory journalData = _createCommitment(amount, address(this));
+        bytes memory journalData = _createCommitmentWithDstChain(amount, address(this), 1);
         mWethHost.borrowOnExtension(amount, journalData, "0x123");
 
         {
@@ -417,6 +426,9 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
             assertEq(balanceUnderlyingBefore, balanceUnderlyingAfter);
             assertLt(totalBorrowsBefore, totalBorrowsAfter);
         }
+
+        // check log
+        _checkLog(ImTokenOperationTypes.OperationType.BorrowOnOtherChain, amount, 0, block.chainid, 1);
     }
 
     function test_RevertGiven_APreviousCommitmentIsUsed(uint256 amount)
@@ -436,11 +448,31 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         bytes memory journalData = _createCommitment(
             amount,
             address(this),
-            mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.BorrowOnExtension)
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.BorrowOnOtherChain)
         );
         mWethHost.borrowOnExtension(amount, journalData, "0x123");
 
         vm.expectRevert(abi.encodePacked(ZkVerifier.ZkVerifier_AlreadyVerified.selector, uint256(1)));
         mWethHost.borrowOnExtension(amount, journalData, "0x123");
+    }
+
+    function _checkLog(
+        ImTokenOperationTypes.OperationType opType,
+        uint256 amount,
+        uint256 nonce,
+        uint256 srcChainId,
+        uint256 dstChainId
+    ) private view {
+        (uint256 journalDstChainId, bytes memory encodedData) =
+            operationsLog.getLogForChain(address(this), opType, nonce, srcChainId);
+        assertGt(encodedData.length, 0);
+        assertEq(journalDstChainId, dstChainId);
+
+        (uint256 decodedAmount, address decodedSender, uint256 decodedNonce, uint256 decodedSrcChainId) =
+            abi.decode(encodedData, (uint256, address, uint256, uint256));
+        assertEq(decodedAmount, amount);
+        assertEq(decodedSender, address(this));
+        assertEq(decodedNonce, nonce);
+        assertEq(decodedSrcChainId, srcChainId);
     }
 }

@@ -17,6 +17,7 @@ contract Roles is Ownable, IRoles {
 
     mapping(address => mapping(bytes32 => bool)) private _roles;
 
+    bytes32 public constant LOGS_ADD = keccak256("LOGS_ADD");
     bytes32 public constant PAUSE_MANAGER = keccak256("PAUSE_MANAGER");
     bytes32 public constant GUARDIAN_MINT = keccak256("GUARDIAN_MINT");
     bytes32 public constant GUARDIAN_PAUSE = keccak256("GUARDIAN_PAUSE");

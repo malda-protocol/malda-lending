@@ -9,12 +9,12 @@ pragma solidity =0.8.28;
 */
 
 // interfaces
-import {IRoles} from "../interfaces/IRoles.sol";
-import {IUnitAccess} from "../interfaces/IUnit.sol";
-import {IOperatorData, IOperator, IOperatorDefender} from "../interfaces/IOperator.sol";
+import {IRoles} from "src/interfaces/IRoles.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
+import {IOperatorData, IOperator, IOperatorDefender} from "src/interfaces/IOperator.sol";
 
 // contracts
-import {ExponentialNoError} from "../utils/ExponentialNoError.sol";
+import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
 
 abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNoError {
     // ----------- STORAGE ------------
@@ -97,7 +97,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
         Exp tokensToDenom;
     }
 
-    mapping(address => mapping(IRoles.Pause => bool)) internal _paused;
+    mapping(address => mapping(ImTokenOperationTypes.OperationType => bool)) internal _paused;
 
     // closeFactorMantissa must be strictly greater than this value
     uint256 internal constant CLOSE_FACTOR_MIN_MANTISSA = 0.05e18; // 0.05
@@ -137,7 +137,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     /**
      * @notice Emitted when pause status is changed
      */
-    event ActionPaused(address indexed mToken, IRoles.Pause _type, bool state);
+    event ActionPaused(address indexed mToken, ImTokenOperationTypes.OperationType _type, bool state);
 
     /// @notice Emitted when reward distributor is changed
     event NewRewardDistributor(address indexed oldRewardDistributor, address indexed newRewardDistributor);

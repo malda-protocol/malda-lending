@@ -2,6 +2,7 @@
 pragma solidity =0.8.28;
 
 import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
@@ -37,7 +38,7 @@ contract mTokenGateway_release is mToken_Unit_Shared {
         bytes memory journalData = _createCommitment(
             amount,
             address(this),
-            mWethExtension.nonces(address(this), block.chainid, ImTokenGateway.OperationType.WithdrawExternal)
+            mWethExtension.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.RedeemOnOtherChain)
         );
 
         // it should revert with mErc20Host_AmountNotValid
@@ -59,7 +60,7 @@ contract mTokenGateway_release is mToken_Unit_Shared {
         bytes memory journalData = _createCommitment(
             amount,
             address(this),
-            mWethExtension.nonces(address(this), block.chainid, ImTokenGateway.OperationType.WithdrawExternal)
+            mWethExtension.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.RedeemOnOtherChain)
         );
 
         verifierMock.setStatus(true); // set for failure
@@ -83,11 +84,11 @@ contract mTokenGateway_release is mToken_Unit_Shared {
         bytes memory journalData = _createCommitment(
             amount,
             address(this),
-            mWethExtension.nonces(address(this), block.chainid, ImTokenGateway.OperationType.WithdrawExternal)
+            mWethExtension.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.RedeemOnOtherChain)
         );
 
         // it should revert
-        vm.expectRevert(ImTokenGateway.mTokenGateway_AmountTooBig.selector);
+        vm.expectRevert(ImTokenGateway.mTokenGateway_ReleaseCashNotAvailable.selector);
         mWethExtension.withdrawExternal(journalData, "0x123");
     }
 

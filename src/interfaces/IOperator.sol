@@ -9,6 +9,7 @@ pragma solidity =0.8.28;
 */
 
 import {IRoles} from "./IRoles.sol";
+import {ImTokenOperationTypes} from "./ImToken.sol";
 
 interface IOperatorData {
     struct Market {
@@ -108,7 +109,7 @@ interface IOperator {
      * @param mToken The mToken to check
      * @param _type the operation type
      */
-    function isPaused(address mToken, IRoles.Pause _type) external view returns (bool);
+    function isPaused(address mToken, ImTokenOperationTypes.OperationType _type) external view returns (bool);
 
     /**
      * @notice Roles manager
@@ -215,7 +216,7 @@ interface IOperator {
      * @param _type The pause operation type
      * @param state The pause operation status
      */
-    function setPaused(address mToken, IRoles.Pause _type, bool state) external;
+    function setPaused(address mToken, ImTokenOperationTypes.OperationType _type, bool state) external;
 
     /**
      * @notice Add assets to be included in account liquidity calculation

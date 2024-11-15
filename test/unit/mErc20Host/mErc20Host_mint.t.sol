@@ -4,6 +4,7 @@ pragma solidity =0.8.28;
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
@@ -16,7 +17,7 @@ import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 contract mErc20Host_mint is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsPausedForMinting(uint256 amount)
         external
-        whenPaused(address(mWethHost), IRoles.Pause.Mint)
+        whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint)
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
@@ -25,7 +26,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
         external
-        whenNotPaused(address(mWethHost), IRoles.Pause.Mint)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint)
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
@@ -113,7 +114,9 @@ contract mErc20Host_mint is mToken_Unit_Shared {
     function test_GivenDecodedAmountIs0() external whenMintExternalIsCalled whenImageIdExists {
         uint256 amount = 0;
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Mint)
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Mint)
         );
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
@@ -128,7 +131,9 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         givenDecodedAmountIsValid
     {
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Mint)
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Mint)
         );
 
         verifierMock.setStatus(true); // set for failure
@@ -150,7 +155,9 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Mint)
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Mint)
         );
         mWethHost.mintExternal(journalData, "0x123");
 
@@ -181,7 +188,9 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         // it should revert
 
         bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Mint)
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Mint)
         );
         mWethHost.mintExternal(journalData, "0x123");
 

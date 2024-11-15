@@ -9,9 +9,9 @@ pragma solidity =0.8.28;
 */
 
 // interfaces
-import {ImErc20} from "../interfaces/ImErc20.sol";
+import {ImErc20} from "src/interfaces/ImErc20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ImTokenMinimal, ImTokenDelegator} from "../interfaces/ImToken.sol";
+import {ImTokenMinimal, ImTokenDelegator} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {mToken} from "./mToken.sol";

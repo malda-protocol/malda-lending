@@ -9,7 +9,7 @@ pragma solidity =0.8.28;
 */
 
 // interfaces
-import {IUnit, IUnitAccess} from "../interfaces/IUnit.sol";
+import {IUnit, IUnitAccess} from "src/interfaces/IUnit.sol";
 
 contract Unit is IUnit, IUnitAccess {
     // ----------- STORAGE ------------

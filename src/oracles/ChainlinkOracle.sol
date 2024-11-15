@@ -8,9 +8,9 @@ pragma solidity =0.8.28;
 |_|_|_|__|__|_____|____/|__|__|   
 */
 
-import {ImTokenMinimal} from "../interfaces/ImToken.sol";
-import {IOracleOperator} from "../interfaces/IOracleOperator.sol";
-import {IAggregatorV3} from "../interfaces/external/chainlink/IAggregatorV3.sol";
+import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
+import {IOracleOperator} from "src/interfaces/IOracleOperator.sol";
+import {IAggregatorV3} from "src/interfaces/external/chainlink/IAggregatorV3.sol";
 
 contract ChainlinkOracle is IOracleOperator {
     // ----------- STORAGE ------------

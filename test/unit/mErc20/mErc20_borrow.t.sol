@@ -3,6 +3,7 @@ pragma solidity =0.8.28;
 
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
@@ -14,7 +15,7 @@ import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 contract mErc20_borrow is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsPausedForBorrow(uint256 amount)
         external
-        whenPaused(address(mWeth), IRoles.Pause.Borrow)
+        whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
@@ -23,7 +24,7 @@ contract mErc20_borrow is mToken_Unit_Shared {
 
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
         external
-        whenNotPaused(address(mWeth), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
@@ -34,7 +35,7 @@ contract mErc20_borrow is mToken_Unit_Shared {
         external
         whenPriceIs(ZERO_VALUE)
         whenMarketIsListed(address(mWeth))
-        whenNotPaused(address(mWeth), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
     {
         // it should revert
@@ -52,7 +53,7 @@ contract mErc20_borrow is mToken_Unit_Shared {
         givenAmountIsGreaterThan0
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
-        whenNotPaused(address(mWeth), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
         whenMarketEntered(address(mWeth))
     {
@@ -67,7 +68,7 @@ contract mErc20_borrow is mToken_Unit_Shared {
         givenAmountIsGreaterThan0
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
-        whenNotPaused(address(mWeth), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
         whenBorrowCapReached(address(mWeth), amount)
     {
@@ -81,7 +82,7 @@ contract mErc20_borrow is mToken_Unit_Shared {
         givenAmountIsGreaterThan0
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
-        whenNotPaused(address(mWeth), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
         whenMarketEntered(address(mWeth))
     {
@@ -102,7 +103,7 @@ contract mErc20_borrow is mToken_Unit_Shared {
         whenStateIsValid
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
-        whenNotPaused(address(mWeth), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
     {
         // supply tokens; assure collateral factor is met
@@ -136,7 +137,7 @@ contract mErc20_borrow is mToken_Unit_Shared {
         whenStateIsValid
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
-        whenNotPaused(address(mWeth), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
         whenMarketEntered(address(mWeth))
     {

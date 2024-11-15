@@ -9,14 +9,14 @@ pragma solidity =0.8.28;
 */
 
 // interfaces
-import {IRoles} from "../interfaces/IRoles.sol";
-import {ImToken, ImTokenMinimal} from "../interfaces/ImToken.sol";
-import {IInterestRateModel} from "../interfaces/IInterestRateModel.sol";
-import {IOperator, IOperatorDefender} from "../interfaces/IOperator.sol";
+import {IRoles} from "src/interfaces/IRoles.sol";
+import {ImToken, ImTokenMinimal} from "src/interfaces/ImToken.sol";
+import {IInterestRateModel} from "src/interfaces/IInterestRateModel.sol";
+import {IOperator, IOperatorDefender} from "src/interfaces/IOperator.sol";
 
 // contracts
 import {mTokenConfiguration} from "./mTokenConfiguration.sol";
-import {ReentrancyGuardTransient} from "../utils/ReentrancyGuardTransient.sol";
+import {ReentrancyGuardTransient} from "src/utils/ReentrancyGuardTransient.sol";
 
 abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
     /**

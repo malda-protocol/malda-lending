@@ -3,6 +3,7 @@ pragma solidity =0.8.28;
 
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
@@ -14,7 +15,7 @@ import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 contract mErc20_redeem is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsPausedForRdeem(uint256 amount)
         external
-        whenPaused(address(mWeth), IRoles.Pause.Redeem)
+        whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWeth))
         inRange(amount, SMALL, LARGE)
     {
@@ -27,7 +28,7 @@ contract mErc20_redeem is mToken_Unit_Shared {
 
     function test_GivenMarketIsNotListed(uint256 amount)
         external
-        whenNotPaused(address(mWeth), IRoles.Pause.Redeem)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
@@ -39,7 +40,7 @@ contract mErc20_redeem is mToken_Unit_Shared {
 
     function test_GivenRedeemerIsNotPartOfTheMarket(uint256 amount)
         external
-        whenNotPaused(address(mWeth), IRoles.Pause.Redeem)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWeth))
     {
@@ -53,7 +54,7 @@ contract mErc20_redeem is mToken_Unit_Shared {
 
     function test_GivenRedeemAmountsAre0()
         external
-        whenNotPaused(address(mWeth), IRoles.Pause.Redeem)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWeth))
     {
         vm.expectRevert(mTokenStorage.mToken_RedeemEmpty.selector);
@@ -70,7 +71,7 @@ contract mErc20_redeem is mToken_Unit_Shared {
     function test_WhenTheMarketDoesNotHaveEnoughAssetsForTheRedeemOperation(uint256 amount)
         external
         givenAmountIsGreaterThan0
-        whenNotPaused(address(mWeth), IRoles.Pause.Redeem)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWeth))
     {
@@ -85,7 +86,7 @@ contract mErc20_redeem is mToken_Unit_Shared {
     function test_WhenStateIsValidForRedeem(uint256 amount)
         external
         givenAmountIsGreaterThan0
-        whenNotPaused(address(mWeth), IRoles.Pause.Redeem)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWeth))
     {
@@ -95,7 +96,7 @@ contract mErc20_redeem is mToken_Unit_Shared {
     function test_WhenStateIsValidForRedeemUnderlying(uint256 amount)
         external
         givenAmountIsGreaterThan0
-        whenNotPaused(address(mWeth), IRoles.Pause.Redeem)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWeth))
     {
