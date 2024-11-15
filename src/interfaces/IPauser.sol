@@ -43,7 +43,7 @@ interface IPauser is ImTokenOperationTypes {
      * @param _market the mToken address
      * @param _pauseType the operation type
      */
-    function emergencyPauseMarketFor(address _market, OperationType _pauseType) external;
+    function emergencyPauseMarketForOperation(address _market, OperationType _pauseType) external;
 
     /**
      * @notice pauses all operations for all registered markets

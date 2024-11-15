@@ -21,7 +21,7 @@ contract Pauser_pause is Pauser_Unit_Shared {
 
         // it should revert for emergencyPauseMarketFor
         vm.expectRevert(IPauser.Pauser_NotAuthorized.selector);
-        pauser.emergencyPauseMarketFor(address(mWethHost), ImTokenOperationTypes.OperationType.MintOnOtherChain);
+        pauser.emergencyPauseMarketForOperation(address(mWethHost), ImTokenOperationTypes.OperationType.MintOnOtherChain);
     }
 
     modifier whenContractHasThePAUSE_MANAGERRole() {
@@ -63,14 +63,14 @@ contract Pauser_pause is Pauser_Unit_Shared {
         // it should only pause a specific operation type
         pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
         assertFalse(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint));
-        pauser.emergencyPauseMarketFor(address(mWethHost), ImTokenOperationTypes.OperationType.Mint);
+        pauser.emergencyPauseMarketForOperation(address(mWethHost), ImTokenOperationTypes.OperationType.Mint);
         assertTrue(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint));
         assertFalse(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem));
 
         // it should only pause a specific operation type
         pauser.addPausableMarket(address(mWethExtension), IPauser.PausableType.Extension);
         assertFalse(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Mint));
-        pauser.emergencyPauseMarketFor(address(mWethExtension), ImTokenOperationTypes.OperationType.Mint);
+        pauser.emergencyPauseMarketForOperation(address(mWethExtension), ImTokenOperationTypes.OperationType.Mint);
         assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Mint));
         assertFalse(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.MintOnOtherChain));
     }
