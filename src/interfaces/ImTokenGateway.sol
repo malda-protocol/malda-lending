@@ -17,32 +17,32 @@ interface ImTokenGateway {
     /**
      * @notice Emitted when a mint operation is initiated
      */
-    event mTokenGateway_MintInitiated(address indexed from, uint256 amount, uint256 nonce, uint256 chainId);
+    event mTokenGateway_MintInitiated(address indexed from, uint256 amount, uint32 nonce, uint32 chainId);
 
     /**
      * @notice Emitted when a borrow operation is initiated
      */
-    event mTokenGateway_BorrowInitiated(address indexed from, uint256 amount, uint256 nonce, uint256 chainId);
+    event mTokenGateway_BorrowInitiated(address indexed from, uint256 amount, uint32 nonce, uint32 chainId);
 
     /**
      * @notice Emitted when a repay operation is initiated
      */
-    event mTokenGateway_RepayInitiated(address indexed from, uint256 amount, uint256 nonce, uint256 chainId);
+    event mTokenGateway_RepayInitiated(address indexed from, uint256 amount, uint32 nonce, uint32 chainId);
 
     /**
      * @notice Emitted when a withdrawal is initiated
      */
-    event mTokenGateway_WithdrawInitiated(address indexed from, uint256 amount, uint256 nonce, uint256 chainId);
+    event mTokenGateway_WithdrawInitiated(address indexed from, uint256 amount, uint32 nonce, uint32 chainId);
 
     /**
      * @notice Emitted when a release operation is executed
      */
-    event mTokenGateway_Released(address indexed from, uint256 amount, uint256 nonce, uint256 chainId);
+    event mTokenGateway_Released(address indexed from, uint256 amount, uint32 nonce, uint32 chainId);
 
     /**
      * @notice Emitted when a borrow operation is finalized
      */
-    event mTokenGateway_BorrowExternal(address indexed from, uint256 amount, uint256 nonce, uint256 chainId);
+    event mTokenGateway_BorrowExternal(address indexed from, uint256 amount, uint32 nonce, uint32 chainId);
 
     // ----------- ERRORS -----------
 
@@ -110,10 +110,10 @@ interface ImTokenGateway {
      * @param opType The operation type (Mint, Borrow, Repay, Withdraw, Release)
      * @return The current nonce for the specified user and operation type
      */
-    function getNonce(address user, uint256 chainId, ImTokenOperationTypes.OperationType opType)
+    function getNonce(address user, uint32 chainId, ImTokenOperationTypes.OperationType opType)
         external
         view
-        returns (uint256);
+        returns (uint32);
 
     /**
      * @notice Retrieves the current nonce for a user and a specific operation type
@@ -122,10 +122,10 @@ interface ImTokenGateway {
      * @param opType The operation type (Mint, Borrow, Repay, Withdraw, Release)
      * @return The nonce for the specified user and operation type
      */
-    function nonces(address user, uint256 chainId, ImTokenOperationTypes.OperationType opType)
+    function nonces(address user, uint32 chainId, ImTokenOperationTypes.OperationType opType)
         external
         view
-        returns (uint256);
+        returns (uint32);
 
     /**
      * @notice returns pause state for operation

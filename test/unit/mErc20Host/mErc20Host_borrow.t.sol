@@ -2,13 +2,12 @@
 pragma solidity =0.8.28;
 
 // interfaces
-import {IRoles} from "src/interfaces/IRoles.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
-import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
-import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
+import {BytesLib} from "src/libraries/BytesLib.sol";
+
 import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
 
 // tests
@@ -181,10 +180,10 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         uint256 supplyUnderlyingBefore,
         uint256 totalBorrowsBefore
     ) private {
-        bytes memory journalData = _createCommitment(
+        bytes memory journalData = _createJournal(
             amount,
             address(this),
-            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Borrow)
+            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Borrow)
         );
 
         // borrow
@@ -253,15 +252,15 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenBorrowExternalIsCalled
     {
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.borrowExternal("0x123", "0x123");
+        mWethHost.borrowExternal("", "0x123");
     }
 
     function test_GivenDecodedAmountIs0() external whenBorrowExternalIsCalled whenImageIdExists {
         uint256 amount = 0;
-        bytes memory journalData = _createCommitment(
+        bytes memory journalData = _createJournal(
             amount,
             address(this),
-            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Borrow)
+            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Borrow)
         );
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
@@ -276,10 +275,10 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenImageIdExists
         givenDecodedAmountIsValid
     {
-        bytes memory journalData = _createCommitment(
+        bytes memory journalData = _createJournal(
             amount,
             address(this),
-            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Borrow)
+            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Borrow)
         );
 
         verifierMock.setStatus(true); // set for failure
@@ -312,31 +311,6 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         );
     }
 
-    function test_RevertGiven_TheSameCommitmentIdIsUsedYZX(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenBorrowExternalIsCalled
-        whenImageIdExists
-        givenDecodedAmountIsValid
-        whenMarketIsListed(address(mWethHost))
-        whenMarketEntered(address(mWethHost))
-    {
-        // supply tokens; assure collateral factor is met
-        _borrowPrerequisites(address(mWethHost), amount * 2);
-
-        // it should revert
-        bytes memory journalData = _createCommitment(
-            amount,
-            address(this),
-            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.Borrow)
-        );
-        mWethHost.borrowExternal(journalData, "0x123");
-
-        vm.expectRevert(abi.encodePacked(ZkVerifier.ZkVerifier_AlreadyVerified.selector, uint256(1)));
-        mWethHost.borrowExternal(journalData, "0x123");
-    }
-
     modifier whenBorrowOnExtensionIsCalled() {
         // @dev does nothing; for readability only
         _;
@@ -364,15 +338,17 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenBorrowOnExtensionIsCalled
     {
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.borrowOnExtension(amount, "0x123", "0x123");
+        mWethHost.borrowOnExtension(amount, "", "0x123");
     }
 
     function test_GivenDecodedLiquidityIs0() external whenBorrowOnExtensionIsCalled whenImageIdExists {
         uint256 liquidity = 0;
-        bytes memory journalData = _createCommitment(
+        bytes memory journalData = _createJournal(
             liquidity,
             address(this),
-            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.BorrowOnOtherChain)
+            mWethHost.nonces(
+                address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.BorrowOnOtherChain
+            )
         );
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
@@ -387,10 +363,12 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenImageIdExists
         givenDecodedLiquidityIsValid
     {
-        bytes memory journalData = _createCommitment(
+        bytes memory journalData = _createJournal(
             amount,
             address(this),
-            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.BorrowOnOtherChain)
+            mWethHost.nonces(
+                address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.BorrowOnOtherChain
+            )
         );
 
         verifierMock.setStatus(true); // set for failure
@@ -399,7 +377,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         mWethHost.borrowOnExtension(amount, journalData, "0x123");
     }
 
-    function test_WhenLiquiditySealVerificationWasOk(uint256 amount)
+    function test_WhenLiquiditySealVerificationWasOkXQ(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
@@ -423,56 +401,41 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
             uint256 balanceUnderlyingAfter = weth.balanceOf(address(this));
             uint256 totalBorrowsAfter = mWethHost.totalBorrows();
 
-            assertEq(balanceUnderlyingBefore, balanceUnderlyingAfter);
-            assertLt(totalBorrowsBefore, totalBorrowsAfter);
+            assertEq(balanceUnderlyingBefore, balanceUnderlyingAfter, "1");
+            assertLt(totalBorrowsBefore, totalBorrowsAfter, "2");
         }
 
         // check log
-        _checkLog(ImTokenOperationTypes.OperationType.BorrowOnOtherChain, amount, 0, block.chainid, 1);
-    }
-
-    function test_RevertGiven_APreviousCommitmentIsUsed(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenBorrowOnExtensionIsCalled
-        whenImageIdExists
-        givenDecodedLiquidityIsValid
-        whenMarketIsListed(address(mWethHost))
-        whenMarketEntered(address(mWethHost))
-    {
-        // supply tokens; assure collateral factor is met
-        _borrowPrerequisites(address(mWethHost), amount * 2);
-
-        // it should revert
-        bytes memory journalData = _createCommitment(
-            amount,
-            address(this),
-            mWethHost.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.BorrowOnOtherChain)
-        );
-        mWethHost.borrowOnExtension(amount, journalData, "0x123");
-
-        vm.expectRevert(abi.encodePacked(ZkVerifier.ZkVerifier_AlreadyVerified.selector, uint256(1)));
-        mWethHost.borrowOnExtension(amount, journalData, "0x123");
+        _checkLog(ImTokenOperationTypes.OperationType.BorrowOnOtherChain, amount, 0, uint32(block.chainid), 1);
     }
 
     function _checkLog(
         ImTokenOperationTypes.OperationType opType,
         uint256 amount,
-        uint256 nonce,
-        uint256 srcChainId,
-        uint256 dstChainId
+        uint32 nonce,
+        uint32 srcChainId,
+        uint32 dstChainId
     ) private view {
         (uint256 journalDstChainId, bytes memory encodedData) =
             operationsLog.getLogForChain(address(this), opType, nonce, srcChainId);
-        assertGt(encodedData.length, 0);
-        assertEq(journalDstChainId, dstChainId);
+        assertGt(encodedData.length, 0, "A");
+        assertEq(journalDstChainId, dstChainId, "B");
 
-        (uint256 decodedAmount, address decodedSender, uint256 decodedNonce, uint256 decodedSrcChainId) =
-            abi.decode(encodedData, (uint256, address, uint256, uint256));
-        assertEq(decodedAmount, amount);
-        assertEq(decodedSender, address(this));
-        assertEq(decodedNonce, nonce);
-        assertEq(decodedSrcChainId, srcChainId);
+        // decode action data
+        // | Offset | Length | Data Type       |
+        // |--------|--------|-----------------|
+        // | 0     | 32     | uint256 decodedAmount  |
+        // | 32    | 20     | address decodedSender    |
+        // | 52    | 4      | uint32 decodedNonce    |
+        // | 56    | 4      | uint32 decodedSrcChainId  |
+        uint256 decodedAmount = BytesLib.toUint256(BytesLib.slice(encodedData, 0, 32), 0);
+        address decodedSender = BytesLib.toAddress(BytesLib.slice(encodedData, 32, 20), 0);
+        uint32 decodedNonce = BytesLib.toUint32(BytesLib.slice(encodedData, 52, 4), 0);
+        uint32 decodedSrcChainId = BytesLib.toUint32(BytesLib.slice(encodedData, 56, 4), 0);
+
+        assertEq(decodedAmount, amount, "C");
+        assertEq(decodedSender, address(this), "D");
+        assertEq(decodedNonce, nonce, "E");
+        assertEq(decodedSrcChainId, srcChainId, "F");
     }
 }

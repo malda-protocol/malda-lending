@@ -17,42 +17,42 @@ interface ImErc20Host {
      * @notice Emitted when a mint operation is executed
      */
     event mErc20Host_MintExternal(
-        address indexed from, address indexed user, uint256 amount, uint256 nonce, uint256 chainId
+        address indexed from, address indexed user, uint256 amount, uint32 nonce, uint32 chainId
     );
 
     /**
      * @notice Emitted when a borrow operation is executed
      */
     event mErc20Host_BorrowExternal(
-        address indexed from, address indexed user, uint256 amount, uint256 nonce, uint256 chainId
+        address indexed from, address indexed user, uint256 amount, uint32 nonce, uint32 chainId
     );
 
     /**
      * @notice Emitted when a borrow operation is triggered for an extension chain
      */
     event mErc20Host_BorrowOnExternsionChain(
-        address indexed from, address indexed user, uint256 amount, uint256 nonce, uint256 chainId
+        address indexed from, address indexed user, uint256 amount, uint32 nonce, uint32 chainId
     );
 
     /**
      * @notice Emitted when a repay operation is executed
      */
     event mErc20Host_RepayExternal(
-        address indexed from, address indexed user, uint256 amount, uint256 nonce, uint256 chainId
+        address indexed from, address indexed user, uint256 amount, uint32 nonce, uint32 chainId
     );
 
     /**
      * @notice Emitted when a withdrawal is executed
      */
     event mErc20Host_WithdrawExternal(
-        address indexed from, address indexed user, uint256 amount, uint256 nonce, uint256 chainId
+        address indexed from, address indexed user, uint256 amount, uint32 nonce, uint32 chainId
     );
 
     /**
      * @notice Emitted when a withdraw operation is triggered for an extension chain
      */
     event mErc20Host_WithdrawOnExtensionChain(
-        address indexed from, address indexed user, uint256 amount, uint256 nonce, uint256 chainId
+        address indexed from, address indexed user, uint256 amount, uint32 nonce, uint32 chainId
     );
 
     // ----------- ERRORS -----------
@@ -89,10 +89,10 @@ interface ImErc20Host {
      * @param opType The operation type (Mint, Borrow, Repay, Redeem)
      * @return The current nonce for the specified user and operation type
      */
-    function getNonce(address user, uint256 chainId, ImTokenOperationTypes.OperationType opType)
+    function getNonce(address user, uint32 chainId, ImTokenOperationTypes.OperationType opType)
         external
         view
-        returns (uint256);
+        returns (uint32);
 
     // ----------- PUBLIC -----------
     /**

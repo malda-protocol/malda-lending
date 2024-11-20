@@ -28,24 +28,24 @@ contract mTokenLogs is ImTokenLogs, ImTokenOperationTypes {
     /**
      * @inheritdoc ImTokenLogs
      */
-    function getLog(address user, OperationType opType, uint256 nonce)
+    function getLog(address user, OperationType opType, uint32 nonce)
         external
         view
         override
-        returns (uint256 chainId, bytes memory)
+        returns (uint32 chainId, bytes memory)
     {
-        LogData memory journal = journals[user][block.chainid][opType][nonce];
+        LogData memory journal = journals[user][uint32(block.chainid)][opType][nonce];
         return (journal.chainId, journal.data);
     }
 
     /**
      * @inheritdoc ImTokenLogs
      */
-    function getLogForChain(address user, OperationType opType, uint256 nonce, uint256 chainId)
+    function getLogForChain(address user, OperationType opType, uint32 nonce, uint32 chainId)
         external
         view
         override
-        returns (uint256, bytes memory)
+        returns (uint32, bytes memory)
     {
         LogData memory journal = journals[user][chainId][opType][nonce];
         return (journal.chainId, journal.data);
@@ -58,9 +58,9 @@ contract mTokenLogs is ImTokenLogs, ImTokenOperationTypes {
     function registerLog(
         address user,
         OperationType opType,
-        uint256 srcChainId,
-        uint256 dstChainId,
-        uint256 nonce,
+        uint32 srcChainId,
+        uint32 dstChainId,
+        uint32 nonce,
         bytes memory data
     ) external {
         // only allowed role

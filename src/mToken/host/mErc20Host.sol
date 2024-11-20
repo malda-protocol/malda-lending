@@ -17,6 +17,8 @@ import {Steel} from "risc0/steel/Steel.sol";
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
 
+import {BytesLib} from "src/libraries/BytesLib.sol";
+
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenLogs} from "src/interfaces/ImTokenLogs.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
@@ -24,7 +26,7 @@ import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperationTypes {
     // ----------- STORAGE ------------
     // user -> chainId -> operation type -> nonce
-    mapping(address => mapping(uint256 => mapping(OperationType => uint256))) public nonces;
+    mapping(address => mapping(uint32 => mapping(OperationType => uint32))) public nonces;
 
     /**
      * @inheritdoc ImErc20Host
@@ -81,7 +83,7 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     /**
      * @inheritdoc ImErc20Host
      */
-    function getNonce(address user, uint256 chainId, OperationType opType) external view returns (uint256) {
+    function getNonce(address user, uint32 chainId, OperationType opType) external view returns (uint32) {
         return nonces[user][chainId][opType];
     }
 
@@ -111,13 +113,21 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         _verifyProof(OperationType.Mint, journalData, seal);
 
         // decode action data
-        (uint256 mintAmount, address user, uint256 nonce, uint256 chainId) =
-            abi.decode(journalData[96:], (uint256, address, uint256, uint256));
+        // | Offset | Length | Data Type       |
+        // |--------|--------|-----------------|
+        // | 0     | 32     | uint256 mintAmount  |
+        // | 32    | 20     | address user    |
+        // | 52    | 4      | uint32 nonce    |
+        // | 56    | 4      | uint32 chainId  |
+        uint256 mintAmount = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
+        address user = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
+        uint32 nonce = BytesLib.toUint32(BytesLib.slice(journalData, 52, 4), 0);
+        uint32 chainId = BytesLib.toUint32(BytesLib.slice(journalData, 56, 4), 0);
 
         // checks
         _checkSender(msg.sender, user);
         require(mintAmount > 0, mErc20Host_AmountNotValid());
-        uint256 _nonce = _getNonce(user, chainId, OperationType.Mint);
+        uint32 _nonce = _getNonce(user, chainId, OperationType.Mint);
         require(_nonce == nonce, mErc20Host_NonceNotValid());
 
         // actions
@@ -128,9 +138,9 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
             msg.sender,
             OperationType.Mint,
             chainId,
-            block.chainid,
+            uint32(block.chainid),
             nonce,
-            abi.encode(mintAmount, msg.sender, nonce, chainId)
+            abi.encodePacked(mintAmount, msg.sender, nonce, chainId)
         );
         emit mErc20Host_MintExternal(msg.sender, user, mintAmount, _nonce, chainId);
     }
@@ -143,14 +153,22 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         _verifyProof(OperationType.Borrow, journalData, seal);
 
         // decode action data
-        (uint256 borrowAmount, address user, uint256 nonce, uint256 chainId) =
-            abi.decode(journalData[96:], (uint256, address, uint256, uint256));
+        // | Offset | Length | Data Type       |
+        // |--------|--------|-----------------|
+        // | 0     | 32     | uint256 borrowAmount  |
+        // | 32    | 20     | address user    |
+        // | 52    | 4      | uint32 nonce    |
+        // | 56    | 4      | uint32 chainId  |
+        uint256 borrowAmount = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
+        address user = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
+        uint32 nonce = BytesLib.toUint32(BytesLib.slice(journalData, 52, 4), 0);
+        uint32 chainId = BytesLib.toUint32(BytesLib.slice(journalData, 56, 4), 0);
 
         // checks
         _checkSender(msg.sender, user);
 
         require(borrowAmount > 0, mErc20Host_AmountNotValid());
-        uint256 _nonce = _getNonce(user, chainId, OperationType.Borrow);
+        uint32 _nonce = _getNonce(user, chainId, OperationType.Borrow);
         require(_nonce == nonce, mErc20Host_NonceNotValid());
 
         // actions
@@ -161,9 +179,9 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
             msg.sender,
             OperationType.Borrow,
             chainId,
-            block.chainid,
+            uint32(block.chainid),
             nonce,
-            abi.encode(borrowAmount, msg.sender, nonce, chainId)
+            abi.encodePacked(borrowAmount, msg.sender, nonce, chainId)
         );
         emit mErc20Host_BorrowExternal(msg.sender, user, borrowAmount, _nonce, chainId);
     }
@@ -176,25 +194,31 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         _verifyProof(OperationType.BorrowOnOtherChain, journalData, seal);
 
         // decode action data
-        (uint256 liquidity, address user, uint256 dstChainId) =
-            abi.decode(journalData[96:], (uint256, address, uint256));
+        // | Offset | Length | Data Type       |
+        // |--------|--------|-----------------|
+        // | 0     | 32     | uint256 liquidity  |
+        // | 32    | 20     | address user    |
+        // | 52    | 4      | uint32 dstChainId  |
+        uint256 liquidity = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
+        address user = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
+        uint32 dstChainId = BytesLib.toUint32(BytesLib.slice(journalData, 52, 4), 0);
 
         // checks
         _checkSender(msg.sender, user);
         require(liquidity > 0 && amount > 0 && amount <= liquidity, mErc20Host_AmountNotValid());
 
         // actions
-        uint256 _nonce = _getNonce(user, block.chainid, OperationType.BorrowOnOtherChain);
-        _increaseNonce(user, block.chainid, OperationType.BorrowOnOtherChain);
+        uint32 _nonce = _getNonce(user, uint32(block.chainid), OperationType.BorrowOnOtherChain);
+        _increaseNonce(user, uint32(block.chainid), OperationType.BorrowOnOtherChain);
         _borrow(user, amount, false);
 
         logsOperator.registerLog(
             user,
             OperationType.BorrowOnOtherChain,
-            block.chainid,
+            uint32(block.chainid),
             dstChainId,
             _nonce,
-            abi.encode(amount, user, _nonce, block.chainid)
+            abi.encodePacked(amount, user, _nonce, uint32(block.chainid))
         );
         emit mErc20Host_BorrowOnExternsionChain(msg.sender, user, amount, _nonce, dstChainId);
     }
@@ -207,13 +231,21 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         _verifyProof(OperationType.Repay, journalData, seal);
 
         // decode action data
-        (uint256 repayAmount, address borrower, uint256 nonce, uint256 chainId) =
-            abi.decode(journalData[96:], (uint256, address, uint256, uint256));
+        // | Offset | Length | Data Type       |
+        // |--------|--------|-----------------|
+        // | 0     | 32     | uint256 repayAmount  |
+        // | 32    | 20     | address borrower    |
+        // | 52    | 4      | uint32 nonce    |
+        // | 56    | 4      | uint32 chainId  |
+        uint256 repayAmount = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
+        address borrower = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
+        uint32 nonce = BytesLib.toUint32(BytesLib.slice(journalData, 52, 4), 0);
+        uint32 chainId = BytesLib.toUint32(BytesLib.slice(journalData, 56, 4), 0);
 
         // checks
         _checkSender(msg.sender, borrower);
         require(repayAmount > 0, mErc20Host_AmountNotValid());
-        uint256 _nonce = _getNonce(borrower, chainId, OperationType.Repay);
+        uint32 _nonce = _getNonce(borrower, chainId, OperationType.Repay);
         require(_nonce == nonce, mErc20Host_NonceNotValid());
 
         // actions
@@ -224,9 +256,9 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
             msg.sender,
             OperationType.Repay,
             chainId,
-            block.chainid,
+            uint32(block.chainid),
             nonce,
-            abi.encode(repayAmount, msg.sender, nonce, chainId)
+            abi.encodePacked(repayAmount, msg.sender, nonce, chainId)
         );
         emit mErc20Host_RepayExternal(msg.sender, borrower, repayAmount, _nonce, chainId);
     }
@@ -239,13 +271,21 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         _verifyProof(OperationType.Redeem, journalData, seal);
 
         // decode action data
-        (uint256 amount, address user, uint256 nonce, uint256 chainId) =
-            abi.decode(journalData[96:], (uint256, address, uint256, uint256));
+        // | Offset | Length | Data Type       |
+        // |--------|--------|-----------------|
+        // | 0     | 32     | uint256 amount  |
+        // | 32    | 20     | address user    |
+        // | 52    | 4      | uint32 nonce    |
+        // | 56    | 4      | uint32 chainId  |
+        uint256 amount = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
+        address user = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
+        uint32 nonce = BytesLib.toUint32(BytesLib.slice(journalData, 52, 4), 0);
+        uint32 chainId = BytesLib.toUint32(BytesLib.slice(journalData, 56, 4), 0);
 
         // checks
         _checkSender(msg.sender, user);
         require(amount > 0, mErc20Host_AmountNotValid());
-        uint256 _nonce = _getNonce(user, chainId, OperationType.Redeem);
+        uint32 _nonce = _getNonce(user, chainId, OperationType.Redeem);
         require(_nonce == nonce, mErc20Host_NonceNotValid());
 
         // actions
@@ -256,9 +296,9 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
             msg.sender,
             OperationType.Redeem,
             chainId,
-            block.chainid,
+            uint32(block.chainid),
             nonce,
-            abi.encode(amount, msg.sender, nonce, chainId)
+            abi.encodePacked(amount, msg.sender, nonce, chainId)
         );
         emit mErc20Host_WithdrawExternal(msg.sender, user, amount, _nonce, chainId);
     }
@@ -271,46 +311,48 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         _verifyProof(OperationType.RedeemOnOtherChain, journalData, seal);
 
         // decode action data
-        (uint256 liquidity, address user, uint256 dstChainId) =
-            abi.decode(journalData[96:], (uint256, address, uint256));
+        // | Offset | Length | Data Type       |
+        // |--------|--------|-----------------|
+        // | 0     | 32     | uint256 liquidity  |
+        // | 32    | 20     | address user    |
+        // | 52    | 4      | uint32 dstChainId  |
+        uint256 liquidity = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
+        address user = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
+        uint32 dstChainId = BytesLib.toUint32(BytesLib.slice(journalData, 52, 4), 0);
 
         // checks
         _checkSender(msg.sender, user);
         require(liquidity > 0 && amount > 0 && amount <= liquidity, mErc20Host_AmountNotValid());
 
         // actions
-        uint256 _nonce = _getNonce(user, block.chainid, OperationType.RedeemOnOtherChain);
-        _increaseNonce(user, block.chainid, OperationType.RedeemOnOtherChain);
+        uint32 _nonce = _getNonce(user, uint32(block.chainid), OperationType.RedeemOnOtherChain);
+        _increaseNonce(user, uint32(block.chainid), OperationType.RedeemOnOtherChain);
         _redeem(user, amount, false);
 
         logsOperator.registerLog(
             user,
             OperationType.RedeemOnOtherChain,
-            block.chainid,
+            uint32(block.chainid),
             dstChainId,
             _nonce,
-            abi.encode(amount, user, _nonce, block.chainid)
+            abi.encodePacked(amount, user, _nonce, uint32(block.chainid))
         );
         emit mErc20Host_WithdrawOnExtensionChain(msg.sender, user, amount, _nonce, dstChainId);
     }
 
     // ----------- PRIVATE ------------
     function _verifyProof(OperationType imageType, bytes calldata journalData, bytes calldata seal) private {
-        require(journalData.length > 95, mErc20Host_JournalNotValid());
-
-        // get commitment data
-        bytes memory commitmentData = journalData[:96];
-        Steel.Commitment memory commitment = abi.decode(commitmentData, (Steel.Commitment));
+        require(journalData.length > 0, mErc20Host_JournalNotValid());
 
         // verify it using the ZkVerifier contract
-        _verifyInput(journalData, commitment, seal, uint256(imageType));
+        _verifyInput(journalData, seal, uint256(imageType));
     }
 
-    function _getNonce(address from, uint256 chainId, OperationType operation) private view returns (uint256) {
+    function _getNonce(address from, uint32 chainId, OperationType operation) private view returns (uint32) {
         return nonces[from][chainId][operation];
     }
 
-    function _increaseNonce(address from, uint256 chainId, OperationType operation) private {
+    function _increaseNonce(address from, uint32 chainId, OperationType operation) private {
         nonces[from][chainId][operation]++;
     }
 

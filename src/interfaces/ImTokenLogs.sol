@@ -14,16 +14,16 @@ interface ImTokenLogs {
     // ----------- STRUCTS -----------
 
     struct LogData {
-        uint256 chainId;
+        uint32 chainId;
         bytes data;
     }
 
     event JournalRegistered(
         address indexed user,
         ImTokenOperationTypes.OperationType opType,
-        uint256 nonce,
-        uint256 srcChainId,
-        uint256 dstChainId
+        uint32 nonce,
+        uint32 srcChainId,
+        uint32 dstChainId
     );
 
     error mTokenLogs_NotAllowed();
@@ -36,10 +36,10 @@ interface ImTokenLogs {
      * @param opType the operation type
      * @param nonce the nonce value
      */
-    function getLog(address user, ImTokenOperationTypes.OperationType opType, uint256 nonce)
+    function getLog(address user, ImTokenOperationTypes.OperationType opType, uint32 nonce)
         external
         view
-        returns (uint256 dstChainId, bytes memory);
+        returns (uint32 dstChainId, bytes memory);
 
     /**
      * @notice returns registered journal for a specific chain
@@ -48,10 +48,10 @@ interface ImTokenLogs {
      * @param nonce the nonce value
      * @param chainId the source chain id type
      */
-    function getLogForChain(address user, ImTokenOperationTypes.OperationType opType, uint256 nonce, uint256 chainId)
+    function getLogForChain(address user, ImTokenOperationTypes.OperationType opType, uint32 nonce, uint32 chainId)
         external
         view
-        returns (uint256 dstChainId, bytes memory);
+        returns (uint32 dstChainId, bytes memory);
 
     // ----------- PUBLIC -----------
     /**
@@ -66,9 +66,9 @@ interface ImTokenLogs {
     function registerLog(
         address user,
         ImTokenOperationTypes.OperationType opType,
-        uint256 srcChainId,
-        uint256 dstChainId,
-        uint256 nonce,
+        uint32 srcChainId,
+        uint32 dstChainId,
+        uint32 nonce,
         bytes memory data
     ) external;
 }

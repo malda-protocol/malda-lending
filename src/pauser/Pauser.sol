@@ -73,7 +73,7 @@ contract Pauser is Ownable, IPauser {
     /**
      * @inheritdoc IPauser
      */
-    function emergencyPauseMarketForOperation(address _market, ImTokenOperationTypes.OperationType _pauseType) external {
+    function emergencyPauseMarketFor(address _market, ImTokenOperationTypes.OperationType _pauseType) external {
         _pauseMarketOperation(_market, _pauseType);
     }
 

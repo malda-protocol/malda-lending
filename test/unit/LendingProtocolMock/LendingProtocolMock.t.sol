@@ -26,7 +26,7 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         vm.label(address(protocol), "LendingProtocolMock");
     }
 
-    function _createCommitment(uint256 amount, address user) internal pure returns (bytes memory) {
+    function _createJournal(uint256 amount, address user) internal pure returns (bytes memory) {
         uint256 encodedID = uint256(0) << 240 | uint256(1); //version and value
         Commitment memory data = Commitment(encodedID, "", "0x123");
         return abi.encode(data, amount, user);
@@ -118,7 +118,7 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         inRange(amount, SMALL, LARGE)
         whenBorrowIsCalled
     {
-        bytes memory journalData = _createCommitment(amount / 2, address(this));
+        bytes memory journalData = _createJournal(amount / 2, address(this));
 
         vm.expectRevert(LendingProtocolMock.LendingProtocolMock_InsufficientLiquidity.selector);
         protocol.borrow(amount, journalData, "0x123");
@@ -144,7 +144,7 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         uint256 underlyingBalanceBefore = weth.balanceOf(address(this));
         uint256 balanceBorrowBefore = protocol.borrowBalanceOf(address(this));
 
-        bytes memory journalData = _createCommitment(amount, address(this));
+        bytes memory journalData = _createJournal(amount, address(this));
         protocol.borrow(amount, journalData, "0x123");
 
         uint256 underlyingBalanceAfter = weth.balanceOf(address(this));
@@ -163,7 +163,7 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         whenBorrowIsCalled
         whenLiquidityIsSufficient
     {
-        bytes memory journalData = _createCommitment(amount, address(this));
+        bytes memory journalData = _createJournal(amount, address(this));
 
         vm.expectRevert(LendingProtocolMock.LendingProtocolMock_InsufficientBalance.selector);
         protocol.borrow(amount, journalData, "0x123");
@@ -194,7 +194,7 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         weth.approve(address(protocol), amount);
         protocol.deposit(amount, address(this));
 
-        bytes memory journalData = _createCommitment(amount, address(this));
+        bytes memory journalData = _createJournal(amount, address(this));
         protocol.borrow(amount, journalData, "0x123");
 
         uint256 underlyingBalanceBefore = weth.balanceOf(address(this));
@@ -221,7 +221,7 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         inRange(amount, SMALL, LARGE)
         whenWithdrawIsCalled
     {
-        bytes memory journalData = _createCommitment(amount, address(this));
+        bytes memory journalData = _createJournal(amount, address(this));
         vm.expectRevert(LendingProtocolMock.LendingProtocolMock_InsufficientBalance.selector);
         protocol.withdraw(amount, journalData, "0x123");
     }
@@ -238,7 +238,7 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         uint256 underlyingBalanceBefore = weth.balanceOf(address(this));
         uint256 balanceBefore = protocol.balanceOf(address(this));
 
-        bytes memory journalData = _createCommitment(amount, address(this));
+        bytes memory journalData = _createJournal(amount, address(this));
         protocol.withdraw(amount, journalData, "0x123");
 
         uint256 underlyingBalanceAfter = weth.balanceOf(address(this));

@@ -88,48 +88,36 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
     }
     // ----------- HELPERS ------------
 
-    function _createCommitment() internal pure returns (bytes memory) {
-        uint256 encodedID = uint256(0) << 240 | uint256(1); //version and value
-        Commitment memory data = Commitment(encodedID, "", "0x123");
-        return abi.encode(data);
+    function _createJournal() internal pure returns (bytes memory) {
+        return "";
     }
 
-    function _createCommitment(uint256 amount) internal pure returns (bytes memory) {
-        uint256 encodedID = uint256(0) << 240 | uint256(1); //version and value
-        Commitment memory data = Commitment(encodedID, "", "0x123");
-        return abi.encode(data, amount);
+    function _createJournal(uint256 amount) internal pure returns (bytes memory) {
+        return abi.encodePacked(amount);
     }
 
-    function _createCommitment(uint256 amount, address user) internal pure returns (bytes memory) {
-        uint256 encodedID = uint256(0) << 240 | uint256(1); //version and value
-        Commitment memory data = Commitment(encodedID, "", "0x123");
-        return abi.encode(data, amount, user);
+    function _createJournal(uint256 amount, address user) internal pure returns (bytes memory) {
+        return abi.encodePacked(amount, user);
     }
 
-    function _createCommitment(uint256 amount, address user, uint256 nonce) internal view returns (bytes memory) {
-        uint256 encodedID = uint256(0) << 240 | uint256(1); //version and value
-        Commitment memory data = Commitment(encodedID, "", "0x123");
-        return abi.encode(data, amount, user, nonce, block.chainid);
+    function _createJournal(uint256 amount, address user, uint32 nonce) internal view returns (bytes memory) {
+        return abi.encodePacked(amount, user, nonce, uint32(block.chainid));
     }
 
-    function _createCommitmentWithDstChain(uint256 amount, address user, uint256 chainId)
+    function _createCommitmentWithDstChain(uint256 amount, address user, uint32 chainId)
         internal
         pure
         returns (bytes memory)
     {
-        uint256 encodedID = uint256(0) << 240 | uint256(1); //version and value
-        Commitment memory data = Commitment(encodedID, "", "0x123");
-        return abi.encode(data, amount, user, chainId);
+        return abi.encodePacked(amount, user, chainId);
     }
 
-    function _createCommitmentWithDstChain(uint256 amount, address user, uint256 nonce, uint256 chainId)
+    function _createCommitmentWithDstChain(uint256 amount, address user, uint32 nonce, uint32 chainId)
         internal
         pure
         returns (bytes memory)
     {
-        uint256 encodedID = uint256(0) << 240 | uint256(1); //version and value
-        Commitment memory data = Commitment(encodedID, "", "0x123");
-        return abi.encode(data, amount, user, nonce, chainId);
+        return abi.encodePacked(amount, user, nonce, chainId);
     }
 
     function _borrowPrerequisites(address mToken, uint256 supplyAmount) internal {

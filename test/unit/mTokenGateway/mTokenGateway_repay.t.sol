@@ -49,11 +49,15 @@ contract mTokenGateway_repay is mToken_Unit_Shared {
 
         // it should increase nonce for this operation type
         assertEq(
-            mWethExtension.getNonce(address(this), block.chainid, ImTokenOperationTypes.OperationType.RepayOnOtherChain),
+            mWethExtension.getNonce(
+                address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.RepayOnOtherChain
+            ),
             1
         );
 
         // it should not increase nonce for any other operation type
-        assertEq(mWethExtension.getNonce(address(this), block.chainid, ImTokenOperationTypes.OperationType.Mint), 0);
+        assertEq(
+            mWethExtension.getNonce(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Mint), 0
+        );
     }
 }

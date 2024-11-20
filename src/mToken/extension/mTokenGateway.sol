@@ -21,6 +21,8 @@ import {ImTokenLogs} from "src/interfaces/ImTokenLogs.sol";
 import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
+import {BytesLib} from "src/libraries/BytesLib.sol";
+
 import {Steel} from "risc0/steel/Steel.sol";
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 
@@ -45,11 +47,11 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
      */
     address public underlying;
     // user -> chainId -> operation type -> nonce
-    mapping(address => mapping(uint256 => mapping(OperationType => uint256))) public nonces;
+    mapping(address => mapping(uint32 => mapping(OperationType => uint32))) public nonces;
 
     uint8 private _underlyingDecimals;
 
-    uint256 private constant LINEA_CHAIN_ID = 59144;
+    uint32 private constant LINEA_CHAIN_ID = 59144;
 
     constructor(
         address payable _owner,
@@ -89,7 +91,7 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
     /**
      * @inheritdoc ImTokenGateway
      */
-    function getNonce(address user, uint256 chainId, OperationType opType) external view returns (uint256) {
+    function getNonce(address user, uint32 chainId, OperationType opType) external view returns (uint32) {
         return nonces[user][chainId][opType];
     }
 
@@ -142,20 +144,21 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
 
         IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
 
-        uint256 _nonce = _getNonce(msg.sender, block.chainid, ImTokenOperationTypes.OperationType.MintOnOtherChain);
-        _increaseNonce(msg.sender, block.chainid, ImTokenOperationTypes.OperationType.MintOnOtherChain);
+        uint32 _nonce =
+            _getNonce(msg.sender, uint32(block.chainid), ImTokenOperationTypes.OperationType.MintOnOtherChain);
+        _increaseNonce(msg.sender, uint32(block.chainid), ImTokenOperationTypes.OperationType.MintOnOtherChain);
 
         logsOperator.registerLog(
             msg.sender,
             ImTokenOperationTypes.OperationType.MintOnOtherChain,
-            block.chainid,
+            uint32(block.chainid),
             LINEA_CHAIN_ID,
             _nonce,
-            abi.encode(amount, msg.sender, _nonce, block.chainid)
+            abi.encodePacked(amount, msg.sender, _nonce, uint32(block.chainid))
         );
 
         _mint(msg.sender, amount);
-        emit mTokenGateway_MintInitiated(msg.sender, amount, _nonce, block.chainid);
+        emit mTokenGateway_MintInitiated(msg.sender, amount, _nonce, uint32(block.chainid));
     }
 
     /**
@@ -164,19 +167,20 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
     function borrowOnHost(uint256 amount) external override notPaused(OperationType.BorrowOnOtherChain) {
         require(amount > 0, mTokenGateway_AmountNotValid());
 
-        uint256 _nonce = _getNonce(msg.sender, block.chainid, ImTokenOperationTypes.OperationType.BorrowOnOtherChain);
-        _increaseNonce(msg.sender, block.chainid, ImTokenOperationTypes.OperationType.BorrowOnOtherChain);
+        uint32 _nonce =
+            _getNonce(msg.sender, uint32(block.chainid), ImTokenOperationTypes.OperationType.BorrowOnOtherChain);
+        _increaseNonce(msg.sender, uint32(block.chainid), ImTokenOperationTypes.OperationType.BorrowOnOtherChain);
 
         logsOperator.registerLog(
             msg.sender,
             ImTokenOperationTypes.OperationType.BorrowOnOtherChain,
-            block.chainid,
+            uint32(block.chainid),
             LINEA_CHAIN_ID,
             _nonce,
-            abi.encode(amount, msg.sender, _nonce, block.chainid)
+            abi.encodePacked(amount, msg.sender, _nonce, uint32(block.chainid))
         );
 
-        emit mTokenGateway_BorrowInitiated(msg.sender, amount, _nonce, block.chainid);
+        emit mTokenGateway_BorrowInitiated(msg.sender, amount, _nonce, uint32(block.chainid));
     }
 
     /**
@@ -191,20 +195,33 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
         _verifyProof(ImTokenOperationTypes.OperationType.Borrow, journalData, seal);
 
         // decode action data
-        (uint256 amount, address user, uint256 nonce, uint256 chainId) =
-            abi.decode(journalData[96:], (uint256, address, uint256, uint256));
+        // | Offset | Length | Data Type       |
+        // |--------|--------|-----------------|
+        // | 0     | 32     | uint256 amount  |
+        // | 32    | 20     | address user    |
+        // | 52    | 4      | uint32 nonce    |
+        // | 56    | 4      | uint32 chainId  |
+        uint256 amount = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
+        address user = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
+        uint32 nonce = BytesLib.toUint32(BytesLib.slice(journalData, 52, 4), 0);
+        uint32 chainId = BytesLib.toUint32(BytesLib.slice(journalData, 56, 4), 0);
 
         // checks
         _checkSender(msg.sender, user);
         require(amount > 0, mTokenGateway_AmountNotValid());
-        uint256 _nonce = _getNonce(user, chainId, ImTokenOperationTypes.OperationType.Borrow);
+        uint32 _nonce = _getNonce(user, chainId, ImTokenOperationTypes.OperationType.Borrow);
         require(_nonce == nonce, mTokenGateway_NonceNotValid());
         require(IERC20(underlying).balanceOf(address(this)) >= amount, mTokenGateway_ReleaseCashNotAvailable());
 
         // effects
         _increaseNonce(user, chainId, ImTokenOperationTypes.OperationType.Borrow);
         logsOperator.registerLog(
-            user, OperationType.Borrow, chainId, block.chainid, nonce, abi.encode(amount, user, nonce, chainId)
+            user,
+            OperationType.Borrow,
+            chainId,
+            uint32(block.chainid),
+            nonce,
+            abi.encodePacked(amount, user, nonce, chainId)
         );
 
         // interactions
@@ -221,19 +238,20 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
 
         IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
 
-        uint256 _nonce = _getNonce(msg.sender, block.chainid, ImTokenOperationTypes.OperationType.RepayOnOtherChain);
-        _increaseNonce(msg.sender, block.chainid, ImTokenOperationTypes.OperationType.RepayOnOtherChain);
+        uint32 _nonce =
+            _getNonce(msg.sender, uint32(block.chainid), ImTokenOperationTypes.OperationType.RepayOnOtherChain);
+        _increaseNonce(msg.sender, uint32(block.chainid), ImTokenOperationTypes.OperationType.RepayOnOtherChain);
 
         logsOperator.registerLog(
             msg.sender,
             OperationType.RepayOnOtherChain,
-            block.chainid,
+            uint32(block.chainid),
             LINEA_CHAIN_ID,
             _nonce,
-            abi.encode(amount, msg.sender, _nonce, block.chainid)
+            abi.encodePacked(amount, msg.sender, _nonce, uint32(block.chainid))
         );
 
-        emit mTokenGateway_RepayInitiated(msg.sender, amount, _nonce, block.chainid);
+        emit mTokenGateway_RepayInitiated(msg.sender, amount, _nonce, uint32(block.chainid));
     }
 
     /**
@@ -244,18 +262,19 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
 
         _burn(msg.sender, amount);
 
-        uint256 _nonce = _getNonce(msg.sender, block.chainid, ImTokenOperationTypes.OperationType.RedeemOnOtherChain);
-        _increaseNonce(msg.sender, block.chainid, ImTokenOperationTypes.OperationType.RedeemOnOtherChain);
+        uint32 _nonce =
+            _getNonce(msg.sender, uint32(block.chainid), ImTokenOperationTypes.OperationType.RedeemOnOtherChain);
+        _increaseNonce(msg.sender, uint32(block.chainid), ImTokenOperationTypes.OperationType.RedeemOnOtherChain);
 
         logsOperator.registerLog(
             msg.sender,
             ImTokenOperationTypes.OperationType.RedeemOnOtherChain,
-            block.chainid,
+            uint32(block.chainid),
             LINEA_CHAIN_ID,
             _nonce,
-            abi.encode(amount, msg.sender, _nonce, block.chainid)
+            abi.encodePacked(amount, msg.sender, _nonce, uint32(block.chainid))
         );
-        emit mTokenGateway_WithdrawInitiated(msg.sender, amount, _nonce, block.chainid);
+        emit mTokenGateway_WithdrawInitiated(msg.sender, amount, _nonce, uint32(block.chainid));
     }
 
     /**
@@ -269,13 +288,21 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
         _verifyProof(ImTokenOperationTypes.OperationType.Redeem, journalData, seal);
 
         // decode action data
-        (uint256 amount, address user, uint256 nonce, uint256 chainId) =
-            abi.decode(journalData[96:], (uint256, address, uint256, uint256));
+        // | Offset | Length | Data Type       |
+        // |--------|--------|-----------------|
+        // | 0     | 32     | uint256 amount  |
+        // | 32    | 20     | address user    |
+        // | 52    | 4      | uint32 nonce    |
+        // | 56    | 4      | uint32 chainId  |
+        uint256 amount = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
+        address user = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
+        uint32 nonce = BytesLib.toUint32(BytesLib.slice(journalData, 52, 4), 0);
+        uint32 chainId = BytesLib.toUint32(BytesLib.slice(journalData, 56, 4), 0);
 
         // checks
         _checkSender(msg.sender, user);
         require(amount > 0, mTokenGateway_AmountNotValid());
-        uint256 _nonce = _getNonce(user, chainId, ImTokenOperationTypes.OperationType.Redeem);
+        uint32 _nonce = _getNonce(user, chainId, ImTokenOperationTypes.OperationType.Redeem);
         require(_nonce == nonce, mTokenGateway_NonceNotValid());
         require(IERC20(underlying).balanceOf(address(this)) >= amount, mTokenGateway_ReleaseCashNotAvailable());
 
@@ -285,9 +312,9 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
             msg.sender,
             ImTokenOperationTypes.OperationType.Redeem,
             chainId,
-            block.chainid,
+            uint32(block.chainid),
             nonce,
-            abi.encode(amount, msg.sender, nonce, chainId)
+            abi.encodePacked(amount, msg.sender, nonce, chainId)
         );
         // interactions
         IERC20(underlying).safeTransfer(user, amount);
@@ -311,17 +338,17 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
 
     // ----------- PRIVATE ------------
     function _verifyProof(OperationType imageType, bytes calldata journalData, bytes calldata seal) private {
-        require(journalData.length > 95, mTokenGateway_JournalNotValid());
+        require(journalData.length > 0, mTokenGateway_JournalNotValid());
 
         // verify it using the ZkVerifier contract
         _verifyInput(journalData, seal, uint256(imageType));
     }
 
-    function _getNonce(address from, uint256 chainId, OperationType operation) private view returns (uint256) {
+    function _getNonce(address from, uint32 chainId, OperationType operation) private view returns (uint32) {
         return nonces[from][chainId][operation];
     }
 
-    function _increaseNonce(address from, uint256 chainId, OperationType operation) private {
+    function _increaseNonce(address from, uint32 chainId, OperationType operation) private {
         nonces[from][chainId][operation]++;
     }
 

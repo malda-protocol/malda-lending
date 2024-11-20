@@ -30,15 +30,17 @@ contract mTokenGateway_release is mToken_Unit_Shared {
     function test_RevertGiven_JournalIsNonEmptyButLengthIsNotValid() external {
         // it should revert
         vm.expectRevert(ImTokenGateway.mTokenGateway_JournalNotValid.selector);
-        mWethExtension.withdrawExternal("0x123", "0x123");
+        mWethExtension.withdrawExternal("", "0x123");
     }
 
     function test_GivenDecodedAmountIs0X() external existingImageId {
         uint256 amount = 0;
-        bytes memory journalData = _createCommitment(
+        bytes memory journalData = _createJournal(
             amount,
             address(this),
-            mWethExtension.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.RedeemOnOtherChain)
+            mWethExtension.nonces(
+                address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.RedeemOnOtherChain
+            )
         );
 
         // it should revert with mErc20Host_AmountNotValid
@@ -57,10 +59,12 @@ contract mTokenGateway_release is mToken_Unit_Shared {
         givenDecodedAmountIsValid
         existingImageId
     {
-        bytes memory journalData = _createCommitment(
+        bytes memory journalData = _createJournal(
             amount,
             address(this),
-            mWethExtension.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.RedeemOnOtherChain)
+            mWethExtension.nonces(
+                address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.RedeemOnOtherChain
+            )
         );
 
         verifierMock.setStatus(true); // set for failure
@@ -81,10 +85,12 @@ contract mTokenGateway_release is mToken_Unit_Shared {
         whenSealVerificationWasOk
         existingImageId
     {
-        bytes memory journalData = _createCommitment(
+        bytes memory journalData = _createJournal(
             amount,
             address(this),
-            mWethExtension.nonces(address(this), block.chainid, ImTokenOperationTypes.OperationType.RedeemOnOtherChain)
+            mWethExtension.nonces(
+                address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.RedeemOnOtherChain
+            )
         );
 
         // it should revert
@@ -105,7 +111,7 @@ contract mTokenGateway_release is mToken_Unit_Shared {
         givenTheContractHasUnderlying
         existingImageId
     {
-        bytes memory journalData = _createCommitment(amount, address(this), 100);
+        bytes memory journalData = _createJournal(amount, address(this), 100);
         // it should revert
         vm.expectRevert(ImTokenGateway.mTokenGateway_NonceNotValid.selector);
         mWethExtension.withdrawExternal(journalData, "0x123");
