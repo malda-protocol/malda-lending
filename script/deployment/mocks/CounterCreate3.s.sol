@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Counter} from "../../src/Counter.sol";
-import {Deployer} from "../../src/utils/Deployer.sol";
+import {Counter} from "src/Counter.sol";
+import {Deployer} from "src/utils/Deployer.sol";
 import {Script, console} from "forge-std/Script.sol";
 
 contract CounterCreate3Script is Script {
