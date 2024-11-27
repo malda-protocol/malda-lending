@@ -11,9 +11,9 @@ pragma solidity =0.8.28;
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-import {ImToken} from "../interfaces/ImToken.sol";
-import {ExponentialNoError} from "../utils/ExponentialNoError.sol";
-import {IRewardDistributor, IRewardDistributorData} from "../interfaces/IRewardDistributor.sol";
+import {ImToken} from "src/interfaces/ImToken.sol";
+import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
+import {IRewardDistributor, IRewardDistributorData} from "src/interfaces/IRewardDistributor.sol";
 
 contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializable, OwnableUpgradeable {
     // ----------- STORAGE ------------

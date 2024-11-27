@@ -8,9 +8,9 @@ pragma solidity =0.8.28;
 |_|_|_|__|__|_____|____/|__|__|   
 */
 
-import {IRoles} from "./IRoles.sol";
+import {ImTokenOperationTypes} from "./ImToken.sol";
 
-interface IPauser {
+interface IPauser is ImTokenOperationTypes {
     enum PausableType {
         Host,
         Extension
@@ -30,7 +30,7 @@ interface IPauser {
     event MarketPaused(address indexed market);
     event MarketRemoved(address indexed market);
     event MarketAdded(address indexed market, PausableType marketType);
-    event MarketPausedFor(address indexed market, IRoles.Pause pauseType);
+    event MarketPausedFor(address indexed market, OperationType pauseType);
 
     /**
      * @notice pauses all operations for a market
@@ -43,7 +43,7 @@ interface IPauser {
      * @param _market the mToken address
      * @param _pauseType the operation type
      */
-    function emergencyPauseMarketFor(address _market, IRoles.Pause _pauseType) external;
+    function emergencyPauseMarketFor(address _market, OperationType _pauseType) external;
 
     /**
      * @notice pauses all operations for all registered markets

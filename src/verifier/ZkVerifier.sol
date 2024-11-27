@@ -10,7 +10,7 @@ pragma solidity =0.8.28;
 
 // interfaces
 import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
-import {IZkVerifierImageRegistry} from "../interfaces/IZkVerifierImageRegistry.sol";
+import {IZkVerifierImageRegistry} from "src/interfaces/IZkVerifierImageRegistry.sol";
 
 // contracts
 import {Steel} from "risc0/steel/Steel.sol";
@@ -20,11 +20,8 @@ abstract contract ZkVerifier {
     IRiscZeroVerifier public verifier;
     IZkVerifierImageRegistry public verifierImageRegistry;
 
-    mapping(uint256 => bool) private _validatedCommitments;
-
     struct VerifierBatchData {
         bytes[] journalEntries;
-        Steel.Commitment[] commitments;
         bytes[] seals;
         /**
          * @dev only one of the below is used
@@ -43,8 +40,6 @@ abstract contract ZkVerifier {
     error ZkVerifier_VerifierNotSet();
     error ZkVerifier_AlreadyInitialized();
     error ZkVerifier_VerifierImageRegistryNotSet();
-    error ZkVerifier_AlreadyVerified(uint256 commitmentId);
-    error ZkVerifier_InvalidCommitment(uint256 commitmentId);
 
     event VerifierSet(address indexed oldVerifier, address indexed newVerifier);
     event VerifierImageRegistrySet(address indexed oldRegistry, address indexed newRegistry);
@@ -86,7 +81,7 @@ abstract contract ZkVerifier {
     }
 
     /**
-     * @notice Verifies an input on an extension chain
+     * @notice Verifies an input
      * @param journalEntry the risc0 journal entry
      * @param seal the risc0 seal
      * @param imageIdIndex the risc0 imageId index available in the registry
@@ -100,35 +95,11 @@ abstract contract ZkVerifier {
         _imageId = _checkImage(_imageId, imageIdIndex);
 
         // verify input
-        verifier.verify(seal, _imageId, sha256(journalEntry));
+        __verify(journalEntry, seal, _imageId);
     }
 
     /**
      * @notice Verifies an input
-     * @param journalEntry the risc0 journal entry
-     * @param commitment the risc0 journal comittment
-     * @param seal the risc0 seal
-     * @param imageIdIndex the risc0 imageId index available in the registry
-     */
-    function _verifyInput(
-        bytes calldata journalEntry,
-        Steel.Commitment memory commitment,
-        bytes calldata seal,
-        uint256 imageIdIndex
-    ) internal virtual {
-        // generic checks
-        _checkAddresses();
-
-        // check image
-        bytes32 _imageId;
-        _imageId = _checkImage(_imageId, imageIdIndex);
-
-        // verify input
-        __verify(journalEntry, commitment, seal, _imageId);
-    }
-
-    /**
-     * @notice Verifies an input on an extension chain
      * @param journalEntry the risc0 journal entry
      * @param seal the risc0 seal
      * @param imageId the risc0 imageId
@@ -141,30 +112,7 @@ abstract contract ZkVerifier {
         _checkImage(imageId, 0);
 
         // verify input
-        verifier.verify(seal, imageId, sha256(journalEntry));
-    }
-
-    /**
-     * @notice Verifies an input
-     * @param journalEntry the risc0 journal entry
-     * @param commitment the risc0 journal comittment
-     * @param seal the risc0 seal
-     * @param imageId the risc0 imageId
-     */
-    function _verifyInput(
-        bytes calldata journalEntry,
-        Steel.Commitment memory commitment,
-        bytes calldata seal,
-        bytes32 imageId
-    ) internal virtual {
-        // generic checks
-        _checkAddresses();
-
-        // check image
-        _checkImage(imageId, 0);
-
-        // verify input
-        __verify(journalEntry, commitment, seal, imageId);
+        __verify(journalEntry, seal, imageId);
     }
 
     /**
@@ -176,12 +124,11 @@ abstract contract ZkVerifier {
         _checkAddresses();
 
         // batch checks
-        require(list.journalEntries.length == list.commitments.length, ZkVerifier_InputNotValid());
-        require(list.commitments.length == list.seals.length, ZkVerifier_InputNotValid());
+        require(list.journalEntries.length == list.seals.length, ZkVerifier_InputNotValid());
         require(list.seals.length == list.imageIds.length, ZkVerifier_InputNotValid());
         require(list.imageIds.length == list.imageIdIndexes.length, ZkVerifier_InputNotValid());
 
-        uint256 len = list.commitments.length;
+        uint256 len = list.journalEntries.length;
         for (uint256 i; i < len; i++) {
             bytes32 _imageId = list.imageIds[i];
 
@@ -189,7 +136,7 @@ abstract contract ZkVerifier {
             _imageId = _checkImage(_imageId, list.imageIdIndexes[i]);
 
             // verify input
-            __verify(list.journalEntries[i], list.commitments[i], list.seals[i], _imageId);
+            __verify(list.journalEntries[i], list.seals[i], _imageId);
         }
     }
 
@@ -212,17 +159,7 @@ abstract contract ZkVerifier {
         require(address(verifierImageRegistry) != address(0), ZkVerifier_VerifierImageRegistryNotSet());
     }
 
-    function __verify(
-        bytes calldata journalEntry,
-        Steel.Commitment memory commitment,
-        bytes calldata seal,
-        bytes32 imageId
-    ) private {
-        require(!_validatedCommitments[commitment.id], ZkVerifier_AlreadyVerified(commitment.id));
-        require(Steel.validateCommitment(commitment), ZkVerifier_InvalidCommitment(commitment.id));
-
+    function __verify(bytes calldata journalEntry, bytes calldata seal, bytes32 imageId) private view {
         verifier.verify(seal, imageId, sha256(journalEntry));
-
-        _validatedCommitments[commitment.id] = true;
     }
 }

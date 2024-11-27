@@ -3,6 +3,7 @@ pragma solidity =0.8.28;
 
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {IPauser} from "src/interfaces/IPauser.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {Pauser_Unit_Shared} from "../shared/Pauser_Unit_Shared.t.sol";
 
 contract Pauser_pause is Pauser_Unit_Shared {
@@ -20,7 +21,7 @@ contract Pauser_pause is Pauser_Unit_Shared {
 
         // it should revert for emergencyPauseMarketFor
         vm.expectRevert(IPauser.Pauser_NotAuthorized.selector);
-        pauser.emergencyPauseMarketFor(address(mWethHost), IRoles.Pause.MintOnOtherChain);
+        pauser.emergencyPauseMarketFor(address(mWethHost), ImTokenOperationTypes.OperationType.MintOnOtherChain);
     }
 
     modifier whenContractHasThePAUSE_MANAGERRole() {
@@ -32,46 +33,46 @@ contract Pauser_pause is Pauser_Unit_Shared {
     function test_GivenEmergencyPauseMarketIsCalled() external whenContractHasThePAUSE_MANAGERRole {
         pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
 
-        assertFalse(operator.isPaused(address(mWethHost), IRoles.Pause.Mint));
+        assertFalse(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint));
         pauser.emergencyPauseMarket(address(mWethHost));
         // it should pause all market operations
-        assertTrue(operator.isPaused(address(mWethHost), IRoles.Pause.Mint));
-        assertTrue(operator.isPaused(address(mWethHost), IRoles.Pause.Seize));
-        assertTrue(operator.isPaused(address(mWethHost), IRoles.Pause.Transfer));
-        assertTrue(operator.isPaused(address(mWethHost), IRoles.Pause.Borrow));
-        assertTrue(operator.isPaused(address(mWethHost), IRoles.Pause.Repay));
-        assertTrue(operator.isPaused(address(mWethHost), IRoles.Pause.Redeem));
+        assertTrue(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint));
+        assertTrue(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Seize));
+        assertTrue(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Transfer));
+        assertTrue(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow));
+        assertTrue(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay));
+        assertTrue(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem));
 
         pauser.addPausableMarket(address(mWethExtension), IPauser.PausableType.Extension);
-        assertFalse(mWethExtension.isPaused(IRoles.Pause.Mint));
+        assertFalse(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Mint));
         pauser.emergencyPauseMarket(address(mWethExtension));
         // it should pause all market operations
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.Mint));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.MintOnOtherChain));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.Seize));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.Transfer));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.Borrow));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.BorrowOnOtherChain));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.Repay));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.RepayOnOtherChain));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.Redeem));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.RedeemOnOtherChain));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Mint));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.MintOnOtherChain));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Seize));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Transfer));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Borrow));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.BorrowOnOtherChain));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Repay));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.RepayOnOtherChain));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Redeem));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.RedeemOnOtherChain));
     }
 
     function test_GivenEmergencyPauseMarketForIsCalled() external whenContractHasThePAUSE_MANAGERRole {
         // it should only pause a specific operation type
         pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
-        assertFalse(operator.isPaused(address(mWethHost), IRoles.Pause.Mint));
-        pauser.emergencyPauseMarketFor(address(mWethHost), IRoles.Pause.Mint);
-        assertTrue(operator.isPaused(address(mWethHost), IRoles.Pause.Mint));
-        assertFalse(operator.isPaused(address(mWethHost), IRoles.Pause.Redeem));
+        assertFalse(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint));
+        pauser.emergencyPauseMarketFor(address(mWethHost), ImTokenOperationTypes.OperationType.Mint);
+        assertTrue(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint));
+        assertFalse(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem));
 
         // it should only pause a specific operation type
         pauser.addPausableMarket(address(mWethExtension), IPauser.PausableType.Extension);
-        assertFalse(mWethExtension.isPaused(IRoles.Pause.Mint));
-        pauser.emergencyPauseMarketFor(address(mWethExtension), IRoles.Pause.Mint);
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.Mint));
-        assertFalse(mWethExtension.isPaused(IRoles.Pause.MintOnOtherChain));
+        assertFalse(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Mint));
+        pauser.emergencyPauseMarketFor(address(mWethExtension), ImTokenOperationTypes.OperationType.Mint);
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Mint));
+        assertFalse(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.MintOnOtherChain));
     }
 
     function test_GivenEmergencyPauseAllIsCalled() external whenContractHasThePAUSE_MANAGERRole {
@@ -80,22 +81,22 @@ contract Pauser_pause is Pauser_Unit_Shared {
         pauser.addPausableMarket(address(mWethExtension), IPauser.PausableType.Extension);
         pauser.emergencyPauseAll();
 
-        assertTrue(operator.isPaused(address(mWethHost), IRoles.Pause.Mint));
-        assertTrue(operator.isPaused(address(mWethHost), IRoles.Pause.Seize));
-        assertTrue(operator.isPaused(address(mWethHost), IRoles.Pause.Transfer));
-        assertTrue(operator.isPaused(address(mWethHost), IRoles.Pause.Borrow));
-        assertTrue(operator.isPaused(address(mWethHost), IRoles.Pause.Repay));
-        assertTrue(operator.isPaused(address(mWethHost), IRoles.Pause.Redeem));
+        assertTrue(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint));
+        assertTrue(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Seize));
+        assertTrue(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Transfer));
+        assertTrue(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow));
+        assertTrue(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay));
+        assertTrue(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem));
 
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.Mint));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.MintOnOtherChain));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.Seize));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.Transfer));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.Borrow));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.BorrowOnOtherChain));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.Repay));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.RepayOnOtherChain));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.Redeem));
-        assertTrue(mWethExtension.isPaused(IRoles.Pause.RedeemOnOtherChain));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Mint));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.MintOnOtherChain));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Seize));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Transfer));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Borrow));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.BorrowOnOtherChain));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Repay));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.RepayOnOtherChain));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Redeem));
+        assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.RedeemOnOtherChain));
     }
 }

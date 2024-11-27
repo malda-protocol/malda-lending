@@ -3,6 +3,7 @@ pragma solidity =0.8.28;
 
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
@@ -13,7 +14,7 @@ import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 contract mErc20_mint is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsPausedForMinting(uint256 amount)
         external
-        whenPaused(address(mWeth), IRoles.Pause.Mint)
+        whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Mint)
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
@@ -22,7 +23,7 @@ contract mErc20_mint is mToken_Unit_Shared {
 
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
         external
-        whenNotPaused(address(mWeth), IRoles.Pause.Mint)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Mint)
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);

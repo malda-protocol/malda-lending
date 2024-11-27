@@ -9,9 +9,9 @@ pragma solidity =0.8.28;
 */
 
 // interfaces
-import {IRoles} from "../interfaces/IRoles.sol";
-import {IOperator} from "../interfaces/IOperator.sol";
-import {IInterestRateModel} from "../interfaces/IInterestRateModel.sol";
+import {IRoles} from "src/interfaces/IRoles.sol";
+import {IOperator} from "src/interfaces/IOperator.sol";
+import {IInterestRateModel} from "src/interfaces/IInterestRateModel.sol";
 
 import {mTokenStorage} from "./mTokenStorage.sol";
 

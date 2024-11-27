@@ -9,7 +9,7 @@ pragma solidity =0.8.28;
 */
 
 // contracts
-import {CREATE3} from "../libraries/CREATE3.sol";
+import {CREATE3} from "src/libraries/CREATE3.sol";
 
 contract Deployer {
     address public admin;

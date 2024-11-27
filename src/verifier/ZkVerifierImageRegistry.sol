@@ -9,7 +9,7 @@ pragma solidity =0.8.28;
 */
 
 // interfaces
-import {IZkVerifierImageRegistry} from "../interfaces/IZkVerifierImageRegistry.sol";
+import {IZkVerifierImageRegistry} from "src/interfaces/IZkVerifierImageRegistry.sol";
 
 // contracts
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";

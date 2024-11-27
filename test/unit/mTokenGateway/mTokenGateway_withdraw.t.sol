@@ -2,6 +2,7 @@
 pragma solidity =0.8.28;
 
 import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
@@ -29,7 +30,7 @@ contract mTokenGateway_withdraw is mToken_Unit_Shared {
         mWethExtension.repayOnHost(amount);
     }
 
-    function test_GivenUserHasEnoughBalance(uint256 amount)
+    function test_GivenUserHasEnoughBalanceXXX(uint256 amount)
         external
         whenAmountGreaterThan0
         inRange(amount, SMALL, LARGE)
@@ -41,30 +42,28 @@ contract mTokenGateway_withdraw is mToken_Unit_Shared {
         uint256 balanceWethBefore = weth.balanceOf(address(this));
         uint256 totalSupplyBefore = mWethExtension.totalSupply();
         uint256 balanceOfBefore = mWethExtension.balanceOf(address(this));
-        uint256 pendingAmountBefore = mWethExtension.pendingAmounts(address(this));
 
         mWethExtension.withdrawOnHost(amount);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethExtension.totalSupply();
         uint256 balanceOfAfter = mWethExtension.balanceOf(address(this));
-        uint256 pendingAmountAfter = mWethExtension.pendingAmounts(address(this));
 
         // it should decrease the caller balance
         assertEq(balanceOfAfter + amount, balanceOfBefore);
 
-        // it should update the logs for the caller
-        assertEq(mWethExtension.getLogsLength(address(this), block.chainid, ImTokenGateway.OperationType.Withdraw), 1);
-        assertEq(mWethExtension.getLogsLength(address(this), block.chainid, ImTokenGateway.OperationType.Borrow), 0);
-
         // it should increase nonce for this operation type
-        assertEq(mWethExtension.getNonce(address(this), block.chainid, ImTokenGateway.OperationType.Withdraw), 1);
+        assertEq(
+            mWethExtension.getNonce(
+                address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.RedeemOnOtherChain
+            ),
+            1
+        );
 
         // it should not increase nonce for any other operation type
-        assertEq(mWethExtension.getNonce(address(this), block.chainid, ImTokenGateway.OperationType.Borrow), 0);
-
-        // it should increase pending amount
-        assertEq(pendingAmountBefore + amount, pendingAmountAfter);
+        assertEq(
+            mWethExtension.getNonce(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Borrow), 0
+        );
 
         // it should decrease total supply
         assertEq(totalSupplyAfter + amount, totalSupplyBefore);

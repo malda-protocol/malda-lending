@@ -4,6 +4,7 @@ pragma solidity =0.8.28;
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
@@ -16,7 +17,7 @@ import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 contract mErc20Host_mint is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsPausedForMinting(uint256 amount)
         external
-        whenPaused(address(mWethHost), IRoles.Pause.Mint)
+        whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint)
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
@@ -25,7 +26,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
         external
-        whenNotPaused(address(mWethHost), IRoles.Pause.Mint)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint)
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
@@ -107,13 +108,15 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         whenMintExternalIsCalled
     {
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.mintExternal("0x123", "0x123");
+        mWethHost.mintExternal("", "0x123");
     }
 
     function test_GivenDecodedAmountIs0() external whenMintExternalIsCalled whenImageIdExists {
         uint256 amount = 0;
-        bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Mint)
+        bytes memory journalData = _createJournal(
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Mint)
         );
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
@@ -127,8 +130,10 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         whenImageIdExists
         givenDecodedAmountIsValid
     {
-        bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Mint)
+        bytes memory journalData = _createJournal(
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Mint)
         );
 
         verifierMock.setStatus(true); // set for failure
@@ -149,8 +154,10 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
-        bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Mint)
+        bytes memory journalData = _createJournal(
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Mint)
         );
         mWethHost.mintExternal(journalData, "0x123");
 
@@ -168,24 +175,5 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         assertEq(balanceWethBefore, balanceWethAfter);
 
         assertEq(totalSupplyAfter - amount, totalSupplyBefore);
-    }
-
-    function test_RevertGiven_TheSameCommitmentIdIsUsed(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenMintExternalIsCalled
-        whenImageIdExists
-        givenDecodedAmountIsValid
-        whenMarketIsListed(address(mWethHost))
-    {
-        // it should revert
-
-        bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Mint)
-        );
-        mWethHost.mintExternal(journalData, "0x123");
-
-        vm.expectRevert(abi.encodePacked(ZkVerifier.ZkVerifier_AlreadyVerified.selector, uint256(1)));
-        mWethHost.mintExternal(journalData, "0x123");
     }
 }

@@ -10,6 +10,21 @@ pragma solidity =0.8.28;
 
 import {IRoles} from "./IRoles.sol";
 
+interface ImTokenOperationTypes {
+    enum OperationType {
+        Mint,
+        MintOnOtherChain,
+        Borrow,
+        BorrowOnOtherChain,
+        Repay,
+        RepayOnOtherChain,
+        Redeem,
+        RedeemOnOtherChain,
+        Transfer,
+        Seize
+    }
+}
+
 interface ImTokenDelegator {
     /**
      * @notice Non-standard token able to delegate

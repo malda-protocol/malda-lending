@@ -3,6 +3,7 @@ pragma solidity =0.8.28;
 
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
@@ -16,7 +17,7 @@ import "forge-std/console.sol";
 contract mErc20_repay is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsPausedForRepay(uint256 amount)
         external
-        whenPaused(address(mWeth), IRoles.Pause.Repay)
+        whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenMarketIsListed(address(mWeth))
         inRange(amount, SMALL, LARGE)
     {
@@ -26,7 +27,7 @@ contract mErc20_repay is mToken_Unit_Shared {
 
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
         external
-        whenNotPaused(address(mWeth), IRoles.Pause.Repay)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
@@ -36,8 +37,8 @@ contract mErc20_repay is mToken_Unit_Shared {
     function test_GivenAmountIs0(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)
-        whenNotPaused(address(mWeth), IRoles.Pause.Repay)
-        whenNotPaused(address(mWeth), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
         whenMarketEntered(address(mWeth))
@@ -86,8 +87,8 @@ contract mErc20_repay is mToken_Unit_Shared {
         givenAmountIsGreaterThan0
         whenStateIsValid
         inRange(amount, SMALL, LARGE)
-        whenNotPaused(address(mWeth), IRoles.Pause.Repay)
-        whenNotPaused(address(mWeth), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
         whenMarketEntered(address(mWeth))
@@ -141,8 +142,8 @@ contract mErc20_repay is mToken_Unit_Shared {
         givenAmountIsGreaterThan0
         whenStateIsValid
         inRange(amount, SMALL, LARGE)
-        whenNotPaused(address(mWeth), IRoles.Pause.Repay)
-        whenNotPaused(address(mWeth), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
+        whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
         whenMarketEntered(address(mWeth))

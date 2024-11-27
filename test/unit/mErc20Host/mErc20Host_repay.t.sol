@@ -4,6 +4,7 @@ pragma solidity =0.8.28;
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
@@ -16,7 +17,7 @@ import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 contract mErc20Host_repay is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsPausedForRepay(uint256 amount)
         external
-        whenPaused(address(mWethHost), IRoles.Pause.Repay)
+        whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
         whenMarketIsListed(address(mWethHost))
         inRange(amount, SMALL, LARGE)
     {
@@ -26,7 +27,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
 
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
         external
-        whenNotPaused(address(mWethHost), IRoles.Pause.Repay)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
@@ -36,8 +37,8 @@ contract mErc20Host_repay is mToken_Unit_Shared {
     function test_GivenAmountIs0(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)
-        whenNotPaused(address(mWethHost), IRoles.Pause.Repay)
-        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
@@ -83,8 +84,8 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         givenAmountIsGreaterThan0
         whenStateIsValid
         inRange(amount, SMALL, LARGE)
-        whenNotPaused(address(mWethHost), IRoles.Pause.Repay)
-        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
@@ -133,8 +134,8 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         givenAmountIsGreaterThan0
         whenStateIsValid
         inRange(amount, SMALL, LARGE)
-        whenNotPaused(address(mWethHost), IRoles.Pause.Repay)
-        whenNotPaused(address(mWethHost), IRoles.Pause.Borrow)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
+        whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
@@ -204,7 +205,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         whenRepayExternalIsCalled
     {
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.repayExternal("0x123", "0x123");
+        mWethHost.repayExternal("", "0x123");
     }
 
     function test_GivenDecodedAmountIs0()
@@ -218,8 +219,10 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         whenMarketEntered(address(mWethHost))
     {
         uint256 amount = 0;
-        bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Repay)
+        bytes memory journalData = _createJournal(
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Repay)
         );
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
@@ -235,8 +238,10 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {
-        bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Repay)
+        bytes memory journalData = _createJournal(
+            amount,
+            address(this),
+            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Repay)
         );
 
         verifierMock.setStatus(true); // set for failure
@@ -265,10 +270,10 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         vars.totalBorrowsBefore = mWethHost.totalBorrows();
         vars.accountBorrowBefore = mWethHost.borrowBalanceStored(address(this));
 
-        bytes memory journalData = _createCommitment(
+        bytes memory journalData = _createJournal(
             type(uint256).max,
             address(this),
-            mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Repay)
+            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Repay)
         );
         mWethHost.repayExternal(journalData, "0x123");
 
@@ -291,27 +296,5 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         // it should decrease accountBorrows
         assertGt(vars.accountBorrowBefore, vars.accountBorrowAfter);
         assertEq(vars.accountBorrowAfter, 0);
-    }
-
-    function test_RevertGiven_TheSameCommitmentIdIsUsedX(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenRepayExternalIsCalled
-        whenImageIdExists
-        givenDecodedAmountIsValid
-        whenMarketIsListed(address(mWethHost))
-        whenMarketEntered(address(mWethHost))
-    {
-        _repayPrerequisites(address(mWethHost), amount * 2, amount);
-
-        // it should revert
-        bytes memory journalData = _createCommitment(
-            amount, address(this), mWethHost.nonces(address(this), block.chainid, ImErc20Host.OperationType.Repay)
-        );
-        mWethHost.repayExternal(journalData, "0x123");
-
-        vm.expectRevert(abi.encodePacked(ZkVerifier.ZkVerifier_AlreadyVerified.selector, uint256(1)));
-        mWethHost.repayExternal(journalData, "0x123");
     }
 }

@@ -9,12 +9,12 @@ pragma solidity =0.8.28;
 */
 
 // interfaces
-import {IRoles} from "../interfaces/IRoles.sol";
-import {ImToken, ImTokenMinimal} from "../interfaces/ImToken.sol";
-import {IInterestRateModel} from "../interfaces/IInterestRateModel.sol";
+import {IRoles} from "src/interfaces/IRoles.sol";
+import {ImToken, ImTokenMinimal} from "src/interfaces/ImToken.sol";
+import {IInterestRateModel} from "src/interfaces/IInterestRateModel.sol";
 
 // contracts
-import {ExponentialNoError} from "../utils/ExponentialNoError.sol";
+import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
 
 abstract contract mTokenStorage is ImToken, ExponentialNoError {
     // ----------- ACCESS STORAGE ------------

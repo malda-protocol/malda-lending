@@ -24,4 +24,6 @@ abstract contract Constants {
     uint256 public constant DEFAULT_ORACLE_PRICE = 1e18;
     uint256 public constant DEFAULT_COLLATERAL_FACTOR = 9e17; //90%
     uint256 public constant DEFAULT_INFLATION_INCREASE = 1000; //90%
+
+    uint32 public constant LINEA_CHAIN_ID = 59144;
 }
