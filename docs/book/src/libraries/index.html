@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="light" dir="ltr">
+<html lang="en" class="light sidebar-visible" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 
 
         <!-- Custom HTML head -->
-        
+
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
@@ -31,15 +31,17 @@
         <!-- Custom theme stylesheets -->
         <link rel="stylesheet" href="../../book.css">
 
-    </head>
-    <body class="sidebar-visible no-js">
-    <div id="body-container">
+
         <!-- Provide site root to javascript -->
         <script>
             var path_to_root = "../../";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
-
+        <!-- Start loading toc.js asap -->
+        <script src="../../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -61,19 +63,16 @@
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            var html = document.querySelector('html');
+            const html = document.documentElement;
             html.classList.remove('light')
             html.classList.add(theme);
-            var body = document.querySelector('body');
-            body.classList.remove('no-js')
-            body.classList.add('js');
+            html.classList.add("js");
         </script>
 
         <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var body = document.querySelector('body');
             var sidebar = null;
             var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
@@ -83,45 +82,25 @@
                 sidebar = 'hidden';
             }
             sidebar_toggle.checked = sidebar === 'visible';
-            body.classList.remove('sidebar-visible');
-            body.classList.add("sidebar-" + sidebar);
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item "><a href="../../index.html">Home</a></li><li class="chapter-item affix "><li class="part-title">src</li><li class="chapter-item "><a href="../../src/Operator/index.html">❱ Operator</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../src/Operator/Operator.sol/contract.Operator.html">Operator</a></li><li class="chapter-item "><a href="../../src/Operator/OperatorStorage.sol/abstract.OperatorStorage.html">OperatorStorage</a></li><li class="chapter-item "><a href="../../src/Operator/Unit.sol/contract.Unit.html">Unit</a></li></ol></li><li class="chapter-item "><a href="../../src/helpers/index.html">❱ helpers</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../src/helpers/mTokenHelper.sol/contract.mTokenHelper.html">mTokenHelper</a></li></ol></li><li class="chapter-item "><a href="../../src/interest/index.html">❱ interest</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../src/interest/JumpRateModelV2.sol/contract.JumpRateModelV2.html">JumpRateModelV2</a></li></ol></li><li class="chapter-item "><a href="../../src/interfaces/index.html">❱ interfaces</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../src/interfaces/external/index.html">❱ external</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../src/interfaces/external/chainlink/index.html">❱ chainlink</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../src/interfaces/external/chainlink/IAggregatorV3.sol/interface.IAggregatorV3.html">IAggregatorV3</a></li></ol></li></ol></li><li class="chapter-item "><a href="../../src/interfaces/IInterestRateModel.sol/interface.IInterestRateModel.html">IInterestRateModel</a></li><li class="chapter-item "><a href="../../src/interfaces/IOperator.sol/interface.IOperatorData.html">IOperatorData</a></li><li class="chapter-item "><a href="../../src/interfaces/IOperator.sol/interface.IOperatorDefender.html">IOperatorDefender</a></li><li class="chapter-item "><a href="../../src/interfaces/IOperator.sol/interface.IOperator.html">IOperator</a></li><li class="chapter-item "><a href="../../src/interfaces/IOracleOperator.sol/interface.IOracleOperator.html">IOracleOperator</a></li><li class="chapter-item "><a href="../../src/interfaces/IRewardDistributor.sol/interface.IRewardDistributorData.html">IRewardDistributorData</a></li><li class="chapter-item "><a href="../../src/interfaces/IRewardDistributor.sol/interface.IRewardDistributor.html">IRewardDistributor</a></li><li class="chapter-item "><a href="../../src/interfaces/IRoles.sol/interface.IRoles.html">IRoles</a></li><li class="chapter-item "><a href="../../src/interfaces/IUnit.sol/interface.IUnitAccess.html">IUnitAccess</a></li><li class="chapter-item "><a href="../../src/interfaces/IUnit.sol/interface.IUnit.html">IUnit</a></li><li class="chapter-item "><a href="../../src/interfaces/ImToken.sol/interface.ImTokenDelegator.html">ImTokenDelegator</a></li><li class="chapter-item "><a href="../../src/interfaces/ImToken.sol/interface.ImTokenMinimal.html">ImTokenMinimal</a></li><li class="chapter-item "><a href="../../src/interfaces/ImToken.sol/interface.ImToken.html">ImToken</a></li><li class="chapter-item "><a href="../../src/interfaces/ImTokenHelper.sol/interface.ImTokenHelper.html">ImTokenHelper</a></li></ol></li><li class="chapter-item expanded "><a href="../../src/libraries/index.html" class="active">❱ libraries</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../src/libraries/Exponential.sol/library.Exponential.html">Exponential</a></li><li class="chapter-item "><a href="../../src/libraries/SafeApprove.sol/interface.IToken.html">IToken</a></li><li class="chapter-item "><a href="../../src/libraries/SafeApprove.sol/library.SafeApprove.html">SafeApprove</a></li></ol></li><li class="chapter-item "><a href="../../src/mToken/index.html">❱ mToken</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../src/mToken/mToken.sol/abstract.mToken.html">mToken</a></li><li class="chapter-item "><a href="../../src/mToken/mTokenConfiguration.sol/abstract.mTokenConfiguration.html">mTokenConfiguration</a></li><li class="chapter-item "><a href="../../src/mToken/mTokenStorage.sol/abstract.mTokenStorage.html">mTokenStorage</a></li></ol></li><li class="chapter-item "><a href="../../src/oracles/index.html">❱ oracles</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../src/oracles/ChainlinkOracle.sol/contract.ChainlinkOracle.html">ChainlinkOracle</a></li></ol></li><li class="chapter-item "><a href="../../src/rewards/index.html">❱ rewards</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../src/rewards/RewardDistributor.sol/contract.RewardDistributor.html">RewardDistributor</a></li></ol></li><li class="chapter-item "><a href="../../src/utils/index.html">❱ utils</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a></li><li class="chapter-item "><a href="../../src/utils/ReentrancyGuardTransient.sol/abstract.ReentrancyGuardTransient.html">ReentrancyGuardTransient</a></li><li class="chapter-item "><a href="../../src/utils/StorageSlot.sol/library.StorageSlot.html">StorageSlot</a></li></ol></li><li class="chapter-item "><a href="../../src/verifier/index.html">❱ verifier</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../src/verifier/Verifier.sol/contract.Verifier.html">Verifier</a></li><li class="chapter-item "><a href="../../src/verifier/VerifierStorage.sol/abstract.VerifierStorage.html">VerifierStorage</a></li></ol></li><li class="chapter-item "><a href="../../src/Counter.sol/contract.Counter.html">Counter</a></li><li class="chapter-item "><a href="../../src/Roles.sol/contract.Roles.html">Roles</a></li></ol>
-            </div>
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../toc.html"></iframe>
+            </noscript>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <!-- Track and set sidebar scroll position -->
-        <script>
-            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
-            sidebarScrollbox.addEventListener('click', function(e) {
-                if (e.target.tagName === 'A') {
-                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
-                }
-            }, { passive: true });
-            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
-            sessionStorage.removeItem('sidebar-scroll');
-            if (sidebarScrollTop) {
-                // preserve sidebar scroll position when navigating via links within sidebar
-                sidebarScrollbox.scrollTop = sidebarScrollTop;
-            } else {
-                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
-                var activeSection = document.querySelector('#sidebar .active');
-                if (activeSection) {
-                    activeSection.scrollIntoView({ block: 'center' });
-                }
-            }
-        </script>
-
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
@@ -148,7 +127,7 @@
                         <a href="../../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
-                        <a href="https://github.com/malda-protocol/malda-lending" title="Git repository" aria-label="Git repository">
+                        <a href="https://github.com/https://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@malda-protocol/malda-lending" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
 
@@ -179,7 +158,9 @@
                     <main>
                         <h1 id="contents"><a class="header" href="#contents">Contents</a></h1>
 <ul>
-<li><a href="Exponential.sol%5Clibrary.Exponential.html">Exponential</a></li>
+<li><a href="Bytes32AddressLib.sol%5Clibrary.Bytes32AddressLib.html">Bytes32AddressLib</a></li>
+<li><a href="BytesLib.sol%5Clibrary.BytesLib.html">BytesLib</a></li>
+<li><a href="CREATE3.sol%5Clibrary.CREATE3.html">CREATE3</a></li>
 <li><a href="SafeApprove.sol%5Cinterface.IToken.html">IToken</a></li>
 <li><a href="SafeApprove.sol%5Clibrary.SafeApprove.html">SafeApprove</a></li>
 </ul>
@@ -188,11 +169,11 @@
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../src/interfaces/ImTokenHelper.sol/interface.ImTokenHelper.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../src/interfaces/ImTokenLogs.sol/interface.ImTokenLogs.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../src/libraries/Exponential.sol/library.Exponential.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../src/libraries/Bytes32AddressLib.sol/library.Bytes32AddressLib.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -202,11 +183,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../src/interfaces/ImTokenHelper.sol/interface.ImTokenHelper.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../src/interfaces/ImTokenLogs.sol/interface.ImTokenLogs.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../src/libraries/Exponential.sol/library.Exponential.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../src/libraries/Bytes32AddressLib.sol/library.Bytes32AddressLib.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
