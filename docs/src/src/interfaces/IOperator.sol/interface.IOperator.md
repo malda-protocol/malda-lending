@@ -1,5 +1,5 @@
 # IOperator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\interfaces\IOperator.sol)
+[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/22e38d89bfe9c3bbd0459495952fb3409b4b0c16/src\interfaces\IOperator.sol)
 
 
 ## Functions
@@ -18,14 +18,14 @@ Returns if operation is paused
 
 
 ```solidity
-function isPaused(address mToken, IRoles.Pause _type) external view returns (bool);
+function isPaused(address mToken, ImTokenOperationTypes.OperationType _type) external view returns (bool);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`mToken`|`address`|The mToken to check|
-|`_type`|`IRoles.Pause`|the operation type|
+|`_type`|`ImTokenOperationTypes.OperationType`|the operation type|
 
 
 ### rolesOperator
@@ -206,8 +206,8 @@ function liquidateCalculateSeizeTokens(address mTokenBorrowed, address mTokenCol
 
 |Name|Type|Description|
 |----|----|-----------|
-|`mTokenBorrowed`|`address`|The address of the borrowed cToken|
-|`mTokenCollateral`|`address`|The address of the collateral cToken|
+|`mTokenBorrowed`|`address`|The address of the borrowed mToken|
+|`mTokenCollateral`|`address`|The address of the collateral mToken|
 |`actualRepayAmount`|`uint256`|The amount of mTokenBorrowed underlying to convert into mTokenCollateral tokens|
 
 **Returns**
@@ -234,13 +234,30 @@ function isDeprecated(address mToken) external view returns (bool);
 |`mToken`|`address`|The market to check if deprecated|
 
 
-### enterMarket
+### setPaused
+
+Set pause for a specific operation
+
+
+```solidity
+function setPaused(address mToken, ImTokenOperationTypes.OperationType _type, bool state) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market token address|
+|`_type`|`ImTokenOperationTypes.OperationType`|The pause operation type|
+|`state`|`bool`|The pause operation status|
+
+
+### enterMarkets
 
 Add assets to be included in account liquidity calculation
 
 
 ```solidity
-function enterMarket(address[] calldata _mTokens) external;
+function enterMarkets(address[] calldata _mTokens) external;
 ```
 **Parameters**
 
@@ -267,52 +284,52 @@ function exitMarket(address _mToken) external;
 |`_mToken`|`address`|The address of the asset to be removed|
 
 
-### claimMelda
+### claimMalda
 
-Claim all the MELDA accrued by holder in all markets
+Claim all the MALDA accrued by holder in all markets
 
 
 ```solidity
-function claimMelda(address holder) external;
+function claimMalda(address holder) external;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`holder`|`address`|The address to claim MELDA for|
+|`holder`|`address`|The address to claim MALDA for|
 
 
-### claimMelda
+### claimMalda
 
-Claim all the MELDA accrued by holder in the specified markets
+Claim all the MALDA accrued by holder in the specified markets
 
 
 ```solidity
-function claimMelda(address holder, address[] memory mTokens) external;
+function claimMalda(address holder, address[] memory mTokens) external;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`holder`|`address`|The address to claim MELDA for|
-|`mTokens`|`address[]`|The list of markets to claim MELDA in|
+|`holder`|`address`|The address to claim MALDA for|
+|`mTokens`|`address[]`|The list of markets to claim MALDA in|
 
 
-### claimMelda
+### claimMalda
 
-Claim all MELDA accrued by the holders
+Claim all MALDA accrued by the holders
 
 
 ```solidity
-function claimMelda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers) external;
+function claimMalda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers) external;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`holders`|`address[]`|The addresses to claim MELDA for|
-|`mTokens`|`address[]`|The list of markets to claim MELDA in|
-|`borrowers`|`bool`|Whether or not to claim MELDA earned by borrowing|
-|`suppliers`|`bool`|Whether or not to claim MELDA earned by supplying|
+|`holders`|`address[]`|The addresses to claim MALDA for|
+|`mTokens`|`address[]`|The list of markets to claim MALDA in|
+|`borrowers`|`bool`|Whether or not to claim MALDA earned by borrowing|
+|`suppliers`|`bool`|Whether or not to claim MALDA earned by supplying|
 
 

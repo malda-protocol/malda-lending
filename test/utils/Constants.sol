@@ -22,6 +22,7 @@ abstract contract Constants {
     uint256 public constant ZERO_VALUE = 0;
 
     uint256 public constant DEFAULT_ORACLE_PRICE = 1e18;
+    uint256 public constant DEFAULT_LIQUIDATOR_ORACLE_PRICE = 8e17;
     uint256 public constant DEFAULT_COLLATERAL_FACTOR = 9e17; //90%
     uint256 public constant DEFAULT_INFLATION_INCREASE = 1000; //90%
 

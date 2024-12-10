@@ -12,7 +12,32 @@ import {ImTokenLogs} from "./ImTokenLogs.sol";
 import {ImTokenOperationTypes} from "./ImToken.sol";
 
 interface ImErc20Host {
+    struct InitData {
+        address underlyingToken;
+        address operator;
+        address interestModel;
+        uint256 exchaneRateMantissa;
+        string name;
+        string symbol;
+        uint8 decimals;
+        address zkVerifier;
+        address imageRegistry;
+        address owner;
+    }
     // ----------- EVENTS -----------
+    /**
+     * @notice Emitted when a liquidate operation is executed
+     */
+
+    event mErc20Host_LiquidateExternal(
+        address indexed liquidator,
+        address indexed user,
+        address indexed collateral,
+        uint256 amount,
+        uint32 nonce,
+        uint32 chainId
+    );
+
     /**
      * @notice Emitted when a mint operation is executed
      */
@@ -95,6 +120,13 @@ interface ImErc20Host {
         returns (uint32);
 
     // ----------- PUBLIC -----------
+    /**
+     * @notice Mints tokens after external verification
+     * @param journalData The journal data for minting
+     * @param seal The Zk proof seal
+     */
+    function liquidateExternal(bytes calldata journalData, bytes calldata seal) external;
+
     /**
      * @notice Mints tokens after external verification
      * @param journalData The journal data for minting

@@ -21,7 +21,9 @@ interface ImTokenOperationTypes {
         Redeem,
         RedeemOnOtherChain,
         Transfer,
-        Seize
+        Seize,
+        Liquidate,
+        LiquidateOnOtherChain
     }
 }
 
