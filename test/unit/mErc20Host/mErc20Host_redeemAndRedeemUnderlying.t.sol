@@ -2,13 +2,10 @@
 pragma solidity =0.8.28;
 
 // interfaces
-import {IRoles} from "src/interfaces/IRoles.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
-import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
-import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
 import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
 
@@ -149,7 +146,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         whenRedeemExternalIsCalled
     {
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.withdrawExternal("", "0x123");
+        mWethHost.withdrawExternal("", "0x123", amount);
     }
 
     function test_RevertGiven_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
@@ -158,45 +155,35 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         whenRedeemExternalIsCalled
     {
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.withdrawExternal("", "0x123");
+        mWethHost.withdrawExternal("", "0x123", amount);
     }
 
-    function test_GivenDecodedAmountIs0() external whenRedeemExternalIsCalled whenImageIdExists {
+    function test_GivenDecodedAmountIs0() external whenRedeemExternalIsCalled {
         uint256 amount = 0;
-        bytes memory journalData = _createJournal(
-            amount,
-            address(this),
-            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Redeem)
-        );
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.withdrawExternal(journalData, "0x123");
+        mWethHost.withdrawExternal(journalData, "0x123", 0);
     }
 
     function test_RevertWhen_SealVerificationFails(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)
         whenRedeemExternalIsCalled
-        whenImageIdExists
         givenDecodedAmountIsValid
     {
-        bytes memory journalData = _createJournal(
-            amount,
-            address(this),
-            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Redeem)
-        );
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
 
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
-        mWethHost.withdrawExternal(journalData, "0x123");
+        mWethHost.withdrawExternal(journalData, "0x123", amount);
     }
 
     function test_WhenSealVerificationWasOk(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)
         whenRedeemExternalIsCalled
-        whenImageIdExists
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
     {
@@ -208,12 +195,8 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
-        bytes memory journalData = _createJournal(
-            amount,
-            address(this),
-            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Redeem)
-        );
-        mWethHost.withdrawExternal(journalData, "0x123");
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
+        mWethHost.withdrawExternal(journalData, "0x123", amount);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethHost.totalSupply();
@@ -235,7 +218,6 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         external
         inRange(amount, SMALL, LARGE)
         whenRedeemExternalIsCalled
-        whenImageIdExists
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
     {
@@ -243,15 +225,11 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
 
         amount = amount - DEFAULT_INFLATION_INCREASE;
 
-        bytes memory journalData = _createJournal(
-            amount,
-            address(this),
-            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Redeem)
-        );
-        mWethHost.withdrawExternal(journalData, "0x123");
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
+        mWethHost.withdrawExternal(journalData, "0x123", amount);
 
         vm.expectRevert();
-        mWethHost.withdrawExternal(journalData, "0x123");
+        mWethHost.withdrawExternal(journalData, "0x123", amount);
     }
 
     modifier whenWithdrawOnExtensionIsCalled() {
@@ -264,52 +242,29 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         _;
     }
 
-    function test_RevertGiven_LiquidityJournalIsEmpty(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenWithdrawOnExtensionIsCalled
-    {
-        vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.withdrawOnExtension(amount, "", "0x123");
-    }
-
-    function test_RevertGiven_LiquidityJournalIsNonEmptyButLengthIsNotValid(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenWithdrawOnExtensionIsCalled
-    {
-        vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.withdrawOnExtension(amount, "", "0x123");
-    }
-
-    function test_GivenDecodedLiquidityIs0XXX() external whenWithdrawOnExtensionIsCalled whenImageIdExists {
-        uint256 amount = 0;
-        bytes memory journalData = _createCommitmentWithDstChain(amount, address(this), 1);
-
+    function test_GivenDecodedLiquidityIs0() external whenWithdrawOnExtensionIsCalled {
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.withdrawOnExtension(amount, journalData, "0x123");
+        address[] memory allowedCallers = new address[](0);
+        mWethHost.withdrawOnExtension(0, 1, allowedCallers);
     }
 
     function test_RevertWhen_LiquiditySealVerificationFails(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)
         whenWithdrawOnExtensionIsCalled
-        whenImageIdExists
         givenDecodedLiquidityIsValid
     {
-        bytes memory journalData = _createJournal(amount, address(this));
-
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
-        mWethHost.withdrawOnExtension(amount, journalData, "0x123");
+        address[] memory allowedCallers = new address[](0);
+        mWethHost.withdrawOnExtension(amount, 1, allowedCallers);
     }
 
     function test_WhenLiquiditySealVerificationWasOk(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)
         whenWithdrawOnExtensionIsCalled
-        whenImageIdExists
         givenDecodedLiquidityIsValid
         whenMarketIsListed(address(mWethHost))
     {
@@ -321,8 +276,8 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
-        bytes memory journalData = _createCommitmentWithDstChain(amount, address(this), 1);
-        mWethHost.withdrawOnExtension(amount, journalData, "0x123");
+        address[] memory allowedCallers = new address[](0);
+        mWethHost.withdrawOnExtension(amount, 1, allowedCallers);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethHost.totalSupply();

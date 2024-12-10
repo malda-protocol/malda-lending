@@ -1,5 +1,5 @@
 # Roles
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\Roles.sol)
+[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\Roles.sol)
 
 **Inherits:**
 Ownable, [IRoles](/src\interfaces\IRoles.sol\interface.IRoles.md)
@@ -13,24 +13,17 @@ mapping(address => mapping(bytes32 => bool)) private _roles;
 ```
 
 
-### GUARDIAN_PAUSE
+### LOGS_ADD
 
 ```solidity
-bytes32 public constant GUARDIAN_PAUSE = keccak256("GUARDIAN_PAUSE");
+bytes32 public constant LOGS_ADD = keccak256("LOGS_ADD");
 ```
 
 
-### GUARDIAN_TRANSFER
+### PAUSE_MANAGER
 
 ```solidity
-bytes32 public constant GUARDIAN_TRANSFER = keccak256("GUARDIAN_TRANSFER");
-```
-
-
-### GUARDIAN_SEIZE
-
-```solidity
-bytes32 public constant GUARDIAN_SEIZE = keccak256("GUARDIAN_SEIZE");
+bytes32 public constant PAUSE_MANAGER = keccak256("PAUSE_MANAGER");
 ```
 
 
@@ -41,10 +34,45 @@ bytes32 public constant GUARDIAN_MINT = keccak256("GUARDIAN_MINT");
 ```
 
 
+### GUARDIAN_PAUSE
+
+```solidity
+bytes32 public constant GUARDIAN_PAUSE = keccak256("GUARDIAN_PAUSE");
+```
+
+
+### GUARDIAN_SEIZE
+
+```solidity
+bytes32 public constant GUARDIAN_SEIZE = keccak256("GUARDIAN_SEIZE");
+```
+
+
+### PROOF_FORWARDER
+
+```solidity
+bytes32 public constant PROOF_FORWARDER = keccak256("PROOF_FORWARDER");
+```
+
+
 ### GUARDIAN_BORROW
 
 ```solidity
 bytes32 public constant GUARDIAN_BORROW = keccak256("GUARDIAN_BORROW");
+```
+
+
+### GUARDIAN_RESERVE
+
+```solidity
+bytes32 public constant GUARDIAN_RESERVE = keccak256("GUARDIAN_RESERVE");
+```
+
+
+### GUARDIAN_TRANSFER
+
+```solidity
+bytes32 public constant GUARDIAN_TRANSFER = keccak256("GUARDIAN_TRANSFER");
 ```
 
 
@@ -59,13 +87,6 @@ bytes32 public constant GUARDIAN_BORROW_CAP = keccak256("GUARDIAN_BORROW_CAP");
 
 ```solidity
 bytes32 public constant GUARDIAN_SUPPLY_CAP = keccak256("GUARDIAN_SUPPLY_CAP");
-```
-
-
-### GUARDIAN_RESERVE
-
-```solidity
-bytes32 public constant GUARDIAN_RESERVE = keccak256("GUARDIAN_RESERVE");
 ```
 
 
@@ -108,12 +129,5 @@ emitted when role is set
 
 ```solidity
 event Allowed(address indexed _contract, bytes32 indexed _role, bool _allowed);
-```
-
-## Errors
-### Roles_NotAuthorized
-
-```solidity
-error Roles_NotAuthorized();
 ```
 

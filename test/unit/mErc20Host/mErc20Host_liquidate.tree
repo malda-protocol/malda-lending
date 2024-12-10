@@ -1,0 +1,18 @@
+mErc20Host_liquidateExternal.t.sol
+├── given market is paused for liquidation
+│   └── it should revert
+└── given market is not paused
+        ├── when journal is empty
+        │   └── it should revert
+        ├── when journal is non empty but length is not valid
+        │   └── it should revert
+        ├── when decoded amount is 0
+        │   └── it should revert with mErc20Host_AmountNotValid
+        └── when decoded amount is valid
+            ├── when seal verification fails
+            │   └── it should revert
+            ├── when user is the same as the liquidator
+            │   └── it should revert
+            └── when seal verification was ok
+                ├── it should liquidate user
+                └── it should increase mToken balance of liquidator

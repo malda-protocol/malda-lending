@@ -1,5 +1,5 @@
 # RewardDistributor
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\rewards\RewardDistributor.sol)
+[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\rewards\RewardDistributor.sol)
 
 **Inherits:**
 [IRewardDistributor](/src\interfaces\IRewardDistributor.sol\interface.IRewardDistributor.md), [ExponentialNoError](/src\utils\ExponentialNoError.sol\abstract.ExponentialNoError.md), Initializable, OwnableUpgradeable
@@ -95,7 +95,14 @@ function getRewardTokens() public view override returns (address[] memory);
 
 
 ```solidity
-function initialize(address _operator) public initializer;
+function initialize(address _owner) public initializer;
+```
+
+### setOperator
+
+
+```solidity
+function setOperator(address _operator) external onlyOwner;
 ```
 
 ### whitelistToken

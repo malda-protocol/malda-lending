@@ -12,8 +12,6 @@ import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
 // tests
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
-import "forge-std/console.sol";
-
 contract mErc20_repay is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsPausedForRepay(uint256 amount)
         external

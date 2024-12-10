@@ -530,6 +530,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         address borrower,
         uint256 repayAmount
     ) external view override {
+        require(!_paused[mTokenBorrowed][OperationType.Liquidate], Operator_Paused());
         require(markets[mTokenBorrowed].isListed, Operator_MarketNotListed());
         require(markets[mTokenCollateral].isListed, Operator_MarketNotListed());
 

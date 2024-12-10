@@ -1,8 +1,8 @@
 # Operator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\Operator\Operator.sol)
+[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\Operator\Operator.sol)
 
 **Inherits:**
-[OperatorStorage](/src\Operator\OperatorStorage.sol\abstract.OperatorStorage.md)
+[OperatorStorage](/src\Operator\OperatorStorage.sol\abstract.OperatorStorage.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
 
 
 ## Functions
@@ -10,7 +10,7 @@
 
 
 ```solidity
-constructor(address _rolesOperator, address _rewardDistributor);
+constructor(address _rolesOperator, address _rewardDistributor, address _admin);
 ```
 
 ### setRolesOperator
@@ -134,7 +134,7 @@ function supportMarket(address mToken) external onlyAdmin;
 
 ### setMarketBorrowCaps
 
-Set the given borrow caps for the given cToken markets. Borrowing that brings total borrows to or above borrow cap will revert.
+Set the given borrow caps for the given mToken markets. Borrowing that brings total borrows to or above borrow cap will revert.
 
 
 ```solidity
@@ -150,7 +150,7 @@ function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newB
 
 ### setMarketSupplyCaps
 
-Set the given supply caps for the given cToken markets. Supplying that brings total supply to or above supply cap will revert.
+Set the given supply caps for the given mToken markets. Supplying that brings total supply to or above supply cap will revert.
 
 
 ```solidity
@@ -170,14 +170,14 @@ Set pause for a specific operation
 
 
 ```solidity
-function setPaused(address mToken, IRoles.Pause _type, bool state) external;
+function setPaused(address mToken, ImTokenOperationTypes.OperationType _type, bool state) external;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`mToken`|`address`|The market token address|
-|`_type`|`IRoles.Pause`|The pause operation type|
+|`_type`|`ImTokenOperationTypes.OperationType`|The pause operation type|
 |`state`|`bool`|The pause operation status|
 
 
@@ -202,7 +202,7 @@ Accepts IUnit implementation
 
 
 ```solidity
-function become(address _unit) public;
+function become(address _unit) external;
 ```
 **Parameters**
 
@@ -226,14 +226,14 @@ Returns if operation is paused
 
 
 ```solidity
-function isPaused(address mToken, IRoles.Pause _type) external view override returns (bool);
+function isPaused(address mToken, ImTokenOperationTypes.OperationType _type) external view override returns (bool);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`mToken`|`address`|The mToken to check|
-|`_type`|`IRoles.Pause`|the operation type|
+|`_type`|`ImTokenOperationTypes.OperationType`|the operation type|
 
 
 ### getAssetsIn
@@ -368,8 +368,8 @@ function liquidateCalculateSeizeTokens(address mTokenBorrowed, address mTokenCol
 
 |Name|Type|Description|
 |----|----|-----------|
-|`mTokenBorrowed`|`address`|The address of the borrowed cToken|
-|`mTokenCollateral`|`address`|The address of the collateral cToken|
+|`mTokenBorrowed`|`address`|The address of the borrowed mToken|
+|`mTokenCollateral`|`address`|The address of the collateral mToken|
 |`actualRepayAmount`|`uint256`|The amount of mTokenBorrowed underlying to convert into mTokenCollateral tokens|
 
 **Returns**
@@ -379,13 +379,13 @@ function liquidateCalculateSeizeTokens(address mTokenBorrowed, address mTokenCol
 |`<none>`|`uint256`|number of mTokenCollateral tokens to be seized in a liquidation|
 
 
-### enterMarket
+### enterMarkets
 
 Add assets to be included in account liquidity calculation
 
 
 ```solidity
-function enterMarket(address[] calldata _mTokens) external override;
+function enterMarkets(address[] calldata _mTokens) external override;
 ```
 **Parameters**
 
@@ -412,44 +412,44 @@ function exitMarket(address _mToken) external override;
 |`_mToken`|`address`|The address of the asset to be removed|
 
 
-### claimMelda
+### claimMalda
 
-Claim all the MELDA accrued by holder in all markets
+Claim all the MALDA accrued by holder in all markets
 
 
 ```solidity
-function claimMelda(address holder) external override;
+function claimMalda(address holder) external override;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`holder`|`address`|The address to claim MELDA for|
+|`holder`|`address`|The address to claim MALDA for|
 
 
-### claimMelda
+### claimMalda
 
-Claim all the MELDA accrued by holder in the specified markets
+Claim all the MALDA accrued by holder in the specified markets
 
 
 ```solidity
-function claimMelda(address holder, address[] memory mTokens) external override;
+function claimMalda(address holder, address[] memory mTokens) external override;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`holder`|`address`|The address to claim MELDA for|
-|`mTokens`|`address[]`|The list of markets to claim MELDA in|
+|`holder`|`address`|The address to claim MALDA for|
+|`mTokens`|`address[]`|The list of markets to claim MALDA in|
 
 
-### claimMelda
+### claimMalda
 
-Claim all MELDA accrued by the holders
+Claim all MALDA accrued by the holders
 
 
 ```solidity
-function claimMelda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers)
+function claimMalda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers)
     external
     override;
 ```
@@ -457,10 +457,10 @@ function claimMelda(address[] memory holders, address[] memory mTokens, bool bor
 
 |Name|Type|Description|
 |----|----|-----------|
-|`holders`|`address[]`|The addresses to claim MELDA for|
-|`mTokens`|`address[]`|The list of markets to claim MELDA in|
-|`borrowers`|`bool`|Whether or not to claim MELDA earned by borrowing|
-|`suppliers`|`bool`|Whether or not to claim MELDA earned by supplying|
+|`holders`|`address[]`|The addresses to claim MALDA for|
+|`mTokens`|`address[]`|The list of markets to claim MALDA in|
+|`borrowers`|`bool`|Whether or not to claim MALDA earned by borrowing|
+|`suppliers`|`bool`|Whether or not to claim MALDA earned by supplying|
 
 
 ### beforeMTokenTransfer
@@ -672,7 +672,7 @@ function _distributeSupplierMelda(address mToken, address supplier) private;
 |Name|Type|Description|
 |----|----|-----------|
 |`mToken`|`address`|The market in which the supplier is interacting|
-|`supplier`|`address`|The address of the supplier to distribute MELDA to|
+|`supplier`|`address`|The address of the supplier to distribute MALDA to|
 
 
 ### _distributeBorrowerMelda
@@ -690,7 +690,7 @@ function _distributeBorrowerMelda(address mToken, address borrower) private;
 |Name|Type|Description|
 |----|----|-----------|
 |`mToken`|`address`|The market in which the borrower is interacting|
-|`borrower`|`address`|The address of the borrower to distribute MELDA to|
+|`borrower`|`address`|The address of the borrower to distribute MALDA to|
 
 
 ### _claim

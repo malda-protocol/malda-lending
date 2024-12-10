@@ -1,5 +1,5 @@
 # ImToken
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\interfaces\ImToken.sol)
+[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\interfaces\ImToken.sol)
 
 **Inherits:**
 [ImTokenMinimal](/src\interfaces\ImToken.sol\interface.ImTokenMinimal.md)
@@ -395,8 +395,8 @@ function accrueInterest() external;
 
 Transfers collateral tokens (this market) to the liquidator.
 
-*Will fail unless called by another cToken during the process of liquidation.
-Its absolutely critical to use msg.sender as the borrowed cToken and not a parameter.*
+*Will fail unless called by another mToken during the process of liquidation.
+Its absolutely critical to use msg.sender as the borrowed mToken and not a parameter.*
 
 
 ```solidity
@@ -408,7 +408,7 @@ function seize(address liquidator, address borrower, uint256 seizeTokens) extern
 |----|----|-----------|
 |`liquidator`|`address`|The account receiving seized collateral|
 |`borrower`|`address`|The account having collateral seized|
-|`seizeTokens`|`uint256`|The number of cTokens to seize|
+|`seizeTokens`|`uint256`|The number of mTokens to seize|
 
 
 ### reduceReserves

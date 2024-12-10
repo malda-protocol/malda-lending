@@ -1,5 +1,5 @@
 # OperatorStorage
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\Operator\OperatorStorage.sol)
+[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\Operator\OperatorStorage.sol)
 
 **Inherits:**
 [IOperator](/src\interfaces\IOperator.sol\interface.IOperator.md), [IOperatorDefender](/src\interfaces\IOperator.sol\interface.IOperatorDefender.md), [ExponentialNoError](/src\utils\ExponentialNoError.sol\abstract.ExponentialNoError.md)
@@ -119,7 +119,7 @@ address public rewardDistributor;
 ### _paused
 
 ```solidity
-mapping(address => mapping(IRoles.Pause => bool)) internal _paused;
+mapping(address => mapping(ImTokenOperationTypes.OperationType => bool)) internal _paused;
 ```
 
 
@@ -158,7 +158,7 @@ Emitted when pause status is changed
 
 
 ```solidity
-event ActionPaused(address indexed mToken, IRoles.Pause _type, bool state);
+event ActionPaused(address indexed mToken, ImTokenOperationTypes.OperationType _type, bool state);
 ```
 
 ### NewRewardDistributor
@@ -174,7 +174,7 @@ Emitted when borrow cap for a mToken is changed
 
 
 ```solidity
-event NewBorrowCap(address indexed cToken, uint256 newBorrowCap);
+event NewBorrowCap(address indexed mToken, uint256 newBorrowCap);
 ```
 
 ### NewSupplyCap
@@ -182,7 +182,7 @@ Emitted when supply cap for a mToken is changed
 
 
 ```solidity
-event NewSupplyCap(address indexed cToken, uint256 newBorrowCap);
+event NewSupplyCap(address indexed mToken, uint256 newBorrowCap);
 ```
 
 ### MarketListed
@@ -190,7 +190,7 @@ Emitted when an admin supports a market
 
 
 ```solidity
-event MarketListed(address cToken);
+event MarketListed(address mToken);
 ```
 
 ### MarketEntered

@@ -317,17 +317,25 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
     /**
      * @notice The sender liquidates the borrowers collateral.
      *  The collateral seized is transferred to the liquidator.
+     * @param borrower The liquidator address
      * @param borrower The borrower of this mToken to be liquidated
      * @param mTokenCollateral The market in which to seize collateral from the borrower
      * @param repayAmount The amount of the underlying borrowed asset to repay
+     * @param doTransfer If an actual transfer should be performed
      */
-    function _liquidate(address borrower, uint256 repayAmount, address mTokenCollateral) internal nonReentrant {
+    function _liquidate(
+        address liquidator,
+        address borrower,
+        uint256 repayAmount,
+        address mTokenCollateral,
+        bool doTransfer
+    ) internal nonReentrant {
         _accrueInterest();
 
         ImToken(mTokenCollateral).accrueInterest();
 
         // emits borrow-specific logs on errors, so we don't need to
-        __liquidate(msg.sender, borrower, repayAmount, mTokenCollateral);
+        __liquidate(liquidator, borrower, repayAmount, mTokenCollateral, doTransfer);
     }
 
     /**
@@ -415,10 +423,15 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
      * @param liquidator The address repaying the borrow and seizing collateral
      * @param mTokenCollateral The market in which to seize collateral from the borrower
      * @param repayAmount The amount of the underlying borrowed asset to repay
+     * @param doTransfer If an actual transfer should be performed
      */
-    function __liquidate(address liquidator, address borrower, uint256 repayAmount, address mTokenCollateral)
-        internal
-    {
+    function __liquidate(
+        address liquidator,
+        address borrower,
+        uint256 repayAmount,
+        address mTokenCollateral,
+        bool doTransfer
+    ) internal {
         require(borrower != liquidator, mToken_InvalidInput());
         require(repayAmount > 0 && repayAmount != type(uint256).max, mToken_InvalidInput());
 
@@ -430,7 +443,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
         );
 
         /* Fail if repayBorrow fails */
-        uint256 actualRepayAmount = __repay(liquidator, borrower, repayAmount, true);
+        uint256 actualRepayAmount = __repay(liquidator, borrower, repayAmount, doTransfer);
 
         /////////////////////////
         // EFFECTS & INTERACTIONS
@@ -443,7 +456,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
         /* Revert if borrower collateral token balance < seizeTokens */
         require(ImToken(mTokenCollateral).balanceOf(borrower) >= seizeTokens, mToken_LiquidateSeizeTooMuch());
 
-        // If this is also the collateral, run seizeInternal to avoid re-entrancy, otherwise make an external call
+        // If this is also the collateral, run _seize to avoid re-entrancy, otherwise make an external call
         if (address(mTokenCollateral) == address(this)) {
             _seize(address(this), liquidator, borrower, seizeTokens);
         } else {
@@ -469,7 +482,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
         /* We fetch the amount the borrower owes, with accumulated interest */
         uint256 accountBorrowsPrev = _borrowBalanceStored(borrower);
 
-        /* If repayAmount == -1, repayAmount = accountBorrows */
+        /* If repayAmount == type(uint256).max , repayAmount = accountBorrows */
         uint256 repayAmountFinal = repayAmount == type(uint256).max ? accountBorrowsPrev : repayAmount;
 
         /////////////////////////

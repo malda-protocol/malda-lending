@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html lang="en" class="light" dir="ltr">
+<html lang="en" class="light sidebar-visible" dir="ltr">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
@@ -7,7 +7,7 @@
 
 
         <!-- Custom HTML head -->
-        
+
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
@@ -31,15 +31,17 @@
         <!-- Custom theme stylesheets -->
         <link rel="stylesheet" href="../../../book.css">
 
-    </head>
-    <body class="sidebar-visible no-js">
-    <div id="body-container">
+
         <!-- Provide site root to javascript -->
         <script>
             var path_to_root = "../../../";
             var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
         </script>
-
+        <!-- Start loading toc.js asap -->
+        <script src="../../../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -61,19 +63,16 @@
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            var html = document.querySelector('html');
+            const html = document.documentElement;
             html.classList.remove('light')
             html.classList.add(theme);
-            var body = document.querySelector('body');
-            body.classList.remove('no-js')
-            body.classList.add('js');
+            html.classList.add("js");
         </script>
 
         <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var body = document.querySelector('body');
             var sidebar = null;
             var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
@@ -83,45 +82,25 @@
                 sidebar = 'hidden';
             }
             sidebar_toggle.checked = sidebar === 'visible';
-            body.classList.remove('sidebar-visible');
-            body.classList.add("sidebar-" + sidebar);
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="chapter-item "><a href="../../../index.html">Home</a></li><li class="chapter-item affix "><li class="part-title">src</li><li class="chapter-item expanded "><a href="../../../src/Operator/index.html">❱ Operator</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/Operator/Operator.sol/contract.Operator.html" class="active">Operator</a></li><li class="chapter-item "><a href="../../../src/Operator/OperatorStorage.sol/abstract.OperatorStorage.html">OperatorStorage</a></li><li class="chapter-item "><a href="../../../src/Operator/Unit.sol/contract.Unit.html">Unit</a></li></ol></li><li class="chapter-item "><a href="../../../src/helpers/index.html">❱ helpers</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../src/helpers/mTokenHelper.sol/contract.mTokenHelper.html">mTokenHelper</a></li></ol></li><li class="chapter-item "><a href="../../../src/interest/index.html">❱ interest</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../src/interest/JumpRateModelV2.sol/contract.JumpRateModelV2.html">JumpRateModelV2</a></li></ol></li><li class="chapter-item "><a href="../../../src/interfaces/index.html">❱ interfaces</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../src/interfaces/external/index.html">❱ external</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../src/interfaces/external/chainlink/index.html">❱ chainlink</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../src/interfaces/external/chainlink/IAggregatorV3.sol/interface.IAggregatorV3.html">IAggregatorV3</a></li></ol></li></ol></li><li class="chapter-item "><a href="../../../src/interfaces/IInterestRateModel.sol/interface.IInterestRateModel.html">IInterestRateModel</a></li><li class="chapter-item "><a href="../../../src/interfaces/IOperator.sol/interface.IOperatorData.html">IOperatorData</a></li><li class="chapter-item "><a href="../../../src/interfaces/IOperator.sol/interface.IOperatorDefender.html">IOperatorDefender</a></li><li class="chapter-item "><a href="../../../src/interfaces/IOperator.sol/interface.IOperator.html">IOperator</a></li><li class="chapter-item "><a href="../../../src/interfaces/IOracleOperator.sol/interface.IOracleOperator.html">IOracleOperator</a></li><li class="chapter-item "><a href="../../../src/interfaces/IRewardDistributor.sol/interface.IRewardDistributorData.html">IRewardDistributorData</a></li><li class="chapter-item "><a href="../../../src/interfaces/IRewardDistributor.sol/interface.IRewardDistributor.html">IRewardDistributor</a></li><li class="chapter-item "><a href="../../../src/interfaces/IRoles.sol/interface.IRoles.html">IRoles</a></li><li class="chapter-item "><a href="../../../src/interfaces/IUnit.sol/interface.IUnitAccess.html">IUnitAccess</a></li><li class="chapter-item "><a href="../../../src/interfaces/IUnit.sol/interface.IUnit.html">IUnit</a></li><li class="chapter-item "><a href="../../../src/interfaces/ImToken.sol/interface.ImTokenDelegator.html">ImTokenDelegator</a></li><li class="chapter-item "><a href="../../../src/interfaces/ImToken.sol/interface.ImTokenMinimal.html">ImTokenMinimal</a></li><li class="chapter-item "><a href="../../../src/interfaces/ImToken.sol/interface.ImToken.html">ImToken</a></li><li class="chapter-item "><a href="../../../src/interfaces/ImTokenHelper.sol/interface.ImTokenHelper.html">ImTokenHelper</a></li></ol></li><li class="chapter-item "><a href="../../../src/libraries/index.html">❱ libraries</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../src/libraries/Exponential.sol/library.Exponential.html">Exponential</a></li><li class="chapter-item "><a href="../../../src/libraries/SafeApprove.sol/interface.IToken.html">IToken</a></li><li class="chapter-item "><a href="../../../src/libraries/SafeApprove.sol/library.SafeApprove.html">SafeApprove</a></li></ol></li><li class="chapter-item "><a href="../../../src/mToken/index.html">❱ mToken</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../src/mToken/mToken.sol/abstract.mToken.html">mToken</a></li><li class="chapter-item "><a href="../../../src/mToken/mTokenConfiguration.sol/abstract.mTokenConfiguration.html">mTokenConfiguration</a></li><li class="chapter-item "><a href="../../../src/mToken/mTokenStorage.sol/abstract.mTokenStorage.html">mTokenStorage</a></li></ol></li><li class="chapter-item "><a href="../../../src/oracles/index.html">❱ oracles</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../src/oracles/ChainlinkOracle.sol/contract.ChainlinkOracle.html">ChainlinkOracle</a></li></ol></li><li class="chapter-item "><a href="../../../src/rewards/index.html">❱ rewards</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../src/rewards/RewardDistributor.sol/contract.RewardDistributor.html">RewardDistributor</a></li></ol></li><li class="chapter-item "><a href="../../../src/utils/index.html">❱ utils</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a></li><li class="chapter-item "><a href="../../../src/utils/ReentrancyGuardTransient.sol/abstract.ReentrancyGuardTransient.html">ReentrancyGuardTransient</a></li><li class="chapter-item "><a href="../../../src/utils/StorageSlot.sol/library.StorageSlot.html">StorageSlot</a></li></ol></li><li class="chapter-item "><a href="../../../src/verifier/index.html">❱ verifier</a><a class="toggle"><div>❱</div></a></li><li><ol class="section"><li class="chapter-item "><a href="../../../src/verifier/Verifier.sol/contract.Verifier.html">Verifier</a></li><li class="chapter-item "><a href="../../../src/verifier/VerifierStorage.sol/abstract.VerifierStorage.html">VerifierStorage</a></li></ol></li><li class="chapter-item "><a href="../../../src/Counter.sol/contract.Counter.html">Counter</a></li><li class="chapter-item "><a href="../../../src/Roles.sol/contract.Roles.html">Roles</a></li></ol>
-            </div>
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../../../toc.html"></iframe>
+            </noscript>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <!-- Track and set sidebar scroll position -->
-        <script>
-            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
-            sidebarScrollbox.addEventListener('click', function(e) {
-                if (e.target.tagName === 'A') {
-                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
-                }
-            }, { passive: true });
-            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
-            sessionStorage.removeItem('sidebar-scroll');
-            if (sidebarScrollTop) {
-                // preserve sidebar scroll position when navigating via links within sidebar
-                sidebarScrollbox.scrollTop = sidebarScrollTop;
-            } else {
-                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
-                var activeSection = document.querySelector('#sidebar .active');
-                if (activeSection) {
-                    activeSection.scrollIntoView({ block: 'center' });
-                }
-            }
-        </script>
-
         <div id="page-wrapper" class="page-wrapper">
 
             <div class="page">
-                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar-hover-placeholder"></div>
                 <div id="menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
                         <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
@@ -148,7 +127,7 @@
                         <a href="../../../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
-                        <a href="https://github.com/malda-protocol/malda-lending" title="Git repository" aria-label="Git repository">
+                        <a href="https://github.com/https://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@malda-protocol/malda-lending" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
 
@@ -178,12 +157,12 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="operator"><a class="header" href="#operator">Operator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src%5COperator%5COperator.sol">Git Source</a></p>
+<p><a href="https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src%5COperator%5COperator.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-<a href="/src%5COperator%5COperatorStorage.sol%5Cabstract.OperatorStorage.html">OperatorStorage</a></p>
+<a href="/src%5COperator%5COperatorStorage.sol%5Cabstract.OperatorStorage.html">OperatorStorage</a>, <a href="/src%5Cinterfaces%5CImToken.sol%5Cinterface.ImTokenOperationTypes.html">ImTokenOperationTypes</a></p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<pre><code class="language-solidity">constructor(address _rolesOperator, address _rewardDistributor);
+<pre><code class="language-solidity">constructor(address _rolesOperator, address _rewardDistributor, address _admin);
 </code></pre>
 <h3 id="setrolesoperator"><a class="header" href="#setrolesoperator">setRolesOperator</a></h3>
 <p>Sets a new Operator for the market</p>
@@ -252,7 +231,7 @@
 </tbody></table>
 </div>
 <h3 id="setmarketborrowcaps"><a class="header" href="#setmarketborrowcaps">setMarketBorrowCaps</a></h3>
-<p>Set the given borrow caps for the given cToken markets. Borrowing that brings total borrows to or above borrow cap will revert.</p>
+<p>Set the given borrow caps for the given mToken markets. Borrowing that brings total borrows to or above borrow cap will revert.</p>
 <pre><code class="language-solidity">function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newBorrowCaps) external;
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -262,7 +241,7 @@
 </tbody></table>
 </div>
 <h3 id="setmarketsupplycaps"><a class="header" href="#setmarketsupplycaps">setMarketSupplyCaps</a></h3>
-<p>Set the given supply caps for the given cToken markets. Supplying that brings total supply to or above supply cap will revert.</p>
+<p>Set the given supply caps for the given mToken markets. Supplying that brings total supply to or above supply cap will revert.</p>
 <pre><code class="language-solidity">function setMarketSupplyCaps(address[] calldata mTokens, uint256[] calldata newSupplyCaps) external;
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -273,12 +252,12 @@
 </div>
 <h3 id="setpaused"><a class="header" href="#setpaused">setPaused</a></h3>
 <p>Set pause for a specific operation</p>
-<pre><code class="language-solidity">function setPaused(address mToken, IRoles.Pause _type, bool state) external;
+<pre><code class="language-solidity">function setPaused(address mToken, ImTokenOperationTypes.OperationType _type, bool state) external;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>mToken</code></td><td><code>address</code></td><td>The market token address</td></tr>
-<tr><td><code>_type</code></td><td><code>IRoles.Pause</code></td><td>The pause operation type</td></tr>
+<tr><td><code>_type</code></td><td><code>ImTokenOperationTypes.OperationType</code></td><td>The pause operation type</td></tr>
 <tr><td><code>state</code></td><td><code>bool</code></td><td>The pause operation status</td></tr>
 </tbody></table>
 </div>
@@ -293,7 +272,7 @@
 </div>
 <h3 id="become"><a class="header" href="#become">become</a></h3>
 <p>Accepts IUnit implementation</p>
-<pre><code class="language-solidity">function become(address _unit) public;
+<pre><code class="language-solidity">function become(address _unit) external;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -306,12 +285,12 @@
 </code></pre>
 <h3 id="ispaused"><a class="header" href="#ispaused">isPaused</a></h3>
 <p>Returns if operation is paused</p>
-<pre><code class="language-solidity">function isPaused(address mToken, IRoles.Pause _type) external view override returns (bool);
+<pre><code class="language-solidity">function isPaused(address mToken, ImTokenOperationTypes.OperationType _type) external view override returns (bool);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>mToken</code></td><td><code>address</code></td><td>The mToken to check</td></tr>
-<tr><td><code>_type</code></td><td><code>IRoles.Pause</code></td><td>the operation type</td></tr>
+<tr><td><code>_type</code></td><td><code>ImTokenOperationTypes.OperationType</code></td><td>the operation type</td></tr>
 </tbody></table>
 </div>
 <h3 id="getassetsin"><a class="header" href="#getassetsin">getAssetsIn</a></h3>
@@ -400,8 +379,8 @@
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>mTokenBorrowed</code></td><td><code>address</code></td><td>The address of the borrowed cToken</td></tr>
-<tr><td><code>mTokenCollateral</code></td><td><code>address</code></td><td>The address of the collateral cToken</td></tr>
+<tr><td><code>mTokenBorrowed</code></td><td><code>address</code></td><td>The address of the borrowed mToken</td></tr>
+<tr><td><code>mTokenCollateral</code></td><td><code>address</code></td><td>The address of the collateral mToken</td></tr>
 <tr><td><code>actualRepayAmount</code></td><td><code>uint256</code></td><td>The amount of mTokenBorrowed underlying to convert into mTokenCollateral tokens</td></tr>
 </tbody></table>
 </div>
@@ -410,9 +389,9 @@
 <tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>number of mTokenCollateral tokens to be seized in a liquidation</td></tr>
 </tbody></table>
 </div>
-<h3 id="entermarket"><a class="header" href="#entermarket">enterMarket</a></h3>
+<h3 id="entermarkets"><a class="header" href="#entermarkets">enterMarkets</a></h3>
 <p>Add assets to be included in account liquidity calculation</p>
-<pre><code class="language-solidity">function enterMarket(address[] calldata _mTokens) external override;
+<pre><code class="language-solidity">function enterMarkets(address[] calldata _mTokens) external override;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -430,37 +409,37 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <tr><td><code>_mToken</code></td><td><code>address</code></td><td>The address of the asset to be removed</td></tr>
 </tbody></table>
 </div>
-<h3 id="claimmelda"><a class="header" href="#claimmelda">claimMelda</a></h3>
-<p>Claim all the MELDA accrued by holder in all markets</p>
-<pre><code class="language-solidity">function claimMelda(address holder) external override;
+<h3 id="claimmalda"><a class="header" href="#claimmalda">claimMalda</a></h3>
+<p>Claim all the MALDA accrued by holder in all markets</p>
+<pre><code class="language-solidity">function claimMalda(address holder) external override;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>holder</code></td><td><code>address</code></td><td>The address to claim MELDA for</td></tr>
+<tr><td><code>holder</code></td><td><code>address</code></td><td>The address to claim MALDA for</td></tr>
 </tbody></table>
 </div>
-<h3 id="claimmelda-1"><a class="header" href="#claimmelda-1">claimMelda</a></h3>
-<p>Claim all the MELDA accrued by holder in the specified markets</p>
-<pre><code class="language-solidity">function claimMelda(address holder, address[] memory mTokens) external override;
+<h3 id="claimmalda-1"><a class="header" href="#claimmalda-1">claimMalda</a></h3>
+<p>Claim all the MALDA accrued by holder in the specified markets</p>
+<pre><code class="language-solidity">function claimMalda(address holder, address[] memory mTokens) external override;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>holder</code></td><td><code>address</code></td><td>The address to claim MELDA for</td></tr>
-<tr><td><code>mTokens</code></td><td><code>address[]</code></td><td>The list of markets to claim MELDA in</td></tr>
+<tr><td><code>holder</code></td><td><code>address</code></td><td>The address to claim MALDA for</td></tr>
+<tr><td><code>mTokens</code></td><td><code>address[]</code></td><td>The list of markets to claim MALDA in</td></tr>
 </tbody></table>
 </div>
-<h3 id="claimmelda-2"><a class="header" href="#claimmelda-2">claimMelda</a></h3>
-<p>Claim all MELDA accrued by the holders</p>
-<pre><code class="language-solidity">function claimMelda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers)
+<h3 id="claimmalda-2"><a class="header" href="#claimmalda-2">claimMalda</a></h3>
+<p>Claim all MALDA accrued by the holders</p>
+<pre><code class="language-solidity">function claimMalda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers)
     external
     override;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>holders</code></td><td><code>address[]</code></td><td>The addresses to claim MELDA for</td></tr>
-<tr><td><code>mTokens</code></td><td><code>address[]</code></td><td>The list of markets to claim MELDA in</td></tr>
-<tr><td><code>borrowers</code></td><td><code>bool</code></td><td>Whether or not to claim MELDA earned by borrowing</td></tr>
-<tr><td><code>suppliers</code></td><td><code>bool</code></td><td>Whether or not to claim MELDA earned by supplying</td></tr>
+<tr><td><code>holders</code></td><td><code>address[]</code></td><td>The addresses to claim MALDA for</td></tr>
+<tr><td><code>mTokens</code></td><td><code>address[]</code></td><td>The list of markets to claim MALDA in</td></tr>
+<tr><td><code>borrowers</code></td><td><code>bool</code></td><td>Whether or not to claim MALDA earned by borrowing</td></tr>
+<tr><td><code>suppliers</code></td><td><code>bool</code></td><td>Whether or not to claim MALDA earned by supplying</td></tr>
 </tbody></table>
 </div>
 <h3 id="beforemtokentransfer"><a class="header" href="#beforemtokentransfer">beforeMTokenTransfer</a></h3>
@@ -594,7 +573,7 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>mToken</code></td><td><code>address</code></td><td>The market in which the supplier is interacting</td></tr>
-<tr><td><code>supplier</code></td><td><code>address</code></td><td>The address of the supplier to distribute MELDA to</td></tr>
+<tr><td><code>supplier</code></td><td><code>address</code></td><td>The address of the supplier to distribute MALDA to</td></tr>
 </tbody></table>
 </div>
 <h3 id="_distributeborrowermelda"><a class="header" href="#_distributeborrowermelda">_distributeBorrowerMelda</a></h3>
@@ -605,7 +584,7 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>mToken</code></td><td><code>address</code></td><td>The market in which the borrower is interacting</td></tr>
-<tr><td><code>borrower</code></td><td><code>address</code></td><td>The address of the borrower to distribute MELDA to</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>The address of the borrower to distribute MALDA to</td></tr>
 </tbody></table>
 </div>
 <h3 id="_claim"><a class="header" href="#_claim">_claim</a></h3>

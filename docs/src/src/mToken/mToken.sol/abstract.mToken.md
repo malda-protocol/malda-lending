@@ -1,5 +1,5 @@
 # mToken
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\mToken\mToken.sol)
+[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\mToken\mToken.sol)
 
 **Inherits:**
 [mTokenConfiguration](/src\mToken\mTokenConfiguration.sol\abstract.mTokenConfiguration.md), [ReentrancyGuardTransient](/src\utils\ReentrancyGuardTransient.sol\abstract.ReentrancyGuardTransient.md)
@@ -324,8 +324,8 @@ function exchangeRateCurrent() public override nonReentrant returns (uint256);
 
 Transfers collateral tokens (this market) to the liquidator.
 
-*Will fail unless called by another cToken during the process of liquidation.
-Its absolutely critical to use msg.sender as the borrowed cToken and not a parameter.*
+*Will fail unless called by another mToken during the process of liquidation.
+Its absolutely critical to use msg.sender as the borrowed mToken and not a parameter.*
 
 
 ```solidity
@@ -337,7 +337,7 @@ function seize(address liquidator, address borrower, uint256 seizeTokens) extern
 |----|----|-----------|
 |`liquidator`|`address`|The account receiving seized collateral|
 |`borrower`|`address`|The account having collateral seized|
-|`seizeTokens`|`uint256`|The number of cTokens to seize|
+|`seizeTokens`|`uint256`|The number of mTokens to seize|
 
 
 ### reduceReserves
@@ -384,13 +384,15 @@ Sender supplies assets into the market and receives mTokens in exchange
 
 
 ```solidity
-function _mint(uint256 mintAmount) internal nonReentrant;
+function _mint(address user, uint256 mintAmount, bool doTransfer) internal nonReentrant;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
+|`user`|`address`|The user address|
 |`mintAmount`|`uint256`|The amount of the underlying asset to supply|
+|`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
 ### _redeem
@@ -401,13 +403,15 @@ Sender redeems mTokens in exchange for the underlying asset
 
 
 ```solidity
-function _redeem(uint256 redeemTokens) internal nonReentrant;
+function _redeem(address user, uint256 redeemTokens, bool doTransfer) internal nonReentrant;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
+|`user`|`address`|The user address|
 |`redeemTokens`|`uint256`|The number of mTokens to redeem into underlying|
+|`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
 ### _redeemUnderlying
@@ -418,12 +422,13 @@ Sender redeems mTokens in exchange for a specified amount of underlying asset
 
 
 ```solidity
-function _redeemUnderlying(uint256 redeemAmount) internal nonReentrant;
+function _redeemUnderlying(address user, uint256 redeemAmount) internal nonReentrant;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
+|`user`|`address`|The user address|
 |`redeemAmount`|`uint256`|The amount of underlying to receive from redeeming mTokens|
 
 
@@ -433,13 +438,15 @@ Sender borrows assets from the protocol to their own address
 
 
 ```solidity
-function _borrow(uint256 borrowAmount) internal nonReentrant;
+function _borrow(address user, uint256 borrowAmount, bool doTransfer) internal nonReentrant;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
+|`user`|`address`|The user address|
 |`borrowAmount`|`uint256`|The amount of the underlying asset to borrow|
+|`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
 ### _repay
@@ -448,13 +455,14 @@ Sender repays their own borrow
 
 
 ```solidity
-function _repay(uint256 repayAmount) internal nonReentrant;
+function _repay(uint256 repayAmount, bool doTransfer) internal nonReentrant;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`repayAmount`|`uint256`|The amount to repay, or -1 for the full outstanding amount|
+|`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
 ### _repayBehalf
@@ -463,7 +471,7 @@ Sender repays a borrow belonging to borrower
 
 
 ```solidity
-function _repayBehalf(address borrower, uint256 repayAmount) internal nonReentrant;
+function _repayBehalf(address borrower, uint256 repayAmount, bool doTransfer) internal nonReentrant;
 ```
 **Parameters**
 
@@ -471,6 +479,7 @@ function _repayBehalf(address borrower, uint256 repayAmount) internal nonReentra
 |----|----|-----------|
 |`borrower`|`address`|the account with the debt being payed off|
 |`repayAmount`|`uint256`|The amount to repay, or -1 for the full outstanding amount|
+|`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
 ### _liquidate
@@ -480,22 +489,30 @@ The collateral seized is transferred to the liquidator.
 
 
 ```solidity
-function _liquidate(address borrower, uint256 repayAmount, address mTokenCollateral) internal nonReentrant;
+function _liquidate(
+    address liquidator,
+    address borrower,
+    uint256 repayAmount,
+    address mTokenCollateral,
+    bool doTransfer
+) internal nonReentrant;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`borrower`|`address`|The borrower of this mToken to be liquidated|
+|`liquidator`|`address`||
+|`borrower`|`address`|The liquidator address|
 |`repayAmount`|`uint256`|The amount of the underlying borrowed asset to repay|
 |`mTokenCollateral`|`address`|The market in which to seize collateral from the borrower|
+|`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
 ### _seize
 
 Transfers collateral tokens (this market) to the liquidator.
 
-*Called only during an in-kind liquidation, or by liquidateBorrow during the liquidation of another CToken.
+*Called only during an in-kind liquidation, or by liquidateBorrow during the liquidation of another mToken.
 Its absolutely critical to use msg.sender as the seizer mToken and not a parameter.*
 
 
@@ -534,7 +551,13 @@ The collateral seized is transferred to the liquidator.
 
 
 ```solidity
-function __liquidate(address liquidator, address borrower, uint256 repayAmount, address mTokenCollateral) internal;
+function __liquidate(
+    address liquidator,
+    address borrower,
+    uint256 repayAmount,
+    address mTokenCollateral,
+    bool doTransfer
+) internal;
 ```
 **Parameters**
 
@@ -544,6 +567,7 @@ function __liquidate(address liquidator, address borrower, uint256 repayAmount, 
 |`borrower`|`address`|The borrower of this mToken to be liquidated|
 |`repayAmount`|`uint256`|The amount of the underlying borrowed asset to repay|
 |`mTokenCollateral`|`address`|The market in which to seize collateral from the borrower|
+|`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
 ### __repay
@@ -552,7 +576,7 @@ Borrows are repaid by another user (possibly the borrower).
 
 
 ```solidity
-function __repay(address payer, address borrower, uint256 repayAmount) private returns (uint256);
+function __repay(address payer, address borrower, uint256 repayAmount, bool doTransfer) private returns (uint256);
 ```
 **Parameters**
 
@@ -561,6 +585,7 @@ function __repay(address payer, address borrower, uint256 repayAmount) private r
 |`payer`|`address`|the account paying off the borrow|
 |`borrower`|`address`|the account with the debt being payed off|
 |`repayAmount`|`uint256`|the amount of underlying tokens being returned, or -1 for the full outstanding amount|
+|`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
 ### __borrow
@@ -569,7 +594,7 @@ Users borrow assets from the protocol to their own address
 
 
 ```solidity
-function __borrow(address payable borrower, uint256 borrowAmount) private;
+function __borrow(address payable borrower, uint256 borrowAmount, bool doTransfer) private;
 ```
 **Parameters**
 
@@ -577,13 +602,14 @@ function __borrow(address payable borrower, uint256 borrowAmount) private;
 |----|----|-----------|
 |`borrower`|`address payable`||
 |`borrowAmount`|`uint256`|The amount of the underlying asset to borrow|
+|`doTransfer`|`bool`||
 
 
 ### __redeem
 
 
 ```solidity
-function __redeem(address payable redeemer, uint256 redeemTokensIn, uint256 redeemAmountIn) private;
+function __redeem(address payable redeemer, uint256 redeemTokensIn, uint256 redeemAmountIn, bool doTransfer) private;
 ```
 
 ### __mint
@@ -594,7 +620,7 @@ User supplies assets into the market and receives mTokens in exchange
 
 
 ```solidity
-function __mint(address minter, uint256 mintAmount) private;
+function __mint(address minter, uint256 mintAmount, bool doTransfer) private;
 ```
 **Parameters**
 
@@ -602,6 +628,7 @@ function __mint(address minter, uint256 mintAmount) private;
 |----|----|-----------|
 |`minter`|`address`|The address of the account which is supplying the assets|
 |`mintAmount`|`uint256`|The amount of the underlying asset to supply|
+|`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
 ### _transferTokens

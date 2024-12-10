@@ -25,7 +25,6 @@ contract DeployHostMarket is BaseMarketDeploy {
         string symbol;
         uint8 decimals;
         address zkVerifier;
-        address imageRegistry;
         address roles;
     }
 
@@ -58,7 +57,6 @@ contract DeployHostMarket is BaseMarketDeploy {
             data.decimals,
             owner,
             data.zkVerifier,
-            data.imageRegistry,
             deployedLogs
         );
     }

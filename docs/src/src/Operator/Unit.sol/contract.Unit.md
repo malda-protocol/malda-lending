@@ -1,5 +1,5 @@
 # Unit
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\Operator\Unit.sol)
+[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\Operator\Unit.sol)
 
 **Inherits:**
 [IUnit](/src\interfaces\IUnit.sol\interface.IUnit.md), [IUnitAccess](/src\interfaces\IUnit.sol\interface.IUnitAccess.md)
@@ -54,7 +54,7 @@ modifier onlyAdmin();
 
 
 ```solidity
-constructor();
+constructor(address _admin);
 ```
 
 ### setPendingImplementation

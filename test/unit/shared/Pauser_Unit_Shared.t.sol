@@ -9,7 +9,6 @@ import {Base_Unit_Test} from "../../Base_Unit_Test.t.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {Risc0VerifierMock} from "../../mocks/Risc0VerifierMock.sol";
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
-import {ZkVerifierImageRegistry} from "src/verifier/ZkVerifierImageRegistry.sol";
 
 abstract contract Pauser_Unit_Shared is Base_Unit_Test {
     mErc20Host public mWethHost;
@@ -17,7 +16,6 @@ abstract contract Pauser_Unit_Shared is Base_Unit_Test {
     mTokenLogs public operationsLog;
 
     Risc0VerifierMock public verifierMock;
-    ZkVerifierImageRegistry public verifierImageRegistry;
 
     Pauser public pauser;
 
@@ -26,9 +24,6 @@ abstract contract Pauser_Unit_Shared is Base_Unit_Test {
 
         verifierMock = new Risc0VerifierMock();
         vm.label(address(verifierMock), "verifierMock");
-
-        verifierImageRegistry = new ZkVerifierImageRegistry(address(this));
-        vm.label(address(verifierImageRegistry), "verifierImageRegistry");
 
         operationsLog = new mTokenLogs(address(roles));
         vm.label(address(operationsLog), "mTokenLogs");
@@ -43,18 +38,12 @@ abstract contract Pauser_Unit_Shared is Base_Unit_Test {
             18,
             payable(address(this)),
             address(verifierMock),
-            address(verifierImageRegistry),
             address(operationsLog)
         );
         vm.label(address(mWethHost), "mWethHost");
 
         mWethExtension = new mTokenGateway(
-            payable(address(this)),
-            address(weth),
-            address(roles),
-            address(verifierMock),
-            address(verifierImageRegistry),
-            address(operationsLog)
+            payable(address(this)), address(weth), address(roles), address(verifierMock), address(operationsLog)
         );
 
         pauser = new Pauser(address(roles), address(operator), address(this));
