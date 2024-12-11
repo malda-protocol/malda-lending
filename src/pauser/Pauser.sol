@@ -90,16 +90,16 @@ contract Pauser is Ownable, IPauser {
 
     // ----------- PRIVATE ------------
     function _pauseAllMarketOperations(address _market) private {
+        _pauseMarketOperation(_market, OperationType.AmountIn);
+        _pauseMarketOperation(_market, OperationType.AmountOut);
+        _pauseMarketOperation(_market, OperationType.AmountInHere);
+        _pauseMarketOperation(_market, OperationType.AmountOutHere);
         _pauseMarketOperation(_market, OperationType.Mint);
-        _pauseMarketOperation(_market, OperationType.MintOnOtherChain);
         _pauseMarketOperation(_market, OperationType.Borrow);
-        _pauseMarketOperation(_market, OperationType.BorrowOnOtherChain);
         _pauseMarketOperation(_market, OperationType.Transfer);
         _pauseMarketOperation(_market, OperationType.Seize);
         _pauseMarketOperation(_market, OperationType.Repay);
-        _pauseMarketOperation(_market, OperationType.RepayOnOtherChain);
         _pauseMarketOperation(_market, OperationType.Redeem);
-        _pauseMarketOperation(_market, OperationType.RedeemOnOtherChain);
         emit MarketPaused(_market);
     }
 

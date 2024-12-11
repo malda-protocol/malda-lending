@@ -19,15 +19,10 @@ interface ImTokenOperationTypes {
         Seize,
         Transfer,
         Mint,
-        MintOnOtherChain,
         Borrow,
-        BorrowOnOtherChain,
         Repay,
-        RepayOnOtherChain,
         Redeem,
-        RedeemOnOtherChain,
-        Liquidate,
-        LiquidateOnOtherChain
+        Liquidate
     }
 }
 
