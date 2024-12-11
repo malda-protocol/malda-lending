@@ -33,6 +33,7 @@ contract LZBridge is IBridge, ILayerZeroReceiverV2 {
     uint64 private constant SENDER = 1; // LZ Sender version
     uint64 private constant RECEIVER = 2; // LZ Receiver version
 
+    event LayerZeroEndpointUpdated(address indexed oldVal, address indexed newVal);
 
     constructor(address _roles) {
         roles = IRoles(_roles);
@@ -46,6 +47,33 @@ contract LZBridge is IBridge, ILayerZeroReceiverV2 {
     modifier onlyRebalancer() {
         // TODO: add
         _;
+    }
+
+    function nextNonce(uint32, bytes32) external pure override returns (uint64 nonce) {
+        return 0;
+    }
+
+    function sendMsg(uint256 _dstChainId, bytes memory _message, bytes memory _bridgeData) external payable {
+        
+    } 
+
+    function lzReceive(Origin calldata _origin, bytes32 _guid, bytes calldata _message, address, bytes calldata)
+        external
+        payable
+        override
+    {
+
+    }
+
+    function allowInitializePath(Origin calldata origin) external view override returns (bool) {
+    }
+
+     function getFee(uint256 _dstChainId, bytes memory _message, bytes memory _bridgeData)
+        external
+        view
+        returns (uint256)
+    {
+
     }
 
     // ----------- OWNER ------------
