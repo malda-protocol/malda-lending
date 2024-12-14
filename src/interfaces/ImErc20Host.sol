@@ -8,129 +8,80 @@ pragma solidity =0.8.28;
 |_|_|_|__|__|_____|____/|__|__|   
 */
 
-import {ImTokenLogs} from "./ImTokenLogs.sol";
-
 interface ImErc20Host {
-    struct InitData {
-        address underlyingToken;
-        address operator;
-        address interestModel;
-        uint256 exchaneRateMantissa;
-        string name;
-        string symbol;
-        uint8 decimals;
-        address zkVerifier;
-        address imageRegistry;
-        address owner;
-    }
-
-    struct LiquidateData {
-        address msgSender;
-        int32 srcNonce;
-        int32 nonce;
-        uint256 accAmount;
-        uint32 srcChainId;
-        uint32 chainId;
-        uint256 amount;
-    }
     // ----------- EVENTS -----------
+    /**
+     * @notice Emitted when a user updates allowed callers
+     */
+    event AllowedCallerUpdated(address indexed sender, address indexed caller, bool status);
+
+    /**
+     * @notice Emitted when a chain id whitelist status is updated
+     */
+    event mErc20Host_ChainStatusUpdated(uint32 indexed chainId, bool status);
+
     /**
      * @notice Emitted when a liquidate operation is executed
      */
-
     event mErc20Host_LiquidateExternal(
-        address indexed liquidator, address indexed borrower, address indexed collateral, LiquidateData liquidateData
+        address indexed msgSender,
+        address indexed srcSender,
+        address userToLiquidate,
+        address receiver,
+        address indexed collateral,
+        uint32 srcChainId,
+        uint256 amount
     );
 
     /**
      * @notice Emitted when a mint operation is executed
      */
     event mErc20Host_MintExternal(
-        address msgSender,
-        address indexed srcSender,
-        address indexed user,
-        int32 srcNonce,
-        int32 nonce,
-        uint256 accAmount,
-        uint32 srcChainId,
-        uint32 chainId,
-        uint256 amount
+        address indexed msgSender, address indexed srcSender, address indexed receiver, uint32 chainId, uint256 amount
     );
 
     /**
      * @notice Emitted when a borrow operation is executed
      */
     event mErc20Host_BorrowExternal(
-        address msgSender,
-        address indexed srcSender,
-        address indexed user,
-        int32 srcNonce,
-        int32 nonce,
-        uint256 accAmount,
-        uint32 srcChainId,
-        uint32 chainId,
-        uint256 amount
+        address indexed msgSender, address indexed srcSender, uint32 indexed chainId, uint256 amount
     );
 
     /**
      * @notice Emitted when a repay operation is executed
      */
     event mErc20Host_RepayExternal(
-        address msgSender,
-        address indexed srcSender,
-        address indexed user,
-        int32 srcNonce,
-        int32 nonce,
-        uint256 accAmount,
-        uint32 srcChainId,
-        uint32 chainId,
-        uint256 amount
+        address indexed msgSender, address indexed srcSender, address indexed position, uint32 chainId, uint256 amount
     );
 
     /**
      * @notice Emitted when a withdrawal is executed
      */
     event mErc20Host_WithdrawExternal(
-        address msgSender,
-        address indexed srcSender,
-        address indexed user,
-        int32 srcNonce,
-        int32 nonce,
-        uint256 accAmount,
-        uint32 srcChainId,
-        uint32 chainId,
-        uint256 amount
+        address indexed msgSender, address indexed srcSender, uint32 indexed chainId, uint256 amount
     );
 
     /**
      * @notice Emitted when a borrow operation is triggered for an extension chain
      */
-    event mErc20Host_BorrowOnExternsionChain(
-        address indexed from,
-        address indexed user,
-        int32 srcNonce,
-        int32 dstNonce,
-        uint256 accAmount,
-        uint32 srcChainId,
-        uint32 dstChainId,
-        uint256 amount
-    );
+    event mErc20Host_BorrowOnExternsionChain(address indexed sender, uint32 dstChainId, uint256 amount);
 
     /**
      * @notice Emitted when a withdraw operation is triggered for an extension chain
      */
-    event mErc20Host_WithdrawOnExtensionChain(
-        address indexed from,
-        address indexed user,
-        int32 srcNonce,
-        int32 dstNonce,
-        uint256 accAmount,
-        uint32 srcChainId,
-        uint32 dstChainId,
-        uint256 amount
-    );
+    event mErc20Host_WithdrawOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount);
 
     // ----------- ERRORS -----------
+    /**
+     * @notice Thrown when the chain id is not LINEA
+     */
+    error mErc20Host_ChainNotValid();
+
+    /**
+     * @notice Thrown when the address is not valid
+     */
+    error mErc20Host_AddressNotValid();
+
     /**
      * @notice Thrown when the amount provided is bigger than the available amount`
      */
@@ -153,26 +104,32 @@ interface ImErc20Host {
 
     // ----------- VIEW -----------
     /**
-     * @notice Returns nonce
+     * @notice Returns if a caller is allowed for sender
      */
-    function nonce() external view returns (uint32);
-
-    /**
-     * @notice Logs manager
-     */
-    function logsOperator() external view returns (ImTokenLogs);
+    function isCallerAllowed(address sender, address caller) external view returns (bool);
 
     // ----------- PUBLIC -----------
+    /**
+     * @notice Set caller status for `msg.sender`
+     * @param caller The caller address
+     * @param status The status to set for `caller`
+     */
+    function updateAllowedCallerStatus(address caller, bool status) external;
+
     /**
      * @notice Mints tokens after external verification
      * @param journalData The journal data for minting
      * @param seal The Zk proof seal
+     * @param userToLiquidate The position to liquidate
+     * @param receiver The collateral receiver
      * @param liquidateAmount The amount to liquidate
      * @param collateral The collateral to seize
      */
     function liquidateExternal(
         bytes calldata journalData,
         bytes calldata seal,
+        address userToLiquidate,
+        address receiver,
         uint256 liquidateAmount,
         address collateral
     ) external;
@@ -182,8 +139,10 @@ interface ImErc20Host {
      * @param journalData The journal data for minting
      * @param seal The Zk proof seal
      * @param mintAmount The amount to mint
+     * @param receiver The tokens receiver
      */
-    function mintExternal(bytes calldata journalData, bytes calldata seal, uint256 mintAmount) external;
+    function mintExternal(bytes calldata journalData, bytes calldata seal, uint256 mintAmount, address receiver)
+        external;
 
     /**
      * @notice Borrows tokens after external verification
@@ -198,8 +157,10 @@ interface ImErc20Host {
      * @param journalData The journal data for repayment
      * @param seal The Zk proof seal
      * @param repayAmount The amount to repay
+     * @param position The position to repay for
      */
-    function repayExternal(bytes calldata journalData, bytes calldata seal, uint256 repayAmount) external;
+    function repayExternal(bytes calldata journalData, bytes calldata seal, uint256 repayAmount, address position)
+        external;
 
     /**
      * @notice Withdraws tokens after external verification
@@ -213,15 +174,13 @@ interface ImErc20Host {
      * @notice Initiates a withdraw operation
      * @param amount The amount to withdraw
      * @param dstChainId The destination chain to recieve funds
-     * @param allowedCallers The allowed callers for destination chain finalization
      */
-    function withdrawOnExtension(uint256 amount, uint32 dstChainId, address[] calldata allowedCallers) external;
+    function withdrawOnExtension(uint256 amount, uint32 dstChainId) external;
 
     /**
      * @notice Initiates a withdraw operation
      * @param amount The amount to withdraw
      * @param dstChainId The destination chain to recieve funds
-     * @param allowedCallers The allowed callers for destination chain finalization
      */
-    function borrowOnExtension(uint256 amount, uint32 dstChainId, address[] calldata allowedCallers) external;
+    function borrowOnExtension(uint256 amount, uint32 dstChainId) external;
 }

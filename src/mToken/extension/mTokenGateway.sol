@@ -17,11 +17,10 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 // contracts
 import {IRoles} from "src/interfaces/IRoles.sol";
-import {ImTokenLogs} from "src/interfaces/ImTokenLogs.sol";
 import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
-import {BytesLib} from "src/libraries/BytesLib.sol";
+import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
 
 import {Steel} from "risc0/steel/Steel.sol";
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
@@ -35,11 +34,6 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
      */
     IRoles public rolesOperator;
 
-    /**
-     * @inheritdoc ImTokenGateway
-     */
-    ImTokenLogs public logsOperator;
-
     mapping(OperationType => bool) public paused;
 
     /**
@@ -48,14 +42,13 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
     address public underlying;
     uint8 private _underlyingDecimals;
 
-    uint32 public nonce;
     mapping(address => uint256) public accAmountIn;
     mapping(address => uint256) public accAmountOut;
+    mapping(address => mapping(address => bool)) public allowedCallers;
 
-    int32 private constant DEFAULT_NONCE = -1;
     uint32 private constant LINEA_CHAIN_ID = 59144;
 
-    constructor(address payable _owner, address _underlying, address _roles, address zkVerifier_, address _logs)
+    constructor(address payable _owner, address _underlying, address _roles, address zkVerifier_)
         Ownable(_owner)
         ERC20(
             string.concat("pending_", IERC20Metadata(_underlying).name()),
@@ -66,7 +59,6 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
         _underlyingDecimals = IERC20Metadata(_underlying).decimals();
 
         rolesOperator = IRoles(_roles);
-        logsOperator = ImTokenLogs(_logs);
 
         // Initialize the ZkVerifier
         ZkVerifier.initialize(zkVerifier_);
@@ -88,6 +80,13 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
      */
     function isPaused(OperationType _type) external view returns (bool) {
         return paused[_type];
+    }
+
+    /**
+     * @inheritdoc ImTokenGateway
+     */
+    function isCallerAllowed(address sender, address caller) external view returns (bool) {
+        return allowedCallers[sender][caller];
     }
 
     // ----------- OWNER ------------
@@ -127,81 +126,38 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
     /**
      * @inheritdoc ImTokenGateway
      */
-    function supplyOnHost(uint256 amount, address user, address[] calldata allowedCallers)
-        external
-        override
-        notPaused(OperationType.AmountIn)
-    {
+    function updateAllowedCallerStatus(address caller, bool status) external override {
+        allowedCallers[msg.sender][caller] = status;
+        emit AllowedCallerUpdated(msg.sender, caller, status);
+    }
+
+    /**
+     * @inheritdoc ImTokenGateway
+     */
+    function supplyOnHost(uint256 amount, bytes4 lineaSelector) external override notPaused(OperationType.AmountIn) {
         // checks
         require(amount > 0, mTokenGateway_AmountNotValid());
-        require(user != address(0), mTokenGateway_AddressNotValid());
 
         IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
 
         // effects
-        nonce++;
         accAmountIn[msg.sender] += amount;
-        logsOperator.registerLog(
-            user,
-            OperationType.AmountIn,
-            uint32(block.chainid),
-            LINEA_CHAIN_ID,
-            nonce,
-            abi.encodePacked(msg.sender, user, accAmountIn[msg.sender], uint32(block.chainid), allowedCallers)
-        );
 
         emit mTokenGateway_Supplied(
             msg.sender,
-            user,
-            amount,
-            int32(nonce),
-            DEFAULT_NONCE,
             accAmountIn[msg.sender],
-            uint32(block.chainid),
-            LINEA_CHAIN_ID
-        );
-    }
-
-    /**
-     * @inheritdoc ImTokenGateway
-     */
-    function outOnHost(uint256 amount, address user, address[] calldata allowedCallers)
-        external
-        override
-        notPaused(OperationType.AmountOut)
-    {
-        // checks
-        require(amount > 0, mTokenGateway_AmountNotValid());
-        require(user != address(0), mTokenGateway_AddressNotValid());
-
-        // effects
-        nonce++;
-        accAmountOut[msg.sender] += amount;
-        logsOperator.registerLog(
-            user,
-            OperationType.AmountOut,
+            accAmountOut[msg.sender],
+            amount,
             uint32(block.chainid),
             LINEA_CHAIN_ID,
-            nonce,
-            abi.encodePacked(msg.sender, user, accAmountOut[msg.sender], uint32(block.chainid), allowedCallers)
-        );
-
-        emit mTokenGateway_OutOnHost(
-            msg.sender,
-            user,
-            amount,
-            int32(nonce),
-            DEFAULT_NONCE,
-            accAmountOut[msg.sender],
-            uint32(block.chainid),
-            LINEA_CHAIN_ID
+            lineaSelector
         );
     }
 
     /**
      * @inheritdoc ImTokenGateway
      */
-    function outHere(bytes calldata journalData, bytes calldata seal, uint256 amount)
+    function outHere(bytes calldata journalData, bytes calldata seal, uint256 amount, address receiver)
         external
         override
         notPaused(OperationType.AmountOutHere)
@@ -209,45 +165,31 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
         // verify received data
         _verifyProof(journalData, seal);
 
-        // decode action data
-        // | Offset | Length | Data Type               |
-        // |--------|---------|----------------------- |
-        // | 0      | 20      | address sender         |
-        // | 20     | 20      | address user           |
-        // | 40     | 32      | uint256 accAmountOut   |
-        // | 72     | 4       | uint32 chainId         |
-        // | 76     | 4       | uint32 srcNonce        |
-        // | 80     | -       | [] allowedCallers      |
-        address _sender = BytesLib.toAddress(BytesLib.slice(journalData, 0, 20), 0);
-        address _user = BytesLib.toAddress(BytesLib.slice(journalData, 20, 20), 0);
-        uint256 _accAmountOut = BytesLib.toUint256(BytesLib.slice(journalData, 40, 32), 0);
-        uint32 _chainId = BytesLib.toUint32(BytesLib.slice(journalData, 72, 4), 0);
-        uint32 _srcNonce = BytesLib.toUint32(BytesLib.slice(journalData, 76, 4), 0);
-        address[] memory _allowedCallers = _extractCallers(journalData, 80);
+        (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId) =
+            mTokenProofDecoderLib.decodeProof(journalData);
 
         // checks
-        _checkSender(msg.sender, _user, _allowedCallers);
+        _checkSender(msg.sender, _sender);
+        require(_market == address(this), mTokenGateway_AddressNotValid());
+        require(_chainId == LINEA_CHAIN_ID, mTokenGateway_ChainNotValid()); // allow only Host
         require(amount > 0, mTokenGateway_AmountNotValid());
         require(_accAmountOut - accAmountOut[_sender] >= amount, mTokenGateway_AmountTooBig());
         require(IERC20(underlying).balanceOf(address(this)) >= amount, mTokenGateway_ReleaseCashNotAvailable());
 
         // effects
-        nonce++;
         accAmountOut[_sender] += amount;
-        logsOperator.registerLog(_user, OperationType.AmountOutHere, _chainId, uint32(block.chainid), nonce, "");
 
         // interactions
-        IERC20(underlying).safeTransfer(_user, amount);
+        IERC20(underlying).safeTransfer(receiver, amount);
 
         emit mTokenGateway_Extracted(
             msg.sender,
             _sender,
-            _user,
-            amount,
-            int32(_srcNonce),
-            int32(nonce),
+            receiver,
+            accAmountIn[_sender],
             accAmountOut[_sender],
-            _chainId,
+            amount,
+            uint32(_chainId),
             uint32(block.chainid)
         );
     }
@@ -274,43 +216,11 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
         _verifyInput(journalData, seal);
     }
 
-    function _extractCallers(bytes calldata journalData, uint256 allowedCallersOffset)
-        private
-        pure
-        returns (address[] memory allowedCallers)
-    {
-        if (journalData.length <= allowedCallersOffset) {
-            allowedCallers = new address[](0);
-        } else {
-            bytes memory _slicedJournal = journalData[allowedCallersOffset:];
-            uint256 _addrCount = _slicedJournal.length / 32;
-
-            allowedCallers = new address[](_addrCount);
-            for (uint256 i; i < _addrCount; i++) {
-                bytes memory addressBytes = new bytes(32);
-                for (uint256 j = 0; j < 32; j++) {
-                    addressBytes[j] = _slicedJournal[i * 32 + j];
-                }
-                allowedCallers[i] = abi.decode(addressBytes, (address));
-            }
-        }
-    }
-
-    function _checkSender(address sender, address user, address[] memory allowedCallers) private view {
-        if (sender != user) {
-            bool isAllowedCaller = false;
-
-            // check array
-            for (uint256 i = 0; i < allowedCallers.length; i++) {
-                if (sender == allowedCallers[i]) {
-                    isAllowedCaller = true;
-                    break;
-                }
-            }
-
+    function _checkSender(address msgSender, address srcSender) private view {
+        if (msgSender != srcSender) {
             require(
-                isAllowedCaller || sender == owner()
-                    || rolesOperator.isAllowedFor(sender, rolesOperator.PROOF_FORWARDER()),
+                allowedCallers[srcSender][msgSender] || msgSender == owner()
+                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER()),
                 mTokenGateway_CallerNotAllowed()
             );
         }

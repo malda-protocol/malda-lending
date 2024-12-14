@@ -55,11 +55,6 @@ interface IRoles {
     function PROOF_FORWARDER() external view returns (bytes32);
 
     /**
-     * @notice Returns LOGS_ADD role
-     */
-    function LOGS_ADD() external view returns (bytes32);
-
-    /**
      * @notice Returns PAUSE_MANAGER role
      */
     function PAUSE_MANAGER() external view returns (bytes32);

@@ -29,15 +29,12 @@ contract DeployHostMarket is BaseMarketDeploy {
     }
 
     function run(MarketData memory data) public returns (address) {
-        address deployedLogs = _deployLogs(data.roles, data.underlyingToken, "mErc20Host");
-
         uint256 key = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(key);
 
         bytes32 salt = getSalt(string.concat(data.name, "mErc20Host", string(abi.encodePacked(data.underlyingToken))));
-        address created = deployer.create(
-            salt, abi.encodePacked(type(mErc20Host).creationCode, _getConstructorData(data, deployedLogs))
-        );
+        address created =
+            deployer.create(salt, abi.encodePacked(type(mErc20Host).creationCode, _getConstructorData(data)));
 
         console.log(" Host market deployed at: %s", created);
         vm.stopBroadcast();
@@ -45,7 +42,7 @@ contract DeployHostMarket is BaseMarketDeploy {
         return created;
     }
 
-    function _getConstructorData(MarketData memory data, address deployedLogs) private view returns (bytes memory) {
+    function _getConstructorData(MarketData memory data) private view returns (bytes memory) {
         address owner = vm.envAddress("OWNER");
         return abi.encode(
             data.underlyingToken,
@@ -56,8 +53,7 @@ contract DeployHostMarket is BaseMarketDeploy {
             data.symbol,
             data.decimals,
             owner,
-            data.zkVerifier,
-            deployedLogs
+            data.zkVerifier
         );
     }
 }

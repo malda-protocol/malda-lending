@@ -20,8 +20,6 @@ contract DeployExtensionMarket is BaseMarketDeploy {
         public
         returns (address)
     {
-        address deployedLogs = _deployLogs(roles, underlyingToken, "mTokenGateway");
-
         uint256 key = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(key);
 
@@ -31,8 +29,7 @@ contract DeployExtensionMarket is BaseMarketDeploy {
         address created = deployer.create(
             salt,
             abi.encodePacked(
-                type(mTokenGateway).creationCode,
-                abi.encode(owner, underlyingToken, roles, zkVerifier, imageRegistry, deployedLogs)
+                type(mTokenGateway).creationCode, abi.encode(owner, underlyingToken, roles, zkVerifier, imageRegistry)
             )
         );
 

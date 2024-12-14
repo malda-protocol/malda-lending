@@ -272,11 +272,12 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
      * @dev Accrues interest whether or not the operation succeeds, unless reverted
      * @param user The user address
      * @param redeemAmount The amount of underlying to receive from redeeming mTokens
+     * @param doTransfer If an actual transfer should be performed
      */
-    function _redeemUnderlying(address user, uint256 redeemAmount) internal nonReentrant {
+    function _redeemUnderlying(address user, uint256 redeemAmount, bool doTransfer) internal nonReentrant {
         _accrueInterest();
         // emits redeem-specific logs on errors, so we don't need to
-        __redeem(payable(user), 0, redeemAmount, true);
+        __redeem(payable(user), 0, redeemAmount, doTransfer);
     }
 
     /**
@@ -419,8 +420,8 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
     /**
      * @notice The liquidator liquidates the borrowers collateral.
      *  The collateral seized is transferred to the liquidator.
-     * @param borrower The borrower of this mToken to be liquidated
      * @param liquidator The address repaying the borrow and seizing collateral
+     * @param borrower The borrower of this mToken to be liquidated
      * @param mTokenCollateral The market in which to seize collateral from the borrower
      * @param repayAmount The amount of the underlying borrowed asset to repay
      * @param doTransfer If an actual transfer should be performed

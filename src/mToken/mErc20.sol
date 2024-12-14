@@ -99,7 +99,7 @@ contract mErc20 is mToken, ImErc20 {
      * @inheritdoc ImErc20
      */
     function redeemUnderlying(uint256 redeemAmount) external {
-        _redeemUnderlying(msg.sender, redeemAmount);
+        _redeemUnderlying(msg.sender, redeemAmount, true);
     }
 
     /**

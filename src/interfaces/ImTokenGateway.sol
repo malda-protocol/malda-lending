@@ -9,53 +9,47 @@ pragma solidity =0.8.28;
 */
 
 import {IRoles} from "./IRoles.sol";
-import {ImTokenLogs} from "./ImTokenLogs.sol";
 import {ImTokenOperationTypes} from "./ImToken.sol";
 
 interface ImTokenGateway {
     // ----------- EVENTS -----------
     /**
+     * @notice Emitted when a user updates allowed callers
+     */
+    event AllowedCallerUpdated(address indexed sender, address indexed caller, bool status);
+
+    /**
      * @notice Emitted when a supply operation is initiated
      */
     event mTokenGateway_Supplied(
         address indexed from,
-        address indexed user,
-        uint256 amount,
-        int32 srcNonce,
-        int32 dstNonce,
         uint256 accAmountIn,
-        uint32 srcChainId,
-        uint32 dstChainId
-    );
-    /**
-     * @notice Emitted when a supply operation is initiated
-     */
-    event mTokenGateway_OutOnHost(
-        address indexed from,
-        address indexed user,
+        uint256 accAmountOut,
         uint256 amount,
-        int32 srcNonce,
-        int32 dstNonce,
-        uint256 accAmountIn,
         uint32 srcChainId,
-        uint32 dstChainId
+        uint32 dstChainId,
+        bytes4 lineaMethodSelector
     );
+
     /**
      * @notice Emitted when an extract was finalized
      */
     event mTokenGateway_Extracted(
         address indexed msgSender,
         address indexed srcSender,
-        address indexed srcUser,
-        uint256 amount,
-        int32 srcNonce,
-        int32 dstNonce,
+        address indexed receiver,
+        uint256 accAmountIn,
         uint256 accAmountOut,
+        uint256 amount,
         uint32 srcChainId,
         uint32 dstChainId
     );
 
-    // ----------- ERRORS -----------
+    // ----------- ERRORS -----------+
+    /**
+     * @notice Thrown when the chain id is not LINEA
+     */
+    error mTokenGateway_ChainNotValid();
     /**
      * @notice Thrown when the address is not valid
      */
@@ -102,11 +96,6 @@ interface ImTokenGateway {
     function rolesOperator() external view returns (IRoles);
 
     /**
-     * @notice Logs manager
-     */
-    function logsOperator() external view returns (ImTokenLogs);
-
-    /**
      * @notice Returns the address of the underlying token
      * @return The address of the underlying token
      */
@@ -119,11 +108,6 @@ interface ImTokenGateway {
     function isPaused(ImTokenOperationTypes.OperationType _type) external view returns (bool);
 
     /**
-     * @notice Returns nonce
-     */
-    function nonce() external view returns (uint32);
-
-    /**
      * @notice Returns accumulated amount in per user
      */
     function accAmountIn(address user) external view returns (uint256);
@@ -132,6 +116,11 @@ interface ImTokenGateway {
      * @notice Returns accumulated amount out per user
      */
     function accAmountOut(address user) external view returns (uint256);
+
+    /**
+     * @notice Returns if a caller is allowed for sender
+     */
+    function isCallerAllowed(address sender, address caller) external view returns (bool);
 
     // ----------- PUBLIC -----------
     /**
@@ -142,26 +131,25 @@ interface ImTokenGateway {
     function setPaused(ImTokenOperationTypes.OperationType _type, bool state) external;
 
     /**
-     * @notice Supply underlying to the contractr
-     * @param amount The supplied amount
-     * @param user The user to supply for
-     * @param allowedCallers The allowed callers for host chain interactions
+     * @notice Set caller status for `msg.sender`
+     * @param caller The caller address
+     * @param status The status to set for `caller`
      */
-    function supplyOnHost(uint256 amount, address user, address[] calldata allowedCallers) external;
+    function updateAllowedCallerStatus(address caller, bool status) external;
 
     /**
-     * @notice Supply underlying to the contractr
+     * @notice Supply underlying to the contract
      * @param amount The supplied amount
-     * @param user The user to supply for
-     * @param allowedCallers The allowed callers for host chain interactions
+     * @param lineaSelector The method selector to be called on Linea by our relayer. If empty, user has to submit it
      */
-    function outOnHost(uint256 amount, address user, address[] calldata allowedCallers) external;
+    function supplyOnHost(uint256 amount, bytes4 lineaSelector) external;
 
     /**
      * @notice Extract tokens
      * @param journalData The supplied journal
      * @param seal The seal address
-     * @param amount The amount to use
+     * @param amount The amount to withdraw
+     * @param receiver The address who should receive the underlying tokens
      */
-    function outHere(bytes calldata journalData, bytes calldata seal, uint256 amount) external;
+    function outHere(bytes calldata journalData, bytes calldata seal, uint256 amount, address receiver) external;
 }
