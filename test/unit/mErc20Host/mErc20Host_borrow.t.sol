@@ -6,14 +6,18 @@ import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
-import {BytesLib} from "src/libraries/BytesLib.sol";
-
 import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
 
 // tests
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
 contract mErc20Host_borrow is mToken_Unit_Shared {
+    function setUp() public virtual override {
+        super.setUp();
+
+        mWethHost.updateAllowedChain(uint32(block.chainid), true);
+    }
+
     function test_RevertGiven_MarketIsPausedForBorrow(uint256 amount)
         external
         whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
@@ -180,7 +184,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         uint256 supplyUnderlyingBefore,
         uint256 totalBorrowsBefore
     ) private {
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
         // borrow
         mWethHost.borrowExternal(journalData, "0x123", amount);
@@ -244,7 +248,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
     function test_GivenDecodedAmountIs0() external whenBorrowExternalIsCalled {
         uint256 amount = 0;
 
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
         mWethHost.borrowExternal(journalData, "0x123", 0);
@@ -257,7 +261,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenBorrowExternalIsCalled
         givenDecodedAmountIsValid
     {
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
         verifierMock.setStatus(true); // set for failure
 
@@ -314,8 +318,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         uint256 balanceUnderlyingBefore = weth.balanceOf(address(this));
         uint256 totalBorrowsBefore = mWethHost.totalBorrows();
 
-        address[] memory allowedCallers = new address[](0);
-        mWethHost.borrowOnExtension(amount, 1, allowedCallers);
+        mWethHost.borrowOnExtension(amount, 1);
 
         {
             uint256 balanceUnderlyingAfter = weth.balanceOf(address(this));
@@ -324,38 +327,5 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
             assertEq(balanceUnderlyingBefore, balanceUnderlyingAfter, "1");
             assertLt(totalBorrowsBefore, totalBorrowsAfter, "2");
         }
-
-        // check log
-        _checkLog(ImTokenOperationTypes.OperationType.AmountOut, amount, 1, uint32(block.chainid), 1);
-    }
-
-    function _checkLog(
-        ImTokenOperationTypes.OperationType opType,
-        uint256 amount,
-        uint32 nonce,
-        uint32 srcChainId,
-        uint32 dstChainId
-    ) private view {
-        (uint256 journalDstChainId, bytes memory encodedData) =
-            operationsLog.getLogForChain(address(this), opType, nonce, srcChainId);
-        assertGt(encodedData.length, 0, "A");
-        assertEq(journalDstChainId, dstChainId, "B");
-
-        // decode action data
-        // | Offset | Length | Data Type       |
-        // |--------|--------|-----------------|
-        // | 0     | 20     | address sender  |
-        // | 20    | 40     | address user  |
-        // | 40    | 32     | uint256 accAmount  |
-        // | 72    | 4      | uin32 chainId    |
-        // | 76    | -      | address[] allowedCallers    |
-        address decodedSender = BytesLib.toAddress(BytesLib.slice(encodedData, 0, 20), 0);
-        //address decodedUser = BytesLib.toAddress(BytesLib.slice(encodedData, 20, 20), 0);
-        uint256 decodedAccAmount = BytesLib.toUint256(BytesLib.slice(encodedData, 40, 32), 0);
-        uint32 decodedChainId = BytesLib.toUint32(BytesLib.slice(encodedData, 72, 4), 0);
-
-        assertEq(decodedAccAmount, amount, "C");
-        assertEq(decodedSender, address(this), "D");
-        assertEq(decodedChainId, srcChainId, "F");
     }
 }

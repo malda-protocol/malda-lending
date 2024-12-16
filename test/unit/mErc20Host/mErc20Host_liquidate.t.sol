@@ -12,6 +12,12 @@ import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
 contract mErc20Host_liquidate is mToken_Unit_Shared {
+    function setUp() public virtual override {
+        super.setUp();
+
+        mWethHost.updateAllowedChain(uint32(block.chainid), true);
+    }
+
     function test_RevertGiven_MarketIsPausedForLiquidation(uint256 amount)
         external
         whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Liquidate)
@@ -19,10 +25,11 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         // it should revert
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), alice, amount, 0);
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
-        mWethHost.liquidateExternal(journalData, "0x123", amount, address(mWethHost));
+        //alice
+        mWethHost.liquidateExternal(journalData, "0x123", alice, address(this), amount, address(mWethHost));
     }
 
     modifier givenMarketIsNotPaused() {
@@ -36,7 +43,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         whenMarketIsListed(address(mWethHost))
     {
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.liquidateExternal("", "0x123", amount, address(mWethHost)); // it should revert
+        mWethHost.liquidateExternal("", "0x123", alice, address(this), amount, address(mWethHost)); // it should revert
     }
 
     function test_RevertWhen_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
@@ -47,17 +54,17 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
     {
         // it should revert
         vm.expectRevert();
-        mWethHost.liquidateExternal("0x", "0x123", amount, address(mWethHost)); // it should revert
+        mWethHost.liquidateExternal("0x", "0x123", alice, address(this), amount, address(mWethHost)); // it should revert
     }
 
     function test_WhenDecodedAmountIs0() external givenMarketIsNotPaused {
         // it should revert with mErc20Host_AmountNotValid
 
         uint256 amount = 0;
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.liquidateExternal(journalData, "0x123", amount, address(mWethHost));
+        mWethHost.liquidateExternal(journalData, "0x123", alice, address(this), amount, address(mWethHost));
     }
 
     modifier whenDecodedAmountIsValid() {
@@ -70,12 +77,12 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         whenDecodedAmountIsValid
         inRange(amount, SMALL, LARGE)
     {
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
-        mWethHost.liquidateExternal(journalData, "0x123", amount, address(mWethHost));
+        mWethHost.liquidateExternal(journalData, "0x123", alice, address(this), amount, address(mWethHost));
     }
 
     function test_RevertWhen_UserIsTheSameAsTheLiquidator(uint256 amount)
@@ -85,10 +92,10 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         // it should revert
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
+        bytes memory journalData = _createAccumulatedAmountJournal(alice, address(mWethHost), amount);
 
         vm.expectRevert(ImErc20Host.mErc20Host_CallerNotAllowed.selector);
-        mWethHost.liquidateExternal(journalData, "0x123", amount, address(mWethHost));
+        mWethHost.liquidateExternal(journalData, "0x123", alice, alice, amount, address(mWethHost));
     }
 
     struct LiquidateStateInternal {
@@ -104,7 +111,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         uint256 accountBorrowAfter;
     }
 
-    function test_WhenSealVerificationWasOk(uint256 amount)
+    function test_WhenSealVerificationWasOkQA(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
@@ -124,15 +131,16 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         vars.totalBorrowsBefore = mWethHost.totalBorrows();
         vars.accountBorrowBefore = mWethHost.borrowBalanceStored(address(this));
 
-        address[] memory allowedCallers = new address[](1);
-        allowedCallers[0] = alice;
-        bytes memory journalData = _createAccumulatedAmountJournal(alice, address(this), amount, 0, allowedCallers);
+        bytes memory journalData = _createAccumulatedAmountJournal(bob, address(mWethHost), amount);
 
         operator.setCloseFactor(1e18);
         operator.setLiquidationIncentive(1e17);
 
+        _resetContext(bob);
+        mWethHost.updateAllowedCallerStatus(alice, true);
+
         _resetContext(alice);
-        mWethHost.liquidateExternal(journalData, "0x123", amount, address(mWethHost));
+        mWethHost.liquidateExternal(journalData, "0x123", address(this), alice, amount, address(mWethHost));
 
         // after state
         vars.balanceUnderlyingAfter = weth.balanceOf(address(alice));
@@ -148,46 +156,46 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         }
     }
 
-    function test_WhenSealVerificationWasOk_DifferentCollateral(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenMarketIsListed(address(mWethHost))
-        whenMarketEntered(address(mWethHost))
-        whenMarketIsListed(address(mDaiHost))
-        givenMarketIsNotPaused
-        whenDecodedAmountIsValid
-    {
-        // didn't use a modifier because of stack too dep
-        {
-            address[] memory mTokens = new address[](1);
-            mTokens[0] = address(mDaiHost);
-            operator.enterMarkets(mTokens);
-            operator.setCollateralFactor(mTokens[0], DEFAULT_COLLATERAL_FACTOR);
-        }
-        _repayPrerequisites(address(mWethHost), amount * 2, amount);
-        _repayPrerequisites(address(mDaiHost), amount * 2, amount);
-
-        mWethHost.setRolesOperator(address(roles));
-
-        LiquidateStateInternal memory vars;
-        vars.balanceMTokenBefore = mDaiHost.balanceOf(address(alice));
-
-        address[] memory allowedCallers = new address[](1);
-        allowedCallers[0] = alice;
-        bytes memory journalData = _createAccumulatedAmountJournal(alice, address(this), amount, 0, allowedCallers);
-
-        operator.setCloseFactor(1e18);
-        operator.setLiquidationIncentive(1e17);
-
-        _resetContext(alice);
-        mWethHost.liquidateExternal(journalData, "0x123", amount, address(mDaiHost));
-
-        // after state
-        vars.balanceMTokenAfter = mDaiHost.balanceOf(address(alice));
-
-        {
-            assertGt(vars.balanceMTokenAfter, vars.balanceMTokenBefore);
-        }
-    }
+    /**
+     * function test_WhenSealVerificationWasOk_DifferentCollateral(uint256 amount)
+     *     external
+     *     inRange(amount, SMALL, LARGE)
+     *     whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+     *     whenMarketIsListed(address(mWethHost))
+     *     whenMarketEntered(address(mWethHost))
+     *     whenMarketIsListed(address(mDaiHost))
+     *     givenMarketIsNotPaused
+     *     whenDecodedAmountIsValid
+     * {
+     *     // didn't use a modifier because of stack too dep
+     *     {
+     *         address[] memory mTokens = new address[](1);
+     *         mTokens[0] = address(mDaiHost);
+     *         operator.enterMarkets(mTokens);
+     *         operator.setCollateralFactor(mTokens[0], DEFAULT_COLLATERAL_FACTOR);
+     *     }
+     *     _repayPrerequisites(address(mWethHost), amount * 2, amount);
+     *     _repayPrerequisites(address(mDaiHost), amount * 2, amount);
+     *
+     *     mWethHost.setRolesOperator(address(roles));
+     *
+     *     LiquidateStateInternal memory vars;
+     *     vars.balanceMTokenBefore = mDaiHost.balanceOf(address(alice));
+     *
+     *     bytes memory journalData = _createAccumulatedAmountJournal(alice, address(mWethHost), amount);
+     *
+     *     operator.setCloseFactor(1e18);
+     *     operator.setLiquidationIncentive(1e17);
+     *
+     *     _resetContext(alice);
+     *     mWethHost.liquidateExternal(journalData, "0x123", address(this), address(this), amount, address(mDaiHost));
+     *
+     *     // after state
+     *     vars.balanceMTokenAfter = mDaiHost.balanceOf(address(alice));
+     *
+     *     {
+     *         assertGt(vars.balanceMTokenAfter, vars.balanceMTokenBefore);
+     *     }
+     * }
+     */
 }

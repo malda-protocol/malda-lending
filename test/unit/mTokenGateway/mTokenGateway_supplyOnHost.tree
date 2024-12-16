@@ -4,8 +4,6 @@ mTokenGateway_supplyOnHost.t.sol
 └── given market is not paused
     ├── when amount is 0
     │   └── it should revert
-    ├── when user is address0
-    │   └── it should revert
     ├── when user does not have enough balance
     │   └── it should revert
     └── when parameters are right

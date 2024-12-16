@@ -12,6 +12,12 @@ import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
 contract mErc20Host_mint is mToken_Unit_Shared {
+    function setUp() public virtual override {
+        super.setUp();
+
+        mWethHost.updateAllowedChain(uint32(block.chainid), true);
+    }
+
     function test_RevertGiven_MarketIsPausedForMinting(uint256 amount)
         external
         whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint)
@@ -96,7 +102,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         whenMintExternalIsCalled
     {
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.mintExternal("", "0x123", amount);
+        mWethHost.mintExternal("", "0x123", amount, address(this));
     }
 
     function test_RevertGiven_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
@@ -105,14 +111,14 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         whenMintExternalIsCalled
     {
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.mintExternal("", "0x123", amount);
+        mWethHost.mintExternal("", "0x123", amount, address(this));
     }
 
     function test_GivenDecodedAmountIs0() external whenMintExternalIsCalled {
         uint256 amount = 0;
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.mintExternal(journalData, "0x123", 0);
+        mWethHost.mintExternal(journalData, "0x123", 0, address(this));
     }
 
     function test_RevertWhen_SealVerificationFails(uint256 amount)
@@ -121,12 +127,12 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         whenMintExternalIsCalled
         givenDecodedAmountIsValid
     {
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
-        mWethHost.mintExternal(journalData, "0x123", amount);
+        mWethHost.mintExternal(journalData, "0x123", amount, address(this));
     }
 
     function test_WhenSealVerificationWasOk(uint256 amount)
@@ -140,8 +146,8 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
-        mWethHost.mintExternal(journalData, "0x123", amount);
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
+        mWethHost.mintExternal(journalData, "0x123", amount, address(this));
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethHost.totalSupply();

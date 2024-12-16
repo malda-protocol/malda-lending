@@ -2,11 +2,9 @@
 pragma solidity =0.8.28;
 
 //interfaces
-import {IRoles} from "src/interfaces/IRoles.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 //contracts
-import {mTokenLogs} from "src/mToken/mTokenLogs.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
@@ -23,7 +21,6 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
     mErc20Host public mDaiHost;
     mErc20Immutable public mWeth;
     mTokenGateway public mWethExtension;
-    mTokenLogs public operationsLog;
 
     Risc0VerifierMock public verifierMock;
 
@@ -38,9 +35,6 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
 
         verifierMock = new Risc0VerifierMock();
         vm.label(address(verifierMock), "verifierMock");
-
-        operationsLog = new mTokenLogs(address(roles));
-        vm.label(address(operationsLog), "mTokenLogs");
 
         mWeth = new mErc20Immutable(
             address(weth),
@@ -63,8 +57,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             "mWeth",
             18,
             payable(address(this)),
-            address(verifierMock),
-            address(operationsLog)
+            address(verifierMock)
         );
         vm.label(address(mWethHost), "mWethHost");
 
@@ -77,62 +70,32 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             "mDai",
             18,
             payable(address(this)),
-            address(verifierMock),
-            address(operationsLog)
+            address(verifierMock)
         );
         vm.label(address(mDaiHost), "mDaiHost");
 
-        mWethExtension = new mTokenGateway(
-            payable(address(this)), address(weth), address(roles), address(verifierMock), address(operationsLog)
-        );
+        mWethExtension = new mTokenGateway(payable(address(this)), address(weth), address(roles), address(verifierMock));
 
         mDaiHost.setImageId("0x123");
         mWethHost.setImageId("0x123");
         mWethExtension.setImageId("0x123");
-
-        // post deployment roles
-        roles.allowFor(address(mWethHost), roles.LOGS_ADD(), true);
-        roles.allowFor(address(mDaiHost), roles.LOGS_ADD(), true);
-        roles.allowFor(address(mWethExtension), roles.LOGS_ADD(), true);
     }
     // ----------- HELPERS ------------
 
-    function _createAccumulatedAmountJournal(address sender, address user, uint256 accAmount, uint32 nonce)
+    function _createAccumulatedAmountJournal(address sender, address market, uint256 accAmount)
         internal
         view
         returns (bytes memory)
     {
-        address[] memory allowedCallers = new address[](0);
-        return __createAccumulatedAmountJournal(sender, user, accAmount, nonce, allowedCallers);
-    }
-
-    function _createAccumulatedAmountJournal(
-        address sender,
-        address user,
-        uint256 accAmount,
-        uint32 nonce,
-        address[] memory allowedCallers
-    ) internal view returns (bytes memory) {
-        return __createAccumulatedAmountJournal(sender, user, accAmount, nonce, allowedCallers);
-    }
-
-    function __createAccumulatedAmountJournal(
-        address sender,
-        address user,
-        uint256 accAmount,
-        uint32 nonce,
-        address[] memory allowedCallers
-    ) internal view returns (bytes memory) {
+        // decode action data
         // | Offset | Length | Data Type               |
         // |--------|---------|----------------------- |
         // | 0      | 20      | address sender         |
-        // | 20     | 40      | address user           |
-        // | 40     | 32      | uint256 accAmount      |
-        // | 72     | 4       | uint32 chainId         |
-        // | 76     | 4       | uint32 srcNonce        |
-        // | 80     | -       | [] allowedCallers      |
-
-        return abi.encodePacked(sender, user, accAmount, uint32(block.chainid), nonce, allowedCallers);
+        // | 20     | 40      | address market         |
+        // | 40     | 32      | uint256 accAmountIn    |
+        // | 72     | 32      | uint256 accAmountOut   |
+        // | 104    | 4       | uint32 chainId         |
+        return abi.encodePacked(sender, market, accAmount, accAmount, uint32(block.chainid));
     }
 
     function _borrowPrerequisites(address mToken, uint256 supplyAmount) internal {

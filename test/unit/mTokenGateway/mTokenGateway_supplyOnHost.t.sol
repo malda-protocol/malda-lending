@@ -7,18 +7,16 @@ import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
 contract mTokenGateway_supplyOnHost is mToken_Unit_Shared {
+    function setUp() public virtual override {
+        super.setUp();
+
+        vm.chainId(LINEA_CHAIN_ID);
+    }
+
     function test_RevertWhen_AmountIs0() external {
         // it should revert
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountNotValid.selector);
-        address[] memory allowedCallers = new address[](0);
-        mWethExtension.supplyOnHost(0, address(this), allowedCallers);
-    }
-
-    function test_RevertWhen_UserIsAddress0(uint256 amount) external inRange(amount, SMALL, LARGE) {
-        // it should revert
-        vm.expectRevert(ImTokenGateway.mTokenGateway_AddressNotValid.selector);
-        address[] memory allowedCallers = new address[](0);
-        mWethExtension.supplyOnHost(amount, address(0), allowedCallers);
+        mWethExtension.supplyOnHost(0, mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector);
     }
 
     function test_RevertWhen_MarketPaused(uint256 amount) external inRange(amount, SMALL, LARGE) {
@@ -26,8 +24,7 @@ contract mTokenGateway_supplyOnHost is mToken_Unit_Shared {
 
         // it should revert
         vm.expectRevert();
-        address[] memory allowedCallers = new address[](0);
-        mWethExtension.supplyOnHost(amount, address(this), allowedCallers);
+        mWethExtension.supplyOnHost(amount, mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector);
     }
 
     modifier whenAmountGreaterThan0() {
@@ -43,8 +40,7 @@ contract mTokenGateway_supplyOnHost is mToken_Unit_Shared {
         // it should revert
         weth.approve(address(mWethExtension), amount);
         vm.expectRevert();
-        address[] memory allowedCallers = new address[](0);
-        mWethExtension.supplyOnHost(amount, address(this), allowedCallers);
+        mWethExtension.supplyOnHost(amount, mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector);
     }
 
     function test_GivenUserHasEnoughBalance(uint256 amount)
@@ -55,22 +51,16 @@ contract mTokenGateway_supplyOnHost is mToken_Unit_Shared {
         _getTokens(weth, address(this), amount);
 
         uint256 balanceWethBefore = weth.balanceOf(address(this));
-        uint256 nonceBefore = mWethExtension.nonce();
         uint256 accAmountInBefore = mWethExtension.accAmountIn(address(this));
 
         weth.approve(address(mWethExtension), amount);
-        address[] memory allowedCallers = new address[](0);
-        mWethExtension.supplyOnHost(amount, address(this), allowedCallers);
+        mWethExtension.supplyOnHost(amount, mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
-        uint256 nonceAfter = mWethExtension.nonce();
         uint256 accAmountInAfter = mWethExtension.accAmountIn(address(this));
 
         // it should decrease the caller underlying balance
         assertEq(balanceWethAfter + amount, balanceWethBefore);
-
-        // it should increase nonce
-        assertGt(nonceAfter, nonceBefore);
 
         // it should increase accAmount
         assertGt(accAmountInAfter, accAmountInBefore);

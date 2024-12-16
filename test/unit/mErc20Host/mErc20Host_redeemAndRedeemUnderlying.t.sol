@@ -13,6 +13,12 @@ import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
 contract mErc20Host_redeem is mToken_Unit_Shared {
+    function setUp() public virtual override {
+        super.setUp();
+
+        mWethHost.updateAllowedChain(uint32(block.chainid), true);
+    }
+
     function test_RevertGiven_MarketIsPausedForRdeem(uint256 amount)
         external
         whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
@@ -160,7 +166,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
 
     function test_GivenDecodedAmountIs0() external whenRedeemExternalIsCalled {
         uint256 amount = 0;
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
         mWethHost.withdrawExternal(journalData, "0x123", 0);
@@ -172,7 +178,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         whenRedeemExternalIsCalled
         givenDecodedAmountIsValid
     {
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
         verifierMock.setStatus(true); // set for failure
 
@@ -195,7 +201,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
         mWethHost.withdrawExternal(journalData, "0x123", amount);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
@@ -225,7 +231,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
 
         amount = amount - DEFAULT_INFLATION_INCREASE;
 
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(this), amount, 0);
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
         mWethHost.withdrawExternal(journalData, "0x123", amount);
 
         vm.expectRevert();
@@ -244,8 +250,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
 
     function test_GivenDecodedLiquidityIs0() external whenWithdrawOnExtensionIsCalled {
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        address[] memory allowedCallers = new address[](0);
-        mWethHost.withdrawOnExtension(0, 1, allowedCallers);
+        mWethHost.withdrawOnExtension(0, 1);
     }
 
     function test_RevertWhen_LiquiditySealVerificationFails(uint256 amount)
@@ -257,8 +262,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
-        address[] memory allowedCallers = new address[](0);
-        mWethHost.withdrawOnExtension(amount, 1, allowedCallers);
+        mWethHost.withdrawOnExtension(amount, 1);
     }
 
     function test_WhenLiquiditySealVerificationWasOk(uint256 amount)
@@ -276,8 +280,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
-        address[] memory allowedCallers = new address[](0);
-        mWethHost.withdrawOnExtension(amount, 1, allowedCallers);
+        mWethHost.withdrawOnExtension(amount, 1);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethHost.totalSupply();
