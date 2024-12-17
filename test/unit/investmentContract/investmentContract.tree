@@ -1,0 +1,27 @@
+InvestmentContractTest
+├── given investment round is closed
+│   └── it should revert with InvestmentContract_InvestmentRoundClosed
+├── given amount is below minimum
+│   └── it should revert with InvestmentContract_MinimumInvestmentNotMet
+├── given insufficient allowance
+│   └── it should revert with ERC20: insufficient allowance
+└── given valid investment parameters
+    ├── when invest is called
+    │   ├── it should decrease investor's USDC balance
+    │   ├── it should increase contract's USDC balance
+    │   ├── it should mint NFT to investor
+    │   ├── it should record investment amount
+    │   └── it should emit InvestmentMade event
+    ├── when withdraw is called
+    │   ├── given withdraw caller is not owner
+    │   │   └── it should revert with Ownable: caller is not the owner
+    │   ├── given contract has insufficient balance
+    │   │   └── it should revert with ERC20: transfer amount exceeds balance
+    │   └── given valid withdrawal parameters
+    │       ├── it should increase owner's USDC balance
+    │       └── it should decrease contract's USDC balance
+    └── when closeInvestmentRound is called
+        ├── given close round caller is not owner
+        │   └── it should revert with Ownable: caller is not the owner
+        └── given caller is owner
+            └── it should set investmentRoundClosed to true
