@@ -2,8 +2,8 @@
 pragma solidity =0.8.28;
 
 import {Test} from "forge-std/Test.sol";
-import {InvestmentContract} from "src/investmentContract/InvestmentContract.sol";
-import {ERC20Mock} from "test/mocks/ERC20Mock.sol";
+import {InvestmentContract} from "../../../src/investmentContract/investmentContract.sol";
+import {ERC20Mock} from "../../mocks/ERC20Mock.sol";
 
 contract InvestmentContractTest is Test {
     InvestmentContract public investmentContract;
