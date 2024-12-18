@@ -9,8 +9,9 @@ pragma solidity =0.8.28;
 */
 
 // interfaces
-
 import {Steel} from "risc0/steel/Steel.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // contracts
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
@@ -22,6 +23,8 @@ import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperationTypes {
+    using SafeERC20 for IERC20;
+
     // ----------- STORAGE ------------
     mapping(uint32 => mapping(address => uint256)) public accAmountInPerChain;
     mapping(uint32 => mapping(address => uint256)) public accAmountOutPerChain;
@@ -77,6 +80,14 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         return allowedCallers[sender][caller];
     }
 
+    /**
+     * @inheritdoc ImErc20Host
+     */
+    function getProofData(uint32 dstChainId) external view returns (bytes memory) {
+        return mTokenProofDecoderLib.encodeProof(msg.sender, address(this), accAmountInPerChain[dstChainId][msg.sender], accAmountOutPerChain[dstChainId][msg.sender], uint32(block.chainid));
+    }
+
+
     // ----------- OWNER ------------
     /**
      * @notice Sets the _risc0Verifier address
@@ -102,6 +113,14 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     function updateAllowedChain(uint32 _chainId, bool _status) external onlyAdmin {
         allowedChains[_chainId] = _status;
         emit mErc20Host_ChainStatusUpdated(_chainId, _status);
+    }
+
+    /**
+     * @inheritdoc ImErc20Host
+     */
+    function extractForRebalancing(uint256 amount) external {
+        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mErc20Host_NotRebalancer();
+        IERC20(underlying).safeTransferFrom(address(this), msg.sender, amount);
     }
 
     // ----------- PUBLIC ------------
@@ -188,35 +207,6 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     /**
      * @inheritdoc ImErc20Host
      */
-    function borrowExternal(bytes calldata journalData, bytes calldata seal, uint256 borrowAmount) external override {
-        // verify received data
-        _verifyProof(journalData, seal);
-
-        (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId) =
-            mTokenProofDecoderLib.decodeProof(journalData);
-
-        // base checks
-        {
-            _checkSender(msg.sender, _sender);
-            require(_market == address(this), mErc20Host_AddressNotValid());
-            require(allowedChains[_chainId], mErc20Host_ChainNotValid()); // allow only whitelisted chains
-        }
-        // operation check
-        {
-            require(borrowAmount > 0, mErc20Host_AmountNotValid());
-            require(borrowAmount <= _accAmountOut - accAmountOutPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
-        }
-
-        // actions
-        accAmountOutPerChain[_chainId][_sender] += borrowAmount;
-        _borrow(_sender, borrowAmount, true);
-
-        emit mErc20Host_BorrowExternal(msg.sender, _sender, _chainId, borrowAmount);
-    }
-
-    /**
-     * @inheritdoc ImErc20Host
-     */
     function repayExternal(bytes calldata journalData, bytes calldata seal, uint256 repayAmount, address position)
         external
         override
@@ -244,35 +234,6 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         _repayBehalf(position, repayAmount, false);
 
         emit mErc20Host_RepayExternal(msg.sender, _sender, position, _chainId, repayAmount);
-    }
-
-    /**
-     * @inheritdoc ImErc20Host
-     */
-    function withdrawExternal(bytes calldata journalData, bytes calldata seal, uint256 amount) external override {
-        // verify received data
-        _verifyProof(journalData, seal);
-
-        (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId) =
-            mTokenProofDecoderLib.decodeProof(journalData);
-
-        // base checks
-        {
-            _checkSender(msg.sender, _sender);
-            require(_market == address(this), mErc20Host_AddressNotValid());
-            require(allowedChains[_chainId], mErc20Host_ChainNotValid()); // allow only whitelisted chains
-        }
-        // operation check
-        {
-            require(amount > 0, mErc20Host_AmountNotValid());
-            require(amount <= _accAmountOut - accAmountOutPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
-        }
-
-        // actions
-        accAmountOutPerChain[_chainId][_sender] += amount;
-        _redeem(_sender, amount, true);
-
-        emit mErc20Host_WithdrawExternal(msg.sender, _sender, _chainId, amount);
     }
 
     /**

@@ -9,7 +9,6 @@ pragma solidity =0.8.28;
 */
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -22,10 +21,9 @@ import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
 
-import {Steel} from "risc0/steel/Steel.sol";
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 
-contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOperationTypes {
+contract mTokenGateway is Ownable, ZkVerifier, ImTokenGateway, ImTokenOperationTypes {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE -----------
@@ -40,7 +38,6 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
      * @inheritdoc ImTokenGateway
      */
     address public underlying;
-    uint8 private _underlyingDecimals;
 
     mapping(address => uint256) public accAmountIn;
     mapping(address => uint256) public accAmountOut;
@@ -48,15 +45,8 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
 
     uint32 private constant LINEA_CHAIN_ID = 59144;
 
-    constructor(address payable _owner, address _underlying, address _roles, address zkVerifier_)
-        Ownable(_owner)
-        ERC20(
-            string.concat("pending_", IERC20Metadata(_underlying).name()),
-            string.concat("p_", IERC20Metadata(_underlying).symbol())
-        )
-    {
+    constructor(address payable _owner, address _underlying, address _roles, address zkVerifier_) Ownable(_owner) {
         underlying = _underlying;
-        _underlyingDecimals = IERC20Metadata(_underlying).decimals();
 
         rolesOperator = IRoles(_roles);
 
@@ -70,11 +60,6 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
     }
 
     // ----------- VIEW ------------
-    /// @notice return the decimals value
-    function decimals() public view override returns (uint8) {
-        return _underlyingDecimals;
-    }
-
     /**
      * @inheritdoc ImTokenGateway
      */
@@ -87,6 +72,13 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
      */
     function isCallerAllowed(address sender, address caller) external view returns (bool) {
         return allowedCallers[sender][caller];
+    }
+
+    /**
+     * @inheritdoc ImTokenGateway
+     */
+    function getProofData() external view returns (bytes memory) {
+        return mTokenProofDecoderLib.encodeProof(msg.sender, address(this), accAmountIn[msg.sender], accAmountOut[msg.sender], uint32(block.chainid));
     }
 
     // ----------- OWNER ------------
@@ -120,6 +112,14 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
      */
     function setImageId(bytes32 _imageId) external onlyOwner {
         _setImageId(_imageId);
+    }
+
+    /**
+     * @inheritdoc ImTokenGateway
+     */
+    function extractForRebalancing(uint256 amount) external {
+        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mTokenGateway_NotRebalancer();
+        IERC20(underlying).safeTransferFrom(address(this), msg.sender, amount);
     }
 
     // ----------- PUBLIC ------------
@@ -192,20 +192,6 @@ contract mTokenGateway is Ownable, ERC20, ZkVerifier, ImTokenGateway, ImTokenOpe
             uint32(_chainId),
             uint32(block.chainid)
         );
-    }
-
-    /**
-     * @dev Non-transferable
-     */
-    function transfer(address, uint256) public pure override returns (bool) {
-        revert mTokenGateway_NonTransferable();
-    }
-
-    /**
-     * @dev Non-transferable
-     */
-    function transferFrom(address, address, uint256) public pure override returns (bool) {
-        revert mTokenGateway_NonTransferable();
     }
 
     // ----------- PRIVATE ------------

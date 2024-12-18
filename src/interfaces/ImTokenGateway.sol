@@ -89,6 +89,11 @@ interface ImTokenGateway {
      */
     error mTokenGateway_Paused(ImTokenOperationTypes.OperationType _type);
 
+    /**
+     * @notice Thrown when caller is not rebalancer
+     */
+    error mTokenGateway_NotRebalancer();
+
     // ----------- VIEW -----------
     /**
      * @notice Roles manager
@@ -122,7 +127,18 @@ interface ImTokenGateway {
      */
     function isCallerAllowed(address sender, address caller) external view returns (bool);
 
+    /**
+     * @notice Returns the proof data journal
+     */
+    function getProofData() external view returns (bytes memory);
+    
     // ----------- PUBLIC -----------
+    /**
+     * @notice Extract amount to be used for rebalancing operation
+     * @param amount The amount to rebalance
+     */
+    function extractForRebalancing(uint256 amount) external;
+
     /**
      * @notice Set pause for a specific operation
      * @param _type The pause operation type

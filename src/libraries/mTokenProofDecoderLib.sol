@@ -30,4 +30,12 @@ library mTokenProofDecoderLib {
         accAmountOut = BytesLib.toUint256(BytesLib.slice(journalData, 72, 32), 0);
         chainId = BytesLib.toUint32(BytesLib.slice(journalData, 104, 4), 0);
     }
+
+    function encodeProof(address sender, address market, uint256 accAmountIn, uint256 accAmountOut, uint32 chainId)
+        external
+        pure
+        returns (bytes memory)
+    {
+        return abi.encodePacked(sender, market, accAmountIn, accAmountOut, chainId);
+    }
 }

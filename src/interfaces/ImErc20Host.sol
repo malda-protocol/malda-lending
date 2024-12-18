@@ -102,13 +102,29 @@ interface ImErc20Host {
      */
     error mErc20Host_CallerNotAllowed();
 
+    /**
+     * @notice Thrown when caller is not rebalancer
+     */
+    error mErc20Host_NotRebalancer();
+
     // ----------- VIEW -----------
     /**
      * @notice Returns if a caller is allowed for sender
      */
     function isCallerAllowed(address sender, address caller) external view returns (bool);
 
+    /**
+     * @notice Returns the proof data journal
+     */
+    function getProofData(uint32 dstChainId) external view returns (bytes memory);
+
     // ----------- PUBLIC -----------
+    /**
+     * @notice Extract amount to be used for rebalancing operation
+     * @param amount The amount to rebalance
+     */
+    function extractForRebalancing(uint256 amount) external;
+
     /**
      * @notice Set caller status for `msg.sender`
      * @param caller The caller address
@@ -145,14 +161,6 @@ interface ImErc20Host {
         external;
 
     /**
-     * @notice Borrows tokens after external verification
-     * @param journalData The journal data for borrowing
-     * @param seal The Zk proof seal
-     * @param borrowAmount The amount to borrow
-     */
-    function borrowExternal(bytes calldata journalData, bytes calldata seal, uint256 borrowAmount) external;
-
-    /**
      * @notice Repays tokens after external verification
      * @param journalData The journal data for repayment
      * @param seal The Zk proof seal
@@ -161,14 +169,6 @@ interface ImErc20Host {
      */
     function repayExternal(bytes calldata journalData, bytes calldata seal, uint256 repayAmount, address position)
         external;
-
-    /**
-     * @notice Withdraws tokens after external verification
-     * @param journalData The journal data for withdrawing
-     * @param seal The Zk proof seal
-     * @param amount The amount to withdraw
-     */
-    function withdrawExternal(bytes calldata journalData, bytes calldata seal, uint256 amount) external;
 
     /**
      * @notice Initiates a withdraw operation

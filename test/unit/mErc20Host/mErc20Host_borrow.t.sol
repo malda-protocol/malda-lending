@@ -176,24 +176,6 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         );
     }
 
-    // stack too deep
-    function _borrowExternalAndCheck(
-        uint256 amount,
-        uint256 balanceUnderlyingBefore,
-        uint256 balanceUnderlyingMTokenBefore,
-        uint256 supplyUnderlyingBefore,
-        uint256 totalBorrowsBefore
-    ) private {
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
-
-        // borrow
-        mWethHost.borrowExternal(journalData, "0x123", amount);
-
-        _afterBorrowChecks(
-            amount, balanceUnderlyingBefore, balanceUnderlyingMTokenBefore, supplyUnderlyingBefore, totalBorrowsBefore
-        );
-    }
-
     function _afterBorrowChecks(
         uint256 amount,
         uint256 balanceUnderlyingBefore,
@@ -223,73 +205,6 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
 
         // it should increase totalBorrows
         assertGt(totalBorrowsAfter, totalBorrowsBefore);
-    }
-
-    modifier whenBorrowExternalIsCalled() {
-        // @dev does nothing; for readability only
-        _;
-    }
-
-    modifier givenDecodedAmountIsValid() {
-        // @dev does nothing; for readability only
-        _;
-    }
-
-    function test_RevertGiven_JournalIsEmpty(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenBorrowExternalIsCalled
-    {
-        vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.borrowExternal("", "0x123", amount);
-    }
-
-    function test_GivenDecodedAmountIs0() external whenBorrowExternalIsCalled {
-        uint256 amount = 0;
-
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
-
-        vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.borrowExternal(journalData, "0x123", 0);
-    }
-
-    function test_RevertWhen_SealVerificationFails(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenBorrowExternalIsCalled
-        givenDecodedAmountIsValid
-    {
-        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
-
-        verifierMock.setStatus(true); // set for failure
-
-        vm.expectRevert();
-        mWethHost.borrowExternal(journalData, "0x123", amount);
-    }
-
-    function test_WhenSealVerificationWasOk(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenBorrowExternalIsCalled
-        givenDecodedAmountIsValid
-        whenMarketIsListed(address(mWethHost))
-        whenMarketEntered(address(mWethHost))
-    {
-        // supply tokens; assure collateral factor is met
-        _borrowPrerequisites(address(mWethHost), amount * 2);
-
-        // before state
-        uint256 balanceUnderlyingBefore = weth.balanceOf(address(this));
-        uint256 balanceUnderlyingMTokenBefore = weth.balanceOf(address(mWethHost));
-        uint256 supplyUnderlyingBefore = weth.totalSupply();
-        uint256 totalBorrowsBefore = mWethHost.totalBorrows();
-
-        _borrowExternalAndCheck(
-            amount, balanceUnderlyingBefore, balanceUnderlyingMTokenBefore, supplyUnderlyingBefore, totalBorrowsBefore
-        );
     }
 
     modifier whenBorrowOnExtensionIsCalled() {
