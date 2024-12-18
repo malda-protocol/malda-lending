@@ -1,0 +1,32 @@
+GovernanceRoundTest
+├── given round is closed
+│   └── it should revert with GovernanceRound_RoundClosed
+├── given amount is below minimum
+│   └── it should revert with GovernanceRound_MinimumDepositNotMet
+├── given insufficient allowance
+│   └── it should revert with ERC20InsufficientAllowance
+└── given valid deposit parameters
+    ├── when deposit is called
+    │   ├── it should decrease depositor's USDC balance
+    │   ├── it should increase contract's USDC balance
+    │   ├── it should mint NFT to depositor
+    │   ├── it should record deposit amount
+    │   └── it should emit DepositMade event
+    ├── when withdraw is called
+    │   ├── given withdraw caller is not owner
+    │   │   └── it should revert with OwnableUnauthorizedAccount
+    │   ├── given contract has insufficient balance
+    │   │   └── it should revert with ERC20InsufficientBalance
+    │   └── given valid withdrawal parameters
+    │       ├── it should increase owner's USDC balance
+    │       └── it should decrease contract's USDC balance
+    ├── when closeRound is called
+    │   ├── given close round caller is not operator
+    │   │   └── it should revert with GovernanceRound_CallerIsNotOperator
+    │   └── given caller is operator
+    │       └── it should set roundClosed to true
+    └── when tokenURI is called
+        ├── given nonexistent token id
+        │   └── it should revert with ERC721NonexistentToken
+        └── given valid token id
+            └── it should return correct URI string

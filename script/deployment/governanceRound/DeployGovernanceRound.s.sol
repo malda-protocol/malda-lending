@@ -3,10 +3,10 @@ pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
 import {DeployBase} from "script/deployers/DeployBase.sol";
-import {InvestmentContract} from "src/investmentContract/investmentContract.sol";
+import {GovernanceRound} from "src/governanceRound/governanceRound.sol";
 
 /**
- * forge script DeployInvestmentContract  \
+ * forge script DeployGovernanceRound  \
  *     --slow \
  *     --verify \
  *     --verifier-url <url> \
@@ -14,7 +14,10 @@ import {InvestmentContract} from "src/investmentContract/investmentContract.sol"
  *     --etherscan-api-key <key> \
  *     --broadcast
  */
-contract DeployInvestmentContract is Script, DeployBase {
+contract DeployGovernanceRound is Script, DeployBase {
+
+    // TODO: Set operator
+    address constant OPERATOR = 0x0000000000000000000000000000000000000000;
 
     address constant USDC = 0x176211869cA2b568f2A7D4EE941E073a821EE1ff; // Linea
     // address constant USDC = 0xaf88d065e77c8cC2239327C5EDb3A432268e5831; // Arbitrum
@@ -29,10 +32,10 @@ contract DeployInvestmentContract is Script, DeployBase {
 
         address owner = vm.envAddress("OWNER");
 
-        bytes32 salt = getSalt("InvestmentContract");
-        address created = deployer.create(salt, abi.encodePacked(type(InvestmentContract).creationCode, abi.encode(USDC, owner)));
+        bytes32 salt = getSalt("GovernanceRound");
+        address created = deployer.create(salt, abi.encodePacked(type(GovernanceRound).creationCode, abi.encode(USDC, owner, OPERATOR)));
 
-        console.log(" InvestmentContract deployed at: %s", created);
+        console.log(" GovernanceRound deployed at: %s", created);
 
         vm.stopBroadcast();
 
