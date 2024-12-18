@@ -108,6 +108,52 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     /**
      * @inheritdoc ImErc20Host
      */
+    function liquidateExternal(bytes calldata journalData, bytes calldata seal) external override {
+        // verify received data
+        _verifyProof(OperationType.Mint, journalData, seal);
+
+        // decode action data
+        // | Offset | Length | Data Type       |
+        // |--------|--------|-----------------|
+        // | 0     | 32     | uint256 liquidateAmount  |
+        // | 32    | 20     | address liquidator    |
+        // | 52    | 20     | address user    |
+        // | 72    | 20     | address collateral    |
+        // | 92    | 4      | uint32 nonce    |
+        // | 96    | 4      | uint32 chainId  |
+        uint256 liquidateAmount = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
+        address liquidator = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
+        address user = BytesLib.toAddress(BytesLib.slice(journalData, 52, 20), 0);
+        address collateral = BytesLib.toAddress(BytesLib.slice(journalData, 72, 20), 0);
+        uint32 nonce = BytesLib.toUint32(BytesLib.slice(journalData, 92, 4), 0);
+        uint32 chainId = BytesLib.toUint32(BytesLib.slice(journalData, 96, 4), 0);
+
+        // checks
+        _checkSender(msg.sender, liquidator);
+        require(liquidateAmount > 0, mErc20Host_AmountNotValid());
+        uint32 _nonce = _getNonce(liquidator, chainId, OperationType.Liquidate);
+        require(_nonce == nonce, mErc20Host_NonceNotValid());
+        require(liquidator != user, mErc20Host_CallerNotAllowed());
+
+        address actualCollateral = collateral == address(0) ? address(this) : collateral;
+        // actions
+        _increaseNonce(liquidator, chainId, OperationType.Mint);
+        _liquidate(user, liquidateAmount, actualCollateral, false);
+
+        logsOperator.registerLog(
+            msg.sender,
+            OperationType.Liquidate,
+            chainId,
+            uint32(block.chainid),
+            nonce,
+            abi.encodePacked(liquidateAmount, liquidator, user, actualCollateral, nonce, chainId)
+        );
+        emit mErc20Host_LiquidateExternal(liquidator, user, actualCollateral, liquidateAmount, _nonce, chainId);
+    }
+
+    /**
+     * @inheritdoc ImErc20Host
+     */
     function mintExternal(bytes calldata journalData, bytes calldata seal) external override {
         // verify received data
         _verifyProof(OperationType.Mint, journalData, seal);

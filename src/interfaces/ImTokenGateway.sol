@@ -15,6 +15,18 @@ import {ImTokenOperationTypes} from "./ImToken.sol";
 interface ImTokenGateway {
     // ----------- EVENTS -----------
     /**
+     * @notice Emitted when a liquidate operation is initiated
+     */
+    event mTokenGateway_LiquidateInitiated(
+        address indexed liquidator,
+        address indexed user,
+        address indexed collateral,
+        uint256 amount,
+        uint32 nonce,
+        uint32 chainId
+    );
+
+    /**
      * @notice Emitted when a mint operation is initiated
      */
     event mTokenGateway_MintInitiated(address indexed from, uint256 amount, uint32 nonce, uint32 chainId);
@@ -45,6 +57,10 @@ interface ImTokenGateway {
     event mTokenGateway_BorrowExternal(address indexed from, uint256 amount, uint32 nonce, uint32 chainId);
 
     // ----------- ERRORS -----------
+    /**
+     * @notice Thrown when the address is not valid
+     */
+    error mTokenGateway_AddressNotValid();
 
     /**
      * @notice Thrown when the amount specified is too large for the operation
@@ -140,6 +156,15 @@ interface ImTokenGateway {
      * @param state The pause operation status
      */
     function setPaused(ImTokenOperationTypes.OperationType _type, bool state) external;
+
+    /**
+     * @notice Initiates a liquidation request to be fulfilled on host
+     * @dev `collateral` can be address(0)
+     * @param amount The amount of tokens to liquidate
+     * @param user The position to liquidate
+     * @param collateral The collateral to receive
+     */
+    function liquidateOnHost(uint256 amount, address user, address collateral) external;
 
     /**
      * @notice Mints new tokens by transferring the underlying token from the user

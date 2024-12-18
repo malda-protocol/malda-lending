@@ -1,5 +1,5 @@
 # IRewardDistributor
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\interfaces\IRewardDistributor.sol)
+[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/22e38d89bfe9c3bbd0459495952fb3409b4b0c16/src\interfaces\IRewardDistributor.sol)
 
 
 ## Functions
@@ -112,12 +112,12 @@ event RewardGranted(address indexed rewardToken, address indexed user, uint256 a
 ### SupplySpeedUpdated
 
 ```solidity
-event SupplySpeedUpdated(address indexed rewardToken, address indexed cToken, uint256 supplySpeed);
+event SupplySpeedUpdated(address indexed rewardToken, address indexed mToken, uint256 supplySpeed);
 ```
 
 ### BorrowSpeedUpdated
 
 ```solidity
-event BorrowSpeedUpdated(address indexed rewardToken, address indexed cToken, uint256 borrowSpeed);
+event BorrowSpeedUpdated(address indexed rewardToken, address indexed mToken, uint256 borrowSpeed);
 ```
 

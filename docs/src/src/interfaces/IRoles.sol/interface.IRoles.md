@@ -1,5 +1,5 @@
 # IRoles
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ecf312765013f0471a4707ec1225b346cdb0a535/src\interfaces\IRoles.sol)
+[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/22e38d89bfe9c3bbd0459495952fb3409b4b0c16/src\interfaces\IRoles.sol)
 
 
 ## Functions
@@ -75,6 +75,33 @@ Returns GUARDIAN_RESERVE role
 function GUARDIAN_RESERVE() external view returns (bytes32);
 ```
 
+### PROOF_FORWARDER
+
+Returns PROOF_FORWARDER role
+
+
+```solidity
+function PROOF_FORWARDER() external view returns (bytes32);
+```
+
+### LOGS_ADD
+
+Returns LOGS_ADD role
+
+
+```solidity
+function LOGS_ADD() external view returns (bytes32);
+```
+
+### PAUSE_MANAGER
+
+Returns PAUSE_MANAGER role
+
+
+```solidity
+function PAUSE_MANAGER() external view returns (bytes32);
+```
+
 ### isAllowedFor
 
 Returns allowance status for a contract and a role
@@ -90,16 +117,4 @@ function isAllowedFor(address _contract, bytes32 _role) external view returns (b
 |`_contract`|`address`|the contract address|
 |`_role`|`bytes32`|the bytes32 role|
 
-
-## Enums
-### Pause
-
-```solidity
-enum Pause {
-    Mint,
-    Borrow,
-    Transfer,
-    Seize
-}
-```
 

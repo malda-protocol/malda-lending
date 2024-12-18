@@ -127,7 +127,7 @@ contract mErc20 is mToken, ImErc20 {
      * @inheritdoc ImErc20
      */
     function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral) external {
-        _liquidate(borrower, repayAmount, mTokenCollateral);
+        _liquidate(borrower, repayAmount, mTokenCollateral, true);
     }
 
     /**

@@ -21,6 +21,7 @@ import {Risc0VerifierMock} from "../../mocks/Risc0VerifierMock.sol";
 abstract contract mToken_Unit_Shared is Base_Unit_Test {
     // ----------- STORAGE ------------
     mErc20Host public mWethHost;
+    mErc20Host public mDaiHost;
     mErc20Immutable public mWeth;
     mTokenGateway public mWethExtension;
     mTokenLogs public operationsLog;
@@ -73,6 +74,21 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         );
         vm.label(address(mWethHost), "mWethHost");
 
+        mDaiHost = new mErc20Host(
+            address(dai),
+            address(operator),
+            address(interestModel),
+            1e18,
+            "Market DAI",
+            "mDai",
+            18,
+            payable(address(this)),
+            address(verifierMock),
+            address(verifierImageRegistry),
+            address(operationsLog)
+        );
+        vm.label(address(mDaiHost), "mDaiHost");
+
         mWethExtension = new mTokenGateway(
             payable(address(this)),
             address(weth),
@@ -84,6 +100,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
 
         // post deployment roles
         roles.allowFor(address(mWethHost), roles.LOGS_ADD(), true);
+        roles.allowFor(address(mDaiHost), roles.LOGS_ADD(), true);
         roles.allowFor(address(mWethExtension), roles.LOGS_ADD(), true);
     }
     // ----------- HELPERS ------------
@@ -102,6 +119,32 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
 
     function _createJournal(uint256 amount, address user, uint32 nonce) internal view returns (bytes memory) {
         return abi.encodePacked(amount, user, nonce, uint32(block.chainid));
+    }
+
+    function _createLiquidationJournal(uint256 amount, address user, uint32 nonce)
+        internal
+        view
+        returns (bytes memory)
+    {
+        return abi.encodePacked(amount, address(this), user, address(0), nonce, uint32(block.chainid));
+    }
+
+    function _createLiquidationJournal(uint256 amount, address liquidator, address user, uint32 nonce)
+        internal
+        view
+        returns (bytes memory)
+    {
+        return abi.encodePacked(amount, liquidator, user, address(0), nonce, uint32(block.chainid));
+    }
+
+    function _createLiquidationJournal(
+        uint256 amount,
+        address liquidator,
+        address user,
+        address collateral,
+        uint32 nonce
+    ) internal view returns (bytes memory) {
+        return abi.encodePacked(amount, liquidator, user, collateral, nonce, uint32(block.chainid));
     }
 
     function _createCommitmentWithDstChain(uint256 amount, address user, uint32 chainId)
@@ -187,6 +230,10 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         verifierImageRegistry.addImageId(bytes32("0x1243"));
         verifierImageRegistry.addImageId(bytes32("0x1244"));
         verifierImageRegistry.addImageId(bytes32("0x1245"));
+        verifierImageRegistry.addImageId(bytes32("0x12455"));
+        verifierImageRegistry.addImageId(bytes32("0x12456"));
+        verifierImageRegistry.addImageId(bytes32("0x12457"));
+        verifierImageRegistry.addImageId(bytes32("0x12458"));
         _;
     }
 

@@ -30,6 +30,7 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
     // ----------- TOKENS ------------
     ERC20Mock public usdc;
     ERC20Mock public weth;
+    ERC20Mock public dai;
 
     // ----------- MALDA ------------
     Roles public roles;
@@ -45,6 +46,7 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
 
         usdc = _deployToken("USDC", "USDC", 6);
         weth = _deployToken("WETH", "WETH", 18);
+        dai = _deployToken("DAI", "DAI", 18);
 
         roles = new Roles(address(this));
         vm.label(address(roles), "Roles");
