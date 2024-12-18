@@ -10,6 +10,16 @@ pragma solidity =0.8.28;
 
 interface IRoles {
     /**
+     * @notice Returns REBALANCER role
+     */
+    function REBALANCER() external view returns (bytes32);
+
+    /**
+     * @notice Returns REBALANCER_EOA role
+     */
+    function REBALANCER_EOA() external view returns (bytes32);
+
+    /**
      * @notice Returns GUARDIAN_PAUSE role
      */
     function GUARDIAN_PAUSE() external view returns (bytes32);
@@ -33,6 +43,11 @@ interface IRoles {
      * @notice Returns GUARDIAN_BORROW role
      */
     function GUARDIAN_BORROW() external view returns (bytes32);
+
+    /**
+     * @notice Returns GUARDIAN_BRIDGE role
+     */
+    function GUARDIAN_BRIDGE() external view returns (bytes32);
 
     /**
      * @notice Returns GUARDIAN_BORROW_CAP role
