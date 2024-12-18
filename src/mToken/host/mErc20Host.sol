@@ -83,8 +83,8 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     /**
      * @inheritdoc ImErc20Host
      */
-    function getProofData(uint32 dstChainId) external view returns (bytes memory) {
-        return mTokenProofDecoderLib.encodeProof(msg.sender, address(this), accAmountInPerChain[dstChainId][msg.sender], accAmountOutPerChain[dstChainId][msg.sender], uint32(block.chainid));
+    function getProofData(uint32 dstChainId, address user) external view returns (bytes memory) {
+        return mTokenProofDecoderLib.encodeJournal(user, address(this), accAmountInPerChain[dstChainId][user], accAmountOutPerChain[dstChainId][user], uint32(block.chainid));
     }
 
 
@@ -147,7 +147,7 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         _verifyProof(journalData, seal);
 
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId) =
-            mTokenProofDecoderLib.decodeProof(journalData);
+            mTokenProofDecoderLib.decodeJournal(journalData);
 
         // base checks
         {
@@ -183,7 +183,7 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         _verifyProof(journalData, seal);
 
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId) =
-            mTokenProofDecoderLib.decodeProof(journalData);
+            mTokenProofDecoderLib.decodeJournal(journalData);
 
         // base checks
         {
@@ -215,7 +215,7 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         _verifyProof(journalData, seal);
 
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId) =
-            mTokenProofDecoderLib.decodeProof(journalData);
+            mTokenProofDecoderLib.decodeJournal(journalData);
 
         // base checks
         {

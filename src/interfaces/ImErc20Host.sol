@@ -116,7 +116,7 @@ interface ImErc20Host {
     /**
      * @notice Returns the proof data journal
      */
-    function getProofData(uint32 dstChainId) external view returns (bytes memory);
+    function getProofData(uint32 dstChainId, address user) external view returns (bytes memory);
 
     // ----------- PUBLIC -----------
     /**

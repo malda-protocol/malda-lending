@@ -130,7 +130,7 @@ interface ImTokenGateway {
     /**
      * @notice Returns the proof data journal
      */
-    function getProofData() external view returns (bytes memory);
+    function getProofData(address user) external view returns (bytes memory);
     
     // ----------- PUBLIC -----------
     /**

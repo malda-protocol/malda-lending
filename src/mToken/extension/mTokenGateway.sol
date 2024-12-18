@@ -77,8 +77,8 @@ contract mTokenGateway is Ownable, ZkVerifier, ImTokenGateway, ImTokenOperationT
     /**
      * @inheritdoc ImTokenGateway
      */
-    function getProofData() external view returns (bytes memory) {
-        return mTokenProofDecoderLib.encodeProof(msg.sender, address(this), accAmountIn[msg.sender], accAmountOut[msg.sender], uint32(block.chainid));
+    function getProofData(address user) external view returns (bytes memory) {
+        return mTokenProofDecoderLib.encodeJournal(user, address(this), accAmountIn[user], accAmountOut[user], uint32(block.chainid));
     }
 
     // ----------- OWNER ------------
@@ -166,7 +166,7 @@ contract mTokenGateway is Ownable, ZkVerifier, ImTokenGateway, ImTokenOperationT
         _verifyProof(journalData, seal);
 
         (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId) =
-            mTokenProofDecoderLib.decodeProof(journalData);
+            mTokenProofDecoderLib.decodeJournal(journalData);
 
         // checks
         _checkSender(msg.sender, _sender);
