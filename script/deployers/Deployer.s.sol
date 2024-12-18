@@ -24,7 +24,8 @@ contract DeployerScript is Script {
 
         vm.startBroadcast(key);
 
-        address deployedAddress = _deployCreate2(salt, type(Deployer).creationCode, "");
+        address deployedAddress =
+            _deployCreate2(salt, type(Deployer).creationCode, abi.encode(vm.envAddress("DEPLOYER_ADMIN")));
         console.log("Deployer contract deployed at: %s", deployedAddress);
 
         vm.stopBroadcast();
