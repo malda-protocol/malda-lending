@@ -1,5 +1,5 @@
 # ImTokenGateway
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/22e38d89bfe9c3bbd0459495952fb3409b4b0c16/src\interfaces\ImTokenGateway.sol)
+[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\interfaces\ImTokenGateway.sol)
 
 
 ## Functions
@@ -36,58 +36,6 @@ function underlying() external view returns (address);
 |`<none>`|`address`|The address of the underlying token|
 
 
-### getNonce
-
-Retrieves the current nonce for a user and operation type
-
-
-```solidity
-function getNonce(address user, uint32 chainId, ImTokenOperationTypes.OperationType opType)
-    external
-    view
-    returns (uint32);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The address of the user|
-|`chainId`|`uint32`|The chainId to get the data for|
-|`opType`|`ImTokenOperationTypes.OperationType`|The operation type (Mint, Borrow, Repay, Withdraw, Release)|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint32`|The current nonce for the specified user and operation type|
-
-
-### nonces
-
-Retrieves the current nonce for a user and a specific operation type
-
-
-```solidity
-function nonces(address user, uint32 chainId, ImTokenOperationTypes.OperationType opType)
-    external
-    view
-    returns (uint32);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The address of the user|
-|`chainId`|`uint32`|The chainId to get the data for|
-|`opType`|`ImTokenOperationTypes.OperationType`|The operation type (Mint, Borrow, Repay, Withdraw, Release)|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint32`|The nonce for the specified user and operation type|
-
-
 ### isPaused
 
 returns pause state for operation
@@ -102,6 +50,33 @@ function isPaused(ImTokenOperationTypes.OperationType _type) external view retur
 |----|----|-----------|
 |`_type`|`ImTokenOperationTypes.OperationType`|the operation type|
 
+
+### nonce
+
+Returns nonce
+
+
+```solidity
+function nonce() external view returns (uint32);
+```
+
+### accAmountIn
+
+Returns accumulated amount in per user
+
+
+```solidity
+function accAmountIn(address user) external view returns (uint256);
+```
+
+### accAmountOut
+
+Returns accumulated amount out per user
+
+
+```solidity
+function accAmountOut(address user) external view returns (uint256);
+```
 
 ### setPaused
 
@@ -119,179 +94,108 @@ function setPaused(ImTokenOperationTypes.OperationType _type, bool state) extern
 |`state`|`bool`|The pause operation status|
 
 
-### liquidateOnHost
+### supplyOnHost
 
-Initiates a liquidation request to be fulfilled on host
-
-*`collateral` can be address(0)*
+Supply underlying to the contractr
 
 
 ```solidity
-function liquidateOnHost(uint256 amount, address user, address collateral) external;
+function supplyOnHost(uint256 amount, address user, address[] calldata allowedCallers) external;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`amount`|`uint256`|The amount of tokens to liquidate|
-|`user`|`address`|The position to liquidate|
-|`collateral`|`address`|The collateral to receive|
+|`amount`|`uint256`|The supplied amount|
+|`user`|`address`|The user to supply for|
+|`allowedCallers`|`address[]`|The allowed callers for host chain interactions|
 
 
-### mintOnHost
+### outOnHost
 
-Mints new tokens by transferring the underlying token from the user
+Supply underlying to the contractr
 
 
 ```solidity
-function mintOnHost(uint256 amount) external;
+function outOnHost(uint256 amount, address user, address[] calldata allowedCallers) external;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`amount`|`uint256`|The amount of tokens to mint|
+|`amount`|`uint256`|The supplied amount|
+|`user`|`address`|The user to supply for|
+|`allowedCallers`|`address[]`|The allowed callers for host chain interactions|
 
 
-### borrowOnHost
+### outHere
 
-Initiates a borrowing operation
+Extract tokens
 
 
 ```solidity
-function borrowOnHost(uint256 amount) external;
+function outHere(bytes calldata journalData, bytes calldata seal, uint256 amount) external;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`amount`|`uint256`|The amount to borrow|
-
-
-### borrowExternal
-
-Finalizes a borrow action initiated from host chain
-
-
-```solidity
-function borrowExternal(bytes calldata journalData, bytes calldata seal) external;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`journalData`|`bytes`|The journal data containing the release information|
-|`seal`|`bytes`|The zk-proof data required to verify the release|
-
-
-### repayOnHost
-
-Repays a borrowed amount by transferring the underlying token from the user
-
-
-```solidity
-function repayOnHost(uint256 amount) external;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|The amount to repay|
-
-
-### withdrawOnHost
-
-Withdraws tokens and burns the corresponding minted tokens
-
-
-```solidity
-function withdrawOnHost(uint256 amount) external;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|The amount to withdraw|
-
-
-### withdrawExternal
-
-Releases tokens to a user based on a validated zk-proof and journal data
-
-
-```solidity
-function withdrawExternal(bytes calldata journalData, bytes calldata seal) external;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`journalData`|`bytes`|The journal data containing the release information|
-|`seal`|`bytes`|The zk-proof data required to verify the release|
+|`journalData`|`bytes`|The supplied journal|
+|`seal`|`bytes`|The seal address|
+|`amount`|`uint256`|The amount to use|
 
 
 ## Events
-### mTokenGateway_LiquidateInitiated
-Emitted when a liquidate operation is initiated
+### mTokenGateway_Supplied
+Emitted when a supply operation is initiated
 
 
 ```solidity
-event mTokenGateway_LiquidateInitiated(
-    address indexed liquidator,
+event mTokenGateway_Supplied(
+    address indexed from,
     address indexed user,
-    address indexed collateral,
     uint256 amount,
-    uint32 nonce,
-    uint32 chainId
+    int32 srcNonce,
+    int32 dstNonce,
+    uint256 accAmountIn,
+    uint32 srcChainId,
+    uint32 dstChainId
 );
 ```
 
-### mTokenGateway_MintInitiated
-Emitted when a mint operation is initiated
+### mTokenGateway_OutOnHost
+Emitted when a supply operation is initiated
 
 
 ```solidity
-event mTokenGateway_MintInitiated(address indexed from, uint256 amount, uint32 nonce, uint32 chainId);
+event mTokenGateway_OutOnHost(
+    address indexed from,
+    address indexed user,
+    uint256 amount,
+    int32 srcNonce,
+    int32 dstNonce,
+    uint256 accAmountIn,
+    uint32 srcChainId,
+    uint32 dstChainId
+);
 ```
 
-### mTokenGateway_BorrowInitiated
-Emitted when a borrow operation is initiated
+### mTokenGateway_Extracted
+Emitted when an extract was finalized
 
 
 ```solidity
-event mTokenGateway_BorrowInitiated(address indexed from, uint256 amount, uint32 nonce, uint32 chainId);
-```
-
-### mTokenGateway_RepayInitiated
-Emitted when a repay operation is initiated
-
-
-```solidity
-event mTokenGateway_RepayInitiated(address indexed from, uint256 amount, uint32 nonce, uint32 chainId);
-```
-
-### mTokenGateway_WithdrawInitiated
-Emitted when a withdrawal is initiated
-
-
-```solidity
-event mTokenGateway_WithdrawInitiated(address indexed from, uint256 amount, uint32 nonce, uint32 chainId);
-```
-
-### mTokenGateway_Released
-Emitted when a release operation is executed
-
-
-```solidity
-event mTokenGateway_Released(address indexed from, uint256 amount, uint32 nonce, uint32 chainId);
-```
-
-### mTokenGateway_BorrowExternal
-Emitted when a borrow operation is finalized
-
-
-```solidity
-event mTokenGateway_BorrowExternal(address indexed from, uint256 amount, uint32 nonce, uint32 chainId);
+event mTokenGateway_Extracted(
+    address indexed msgSender,
+    address indexed srcSender,
+    address indexed srcUser,
+    uint256 amount,
+    int32 srcNonce,
+    int32 dstNonce,
+    uint256 accAmountOut,
+    uint32 srcChainId,
+    uint32 dstChainId
+);
 ```
 
 ## Errors
@@ -301,22 +205,6 @@ Thrown when the address is not valid
 
 ```solidity
 error mTokenGateway_AddressNotValid();
-```
-
-### mTokenGateway_AmountTooBig
-Thrown when the amount specified is too large for the operation
-
-
-```solidity
-error mTokenGateway_AmountTooBig();
-```
-
-### mTokenGateway_NonceNotValid
-Thrown when the nonce provided is invalid for the operation
-
-
-```solidity
-error mTokenGateway_NonceNotValid();
 ```
 
 ### mTokenGateway_AmountNotValid
@@ -333,6 +221,14 @@ Thrown when the journal data provided is invalid
 
 ```solidity
 error mTokenGateway_JournalNotValid();
+```
+
+### mTokenGateway_AmountTooBig
+Thrown when there is insufficient cash to release the specified amount
+
+
+```solidity
+error mTokenGateway_AmountTooBig();
 ```
 
 ### mTokenGateway_ReleaseCashNotAvailable

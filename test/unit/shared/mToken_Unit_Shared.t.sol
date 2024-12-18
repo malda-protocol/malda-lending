@@ -2,16 +2,13 @@
 pragma solidity =0.8.28;
 
 //interfaces
-import {IRoles} from "src/interfaces/IRoles.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 //contracts
-import {mTokenLogs} from "src/mToken/mTokenLogs.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
-import {ZkVerifierImageRegistry} from "src/verifier/ZkVerifierImageRegistry.sol";
 
 import {Base_Unit_Test} from "../../Base_Unit_Test.t.sol";
 
@@ -24,10 +21,8 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
     mErc20Host public mDaiHost;
     mErc20Immutable public mWeth;
     mTokenGateway public mWethExtension;
-    mTokenLogs public operationsLog;
 
     Risc0VerifierMock public verifierMock;
-    ZkVerifierImageRegistry public verifierImageRegistry;
 
     struct Commitment {
         uint256 id;
@@ -40,12 +35,6 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
 
         verifierMock = new Risc0VerifierMock();
         vm.label(address(verifierMock), "verifierMock");
-
-        verifierImageRegistry = new ZkVerifierImageRegistry(address(this));
-        vm.label(address(verifierImageRegistry), "verifierImageRegistry");
-
-        operationsLog = new mTokenLogs(address(roles));
-        vm.label(address(operationsLog), "mTokenLogs");
 
         mWeth = new mErc20Immutable(
             address(weth),
@@ -68,9 +57,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             "mWeth",
             18,
             payable(address(this)),
-            address(verifierMock),
-            address(verifierImageRegistry),
-            address(operationsLog)
+            address(verifierMock)
         );
         vm.label(address(mWethHost), "mWethHost");
 
@@ -83,84 +70,32 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             "mDai",
             18,
             payable(address(this)),
-            address(verifierMock),
-            address(verifierImageRegistry),
-            address(operationsLog)
+            address(verifierMock)
         );
         vm.label(address(mDaiHost), "mDaiHost");
 
-        mWethExtension = new mTokenGateway(
-            payable(address(this)),
-            address(weth),
-            address(roles),
-            address(verifierMock),
-            address(verifierImageRegistry),
-            address(operationsLog)
-        );
+        mWethExtension = new mTokenGateway(payable(address(this)), address(weth), address(roles), address(verifierMock));
 
-        // post deployment roles
-        roles.allowFor(address(mWethHost), roles.LOGS_ADD(), true);
-        roles.allowFor(address(mDaiHost), roles.LOGS_ADD(), true);
-        roles.allowFor(address(mWethExtension), roles.LOGS_ADD(), true);
+        mDaiHost.setImageId("0x123");
+        mWethHost.setImageId("0x123");
+        mWethExtension.setImageId("0x123");
     }
     // ----------- HELPERS ------------
 
-    function _createJournal() internal pure returns (bytes memory) {
-        return "";
-    }
-
-    function _createJournal(uint256 amount) internal pure returns (bytes memory) {
-        return abi.encodePacked(amount);
-    }
-
-    function _createJournal(uint256 amount, address user) internal pure returns (bytes memory) {
-        return abi.encodePacked(amount, user);
-    }
-
-    function _createJournal(uint256 amount, address user, uint32 nonce) internal view returns (bytes memory) {
-        return abi.encodePacked(amount, user, nonce, uint32(block.chainid));
-    }
-
-    function _createLiquidationJournal(uint256 amount, address user, uint32 nonce)
+    function _createAccumulatedAmountJournal(address sender, address market, uint256 accAmount)
         internal
         view
         returns (bytes memory)
     {
-        return abi.encodePacked(amount, address(this), user, address(0), nonce, uint32(block.chainid));
-    }
-
-    function _createLiquidationJournal(uint256 amount, address liquidator, address user, uint32 nonce)
-        internal
-        view
-        returns (bytes memory)
-    {
-        return abi.encodePacked(amount, liquidator, user, address(0), nonce, uint32(block.chainid));
-    }
-
-    function _createLiquidationJournal(
-        uint256 amount,
-        address liquidator,
-        address user,
-        address collateral,
-        uint32 nonce
-    ) internal view returns (bytes memory) {
-        return abi.encodePacked(amount, liquidator, user, collateral, nonce, uint32(block.chainid));
-    }
-
-    function _createCommitmentWithDstChain(uint256 amount, address user, uint32 chainId)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return abi.encodePacked(amount, user, chainId);
-    }
-
-    function _createCommitmentWithDstChain(uint256 amount, address user, uint32 nonce, uint32 chainId)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return abi.encodePacked(amount, user, nonce, chainId);
+        // decode action data
+        // | Offset | Length | Data Type               |
+        // |--------|---------|----------------------- |
+        // | 0      | 20      | address sender         |
+        // | 20     | 40      | address market         |
+        // | 40     | 32      | uint256 accAmountIn    |
+        // | 72     | 32      | uint256 accAmountOut   |
+        // | 104    | 4       | uint32 chainId         |
+        return abi.encodePacked(sender, market, accAmount, accAmount, uint32(block.chainid));
     }
 
     function _borrowPrerequisites(address mToken, uint256 supplyAmount) internal {
@@ -170,12 +105,12 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         mErc20Immutable(mToken).mint(supplyAmount);
     }
 
-    function _borrowGatewayPrerequisites(address mGateway, uint256 supplyAmount) internal {
-        address underlying = mTokenGateway(mGateway).underlying();
-        _getTokens(ERC20Mock(underlying), address(this), supplyAmount);
-        IERC20(underlying).approve(mGateway, supplyAmount);
-        mTokenGateway(mGateway).mintOnHost(supplyAmount);
-    }
+    // function _borrowGatewayPrerequisites(address mGateway, uint256 supplyAmount) internal {
+    //     address underlying = mTokenGateway(mGateway).underlying();
+    //     _getTokens(ERC20Mock(underlying), address(this), supplyAmount);
+    //     IERC20(underlying).approve(mGateway, supplyAmount);
+    //     mTokenGateway(mGateway).mintOnHost(supplyAmount);
+    // }
 
     function _repayPrerequisites(address mToken, uint256 supplyAmount, uint256 borrowAmount) internal {
         _borrowPrerequisites(mToken, supplyAmount);
@@ -213,27 +148,6 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         mTokens[0] = mToken;
         caps[0] = amount - 1;
         operator.setMarketBorrowCaps(mTokens, caps);
-        _;
-    }
-
-    modifier whenImageIdExists() {
-        verifierImageRegistry.addImageId(bytes32("0x1233"));
-        verifierImageRegistry.addImageId(bytes32("0x1234"));
-        verifierImageRegistry.addImageId(bytes32("0x1235"));
-        verifierImageRegistry.addImageId(bytes32("0x1236"));
-        verifierImageRegistry.addImageId(bytes32("0x1237"));
-        verifierImageRegistry.addImageId(bytes32("0x1238"));
-        verifierImageRegistry.addImageId(bytes32("0x1239"));
-        verifierImageRegistry.addImageId(bytes32("0x1240"));
-        verifierImageRegistry.addImageId(bytes32("0x1241"));
-        verifierImageRegistry.addImageId(bytes32("0x1242"));
-        verifierImageRegistry.addImageId(bytes32("0x1243"));
-        verifierImageRegistry.addImageId(bytes32("0x1244"));
-        verifierImageRegistry.addImageId(bytes32("0x1245"));
-        verifierImageRegistry.addImageId(bytes32("0x12455"));
-        verifierImageRegistry.addImageId(bytes32("0x12456"));
-        verifierImageRegistry.addImageId(bytes32("0x12457"));
-        verifierImageRegistry.addImageId(bytes32("0x12458"));
         _;
     }
 

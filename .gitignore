@@ -16,3 +16,4 @@ lcov.info
 node_modules
 coverage
 coverage.json
+.VSCodeCounter/

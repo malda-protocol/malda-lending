@@ -6,14 +6,18 @@ import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
-import {BytesLib} from "src/libraries/BytesLib.sol";
-
 import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
 
 // tests
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
 contract mErc20Host_borrow is mToken_Unit_Shared {
+    function setUp() public virtual override {
+        super.setUp();
+
+        mWethHost.updateAllowedChain(uint32(block.chainid), true);
+    }
+
     function test_RevertGiven_MarketIsPausedForBorrow(uint256 amount)
         external
         whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
@@ -172,28 +176,6 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         );
     }
 
-    // stack too deep
-    function _borrowExternalAndCheck(
-        uint256 amount,
-        uint256 balanceUnderlyingBefore,
-        uint256 balanceUnderlyingMTokenBefore,
-        uint256 supplyUnderlyingBefore,
-        uint256 totalBorrowsBefore
-    ) private {
-        bytes memory journalData = _createJournal(
-            amount,
-            address(this),
-            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Borrow)
-        );
-
-        // borrow
-        mWethHost.borrowExternal(journalData, "0x123");
-
-        _afterBorrowChecks(
-            amount, balanceUnderlyingBefore, balanceUnderlyingMTokenBefore, supplyUnderlyingBefore, totalBorrowsBefore
-        );
-    }
-
     function _afterBorrowChecks(
         uint256 amount,
         uint256 balanceUnderlyingBefore,
@@ -225,92 +207,6 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         assertGt(totalBorrowsAfter, totalBorrowsBefore);
     }
 
-    modifier whenBorrowExternalIsCalled() {
-        // @dev does nothing; for readability only
-        _;
-    }
-
-    modifier givenDecodedAmountIsValid() {
-        // @dev does nothing; for readability only
-        _;
-    }
-
-    function test_RevertGiven_JournalIsEmpty(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenBorrowExternalIsCalled
-    {
-        vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.borrowExternal("", "0x123");
-    }
-
-    function test_RevertGiven_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenBorrowExternalIsCalled
-    {
-        vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.borrowExternal("", "0x123");
-    }
-
-    function test_GivenDecodedAmountIs0() external whenBorrowExternalIsCalled whenImageIdExists {
-        uint256 amount = 0;
-        bytes memory journalData = _createJournal(
-            amount,
-            address(this),
-            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Borrow)
-        );
-
-        vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.borrowExternal(journalData, "0x123");
-    }
-
-    function test_RevertWhen_SealVerificationFails(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenBorrowExternalIsCalled
-        whenImageIdExists
-        givenDecodedAmountIsValid
-    {
-        bytes memory journalData = _createJournal(
-            amount,
-            address(this),
-            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Borrow)
-        );
-
-        verifierMock.setStatus(true); // set for failure
-
-        vm.expectRevert();
-        mWethHost.borrowExternal(journalData, "0x123");
-    }
-
-    function test_WhenSealVerificationWasOk(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenBorrowExternalIsCalled
-        whenImageIdExists
-        givenDecodedAmountIsValid
-        whenMarketIsListed(address(mWethHost))
-        whenMarketEntered(address(mWethHost))
-    {
-        // supply tokens; assure collateral factor is met
-        _borrowPrerequisites(address(mWethHost), amount * 2);
-
-        // before state
-        uint256 balanceUnderlyingBefore = weth.balanceOf(address(this));
-        uint256 balanceUnderlyingMTokenBefore = weth.balanceOf(address(mWethHost));
-        uint256 supplyUnderlyingBefore = weth.totalSupply();
-        uint256 totalBorrowsBefore = mWethHost.totalBorrows();
-
-        _borrowExternalAndCheck(
-            amount, balanceUnderlyingBefore, balanceUnderlyingMTokenBefore, supplyUnderlyingBefore, totalBorrowsBefore
-        );
-    }
-
     modifier whenBorrowOnExtensionIsCalled() {
         // @dev does nothing; for readability only
         _;
@@ -321,68 +217,11 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         _;
     }
 
-    function test_RevertGiven_LiquidityJournalIsEmpty(uint256 amount)
+    function test_WhenBorrowOnExtensionVerificationWasOk(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenBorrowOnExtensionIsCalled
-    {
-        vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.borrowOnExtension(amount, "", "0x123");
-    }
-
-    function test_RevertGiven_LiquidityJournalIsNonEmptyButLengthIsNotValid(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenBorrowOnExtensionIsCalled
-    {
-        vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.borrowOnExtension(amount, "", "0x123");
-    }
-
-    function test_GivenDecodedLiquidityIs0() external whenBorrowOnExtensionIsCalled whenImageIdExists {
-        uint256 liquidity = 0;
-        bytes memory journalData = _createJournal(
-            liquidity,
-            address(this),
-            mWethHost.nonces(
-                address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.BorrowOnOtherChain
-            )
-        );
-
-        vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.borrowOnExtension(SMALL, journalData, "0x123");
-    }
-
-    function test_RevertWhen_LiquiditySealVerificationFails(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenBorrowOnExtensionIsCalled
-        whenImageIdExists
-        givenDecodedLiquidityIsValid
-    {
-        bytes memory journalData = _createJournal(
-            amount,
-            address(this),
-            mWethHost.nonces(
-                address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.BorrowOnOtherChain
-            )
-        );
-
-        verifierMock.setStatus(true); // set for failure
-
-        vm.expectRevert();
-        mWethHost.borrowOnExtension(amount, journalData, "0x123");
-    }
-
-    function test_WhenLiquiditySealVerificationWasOkXQ(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenBorrowOnExtensionIsCalled
-        whenImageIdExists
         givenDecodedLiquidityIsValid
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
@@ -394,8 +233,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         uint256 balanceUnderlyingBefore = weth.balanceOf(address(this));
         uint256 totalBorrowsBefore = mWethHost.totalBorrows();
 
-        bytes memory journalData = _createCommitmentWithDstChain(amount, address(this), 1);
-        mWethHost.borrowOnExtension(amount, journalData, "0x123");
+        mWethHost.borrowOnExtension(amount, 1);
 
         {
             uint256 balanceUnderlyingAfter = weth.balanceOf(address(this));
@@ -404,38 +242,5 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
             assertEq(balanceUnderlyingBefore, balanceUnderlyingAfter, "1");
             assertLt(totalBorrowsBefore, totalBorrowsAfter, "2");
         }
-
-        // check log
-        _checkLog(ImTokenOperationTypes.OperationType.BorrowOnOtherChain, amount, 0, uint32(block.chainid), 1);
-    }
-
-    function _checkLog(
-        ImTokenOperationTypes.OperationType opType,
-        uint256 amount,
-        uint32 nonce,
-        uint32 srcChainId,
-        uint32 dstChainId
-    ) private view {
-        (uint256 journalDstChainId, bytes memory encodedData) =
-            operationsLog.getLogForChain(address(this), opType, nonce, srcChainId);
-        assertGt(encodedData.length, 0, "A");
-        assertEq(journalDstChainId, dstChainId, "B");
-
-        // decode action data
-        // | Offset | Length | Data Type       |
-        // |--------|--------|-----------------|
-        // | 0     | 32     | uint256 decodedAmount  |
-        // | 32    | 20     | address decodedSender    |
-        // | 52    | 4      | uint32 decodedNonce    |
-        // | 56    | 4      | uint32 decodedSrcChainId  |
-        uint256 decodedAmount = BytesLib.toUint256(BytesLib.slice(encodedData, 0, 32), 0);
-        address decodedSender = BytesLib.toAddress(BytesLib.slice(encodedData, 32, 20), 0);
-        uint32 decodedNonce = BytesLib.toUint32(BytesLib.slice(encodedData, 52, 4), 0);
-        uint32 decodedSrcChainId = BytesLib.toUint32(BytesLib.slice(encodedData, 56, 4), 0);
-
-        assertEq(decodedAmount, amount, "C");
-        assertEq(decodedSender, address(this), "D");
-        assertEq(decodedNonce, nonce, "E");
-        assertEq(decodedSrcChainId, srcChainId, "F");
     }
 }

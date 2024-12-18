@@ -2,19 +2,22 @@
 pragma solidity =0.8.28;
 
 // interfaces
-import {IRoles} from "src/interfaces/IRoles.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
-import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
-import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
 
 // tests
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
 contract mErc20Host_repay is mToken_Unit_Shared {
+    function setUp() public virtual override {
+        super.setUp();
+
+        mWethHost.updateAllowedChain(uint32(block.chainid), true);
+    }
+
     function test_RevertGiven_MarketIsPausedForRepay(uint256 amount)
         external
         whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
@@ -195,7 +198,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         whenRepayExternalIsCalled
     {
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.repayExternal("", "0x123");
+        mWethHost.repayExternal("", "0x123", amount, address(this));
     }
 
     function test_RevertGiven_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
@@ -205,13 +208,12 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         whenRepayExternalIsCalled
     {
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.repayExternal("", "0x123");
+        mWethHost.repayExternal("", "0x123", amount, address(this));
     }
 
     function test_GivenDecodedAmountIs0()
         external
         whenRepayExternalIsCalled
-        whenImageIdExists
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenRepayExternalIsCalled
         givenDecodedAmountIsValid
@@ -219,14 +221,10 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         whenMarketEntered(address(mWethHost))
     {
         uint256 amount = 0;
-        bytes memory journalData = _createJournal(
-            amount,
-            address(this),
-            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Repay)
-        );
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.repayExternal(journalData, "0x123");
+        mWethHost.repayExternal(journalData, "0x123", 0, address(this));
     }
 
     function test_RevertWhen_SealVerificationFails(uint256 amount)
@@ -238,16 +236,12 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {
-        bytes memory journalData = _createJournal(
-            amount,
-            address(this),
-            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Repay)
-        );
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
-        mWethHost.borrowExternal(journalData, "0x123");
+        mWethHost.repayExternal(journalData, "0x123", amount, address(this));
     }
 
     function test_WhenSealVerificationWasOk(uint256 amount)
@@ -255,7 +249,6 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenRepayExternalIsCalled
-        whenImageIdExists
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
@@ -270,12 +263,8 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         vars.totalBorrowsBefore = mWethHost.totalBorrows();
         vars.accountBorrowBefore = mWethHost.borrowBalanceStored(address(this));
 
-        bytes memory journalData = _createJournal(
-            type(uint256).max,
-            address(this),
-            mWethHost.nonces(address(this), uint32(block.chainid), ImTokenOperationTypes.OperationType.Repay)
-        );
-        mWethHost.repayExternal(journalData, "0x123");
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
+        mWethHost.repayExternal(journalData, "0x123", amount, address(this));
 
         // after state
         vars.balanceUnderlyingAfter = weth.balanceOf(address(this));

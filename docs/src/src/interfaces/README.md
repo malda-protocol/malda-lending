@@ -13,7 +13,6 @@
 - [IRoles](IRoles.sol\interface.IRoles.md)
 - [IUnitAccess](IUnit.sol\interface.IUnitAccess.md)
 - [IUnit](IUnit.sol\interface.IUnit.md)
-- [IZkVerifierImageRegistry](IZkVerifierImageRegistry.sol\interface.IZkVerifierImageRegistry.md)
 - [ImErc20](ImErc20.sol\interface.ImErc20.md)
 - [ImErc20Host](ImErc20Host.sol\interface.ImErc20Host.md)
 - [ImTokenOperationTypes](ImToken.sol\interface.ImTokenOperationTypes.md)

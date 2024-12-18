@@ -1,5 +1,5 @@
 # mTokenGateway
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/22e38d89bfe9c3bbd0459495952fb3409b4b0c16/src\mToken\extension\mTokenGateway.sol)
+[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\mToken\extension\mTokenGateway.sol)
 
 **Inherits:**
 Ownable, ERC20, [ZkVerifier](/src\verifier\ZkVerifier.sol\abstract.ZkVerifier.md), [ImTokenGateway](/src\interfaces\ImTokenGateway.sol\interface.ImTokenGateway.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
@@ -40,17 +40,38 @@ address public underlying;
 ```
 
 
-### nonces
-
-```solidity
-mapping(address => mapping(uint32 => mapping(OperationType => uint32))) public nonces;
-```
-
-
 ### _underlyingDecimals
 
 ```solidity
 uint8 private _underlyingDecimals;
+```
+
+
+### nonce
+
+```solidity
+uint32 public nonce;
+```
+
+
+### accAmountIn
+
+```solidity
+mapping(address => uint256) public accAmountIn;
+```
+
+
+### accAmountOut
+
+```solidity
+mapping(address => uint256) public accAmountOut;
+```
+
+
+### DEFAULT_NONCE
+
+```solidity
+int32 private constant DEFAULT_NONCE = -1;
 ```
 
 
@@ -66,14 +87,7 @@ uint32 private constant LINEA_CHAIN_ID = 59144;
 
 
 ```solidity
-constructor(
-    address payable _owner,
-    address _underlying,
-    address _roles,
-    address zkVerifier_,
-    address zkVerifierImageRegistry_,
-    address _logs
-)
+constructor(address payable _owner, address _underlying, address _roles, address zkVerifier_, address _logs)
     Ownable(_owner)
     ERC20(
         string.concat("pending_", IERC20Metadata(_underlying).name()),
@@ -96,29 +110,6 @@ return the decimals value
 ```solidity
 function decimals() public view override returns (uint8);
 ```
-
-### getNonce
-
-Retrieves the current nonce for a user and operation type
-
-
-```solidity
-function getNonce(address user, uint32 chainId, OperationType opType) external view returns (uint32);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The address of the user|
-|`chainId`|`uint32`|The chainId to get the data for|
-|`opType`|`OperationType`|The operation type (Mint, Borrow, Repay, Withdraw, Release)|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint32`|The current nonce for the specified user and operation type|
-
 
 ### isPaused
 
@@ -166,136 +157,79 @@ function setVerifier(address _risc0Verifier) external onlyOwner;
 |`_risc0Verifier`|`address`|the new IRiscZeroVerifier address|
 
 
-### setVerifierImageRegistry
+### setImageId
 
-Sets the ZkVerifierImageRegistry
+Sets the image id
 
 
 ```solidity
-function setVerifierImageRegistry(address _imageRegistry) external onlyOwner;
+function setImageId(bytes32 _imageId) external onlyOwner;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`_imageRegistry`|`address`|the new image registry address|
+|`_imageId`|`bytes32`|the new image id|
 
 
-### liquidateOnHost
+### supplyOnHost
 
-Initiates a liquidation request to be fulfilled on host
-
-*`collateral` can be address(0)*
+Supply underlying to the contractr
 
 
 ```solidity
-function liquidateOnHost(uint256 amount, address user, address collateral)
+function supplyOnHost(uint256 amount, address user, address[] calldata allowedCallers)
     external
     override
-    notPaused(OperationType.LiquidateOnOtherChain);
+    notPaused(OperationType.AmountIn);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`amount`|`uint256`|The amount of tokens to liquidate|
-|`user`|`address`|The position to liquidate|
-|`collateral`|`address`|The collateral to receive|
+|`amount`|`uint256`|The supplied amount|
+|`user`|`address`|The user to supply for|
+|`allowedCallers`|`address[]`|The allowed callers for host chain interactions|
 
 
-### mintOnHost
+### outOnHost
 
-Mints new tokens by transferring the underlying token from the user
-
-
-```solidity
-function mintOnHost(uint256 amount) external override notPaused(OperationType.MintOnOtherChain);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|The amount of tokens to mint|
-
-
-### borrowOnHost
-
-Initiates a borrowing operation
+Supply underlying to the contractr
 
 
 ```solidity
-function borrowOnHost(uint256 amount) external override notPaused(OperationType.BorrowOnOtherChain);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|The amount to borrow|
-
-
-### borrowExternal
-
-Finalizes a borrow action initiated from host chain
-
-
-```solidity
-function borrowExternal(bytes calldata journalData, bytes calldata seal)
+function outOnHost(uint256 amount, address user, address[] calldata allowedCallers)
     external
     override
-    notPaused(OperationType.Borrow);
+    notPaused(OperationType.AmountOut);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`journalData`|`bytes`|The journal data containing the release information|
-|`seal`|`bytes`|The zk-proof data required to verify the release|
+|`amount`|`uint256`|The supplied amount|
+|`user`|`address`|The user to supply for|
+|`allowedCallers`|`address[]`|The allowed callers for host chain interactions|
 
 
-### repayOnHost
+### outHere
 
-Repays a borrowed amount by transferring the underlying token from the user
+Extract tokens
 
 
 ```solidity
-function repayOnHost(uint256 amount) external notPaused(OperationType.RepayOnOtherChain);
+function outHere(bytes calldata journalData, bytes calldata seal, uint256 amount)
+    external
+    override
+    notPaused(OperationType.AmountOutHere);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`amount`|`uint256`|The amount to repay|
-
-
-### withdrawOnHost
-
-Withdraws tokens and burns the corresponding minted tokens
-
-
-```solidity
-function withdrawOnHost(uint256 amount) external notPaused(OperationType.RedeemOnOtherChain);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|The amount to withdraw|
-
-
-### withdrawExternal
-
-Releases tokens to a user based on a validated zk-proof and journal data
-
-
-```solidity
-function withdrawExternal(bytes calldata journalData, bytes calldata seal) external notPaused(OperationType.Redeem);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`journalData`|`bytes`|The journal data containing the release information|
-|`seal`|`bytes`|The zk-proof data required to verify the release|
+|`journalData`|`bytes`|The supplied journal|
+|`seal`|`bytes`|The seal address|
+|`amount`|`uint256`|The amount to use|
 
 
 ### transfer
@@ -320,27 +254,23 @@ function transferFrom(address, address, uint256) public pure override returns (b
 
 
 ```solidity
-function _verifyProof(OperationType imageType, bytes calldata journalData, bytes calldata seal) private;
+function _verifyProof(bytes calldata journalData, bytes calldata seal) private;
 ```
 
-### _getNonce
+### _extractCallers
 
 
 ```solidity
-function _getNonce(address from, uint32 chainId, OperationType operation) private view returns (uint32);
-```
-
-### _increaseNonce
-
-
-```solidity
-function _increaseNonce(address from, uint32 chainId, OperationType operation) private;
+function _extractCallers(bytes calldata journalData, uint256 allowedCallersOffset)
+    private
+    pure
+    returns (address[] memory allowedCallers);
 ```
 
 ### _checkSender
 
 
 ```solidity
-function _checkSender(address sender, address user) private view;
+function _checkSender(address sender, address user, address[] memory allowedCallers) private view;
 ```
 

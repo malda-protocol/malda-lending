@@ -13,7 +13,6 @@ import {DeployHostMarket} from "script/deployment/markets/host/DeployHostMarket.
 import {DeployJumpRateModelV2} from "script/deployment/interest/DeployJumpRateModelV2.s.sol";
 import {DeployChainlinkOracle} from "script/deployment/oracles/DeployChainlinkOracle.s.sol";
 import {DeployRewardDistributor} from "script/deployment/rewards/DeployRewardDistributor.s.sol";
-import {DeployImageRegistry} from "script/deployment/verifiers/DeployZkVerifierImageRegistry.s.sol";
 
 /**
  * forge script DeployEverything  \
@@ -34,7 +33,6 @@ contract DeployEverything is Script, DeployBase {
     DeployChainlinkOracle deployOracle;
     DeployJumpRateModelV2 deployInterest;
     DeployRewardDistributor deployRewards;
-    DeployImageRegistry deployImageRegistry;
 
     struct DeployData {
         // Interest data
@@ -62,7 +60,6 @@ contract DeployEverything is Script, DeployBase {
         deployOracle = new DeployChainlinkOracle();
         deployInterest = new DeployJumpRateModelV2();
         deployRewards = new DeployRewardDistributor();
-        deployImageRegistry = new DeployImageRegistry();
         super.setUp();
         deployHost.setUp();
         deployRbac.setUp();
@@ -72,18 +69,16 @@ contract DeployEverything is Script, DeployBase {
         deployRewards.setUp();
         deployInterest.setUp();
         deployOperator.setUp();
-        deployImageRegistry.setUp();
     }
 
     function run(DeployData memory data) public {
         address roles = deployRbac.run();
-        address imageRegistry = deployImageRegistry.run();
         address interestModel = deployInterest.run(_dataToInterestData(data));
         address defaultOracle = deployOracle.run();
         address defaultRewards = deployRewards.run();
         address operator = deployOperator.run(defaultOracle, defaultRewards, roles);
         deployPauser.run(roles, operator);
-        deployHost.run(_dataToHostMarketData(data, operator, interestModel, imageRegistry, roles));
+        deployHost.run(_dataToHostMarketData(data, operator, interestModel, roles));
     }
 
     function _dataToInterestData(DeployData memory data)
@@ -101,13 +96,11 @@ contract DeployEverything is Script, DeployBase {
         });
     }
 
-    function _dataToHostMarketData(
-        DeployData memory data,
-        address operator,
-        address interestModel,
-        address imageRegistry,
-        address roles
-    ) private pure returns (DeployHostMarket.MarketData memory) {
+    function _dataToHostMarketData(DeployData memory data, address operator, address interestModel, address roles)
+        private
+        pure
+        returns (DeployHostMarket.MarketData memory)
+    {
         return DeployHostMarket.MarketData({
             underlyingToken: data.underlyingToken,
             operator: operator,
@@ -117,7 +110,6 @@ contract DeployEverything is Script, DeployBase {
             symbol: data.symbol,
             decimals: data.decimals,
             zkVerifier: data.zkVerifier,
-            imageRegistry: imageRegistry,
             roles: roles
         });
     }

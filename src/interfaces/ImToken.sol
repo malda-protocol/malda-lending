@@ -12,18 +12,17 @@ import {IRoles} from "./IRoles.sol";
 
 interface ImTokenOperationTypes {
     enum OperationType {
-        Mint,
-        MintOnOtherChain,
-        Borrow,
-        BorrowOnOtherChain,
-        Repay,
-        RepayOnOtherChain,
-        Redeem,
-        RedeemOnOtherChain,
-        Transfer,
+        AmountIn,
+        AmountInHere,
+        AmountOut,
+        AmountOutHere,
         Seize,
-        Liquidate,
-        LiquidateOnOtherChain
+        Transfer,
+        Mint,
+        Borrow,
+        Repay,
+        Redeem,
+        Liquidate
     }
 }
 

@@ -1,0 +1,13 @@
+mTokenGateway_supplyOnHost.t.sol
+├── given is paused
+│   └── it should revert
+└── given market is not paused
+    ├── when amount is 0
+    │   └── it should revert
+    ├── when user does not have enough balance
+    │   └── it should revert
+    └── when parameters are right
+        ├── it should increase nonce
+        ├── it should increase accAmountIn
+        ├── it should register logs
+        └── it should transfer underlying from user

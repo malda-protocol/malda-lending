@@ -1,5 +1,5 @@
 # mToken
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/22e38d89bfe9c3bbd0459495952fb3409b4b0c16/src\mToken\mToken.sol)
+[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\mToken\mToken.sol)
 
 **Inherits:**
 [mTokenConfiguration](/src\mToken\mTokenConfiguration.sol\abstract.mTokenConfiguration.md), [ReentrancyGuardTransient](/src\utils\ReentrancyGuardTransient.sol\abstract.ReentrancyGuardTransient.md)
@@ -489,15 +489,20 @@ The collateral seized is transferred to the liquidator.
 
 
 ```solidity
-function _liquidate(address borrower, uint256 repayAmount, address mTokenCollateral, bool doTransfer)
-    internal
-    nonReentrant;
+function _liquidate(
+    address liquidator,
+    address borrower,
+    uint256 repayAmount,
+    address mTokenCollateral,
+    bool doTransfer
+) internal nonReentrant;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`borrower`|`address`|The borrower of this mToken to be liquidated|
+|`liquidator`|`address`||
+|`borrower`|`address`|The liquidator address|
 |`repayAmount`|`uint256`|The amount of the underlying borrowed asset to repay|
 |`mTokenCollateral`|`address`|The market in which to seize collateral from the borrower|
 |`doTransfer`|`bool`|If an actual transfer should be performed|

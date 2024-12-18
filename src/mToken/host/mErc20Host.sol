@@ -9,29 +9,27 @@ pragma solidity =0.8.28;
 */
 
 // interfaces
-import {IZkVerifierImageRegistry} from "src/interfaces/IZkVerifierImageRegistry.sol";
-
 import {Steel} from "risc0/steel/Steel.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // contracts
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
 
-import {BytesLib} from "src/libraries/BytesLib.sol";
+import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
 
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
-import {ImTokenLogs} from "src/interfaces/ImTokenLogs.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperationTypes {
-    // ----------- STORAGE ------------
-    // user -> chainId -> operation type -> nonce
-    mapping(address => mapping(uint32 => mapping(OperationType => uint32))) public nonces;
+    using SafeERC20 for IERC20;
 
-    /**
-     * @inheritdoc ImErc20Host
-     */
-    ImTokenLogs public logsOperator;
+    // ----------- STORAGE ------------
+    mapping(uint32 => mapping(address => uint256)) public accAmountInPerChain;
+    mapping(uint32 => mapping(address => uint256)) public accAmountOutPerChain;
+    mapping(address => mapping(address => bool)) public allowedCallers;
+    mapping(uint32 => bool) public allowedChains;
 
     /**
      * @notice Constructs the new money market
@@ -44,7 +42,6 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
      * @param decimals_ ERC-20 decimal precision of this token
      * @param admin_ Address of the administrator of this token
      * @param zkVerifier_ The IRiscZeroVerifier address
-     * @param zkVerifierImageRegistry_ The IZkVerifierImageRegistry address
      */
     constructor(
         address underlying_,
@@ -55,9 +52,7 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         string memory symbol_,
         uint8 decimals_,
         address payable admin_,
-        address zkVerifier_,
-        address zkVerifierImageRegistry_,
-        address logs_
+        address zkVerifier_
     )
         mErc20Immutable(
             underlying_,
@@ -71,9 +66,7 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         )
     {
         // Initialize the ZkVerifier
-        ZkVerifier.initialize(zkVerifier_, zkVerifierImageRegistry_);
-
-        logsOperator = ImTokenLogs(logs_);
+        ZkVerifier.initialize(zkVerifier_);
 
         // Set the proper admin now that initialization is done
         admin = admin_;
@@ -83,9 +76,17 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     /**
      * @inheritdoc ImErc20Host
      */
-    function getNonce(address user, uint32 chainId, OperationType opType) external view returns (uint32) {
-        return nonces[user][chainId][opType];
+    function isCallerAllowed(address sender, address caller) external view returns (bool) {
+        return allowedCallers[sender][caller];
     }
+
+    /**
+     * @inheritdoc ImErc20Host
+     */
+    function getProofData(uint32 dstChainId, address user) external view returns (bytes memory) {
+        return mTokenProofDecoderLib.encodeJournal(user, address(this), accAmountInPerChain[dstChainId][user], accAmountOutPerChain[dstChainId][user], uint32(block.chainid));
+    }
+
 
     // ----------- OWNER ------------
     /**
@@ -97,315 +98,180 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     }
 
     /**
-     * @notice Sets the ZkVerifierImageRegistry
-     * @param _imageRegistry the new image registry address
+     * @notice Sets the image id
+     * @param _imageId the new image id
      */
-    function setVerifierImageRegistry(address _imageRegistry) external onlyAdmin {
-        _setVerifierImageRegistry(_imageRegistry);
+    function setImageId(bytes32 _imageId) external onlyAdmin {
+        _setImageId(_imageId);
+    }
+
+    /**
+     * @notice Updates an allowed chain status
+     * @param _chainId the chain id
+     * @param _status the new status
+     */
+    function updateAllowedChain(uint32 _chainId, bool _status) external onlyAdmin {
+        allowedChains[_chainId] = _status;
+        emit mErc20Host_ChainStatusUpdated(_chainId, _status);
+    }
+
+    /**
+     * @inheritdoc ImErc20Host
+     */
+    function extractForRebalancing(uint256 amount) external {
+        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mErc20Host_NotRebalancer();
+        IERC20(underlying).safeTransferFrom(address(this), msg.sender, amount);
     }
 
     // ----------- PUBLIC ------------
     /**
      * @inheritdoc ImErc20Host
      */
-    function liquidateExternal(bytes calldata journalData, bytes calldata seal) external override {
-        // verify received data
-        _verifyProof(OperationType.Mint, journalData, seal);
-
-        // decode action data
-        // | Offset | Length | Data Type       |
-        // |--------|--------|-----------------|
-        // | 0     | 32     | uint256 liquidateAmount  |
-        // | 32    | 20     | address liquidator    |
-        // | 52    | 20     | address user    |
-        // | 72    | 20     | address collateral    |
-        // | 92    | 4      | uint32 nonce    |
-        // | 96    | 4      | uint32 chainId  |
-        uint256 liquidateAmount = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
-        address liquidator = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
-        address user = BytesLib.toAddress(BytesLib.slice(journalData, 52, 20), 0);
-        address collateral = BytesLib.toAddress(BytesLib.slice(journalData, 72, 20), 0);
-        uint32 nonce = BytesLib.toUint32(BytesLib.slice(journalData, 92, 4), 0);
-        uint32 chainId = BytesLib.toUint32(BytesLib.slice(journalData, 96, 4), 0);
-
-        // checks
-        _checkSender(msg.sender, liquidator);
-        require(liquidateAmount > 0, mErc20Host_AmountNotValid());
-        uint32 _nonce = _getNonce(liquidator, chainId, OperationType.Liquidate);
-        require(_nonce == nonce, mErc20Host_NonceNotValid());
-        require(liquidator != user, mErc20Host_CallerNotAllowed());
-
-        address actualCollateral = collateral == address(0) ? address(this) : collateral;
-        // actions
-        _increaseNonce(liquidator, chainId, OperationType.Mint);
-        _liquidate(user, liquidateAmount, actualCollateral, false);
-
-        logsOperator.registerLog(
-            msg.sender,
-            OperationType.Liquidate,
-            chainId,
-            uint32(block.chainid),
-            nonce,
-            abi.encodePacked(liquidateAmount, liquidator, user, actualCollateral, nonce, chainId)
-        );
-        emit mErc20Host_LiquidateExternal(liquidator, user, actualCollateral, liquidateAmount, _nonce, chainId);
+    function updateAllowedCallerStatus(address caller, bool status) external override {
+        allowedCallers[msg.sender][caller] = status;
+        emit AllowedCallerUpdated(msg.sender, caller, status);
     }
 
     /**
      * @inheritdoc ImErc20Host
      */
-    function mintExternal(bytes calldata journalData, bytes calldata seal) external override {
+    function liquidateExternal(
+        bytes calldata journalData,
+        bytes calldata seal,
+        address userToLiquidate,
+        address receiver,
+        uint256 liquidateAmount,
+        address collateral
+    ) external override {
         // verify received data
-        _verifyProof(OperationType.Mint, journalData, seal);
+        _verifyProof(journalData, seal);
 
-        // decode action data
-        // | Offset | Length | Data Type       |
-        // |--------|--------|-----------------|
-        // | 0     | 32     | uint256 mintAmount  |
-        // | 32    | 20     | address user    |
-        // | 52    | 4      | uint32 nonce    |
-        // | 56    | 4      | uint32 chainId  |
-        uint256 mintAmount = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
-        address user = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
-        uint32 nonce = BytesLib.toUint32(BytesLib.slice(journalData, 52, 4), 0);
-        uint32 chainId = BytesLib.toUint32(BytesLib.slice(journalData, 56, 4), 0);
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId) =
+            mTokenProofDecoderLib.decodeJournal(journalData);
 
-        // checks
-        _checkSender(msg.sender, user);
-        require(mintAmount > 0, mErc20Host_AmountNotValid());
-        uint32 _nonce = _getNonce(user, chainId, OperationType.Mint);
-        require(_nonce == nonce, mErc20Host_NonceNotValid());
+        // base checks
+        {
+            _checkSender(msg.sender, _sender);
+            require(_market == address(this), mErc20Host_AddressNotValid());
+            require(allowedChains[_chainId], mErc20Host_ChainNotValid()); // allow only whitelisted chains
+        }
+        // operation checks
+        {
+            require(liquidateAmount > 0, mErc20Host_AmountNotValid());
+            require(liquidateAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
+            require(userToLiquidate != msg.sender && userToLiquidate != _sender, mErc20Host_CallerNotAllowed());
+        }
+        collateral = collateral == address(0) ? address(this) : collateral;
 
         // actions
-        _increaseNonce(user, chainId, OperationType.Mint);
-        _mint(user, mintAmount, false);
+        accAmountInPerChain[_chainId][_sender] += liquidateAmount;
+        _liquidate(receiver, userToLiquidate, liquidateAmount, collateral, false);
 
-        logsOperator.registerLog(
-            msg.sender,
-            OperationType.Mint,
-            chainId,
-            uint32(block.chainid),
-            nonce,
-            abi.encodePacked(mintAmount, msg.sender, nonce, chainId)
+        emit mErc20Host_LiquidateExternal(
+            msg.sender, _sender, userToLiquidate, receiver, collateral, _chainId, liquidateAmount
         );
-        emit mErc20Host_MintExternal(msg.sender, user, mintAmount, _nonce, chainId);
     }
 
     /**
      * @inheritdoc ImErc20Host
      */
-    function borrowExternal(bytes calldata journalData, bytes calldata seal) external override {
+    function mintExternal(bytes calldata journalData, bytes calldata seal, uint256 mintAmount, address receiver)
+        external
+        override
+    {
         // verify received data
-        _verifyProof(OperationType.Borrow, journalData, seal);
+        _verifyProof(journalData, seal);
 
-        // decode action data
-        // | Offset | Length | Data Type       |
-        // |--------|--------|-----------------|
-        // | 0     | 32     | uint256 borrowAmount  |
-        // | 32    | 20     | address user    |
-        // | 52    | 4      | uint32 nonce    |
-        // | 56    | 4      | uint32 chainId  |
-        uint256 borrowAmount = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
-        address user = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
-        uint32 nonce = BytesLib.toUint32(BytesLib.slice(journalData, 52, 4), 0);
-        uint32 chainId = BytesLib.toUint32(BytesLib.slice(journalData, 56, 4), 0);
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId) =
+            mTokenProofDecoderLib.decodeJournal(journalData);
 
-        // checks
-        _checkSender(msg.sender, user);
-
-        require(borrowAmount > 0, mErc20Host_AmountNotValid());
-        uint32 _nonce = _getNonce(user, chainId, OperationType.Borrow);
-        require(_nonce == nonce, mErc20Host_NonceNotValid());
+        // base checks
+        {
+            _checkSender(msg.sender, _sender);
+            require(_market == address(this), mErc20Host_AddressNotValid());
+            require(allowedChains[_chainId], mErc20Host_ChainNotValid()); // allow only whitelisted chains
+        }
+        // operation checks
+        {
+            require(mintAmount > 0, mErc20Host_AmountNotValid());
+            require(mintAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
+        }
 
         // actions
-        _increaseNonce(user, chainId, OperationType.Borrow);
-        _borrow(user, borrowAmount, true);
+        accAmountInPerChain[_chainId][_sender] += mintAmount;
+        _mint(receiver, mintAmount, false);
 
-        logsOperator.registerLog(
-            msg.sender,
-            OperationType.Borrow,
-            chainId,
-            uint32(block.chainid),
-            nonce,
-            abi.encodePacked(borrowAmount, msg.sender, nonce, chainId)
-        );
-        emit mErc20Host_BorrowExternal(msg.sender, user, borrowAmount, _nonce, chainId);
+        emit mErc20Host_MintExternal(msg.sender, _sender, receiver, _chainId, mintAmount);
     }
 
     /**
      * @inheritdoc ImErc20Host
      */
-    function borrowOnExtension(uint256 amount, bytes calldata journalData, bytes calldata seal) external override {
+    function repayExternal(bytes calldata journalData, bytes calldata seal, uint256 repayAmount, address position)
+        external
+        override
+    {
         // verify received data
-        _verifyProof(OperationType.BorrowOnOtherChain, journalData, seal);
+        _verifyProof(journalData, seal);
 
-        // decode action data
-        // | Offset | Length | Data Type       |
-        // |--------|--------|-----------------|
-        // | 0     | 32     | uint256 liquidity  |
-        // | 32    | 20     | address user    |
-        // | 52    | 4      | uint32 dstChainId  |
-        uint256 liquidity = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
-        address user = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
-        uint32 dstChainId = BytesLib.toUint32(BytesLib.slice(journalData, 52, 4), 0);
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId) =
+            mTokenProofDecoderLib.decodeJournal(journalData);
 
-        // checks
-        _checkSender(msg.sender, user);
-        require(liquidity > 0 && amount > 0 && amount <= liquidity, mErc20Host_AmountNotValid());
+        // base checks
+        {
+            _checkSender(msg.sender, _sender);
+            require(_market == address(this), mErc20Host_AddressNotValid());
+            require(allowedChains[_chainId], mErc20Host_ChainNotValid()); // allow only whitelisted chains
+        }
+        // operation check
+        {
+            require(repayAmount > 0, mErc20Host_AmountNotValid());
+            require(repayAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
+        }
 
         // actions
-        uint32 _nonce = _getNonce(user, uint32(block.chainid), OperationType.BorrowOnOtherChain);
-        _increaseNonce(user, uint32(block.chainid), OperationType.BorrowOnOtherChain);
-        _borrow(user, amount, false);
+        accAmountInPerChain[_chainId][_sender] += repayAmount;
+        _repayBehalf(position, repayAmount, false);
 
-        logsOperator.registerLog(
-            user,
-            OperationType.BorrowOnOtherChain,
-            uint32(block.chainid),
-            dstChainId,
-            _nonce,
-            abi.encodePacked(amount, user, _nonce, uint32(block.chainid))
-        );
-        emit mErc20Host_BorrowOnExternsionChain(msg.sender, user, amount, _nonce, dstChainId);
+        emit mErc20Host_RepayExternal(msg.sender, _sender, position, _chainId, repayAmount);
     }
 
     /**
      * @inheritdoc ImErc20Host
      */
-    function repayExternal(bytes calldata journalData, bytes calldata seal) external override {
-        // verify received data
-        _verifyProof(OperationType.Repay, journalData, seal);
-
-        // decode action data
-        // | Offset | Length | Data Type       |
-        // |--------|--------|-----------------|
-        // | 0     | 32     | uint256 repayAmount  |
-        // | 32    | 20     | address borrower    |
-        // | 52    | 4      | uint32 nonce    |
-        // | 56    | 4      | uint32 chainId  |
-        uint256 repayAmount = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
-        address borrower = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
-        uint32 nonce = BytesLib.toUint32(BytesLib.slice(journalData, 52, 4), 0);
-        uint32 chainId = BytesLib.toUint32(BytesLib.slice(journalData, 56, 4), 0);
-
-        // checks
-        _checkSender(msg.sender, borrower);
-        require(repayAmount > 0, mErc20Host_AmountNotValid());
-        uint32 _nonce = _getNonce(borrower, chainId, OperationType.Repay);
-        require(_nonce == nonce, mErc20Host_NonceNotValid());
-
-        // actions
-        _increaseNonce(borrower, chainId, OperationType.Repay);
-        _repayBehalf(borrower, repayAmount, false);
-
-        logsOperator.registerLog(
-            msg.sender,
-            OperationType.Repay,
-            chainId,
-            uint32(block.chainid),
-            nonce,
-            abi.encodePacked(repayAmount, msg.sender, nonce, chainId)
-        );
-        emit mErc20Host_RepayExternal(msg.sender, borrower, repayAmount, _nonce, chainId);
-    }
-
-    /**
-     * @inheritdoc ImErc20Host
-     */
-    function withdrawExternal(bytes calldata journalData, bytes calldata seal) external override {
-        // verify received data
-        _verifyProof(OperationType.Redeem, journalData, seal);
-
-        // decode action data
-        // | Offset | Length | Data Type       |
-        // |--------|--------|-----------------|
-        // | 0     | 32     | uint256 amount  |
-        // | 32    | 20     | address user    |
-        // | 52    | 4      | uint32 nonce    |
-        // | 56    | 4      | uint32 chainId  |
-        uint256 amount = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
-        address user = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
-        uint32 nonce = BytesLib.toUint32(BytesLib.slice(journalData, 52, 4), 0);
-        uint32 chainId = BytesLib.toUint32(BytesLib.slice(journalData, 56, 4), 0);
-
-        // checks
-        _checkSender(msg.sender, user);
+    function withdrawOnExtension(uint256 amount, uint32 dstChainId) external override {
         require(amount > 0, mErc20Host_AmountNotValid());
-        uint32 _nonce = _getNonce(user, chainId, OperationType.Redeem);
-        require(_nonce == nonce, mErc20Host_NonceNotValid());
 
         // actions
-        _increaseNonce(user, chainId, OperationType.Redeem);
-        _redeem(user, amount, true);
+        accAmountOutPerChain[dstChainId][msg.sender] += amount;
+        _redeemUnderlying(msg.sender, amount, false);
 
-        logsOperator.registerLog(
-            msg.sender,
-            OperationType.Redeem,
-            chainId,
-            uint32(block.chainid),
-            nonce,
-            abi.encodePacked(amount, msg.sender, nonce, chainId)
-        );
-        emit mErc20Host_WithdrawExternal(msg.sender, user, amount, _nonce, chainId);
+        emit mErc20Host_WithdrawOnExtensionChain(msg.sender, dstChainId, amount);
     }
 
-    /**
-     * @inheritdoc ImErc20Host
-     */
-    function withdrawOnExtension(uint256 amount, bytes calldata journalData, bytes calldata seal) external override {
-        // verify received data
-        _verifyProof(OperationType.RedeemOnOtherChain, journalData, seal);
-
-        // decode action data
-        // | Offset | Length | Data Type       |
-        // |--------|--------|-----------------|
-        // | 0     | 32     | uint256 liquidity  |
-        // | 32    | 20     | address user    |
-        // | 52    | 4      | uint32 dstChainId  |
-        uint256 liquidity = BytesLib.toUint256(BytesLib.slice(journalData, 0, 32), 0);
-        address user = BytesLib.toAddress(BytesLib.slice(journalData, 32, 20), 0);
-        uint32 dstChainId = BytesLib.toUint32(BytesLib.slice(journalData, 52, 4), 0);
-
-        // checks
-        _checkSender(msg.sender, user);
-        require(liquidity > 0 && amount > 0 && amount <= liquidity, mErc20Host_AmountNotValid());
+    function borrowOnExtension(uint256 amount, uint32 dstChainId) external override {
+        require(amount > 0, mErc20Host_AmountNotValid());
 
         // actions
-        uint32 _nonce = _getNonce(user, uint32(block.chainid), OperationType.RedeemOnOtherChain);
-        _increaseNonce(user, uint32(block.chainid), OperationType.RedeemOnOtherChain);
-        _redeem(user, amount, false);
+        accAmountOutPerChain[dstChainId][msg.sender] += amount;
+        _borrow(msg.sender, amount, false);
 
-        logsOperator.registerLog(
-            user,
-            OperationType.RedeemOnOtherChain,
-            uint32(block.chainid),
-            dstChainId,
-            _nonce,
-            abi.encodePacked(amount, user, _nonce, uint32(block.chainid))
-        );
-        emit mErc20Host_WithdrawOnExtensionChain(msg.sender, user, amount, _nonce, dstChainId);
+        emit mErc20Host_BorrowOnExternsionChain(msg.sender, dstChainId, amount);
     }
 
     // ----------- PRIVATE ------------
-    function _verifyProof(OperationType imageType, bytes calldata journalData, bytes calldata seal) private {
+    function _verifyProof(bytes calldata journalData, bytes calldata seal) private {
         require(journalData.length > 0, mErc20Host_JournalNotValid());
 
         // verify it using the ZkVerifier contract
-        _verifyInput(journalData, seal, uint256(imageType));
+        _verifyInput(journalData, seal);
     }
 
-    function _getNonce(address from, uint32 chainId, OperationType operation) private view returns (uint32) {
-        return nonces[from][chainId][operation];
-    }
-
-    function _increaseNonce(address from, uint32 chainId, OperationType operation) private {
-        nonces[from][chainId][operation]++;
-    }
-
-    function _checkSender(address sender, address user) private view {
-        if (sender != user) {
+    function _checkSender(address msgSender, address srcSender) private view {
+        if (msgSender != srcSender) {
             require(
-                sender == admin || rolesOperator.isAllowedFor(sender, rolesOperator.PROOF_FORWARDER()),
+                allowedCallers[srcSender][msgSender] || msgSender == admin
+                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER()),
                 mErc20Host_CallerNotAllowed()
             );
         }
