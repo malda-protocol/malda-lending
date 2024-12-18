@@ -11,7 +11,7 @@ import {BytesLib} from "src/libraries/BytesLib.sol";
 */
 
 library mTokenProofDecoderLib {
-    function decodeProof(bytes memory journalData)
+    function decodeJournal(bytes memory journalData)
         external
         pure
         returns (address sender, address market, uint256 accAmountIn, uint256 accAmountOut, uint32 chainId)
@@ -31,7 +31,7 @@ library mTokenProofDecoderLib {
         chainId = BytesLib.toUint32(BytesLib.slice(journalData, 104, 4), 0);
     }
 
-    function encodeProof(address sender, address market, uint256 accAmountIn, uint256 accAmountOut, uint32 chainId)
+    function encodeJournal(address sender, address market, uint256 accAmountIn, uint256 accAmountOut, uint32 chainId)
         external
         pure
         returns (bytes memory)
