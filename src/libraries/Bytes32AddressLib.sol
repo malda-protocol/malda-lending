@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
-pragma solidity =0.8.28;
+pragma solidity =0.8.19;
 
 /// @notice Library for converting between addresses and bytes32 values.
 /// @author Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/Bytes32AddressLib.sol)

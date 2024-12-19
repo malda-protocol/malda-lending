@@ -6,10 +6,11 @@
   evm_version = 'Cancun'
   optimizer = true
   optimizer_runs = 9000
-  solc_version = '0.8.28'
+  # solc_version = '0.8.28'
 
   remappings = [
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "@openzeppelin/contracts-0.8.19/=lib/openzeppelin-contracts-0.8.19/contracts/",
     "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
     "risc0/=lib/risc0-ethereum/contracts/src/",
   ]

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity =0.8.28;
+pragma solidity =0.8.19;
 
 /*
  _____ _____ __    ____  _____ 
@@ -9,10 +9,10 @@ pragma solidity =0.8.28;
 */
 
 // interfaces
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {IERC20} from "@openzeppelin/contracts-0.8.19/token/ERC20/IERC20.sol";
+import {ERC721} from "@openzeppelin/contracts-0.8.19/token/ERC721/ERC721.sol";
+import {Ownable} from "@openzeppelin/contracts-0.8.19/access/Ownable.sol";
+import {Strings} from "@openzeppelin/contracts-0.8.19/utils/Strings.sol";
 
 contract GovernanceRound is ERC721, Ownable {
     using Strings for uint256;
@@ -26,14 +26,14 @@ contract GovernanceRound is ERC721, Ownable {
     address immutable operator;
 
     /// @notice Minimum investment amount (10 USDC = 10 * 10^6)
-    uint256 public constant MINIMUM_DEPOSIT = 10 * 1e6;
+    uint256 public constant MINIMUM_DEPOSIT = 10 * 1e4;
 
     /// @notice Deposit amount for each token ID
     mapping(uint256 => uint256) public deposits;
 
     uint256 public nextTokenId;
 
-    bool public roundClosed;
+    bool public roundOpen;
 
     // ----------- EVENTS ------------
 
@@ -49,12 +49,12 @@ contract GovernanceRound is ERC721, Ownable {
     /**
      * @notice Initialize the governance round
      * @param usdc_ The USDC token contract address
-     * @param owner_ The owner of the contract
      * @param operator_ The operator of the round
      */
-    constructor(address usdc_, address owner_, address operator_) ERC721("Malda Governance Round Deposit", "MGRD") Ownable(owner_) {
+    constructor(address usdc_, address owner_, address operator_) ERC721("Malda Governance Round Deposit", "MGRD") Ownable() {
         usdc = IERC20(usdc_);
         operator = operator_;
+        transferOwnership(owner_);
     }
 
     // ----------- EXTERNAL FUNCTIONS ------------
@@ -65,11 +65,11 @@ contract GovernanceRound is ERC721, Ownable {
      * @return tokenId The ID of the minted NFT
      */
     function deposit(uint256 amount) external returns (uint256) {
-        require(!roundClosed, GovernanceRound_RoundClosed());
-        require(amount >= MINIMUM_DEPOSIT, GovernanceRound_MinimumDepositNotMet());
+        if (!roundOpen) revert GovernanceRound_RoundClosed();
+        if (amount < MINIMUM_DEPOSIT) revert GovernanceRound_MinimumDepositNotMet();
 
         bool success = usdc.transferFrom(msg.sender, address(this), amount);
-        require(success, GovernanceRound_TransferFailed());
+        if (!success) revert GovernanceRound_TransferFailed();
 
         return _createDeposit(amount);
     }
@@ -80,15 +80,20 @@ contract GovernanceRound is ERC721, Ownable {
      */
     function withdraw(uint256 amount) external onlyOwner {
         bool success = usdc.transfer(owner(), amount);
-        require(success, GovernanceRound_TransferFailed());
+        if (!success) revert GovernanceRound_TransferFailed();
+    }
+
+    function openRound() external {
+        if (msg.sender != operator) revert GovernanceRound_CallerIsNotOperator();
+        roundOpen = true;
     }
 
     /**
      * @notice Close the round (only operator)
      */
     function closeRound() external {
-        require(msg.sender == operator, GovernanceRound_CallerIsNotOperator());
-        roundClosed = true;
+        if (msg.sender != operator) revert GovernanceRound_CallerIsNotOperator();
+        roundOpen = false;
     }
 
 
@@ -98,7 +103,7 @@ contract GovernanceRound is ERC721, Ownable {
      * @return The deposit amount
      */
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        _requireOwned(tokenId);
+        ownerOf(tokenId);
         return string.concat("deposit_amount: ", deposits[tokenId].toString());
     }
 
