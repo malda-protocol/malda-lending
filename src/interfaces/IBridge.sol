@@ -23,8 +23,11 @@ interface IBridge {
     /**
      * @notice rebalance through bridge
      * @param _dstChainId destination chain id
+     * @param _token the token to rebalance
      * @param _message operation message data
-     * @param _bridgeData specific bridge data
+     * @param _bridgeData specific bridge datas
      */
-    function sendMsg(uint256 _dstChainId, bytes memory _message, bytes memory _bridgeData) external payable;
+    function sendMsg(uint256 _dstChainId, address _token, bytes memory _message, bytes memory _bridgeData)
+        external
+        payable;
 }
