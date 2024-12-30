@@ -38,9 +38,8 @@ contract LZMessageOnlyBridge is IBridge, ILayerZeroReceiverV2 {
 
     // ----------- EVENTS ------------
     event PeerSet(uint32 indexed eId, bytes32 peer);
-    event ChainIdSet(uint256 indexed chainId, uint256 indexed eId);
     event LayerZeroEndpointUpdated(address indexed oldVal, address indexed newVal);
-    event MsgSent(uint256 dstChainId, bytes message, uint256 gasLimit, address indexed refundAddress);
+    event MsgSent(uint32 dstChainId, bytes message, uint256 gasLimit, address indexed refundAddress);
     event Rebalanced(address indexed market, uint256 amount);
 
     error LZBridge_NotEnoughFees();
@@ -83,30 +82,20 @@ contract LZMessageOnlyBridge is IBridge, ILayerZeroReceiverV2 {
         emit PeerSet(_eId, _peer);
     }
 
-    /**
-     * @notice updates cross chain peer
-     * @param _chainId the block.chain id
-     * @param _eId the LZ endpoint id
-     */
-    function updateChainToEid(uint256 _chainId, uint32 _eId) external onlyBridgeConfigurator {
-        chainToEid[_chainId] = _eId;
-        emit ChainIdSet(_chainId, _eId);
-    }
 
     // ----------- VIEW ------------
     /**
      * @inheritdoc IBridge
      * @dev use `getOptionsData` for `_bridgeData`
      */
-    function getFee(uint256 _dstChainId, bytes memory _message, bytes memory _bridgeData)
+    function getFee(uint32 _dstChainId, bytes memory _message, bytes memory _bridgeData)
         external
         view
         returns (uint256)
     {
-        uint32 dstEid = chainToEid[_dstChainId];
-        require(dstEid > 0, LZBridge_ChainNotRegistered());
-        require(peers[dstEid] != bytes32(0), LZBridge_PeerNotRegistered());
-        MessagingFee memory fees = _getFee(dstEid, _message, _bridgeData);
+        require(_dstChainId > 0, LZBridge_ChainNotRegistered());
+        require(peers[_dstChainId] != bytes32(0), LZBridge_PeerNotRegistered());
+        MessagingFee memory fees = _getFee(_dstChainId, _message, _bridgeData);
         return fees.nativeFee; // no option to pay in LZ token with this version
     }
     /**
@@ -132,22 +121,21 @@ contract LZMessageOnlyBridge is IBridge, ILayerZeroReceiverV2 {
     /**
      * @inheritdoc IBridge
      */
-    function sendMsg(uint256 _dstChainId, address, bytes memory _message, bytes memory _bridgeData)
+    function sendMsg(uint32 _dstChainId, address, bytes memory _message, bytes memory _bridgeData)
         external
         payable
         onlyRebalancer
     {
-        uint32 dstEid = chainToEid[_dstChainId];
-        require(dstEid > 0, LZBridge_ChainNotRegistered());
-        require(peers[dstEid] != bytes32(0), LZBridge_PeerNotRegistered());
+        require(_dstChainId > 0, LZBridge_ChainNotRegistered());
+        require(peers[_dstChainId] != bytes32(0), LZBridge_PeerNotRegistered());
 
-        MessagingFee memory fees = _getFee(dstEid, _message, _bridgeData);
+        MessagingFee memory fees = _getFee(_dstChainId, _message, _bridgeData);
         if (msg.value < fees.nativeFee || fees.lzTokenFee != 0) revert LZBridge_NotEnoughFees();
 
         (uint256 gasLimit, address refundAddress) = abi.decode(_bridgeData, (uint256, address));
         bytes memory options = getOptionsData(gasLimit);
 
-        endpoint.send{value: msg.value}(MessagingParams(dstEid, peers[dstEid], _message, options, false), refundAddress);
+        endpoint.send{value: msg.value}(MessagingParams(_dstChainId, peers[_dstChainId], _message, options, false), refundAddress);
 
         emit MsgSent(_dstChainId, _message, gasLimit, refundAddress);
     }

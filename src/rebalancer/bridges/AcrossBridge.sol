@@ -55,7 +55,7 @@ contract AccrossBridge is BaseBridge, IBridge {
     /**
      * @inheritdoc IBridge
      */
-    function getFee(uint256, bytes memory, bytes memory) external pure returns (uint256) {
+    function getFee(uint32, bytes memory, bytes memory) external pure returns (uint256) {
         // need to use Across API
         revert AcrossBridge_NotImplemented();
     }
@@ -64,7 +64,7 @@ contract AccrossBridge is BaseBridge, IBridge {
     /**
      * @inheritdoc IBridge
      */
-    function sendMsg(uint256 _dstChainId, address _token, bytes memory _message, bytes memory)
+    function sendMsg(uint32 _dstChainId, address _token, bytes memory _message, bytes memory)
         external
         payable
         onlyRebalancer
@@ -85,7 +85,7 @@ contract AccrossBridge is BaseBridge, IBridge {
             address(0), //outputToken is automatically resolved to the same token on destination
             msgData.inputAmount,
             msgData.outputAmount, //outputAmount should be set as the inputAmount - relay fees; use Across API
-            _dstChainId,
+            uint256(_dstChainId),
             msgData.relayer, //exclusiveRelayer
             msgData.deadline, //fillDeadline
             msgData.exclusivityDeadline, //can use Across API/suggested-fees or 0 to disable

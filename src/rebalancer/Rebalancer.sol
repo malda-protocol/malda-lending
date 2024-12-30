@@ -19,7 +19,7 @@ contract Rebalancer is IRebalancer {
     // ----------- STORAGE ------------
     IRoles public roles;
     uint256 public nonce;
-    mapping(uint256 => mapping(uint256 => Msg)) public logs;
+    mapping(uint32 => mapping(uint256 => Msg)) public logs;
     mapping(address => bool) public whitelistedBridges;
 
     constructor(address _roles) {

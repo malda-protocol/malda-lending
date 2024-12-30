@@ -15,7 +15,7 @@ interface IRebalanceMarket {
 interface IRebalancer {
     // ----------- STORAGE ------------
     struct Msg {
-        uint256 dstChainId;
+        uint32 dstChainId;
         address token;
         bytes message;
         bytes bridgeData;

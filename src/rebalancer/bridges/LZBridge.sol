@@ -23,46 +23,30 @@ contract LZBridge is BaseBridge, IBridge {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE ------------
-    //TODO: refactor to maybe use uint32 directly?!; check when everything else is implemented
-    mapping(uint256 dstChainId => uint32 eId) public chainToEid;
 
     // ----------- EVENTS ------------
-    event ChainIdSet(uint256 indexed chainId, uint256 indexed eId);
     event MsgSent(
-        uint256 indexed dstChainId, address indexed market, uint256 amountLD, uint256 minAmountLD, bytes32 guid
+        uint32 indexed dstChainId, address indexed market, uint256 amountLD, uint256 minAmountLD, bytes32 guid
     );
 
     error LZBridge_NotEnoughFees();
-    error LZBridge_NotAuthorized();
     error LZBridge_ChainNotRegistered();
 
     constructor(address _roles) BaseBridge(_roles) {}
-
-    // ----------- OWNER ------------
-    /**
-     * @notice updates cross chain peer
-     * @param _chainId the block.chain id
-     * @param _eId the LZ endpoint id
-     */
-    function updateChainToEid(uint256 _chainId, uint32 _eId) external onlyBridgeConfigurator {
-        chainToEid[_chainId] = _eId;
-        emit ChainIdSet(_chainId, _eId);
-    }
 
     // ----------- VIEW ------------
     /**
      * @inheritdoc IBridge
      * @dev use `getOptionsData` for `_bridgeData`
      */
-    function getFee(uint256 _dstChainId, bytes memory _message, bytes memory _composeMsg)
+    function getFee(uint32 _dstChainId, bytes memory _message, bytes memory _composeMsg)
         external
         view
         returns (uint256)
     {
-        uint32 dstEid = chainToEid[_dstChainId];
-        require(dstEid > 0, LZBridge_ChainNotRegistered());
+        require(_dstChainId > 0, LZBridge_ChainNotRegistered());
 
-        (MessagingFee memory fees,) = _getFee(dstEid, _message, _composeMsg);
+        (MessagingFee memory fees,) = _getFee(_dstChainId, _message, _composeMsg);
         return fees.nativeFee; // no option to pay in LZ token with this version
     }
 
@@ -70,20 +54,18 @@ contract LZBridge is BaseBridge, IBridge {
     /**
      * @inheritdoc IBridge
      */
-    function sendMsg(uint256 _dstChainId, address _token, bytes memory _message, bytes memory _composeMsg)
+    function sendMsg(uint32 _dstChainId, address _token, bytes memory _message, bytes memory _composeMsg)
         external
         payable
         onlyRebalancer
     {
-        // get destination
-        uint32 dstEid = chainToEid[_dstChainId];
-        require(dstEid > 0, LZBridge_ChainNotRegistered());
+        require(_dstChainId > 0, LZBridge_ChainNotRegistered());
 
         // get market
         (address market,,,) = abi.decode(_message, (address, uint256, uint256, bytes));
 
         // compute fee and craft message
-        (MessagingFee memory fees, SendParam memory sendParam) = _getFee(dstEid, _message, _composeMsg);
+        (MessagingFee memory fees, SendParam memory sendParam) = _getFee(_dstChainId, _message, _composeMsg);
         if (msg.value < fees.nativeFee) revert LZBridge_NotEnoughFees();
         require(sendParam.amountLD >= minTransfer && sendParam.amountLD <= maxTransfer, BaseBridge_AmountNotValid());
 

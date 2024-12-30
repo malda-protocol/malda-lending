@@ -22,12 +22,9 @@ contract EverclearBridge is BaseBridge, IBridge {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE ------------
-    mapping(uint256 dstChainId => uint32 eId) public chainToEid;
-
     IEverclearSpoke public everclearSpoke;
 
     // ----------- EVENTS ------------
-    event ChainIdSet(uint256 indexed chainId, uint256 indexed eId);
     event MsgSent(uint256 indexed dstChainId, address indexed market, uint256 amountLD, bytes32 id);
 
     // ----------- ERRORS ------------
@@ -37,22 +34,11 @@ contract EverclearBridge is BaseBridge, IBridge {
         everclearSpoke = IEverclearSpoke(_spoke);
     }
 
-    // ----------- OWNER ------------
-    /**
-     * @notice updates cross chain peer
-     * @param _chainId the block.chain id
-     * @param _eId the Everclear endpoint id
-     */
-    function updateChainToEid(uint256 _chainId, uint32 _eId) external onlyBridgeConfigurator {
-        chainToEid[_chainId] = _eId;
-        emit ChainIdSet(_chainId, _eId);
-    }
-
     // ----------- VIEW ------------
     /**
      * @inheritdoc IBridge
      */
-    function getFee(uint256, bytes memory, bytes memory) external pure returns (uint256) {
+    function getFee(uint32, bytes memory, bytes memory) external pure returns (uint256) {
         // need to use Everclear API
         revert Everclear_NotImplemented();
     }
@@ -61,7 +47,7 @@ contract EverclearBridge is BaseBridge, IBridge {
     /**
      * @inheritdoc IBridge
      */
-    function sendMsg(uint256 _dstChainId, address _token, bytes memory _message, bytes memory)
+    function sendMsg(uint32 _dstChainId, address _token, bytes memory _message, bytes memory)
         external
         payable
         onlyRebalancer
@@ -76,7 +62,7 @@ contract EverclearBridge is BaseBridge, IBridge {
 
         // approve and send with Everclear
         uint32[] memory destinations = new uint32[](1);
-        destinations[0] = chainToEid[_dstChainId];
+        destinations[0] = _dstChainId;
         SafeApprove.safeApprove(_token, address(everclearSpoke), amount);
         (bytes32 _intentId,) = everclearSpoke.newIntent(destinations, market, _token, outputAsset, amount, 0, 0, data);
         emit MsgSent(_dstChainId, market, amount, _intentId);

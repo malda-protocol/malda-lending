@@ -23,7 +23,6 @@ contract ConnextBridge is BaseBridge, IBridge {
 
     // ----------- STORAGE ------------
     IConnext public immutable connext;
-    mapping(uint256 dstChainId => uint32 eId) public chainToEid;
 
     struct DecodedMessage {
         address market;
@@ -34,7 +33,6 @@ contract ConnextBridge is BaseBridge, IBridge {
     }
 
     // ----------- EVENTS ------------
-    event ChainIdSet(uint256 indexed chainId, uint256 indexed eId);
     event MsgSent(uint256 indexed dstChainId, address indexed market, uint256 amountLD, uint256 slippage, bytes32 id);
 
     // ----------- ERRORS ------------
@@ -45,22 +43,11 @@ contract ConnextBridge is BaseBridge, IBridge {
         connext = IConnext(_connext);
     }
 
-    // ----------- OWNER ------------
-    /**
-     * @notice updates cross chain peer
-     * @param _chainId the block.chain id
-     * @param _eId the Connext endpoint id
-     */
-    function updateChainToEid(uint256 _chainId, uint32 _eId) external onlyBridgeConfigurator {
-        chainToEid[_chainId] = _eId;
-        emit ChainIdSet(_chainId, _eId);
-    }
-
     // ----------- VIEW ------------
     /**
      * @inheritdoc IBridge
      */
-    function getFee(uint256, bytes memory, bytes memory) external pure returns (uint256) {
+    function getFee(uint32, bytes memory, bytes memory) external pure returns (uint256) {
         // need to use Connext API
         revert Connext_NotImplemented();
     }
@@ -69,7 +56,7 @@ contract ConnextBridge is BaseBridge, IBridge {
     /**
      * @inheritdoc IBridge
      */
-    function sendMsg(uint256 _dstChainId, address _token, bytes memory _message, bytes memory)
+    function sendMsg(uint32 _dstChainId, address _token, bytes memory _message, bytes memory)
         external
         payable
         onlyRebalancer
@@ -85,7 +72,7 @@ contract ConnextBridge is BaseBridge, IBridge {
         // approve and send with Connext
         SafeApprove.safeApprove(_token, address(connext), msgData.amount);
         bytes32 id = connext.xcall{value: msgData.relayerFee}(
-            chainToEid[_dstChainId], // _destination: Domain ID of the destination chain
+            _dstChainId, // _destination: Domain ID of the destination chain
             msgData.market, // _to: address receiving the funds on the destination
             _token, // _asset: address of the token contract
             msgData.delegate, // _delegate: address that can revert or forceLocal on destination
