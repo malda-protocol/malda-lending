@@ -131,7 +131,7 @@ interface ImTokenGateway {
      * @notice Returns the proof data journal
      */
     function getProofData(address user) external view returns (bytes memory);
-    
+
     // ----------- PUBLIC -----------
     /**
      * @notice Extract amount to be used for rebalancing operation
