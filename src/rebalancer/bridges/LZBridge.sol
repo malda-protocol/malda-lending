@@ -11,79 +11,93 @@ pragma solidity =0.8.28;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import {ILayerZeroReceiverV2} from "src/interfaces/external/layerzero/v2/ILayerZeroReceiverV2.sol";
-import {
-    ILayerZeroEndpointV2,
-    MessagingParams,
-    Origin,
-    MessagingFee
-} from "src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol";
+import {MessagingReceipt} from "src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol";
+import {ILayerZeroOFT, SendParam, MessagingFee} from "src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol";
 
-import {IRoles} from "src/interfaces/IRoles.sol";
 import {IBridge} from "src/interfaces/IBridge.sol";
+import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
 
-//TODO: add natspec and move events and errors to the interface
-contract LZBridge is IBridge, ILayerZeroReceiverV2 {
+import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
+
+contract LZBridge is BaseBridge, IBridge {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE ------------
-    IRoles public roles;
-    ILayerZeroEndpointV2 public endpoint;
-   
-    uint64 private constant SENDER = 1; // LZ Sender version
-    uint64 private constant RECEIVER = 2; // LZ Receiver version
 
-    event LayerZeroEndpointUpdated(address indexed oldVal, address indexed newVal);
+    // ----------- EVENTS ------------
+    event MsgSent(
+        uint32 indexed dstChainId, address indexed market, uint256 amountLD, uint256 minAmountLD, bytes32 guid
+    );
 
-    constructor(address _roles) {
-        roles = IRoles(_roles);
-    }
+    error LZBridge_NotEnoughFees();
+    error LZBridge_ChainNotRegistered();
 
-    modifier onlyBridgeConfigurator() {
-        // TODO: add
-        _;
-    }
+    constructor(address _roles) BaseBridge(_roles) {}
 
-    modifier onlyRebalancer() {
-        // TODO: add
-        _;
-    }
-
-    function nextNonce(uint32, bytes32) external pure override returns (uint64 nonce) {
-        return 0;
-    }
-
-    function sendMsg(uint256 _dstChainId, bytes memory _message, bytes memory _bridgeData) external payable {
-        
-    } 
-
-    function lzReceive(Origin calldata _origin, bytes32 _guid, bytes calldata _message, address, bytes calldata)
-        external
-        payable
-        override
-    {
-
-    }
-
-    function allowInitializePath(Origin calldata origin) external view override returns (bool) {
-    }
-
-     function getFee(uint256 _dstChainId, bytes memory _message, bytes memory _bridgeData)
+    // ----------- VIEW ------------
+    /**
+     * @inheritdoc IBridge
+     * @dev use `getOptionsData` for `_bridgeData`
+     */
+    function getFee(uint32 _dstChainId, bytes memory _message, bytes memory _composeMsg)
         external
         view
         returns (uint256)
     {
+        require(_dstChainId > 0, LZBridge_ChainNotRegistered());
 
+        (MessagingFee memory fees,) = _getFee(_dstChainId, _message, _composeMsg);
+        return fees.nativeFee; // no option to pay in LZ token with this version
     }
 
-    // ----------- OWNER ------------
+    // ----------- EXTERNAL ------------
     /**
-     * @notice set LZ endpoint address
-     * @param _endpoint the new LZ endpoint
+     * @inheritdoc IBridge
      */
-    function setLZEndpoint(address _endpoint) external onlyBridgeConfigurator {
-        emit LayerZeroEndpointUpdated(address(endpoint), _endpoint);
-        endpoint = ILayerZeroEndpointV2(_endpoint);
+    function sendMsg(uint32 _dstChainId, address _token, bytes memory _message, bytes memory _composeMsg)
+        external
+        payable
+        onlyRebalancer
+    {
+        require(_dstChainId > 0, LZBridge_ChainNotRegistered());
+
+        // get market
+        (address market,,,) = abi.decode(_message, (address, uint256, uint256, bytes));
+
+        // compute fee and craft message
+        (MessagingFee memory fees, SendParam memory sendParam) = _getFee(_dstChainId, _message, _composeMsg);
+        if (msg.value < fees.nativeFee) revert LZBridge_NotEnoughFees();
+        require(sendParam.amountLD >= minTransfer && sendParam.amountLD <= maxTransfer, BaseBridge_AmountNotValid());
+
+        // retrieve tokens from `Rebalancer`
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), sendParam.amountLD);
+
+        //TODO: add result guid to event
+        // send OFT
+        (MessagingReceipt memory msgReceipt,) = ILayerZeroOFT(_token).send{value: msg.value}(sendParam, fees, market); // refundAddress = market
+
+        emit MsgSent(_dstChainId, market, sendParam.amountLD, sendParam.minAmountLD, msgReceipt.guid);
     }
 
+    // ----------- PRIVATE ------------
+    function _getFee(uint32 dstEid, bytes memory _message, bytes memory _composeMsg)
+        private
+        view
+        returns (MessagingFee memory fees, SendParam memory lzSendParams)
+    {
+        (address market, uint256 amountLD, uint256 minAmountLD, bytes memory extraOptions) =
+            abi.decode(_message, (address, uint256, uint256, bytes));
+        lzSendParams = SendParam({
+            dstEid: dstEid,
+            to: bytes32(uint256(uint160(market))), // deployed with CREATE3
+            amountLD: amountLD,
+            minAmountLD: minAmountLD,
+            extraOptions: extraOptions,
+            composeMsg: _composeMsg,
+            oftCmd: ""
+        });
+        address _underlying = ImTokenMinimal(market).underlying();
+
+        fees = ILayerZeroOFT(_underlying).quoteSend(lzSendParams, false);
+    }
 }

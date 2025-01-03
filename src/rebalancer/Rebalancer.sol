@@ -10,13 +10,16 @@ pragma solidity =0.8.28;
 
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {IBridge} from "src/interfaces/IBridge.sol";
-import {IRebalancer} from "src/interfaces/IRebalancer.sol";
+import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
+import {IRebalancer, IRebalanceMarket} from "src/interfaces/IRebalancer.sol";
+
+import {SafeApprove} from "src/libraries/SafeApprove.sol";
 
 contract Rebalancer is IRebalancer {
     // ----------- STORAGE ------------
     IRoles public roles;
     uint256 public nonce;
-    mapping(uint256 => mapping(uint256 => Msg)) public logs;
+    mapping(uint32 => mapping(uint256 => Msg)) public logs;
     mapping(address => bool) public whitelistedBridges;
 
     constructor(address _roles) {
@@ -25,7 +28,7 @@ contract Rebalancer is IRebalancer {
 
     // ----------- OWNER METHODS ------------
     function setWhitelistedBridgeStatus(address _bridge, bool _status) external {
-        //TODO: add role check
+        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
         whitelistedBridges[_bridge] = _status;
         emit BridgeWhitelistedStatusUpdated(_bridge, _status);
     }
@@ -42,16 +45,23 @@ contract Rebalancer is IRebalancer {
     /**
      * @inheritdoc IRebalancer
      */
-    function sendMsg(address _bridge, Msg calldata _msg) external {
+    function sendMsg(address _bridge, address _market, uint256 _amount, Msg calldata _msg) external {
+        if (!roles.isAllowedFor(msg.sender, roles.REBALANCER_EOA())) revert Rebalancer_NotAuthorized();
         require(whitelistedBridges[_bridge], Rebalancer_BridgeNotWhitelisted());
+        address _underlying = ImTokenMinimal(_market).underlying();
+        require(_underlying == _msg.token, Rebalancer_RequestNotValid());
+
+        // retrieve amounts (make sure to check min and max for that bridge)
+        IRebalanceMarket(_market).extractForRebalancing(_amount);
 
         unchecked {
             ++nonce;
         }
         logs[_msg.dstChainId][nonce] = _msg;
 
-        IBridge(_bridge).sendMsg(_msg.dstChainId, _msg.message, _msg.bridgeData);
-        
-        emit MsgSent(_bridge, _msg.dstChainId, _msg.message, _msg.bridgeData);
+        SafeApprove.safeApprove(_msg.token, _bridge, _amount);
+        IBridge(_bridge).sendMsg(_msg.dstChainId, _msg.token, _msg.message, _msg.bridgeData);
+
+        emit MsgSent(_bridge, _msg.dstChainId, _msg.token, _msg.message, _msg.bridgeData);
     }
 }

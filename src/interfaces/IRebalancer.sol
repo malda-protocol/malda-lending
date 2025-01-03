@@ -8,19 +8,28 @@ pragma solidity =0.8.28;
 |_|_|_|__|__|_____|____/|__|__|   
 */
 
+interface IRebalanceMarket {
+    function extractForRebalancing(uint256 amount) external;
+}
+
 interface IRebalancer {
     // ----------- STORAGE ------------
     struct Msg {
-        uint256 dstChainId;
+        uint32 dstChainId;
+        address token;
         bytes message;
         bytes bridgeData;
     }
     // ----------- EVENTS ------------
 
     event BridgeWhitelistedStatusUpdated(address indexed bridge, bool status);
-    event MsgSent(address indexed bridge, uint256 indexed dstChainId, bytes message, bytes bridgeData);
+    event MsgSent(
+        address indexed bridge, uint256 indexed dstChainId, address indexed token, bytes message, bytes bridgeData
+    );
 
     // ----------- ERRORS ------------
+    error Rebalancer_NotAuthorized();
+    error Rebalancer_RequestNotValid();
     error Rebalancer_BridgeNotWhitelisted();
 
     // ----------- VIEW METHODS ------------
@@ -38,7 +47,9 @@ interface IRebalancer {
     /**
      * @notice sends a bridge message
      * @param bridge the whitelisted bridge address
+     * @param _market the market to rebalance from address
+     * @param _amount the amount to rebalance
      * @param msg the message data
      */
-    function sendMsg(address bridge, Msg calldata msg) external;
+    function sendMsg(address bridge, address _market, uint256 _amount, Msg calldata msg) external;
 }

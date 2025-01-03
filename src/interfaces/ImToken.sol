@@ -64,6 +64,11 @@ interface ImTokenMinimal {
      * @dev Returns true
      */
     function isMToken() external view returns (bool);
+
+    /**
+     * @dev Returns the underlying address
+     */
+    function underlying() external view returns (address);
 }
 
 interface ImToken is ImTokenMinimal {
