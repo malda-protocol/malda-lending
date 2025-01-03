@@ -1,0 +1,25 @@
+Rebalancer_methods.t.sol
+├── given sender does not have GUARDIAN_BRIDGE role
+│   ├── when setWhitelistedBridgeStatus is called with true
+│   │   └── it should not set a bridge and revert with Rebalancer_NotAuthorized
+│   └── when setWhitelistedBridgeStatus is called with false
+│       └── it should not set a bridge and revert with Rebalancer_NotAuthorized
+├── given sender has role GUARDIAN_BRIDGE
+│   ├── when setWhitelistedBridgeStatus is called to whitelist
+│   │   └── it should whitelist a bridge
+│   ├── when isBridgeWhitelisted is called
+│   │   └── it should return true
+│   └── when setWhitelistedBridgeStatus is called to remove from whitelist
+│       └── it should remove bridge from whitelist mapping
+├── given sendMsg is called with wrong parameters
+│   ├── when sender does not have REBALANCER_EOA role
+│   │   └── it should revert with Rebalancer_NotAuthorized
+│   ├── when bridge is not whitelisted
+│   │   └── it should revert with Rebalancer_BridgeNotWhitelisted
+│   └── when underlying is not the same token
+│       └── it should revert with Rebalancer_RequestNotValid
+└── given sendMsg is called with right parameters
+    ├── when market does not have enough tokens
+    │   └── it should revert
+    └── when market has enough tokens
+        └── it should extract and rebalance

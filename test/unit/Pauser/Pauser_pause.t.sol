@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {IRoles} from "src/interfaces/IRoles.sol";
 import {IPauser} from "src/interfaces/IPauser.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {Pauser_Unit_Shared} from "../shared/Pauser_Unit_Shared.t.sol";
