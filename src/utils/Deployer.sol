@@ -14,8 +14,15 @@ import {CREATE3} from "src/libraries/CREATE3.sol";
 contract Deployer {
     address public admin;
 
-    constructor() {
-        admin = msg.sender;
+    error UserNotAdmin(address user, address admin);
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin, UserNotAdmin(msg.sender, admin));
+        _;
+    }
+
+    constructor(address _admin) {
+        admin = _admin;
     }
 
     receive() external payable {}
@@ -35,7 +42,7 @@ contract Deployer {
     }
 
     // ----------- PUBLIC ------------
-    function create(bytes32 salt, bytes memory code) external payable returns (address) {
+    function create(bytes32 salt, bytes memory code) external payable onlyAdmin returns (address) {
         return CREATE3.deploy(salt, code, msg.value);
     }
 }
