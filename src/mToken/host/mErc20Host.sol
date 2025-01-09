@@ -125,7 +125,7 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
      */
     function extractForRebalancing(uint256 amount) external {
         if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mErc20Host_NotRebalancer();
-        IERC20(underlying).safeTransferFrom(address(this), msg.sender, amount);
+        IERC20(underlying).safeTransfer(msg.sender, amount);
     }
 
     // ----------- PUBLIC ------------
