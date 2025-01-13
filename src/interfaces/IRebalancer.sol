@@ -30,6 +30,7 @@ interface IRebalancer {
     // ----------- ERRORS ------------
     error Rebalancer_NotAuthorized();
     error Rebalancer_RequestNotValid();
+    error Rebalancer_AddressNotValid();
     error Rebalancer_BridgeNotWhitelisted();
 
     // ----------- VIEW METHODS ------------
@@ -51,5 +52,5 @@ interface IRebalancer {
      * @param _amount the amount to rebalance
      * @param msg the message data
      */
-    function sendMsg(address bridge, address _market, uint256 _amount, Msg calldata msg) external;
+    function sendMsg(address bridge, address _market, uint256 _amount, Msg calldata msg) external payable;
 }

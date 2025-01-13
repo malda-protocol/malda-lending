@@ -29,7 +29,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
 
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
         //alice
-        mWethHost.liquidateExternal(journalData, "0x123", alice, address(this), amount, address(mWethHost));
+        mWethHost.liquidateExternal(journalData, "0x123", alice, amount, address(mWethHost));
     }
 
     modifier givenMarketIsNotPaused() {
@@ -43,7 +43,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         whenMarketIsListed(address(mWethHost))
     {
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.liquidateExternal("", "0x123", alice, address(this), amount, address(mWethHost)); // it should revert
+        mWethHost.liquidateExternal("", "0x123", alice, amount, address(mWethHost)); // it should revert
     }
 
     function test_RevertWhen_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
@@ -54,7 +54,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
     {
         // it should revert
         vm.expectRevert();
-        mWethHost.liquidateExternal("0x", "0x123", alice, address(this), amount, address(mWethHost)); // it should revert
+        mWethHost.liquidateExternal("0x", "0x123", alice, amount, address(mWethHost)); // it should revert
     }
 
     function test_WhenDecodedAmountIs0() external givenMarketIsNotPaused {
@@ -64,7 +64,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.liquidateExternal(journalData, "0x123", alice, address(this), amount, address(mWethHost));
+        mWethHost.liquidateExternal(journalData, "0x123", alice, amount, address(mWethHost));
     }
 
     modifier whenDecodedAmountIsValid() {
@@ -82,7 +82,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
-        mWethHost.liquidateExternal(journalData, "0x123", alice, address(this), amount, address(mWethHost));
+        mWethHost.liquidateExternal(journalData, "0x123", alice, amount, address(mWethHost));
     }
 
     function test_RevertWhen_UserIsTheSameAsTheLiquidator(uint256 amount)
@@ -95,7 +95,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         bytes memory journalData = _createAccumulatedAmountJournal(alice, address(mWethHost), amount);
 
         vm.expectRevert(ImErc20Host.mErc20Host_CallerNotAllowed.selector);
-        mWethHost.liquidateExternal(journalData, "0x123", alice, alice, amount, address(mWethHost));
+        mWethHost.liquidateExternal(journalData, "0x123", alice, amount, address(mWethHost));
     }
 
     struct LiquidateStateInternal {
@@ -126,8 +126,8 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         _repayPrerequisites(address(mWethHost), amount * 2, amount);
 
         _getTokens(weth, alice, amount * 10);
-        vars.balanceUnderlyingBefore = weth.balanceOf(address(alice));
-        vars.balanceMTokenBefore = mWethHost.balanceOf(address(alice));
+        vars.balanceUnderlyingBefore = weth.balanceOf(address(bob));
+        vars.balanceMTokenBefore = mWethHost.balanceOf(address(bob));
         vars.totalBorrowsBefore = mWethHost.totalBorrows();
         vars.accountBorrowBefore = mWethHost.borrowBalanceStored(address(this));
 
@@ -140,11 +140,11 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         mWethHost.updateAllowedCallerStatus(alice, true);
 
         _resetContext(alice);
-        mWethHost.liquidateExternal(journalData, "0x123", address(this), alice, amount, address(mWethHost));
+        mWethHost.liquidateExternal(journalData, "0x123", address(this), amount, address(mWethHost));
 
         // after state
-        vars.balanceUnderlyingAfter = weth.balanceOf(address(alice));
-        vars.balanceMTokenAfter = mWethHost.balanceOf(address(alice));
+        vars.balanceUnderlyingAfter = weth.balanceOf(address(bob));
+        vars.balanceMTokenAfter = mWethHost.balanceOf(address(bob));
         vars.totalBorrowsAfter = mWethHost.totalBorrows();
         vars.accountBorrowAfter = mWethHost.borrowBalanceStored(address(this));
 

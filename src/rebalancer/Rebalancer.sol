@@ -29,6 +29,7 @@ contract Rebalancer is IRebalancer {
     // ----------- OWNER METHODS ------------
     function setWhitelistedBridgeStatus(address _bridge, bool _status) external {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+        require(_bridge != address(0), Rebalancer_AddressNotValid());
         whitelistedBridges[_bridge] = _status;
         emit BridgeWhitelistedStatusUpdated(_bridge, _status);
     }
@@ -45,7 +46,7 @@ contract Rebalancer is IRebalancer {
     /**
      * @inheritdoc IRebalancer
      */
-    function sendMsg(address _bridge, address _market, uint256 _amount, Msg calldata _msg) external {
+    function sendMsg(address _bridge, address _market, uint256 _amount, Msg calldata _msg) external payable {
         if (!roles.isAllowedFor(msg.sender, roles.REBALANCER_EOA())) revert Rebalancer_NotAuthorized();
         require(whitelistedBridges[_bridge], Rebalancer_BridgeNotWhitelisted());
         address _underlying = ImTokenMinimal(_market).underlying();
@@ -60,7 +61,7 @@ contract Rebalancer is IRebalancer {
         logs[_msg.dstChainId][nonce] = _msg;
 
         SafeApprove.safeApprove(_msg.token, _bridge, _amount);
-        IBridge(_bridge).sendMsg(_msg.dstChainId, _msg.token, _msg.message, _msg.bridgeData);
+        IBridge(_bridge).sendMsg{value: msg.value}(_msg.dstChainId, _msg.token, _msg.message, _msg.bridgeData);
 
         emit MsgSent(_bridge, _msg.dstChainId, _msg.token, _msg.message, _msg.bridgeData);
     }

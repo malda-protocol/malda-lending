@@ -59,6 +59,7 @@ contract Pauser is Ownable, IPauser {
         pausableContracts[index] = pausableContracts[pausableContracts.length - 1];
         pausableContracts.pop();
         registeredContracts[_contract] = false;
+        contractTypes[_contract] = PausableType.NonPausable;
         emit MarketRemoved(_contract);
     }
     // ----------- PUBLIC ------------
@@ -82,8 +83,12 @@ contract Pauser is Ownable, IPauser {
      */
     function emergencyPauseAll() external {
         uint256 len = pausableContracts.length;
-        for (uint256 i; i < len; i++) {
+        for (uint256 i; i < len;) {
             _pauseAllMarketOperations(pausableContracts[i].market);
+
+            unchecked {
+                ++i;
+            }
         }
         emit PauseAll();
     }
@@ -113,16 +118,22 @@ contract Pauser is Ownable, IPauser {
         PausableType _type = contractTypes[_market];
         if (_type == PausableType.Host) {
             operator.setPaused(_market, _pauseType, true);
-        } else {
+        } else if (_type == PausableType.Extension) {
             ImTokenGateway(_market).setPaused(_pauseType, true);
+        } else {
+            revert Pauser_ContractNotEnabled();
         }
     }
 
     function _findIndex(address _address) private view returns (uint256) {
         uint256 len = pausableContracts.length;
-        for (uint256 i; i < len; i++) {
+        for (uint256 i; i < len;) {
             if (pausableContracts[i].market == _address) {
                 return i;
+            }
+
+            unchecked {
+                ++i;
             }
         }
         revert Pauser_EntryNotFound();

@@ -9,6 +9,8 @@ pragma solidity =0.8.28;
 */
 
 interface IRoles {
+    error Roles_InputNotValid();
+
     /**
      * @notice Returns REBALANCER role
      */
@@ -73,6 +75,11 @@ interface IRoles {
      * @notice Returns PAUSE_MANAGER role
      */
     function PAUSE_MANAGER() external view returns (bytes32);
+
+    /**
+     * @notice Returns CHAINS_MANAGER role
+     */
+    function CHAINS_MANAGER() external view returns (bytes32);
 
     /**
      * @notice Returns allowance status for a contract and a role

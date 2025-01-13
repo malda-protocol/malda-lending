@@ -58,8 +58,12 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
 
     // ----------- PUBLIC ------------
     function claim(address[] memory holders) public override {
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
+        for (uint256 i = 0; i < rewardTokens.length;) {
             _claim(rewardTokens[i], holders);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -106,8 +110,12 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
         require(mTokens.length == supplySpeeds.length, RewardDistributor_SupplySpeedArrayLengthMismatch());
         require(mTokens.length == borrowSpeeds.length, RewardDistributor_BorrowSpeedArrayLengthMismatch());
 
-        for (uint256 i = 0; i < mTokens.length; i++) {
+        for (uint256 i = 0; i < mTokens.length;) {
             _updateRewardSpeed(rewardToken_, mTokens[i], supplySpeeds[i], borrowSpeeds[i]);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -121,8 +129,12 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
      * @inheritdoc IRewardDistributor
      */
     function notifySupplyIndex(address mToken) external override onlyOperator {
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
+        for (uint256 i = 0; i < rewardTokens.length;) {
             _notifySupplyIndex(rewardTokens[i], mToken);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -130,8 +142,12 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
      * @inheritdoc IRewardDistributor
      */
     function notifyBorrowIndex(address mToken) external override onlyOperator {
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
+        for (uint256 i = 0; i < rewardTokens.length;) {
             _notifyBorrowIndex(rewardTokens[i], mToken);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -139,8 +155,12 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
      * @inheritdoc IRewardDistributor
      */
     function notifySupplier(address mToken, address supplier) external override onlyOperator {
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
+        for (uint256 i = 0; i < rewardTokens.length;) {
             _notifySupplier(rewardTokens[i], mToken, supplier);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -148,8 +168,12 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
      * @inheritdoc IRewardDistributor
      */
     function notifyBorrower(address mToken, address borrower) external override onlyOperator {
-        for (uint256 i = 0; i < rewardTokens.length; i++) {
+        for (uint256 i = 0; i < rewardTokens.length;) {
             _notifyBorrower(rewardTokens[i], mToken, borrower);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -284,10 +308,14 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     }
 
     function _claim(address rewardToken, address[] memory holders) internal {
-        for (uint256 j = 0; j < holders.length; j++) {
+        for (uint256 j = 0; j < holders.length;) {
             IRewardDistributorData.RewardAccountState storage accountState = rewardAccountState[rewardToken][holders[j]];
 
             accountState.rewardAccrued = _grantReward(rewardToken, holders[j], accountState.rewardAccrued);
+
+            unchecked {
+                ++j;
+            }
         }
     }
 

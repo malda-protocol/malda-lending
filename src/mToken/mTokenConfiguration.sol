@@ -54,14 +54,22 @@ abstract contract mTokenConfiguration is mTokenStorage {
         return _setInterestRateModel(newInterestRateModel);
     }
 
+    function setBorrowRateMaxMantissa(uint256 maxMantissa) external onlyAdmin {
+        uint256 _oldVal = borrowRateMaxMantissa;
+        borrowRateMaxMantissa = maxMantissa;
+
+        // validate new mantissa
+        _accrueInterest();
+
+        emit NewBorrowRateMaxMantissa(_oldVal, maxMantissa);
+    }
+
     /**
      * @notice accrues interest and sets a new reserve factor for the protocol using _setReserveFactorFresh
      * @dev Admin function to accrue interest and set a new reserve factor
      */
     function setReserveFactor(uint256 newReserveFactorMantissa) external onlyAdmin {
         _accrueInterest();
-
-        require(accrualBlockNumber == _getBlockNumber(), mToken_BlockNumberNotValid());
 
         require(newReserveFactorMantissa <= RESERVE_FACTOR_MAX_MANTISSA, mToken_ReserveFactorTooHigh());
 
@@ -87,8 +95,8 @@ abstract contract mTokenConfiguration is mTokenStorage {
      * @dev Admin function for pending admin to accept role and update admin
      */
     function acceptAdmin() external {
-        // Check caller is pendingAdmin and pendingAdmin ≠ address(0)
-        require(msg.sender == pendingAdmin && msg.sender != address(0), mToken_OnlyAdmin());
+        // Check caller is pendingAdmin
+        require(msg.sender == pendingAdmin, mToken_OnlyAdmin());
 
         // Save current values for inclusion in log
         address oldAdmin = admin;
@@ -111,9 +119,6 @@ abstract contract mTokenConfiguration is mTokenStorage {
      * @param newInterestRateModel the new interest rate model to use
      */
     function _setInterestRateModel(address newInterestRateModel) internal onlyAdmin {
-        // We fail gracefully unless market's block number equals current block number
-        require(accrualBlockNumber == _getBlockNumber(), mToken_BlockNumberNotValid());
-
         // Ensure invoke newInterestRateModel.isInterestRateModel() returns true
         require(IInterestRateModel(newInterestRateModel).isInterestRateModel(), mToken_MarketMethodNotValid());
 

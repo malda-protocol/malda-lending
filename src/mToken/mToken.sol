@@ -16,9 +16,9 @@ import {IOperator, IOperatorDefender} from "src/interfaces/IOperator.sol";
 
 // contracts
 import {mTokenConfiguration} from "./mTokenConfiguration.sol";
-import {ReentrancyGuardTransient} from "src/utils/ReentrancyGuardTransient.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
+abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     /**
      * @notice Initialize the money market
      * @param operator_ The address of the Operator
@@ -196,7 +196,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
         );
 
         _accrueInterest();
-        require(accrualBlockNumber == _getBlockNumber(), mToken_BlockNumberNotValid());
 
         require(_getCashPrior() >= reduceAmount, mToken_ReserveCashNotAvailable());
         require(reduceAmount <= totalReserves, mToken_ReserveCashNotAvailable());
@@ -387,8 +386,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
     function _addReserves(uint256 addAmount) internal nonReentrant {
         _accrueInterest();
 
-        require(accrualBlockNumber == _getBlockNumber(), mToken_BlockNumberNotValid());
-
         // totalReserves + actualAddAmount
         uint256 totalReservesNew;
         uint256 actualAddAmount;
@@ -438,7 +435,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
 
         IOperatorDefender(operator).beforeMTokenLiquidate(address(this), mTokenCollateral, borrower, repayAmount);
 
-        require(accrualBlockNumber == _getBlockNumber(), mToken_BlockNumberNotValid());
         require(
             ImToken(mTokenCollateral).accrualBlockNumber() == _getBlockNumber(), mToken_CollateralBlockNumberNotValid()
         );
@@ -477,8 +473,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
 
     function __repay(address payer, address borrower, uint256 repayAmount, bool doTransfer) private returns (uint256) {
         IOperatorDefender(operator).beforeMTokenRepay(address(this), borrower);
-
-        require(accrualBlockNumber == _getBlockNumber(), mToken_BlockNumberNotValid());
 
         /* We fetch the amount the borrower owes, with accumulated interest */
         uint256 accountBorrowsPrev = _borrowBalanceStored(borrower);
@@ -524,8 +518,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
      */
     function __borrow(address payable borrower, uint256 borrowAmount, bool doTransfer) private {
         IOperatorDefender(operator).beforeMTokenBorrow(address(this), borrower, borrowAmount);
-
-        require(accrualBlockNumber == _getBlockNumber(), mToken_BlockNumberNotValid());
 
         require(_getCashPrior() >= borrowAmount, mToken_BorrowCashNotAvailable());
 
@@ -597,7 +589,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
         /* Fail if redeem not allowed */
         IOperatorDefender(operator).beforeMTokenRedeem(address(this), redeemer, redeemTokens);
 
-        require(accrualBlockNumber == _getBlockNumber(), mToken_BlockNumberNotValid());
         require(_getCashPrior() >= redeemAmount, mToken_RedeemCashNotAvailable());
 
         /////////////////////////
@@ -633,8 +624,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuardTransient {
 
     function __mint(address minter, uint256 mintAmount, bool doTransfer) private {
         IOperatorDefender(operator).beforeMTokenMint(address(this), minter);
-
-        require(accrualBlockNumber == _getBlockNumber(), mToken_BlockNumberNotValid());
 
         Exp memory exchangeRate = Exp({mantissa: _exchangeRateStored()});
 

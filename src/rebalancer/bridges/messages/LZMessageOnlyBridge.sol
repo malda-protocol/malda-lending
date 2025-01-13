@@ -82,7 +82,6 @@ contract LZMessageOnlyBridge is IBridge, ILayerZeroReceiverV2 {
         emit PeerSet(_eId, _peer);
     }
 
-
     // ----------- VIEW ------------
     /**
      * @inheritdoc IBridge
@@ -135,7 +134,9 @@ contract LZMessageOnlyBridge is IBridge, ILayerZeroReceiverV2 {
         (uint256 gasLimit, address refundAddress) = abi.decode(_bridgeData, (uint256, address));
         bytes memory options = getOptionsData(gasLimit);
 
-        endpoint.send{value: msg.value}(MessagingParams(_dstChainId, peers[_dstChainId], _message, options, false), refundAddress);
+        endpoint.send{value: msg.value}(
+            MessagingParams(_dstChainId, peers[_dstChainId], _message, options, false), refundAddress
+        );
 
         emit MsgSent(_dstChainId, _message, gasLimit, refundAddress);
     }

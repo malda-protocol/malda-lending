@@ -18,7 +18,7 @@ import {mToken} from "./mToken.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
- * @title Melda's mErc20 Contract
+ * @title Malda's mErc20 Contract
  * @notice mTokens which wrap an EIP-20 underlying
  */
 contract mErc20 is mToken, ImErc20 {
@@ -66,7 +66,7 @@ contract mErc20 is mToken, ImErc20 {
      * @param delegatee The address to delegate votes to
      * @dev mTokens whose underlying are not  should revert here
      */
-    function delegateMeldaLikeTo(address delegatee) external onlyAdmin {
+    function delegateMaldaLikeTo(address delegatee) external onlyAdmin {
         ImTokenDelegator(underlying).delegate(delegatee);
     }
 
@@ -137,7 +137,7 @@ contract mErc20 is mToken, ImErc20 {
         return _addReserves(addAmount);
     }
 
-    // ----------- TOKEN PUBLIC ------------
+    // ----------- INTERNAL ------------
     /**
      * @notice Gets balance of this contract in terms of the underlying
      * @dev This excludes the value of the current message, if any

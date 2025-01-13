@@ -45,6 +45,20 @@ interface ImTokenGateway {
         uint32 dstChainId
     );
 
+    /**
+     * @notice Emitted when a proof was skipped
+     */
+    event mTokenGateway_Skipped(
+        address indexed msgSender,
+        address indexed srcSender,
+        address indexed receiver,
+        uint256 accAmountIn,
+        uint256 accAmountOut,
+        uint256 amount,
+        uint32 srcChainId,
+        uint32 dstChainId
+    );
+
     // ----------- ERRORS -----------+
     /**
      * @notice Thrown when the chain id is not LINEA

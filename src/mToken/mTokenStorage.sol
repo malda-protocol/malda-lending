@@ -91,6 +91,11 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     uint256 public totalSupply;
 
     /**
+     * @notice Maximum borrow rate that can ever be applied (.0005% / block)
+     */
+    uint256 public borrowRateMaxMantissa = 0.00004e16;
+
+    /**
      * @notice Container for borrow balance information
      * @member principal Total balance (with accrued interest), after applying the most recent balance-changing action
      * @member interestIndex Global borrowIndex as of the most recent balance-changing action
@@ -113,11 +118,6 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
      * @notice Initial exchange rate used when minting the first mTokens (used when totalSupply = 0)
      */
     uint256 internal initialExchangeRateMantissa;
-
-    /**
-     * @notice Maximum borrow rate that can ever be applied (.0005% / block)
-     */
-    uint256 internal constant BORROW_RATE_MAX_MANTISSA = 0.00004e16;
 
     /**
      * @notice Maximum fraction of interest that can be set aside for reserves
@@ -243,6 +243,11 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
      */
     event ReservesReduced(address indexed admin, uint256 reduceAmount, uint256 newTotalReserves);
 
+    /**
+     * @notice Event emitted when the borrow max mantissa is updated
+     */
+    event NewBorrowRateMaxMantissa(uint256 oldVal, uint256 maxMantissa);
+
     // ----------- VIRTUAL ------------
     /**
      * @inheritdoc ImToken
@@ -262,6 +267,8 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     /**
      * @notice Calculates the exchange rate from the underlying to the MToken
      * @dev This function does not accrue interest before calculating the exchange rate
+     *      Can generate issues if inflated by an attacker when market is created
+     *      Solution: use 0 collateral factor initially
      * @return calculated exchange rate scaled by 1e18
      */
     function _exchangeRateStored() internal view virtual returns (uint256) {
@@ -323,7 +330,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
         /* Calculate the current borrow interest rate */
         uint256 borrowRateMantissa =
             IInterestRateModel(interestRateModel).getBorrowRate(cashPrior, borrowsPrior, reservesPrior);
-        require(borrowRateMantissa <= BORROW_RATE_MAX_MANTISSA, mToken_BorrowRateTooHigh());
+        require(borrowRateMantissa <= borrowRateMaxMantissa, mToken_BorrowRateTooHigh());
 
         /* Calculate the number of blocks elapsed since the last accrual */
         uint256 blockDelta = currentBlockNumber - accrualBlockNumberPrior;

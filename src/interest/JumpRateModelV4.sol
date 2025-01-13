@@ -12,10 +12,10 @@ import {IInterestRateModel} from "src/interfaces/IInterestRateModel.sol";
 */
 
 /**
- * @title JumpRateModelV2
+ * @title JumpRateModelV4
  * @notice Implementation of the IInterestRateModel interface for calculating interest rates
  */
-contract JumpRateModelV2 is IInterestRateModel, Ownable {
+contract JumpRateModelV4 is IInterestRateModel, Ownable {
     // ----------- STORAGE ------------
 
     /**

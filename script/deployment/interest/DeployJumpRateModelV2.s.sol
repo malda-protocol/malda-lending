@@ -3,7 +3,7 @@ pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
 import {DeployBase} from "script/deployers/DeployBase.sol";
-import {JumpRateModelV2} from "src/interest/JumpRateModelV2.sol";
+import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
 
 /**
  * forge script script/deployment/interest/DeployJumpRateModelV2.s.sol:DeployJumpRateModelV2  \
@@ -29,11 +29,11 @@ contract DeployJumpRateModelV2 is Script, DeployBase {
         uint256 key = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(key);
 
-        bytes32 salt = getSalt(string.concat(data.name, "JumpRateModelV2"));
+        bytes32 salt = getSalt(string.concat(data.name, "JumpRateModelV4"));
         address created = deployer.create(
             salt,
             abi.encodePacked(
-                type(JumpRateModelV2).creationCode,
+                type(JumpRateModelV4).creationCode,
                 abi.encode(
                     data.blocksPerYear,
                     data.baseRatePerYear,
@@ -46,7 +46,7 @@ contract DeployJumpRateModelV2 is Script, DeployBase {
             )
         );
 
-        console.log(" JumpRateModelV2 deployed at: %s", created);
+        console.log(" JumpRateModelV4 deployed at: %s", created);
 
         vm.stopBroadcast();
 

@@ -41,8 +41,10 @@ contract AccrossBridge is BaseBridge, IBridge {
     error AcrossBridge_TokenMismatch();
     error AcrossBridge_NotAuthorized();
     error AcrossBridge_NotImplemented();
+    error AcrossBridge_AddressNotValid();
 
     constructor(address _roles, address _spokePool) BaseBridge(_roles) {
+        require(_spokePool != address(0), AcrossBridge_AddressNotValid());
         acrossSpokePool = _spokePool;
     }
 

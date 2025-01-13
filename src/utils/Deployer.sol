@@ -28,6 +28,12 @@ contract Deployer {
         }
     }
 
+    function setNewAdmin(address _addr) external {
+        if (admin == msg.sender) {
+            admin = _addr;
+        }
+    }
+
     // ----------- VIEW ------------
 
     function precompute(bytes32 salt) external view returns (address) {

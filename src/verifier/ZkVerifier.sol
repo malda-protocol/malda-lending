@@ -42,6 +42,7 @@ abstract contract ZkVerifier {
      * @param _verifier IRiscZeroVerifier contract implementation
      */
     function initialize(address _verifier) public initializer {
+        require(_verifier != address(0), ZkVerifier_InputNotValid());
         verifier = IRiscZeroVerifier(_verifier);
     }
 
@@ -52,6 +53,7 @@ abstract contract ZkVerifier {
      * @param _risc0Verifier the new IRiscZeroVerifier address
      */
     function _setVerifier(address _risc0Verifier) internal {
+        require(_risc0Verifier != address(0), ZkVerifier_InputNotValid());
         emit VerifierSet(address(verifier), _risc0Verifier);
         verifier = IRiscZeroVerifier(_risc0Verifier);
     }
