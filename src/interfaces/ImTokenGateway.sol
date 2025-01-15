@@ -37,7 +37,6 @@ interface ImTokenGateway {
     event mTokenGateway_Extracted(
         address indexed msgSender,
         address indexed srcSender,
-        address indexed receiver,
         uint256 accAmountIn,
         uint256 accAmountOut,
         uint256 amount,
@@ -45,19 +44,6 @@ interface ImTokenGateway {
         uint32 dstChainId
     );
 
-    /**
-     * @notice Emitted when a proof was skipped
-     */
-    event mTokenGateway_Skipped(
-        address indexed msgSender,
-        address indexed srcSender,
-        address indexed receiver,
-        uint256 accAmountIn,
-        uint256 accAmountOut,
-        uint256 amount,
-        uint32 srcChainId,
-        uint32 dstChainId
-    );
 
     // ----------- ERRORS -----------+
     /**
@@ -178,8 +164,7 @@ interface ImTokenGateway {
      * @notice Extract tokens
      * @param journalData The supplied journal
      * @param seal The seal address
-     * @param amount The amount to withdraw
-     * @param receiver The address who should receive the underlying tokens
+     * @param amount The amount to withdraw for each journal
      */
-    function outHere(bytes calldata journalData, bytes calldata seal, uint256 amount, address receiver) external;
+    function outHere(bytes calldata journalData, bytes calldata seal, uint256[] memory amount) external;
 }

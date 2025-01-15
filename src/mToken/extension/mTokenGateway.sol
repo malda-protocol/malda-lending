@@ -159,42 +159,56 @@ contract mTokenGateway is Ownable, ZkVerifier, ImTokenGateway, ImTokenOperationT
     /**
      * @inheritdoc ImTokenGateway
      */
-    function outHere(bytes calldata journalData, bytes calldata seal, uint256 amount, address receiver)
+    function outHere(bytes calldata journalData, bytes calldata seal, uint256[] memory amount)
         external
         override
         notPaused(OperationType.AmountOutHere)
     {
         // verify received data
-        _verifyProof(journalData, seal);
+        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
+            _verifyProof(journalData, seal);
+        }
 
-        (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId) =
-            mTokenProofDecoderLib.decodeJournal(journalData);
+        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+        assert(journals.length == amount.length);
 
-        // checks
-        _checkSender(msg.sender, _sender);
-        require(_market == address(this), mTokenGateway_AddressNotValid());
-        require(_chainId == LINEA_CHAIN_ID, mTokenGateway_ChainNotValid()); // allow only Host
-        require(_dstChainId == uint32(block.chainid), mTokenGateway_ChainNotValid());
-        require(amount > 0, mTokenGateway_AmountNotValid());
-        require(_accAmountOut - accAmountOut[_sender] >= amount, mTokenGateway_AmountTooBig());
-        require(IERC20(underlying).balanceOf(address(this)) >= amount, mTokenGateway_ReleaseCashNotAvailable());
+        for (uint256 i = 0; i < journals.length; ++i) {
+            _outHere(journals[i], amount[i]);
+        }
+    }
 
-        // effects
-        accAmountOut[_sender] += amount;
+    function _outHere(bytes memory journalData, uint256 amount)
+        internal
+    {
 
-        // interactions
-        IERC20(underlying).safeTransfer(receiver, amount);
+            (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId) =
+                mTokenProofDecoderLib.decodeJournal(journalData);
 
-        emit mTokenGateway_Extracted(
-            msg.sender,
-            _sender,
-            receiver,
-            accAmountIn[_sender],
-            accAmountOut[_sender],
-            amount,
-            uint32(_chainId),
-            uint32(block.chainid)
-        );
+            // checks
+            _checkSender(msg.sender, _sender);
+            require(_market == address(this), mTokenGateway_AddressNotValid());
+            require(_chainId == LINEA_CHAIN_ID, mTokenGateway_ChainNotValid()); // allow only Host
+            require(_dstChainId == uint32(block.chainid), mTokenGateway_ChainNotValid());
+            require(amount > 0, mTokenGateway_AmountNotValid());
+            require(_accAmountOut - accAmountOut[_sender] >= amount, mTokenGateway_AmountTooBig());
+            require(IERC20(underlying).balanceOf(address(this)) >= amount, mTokenGateway_ReleaseCashNotAvailable());
+
+            // effects
+            accAmountOut[_sender] += amount;
+
+            // interactions
+            IERC20(underlying).safeTransfer(_sender, amount);
+
+            emit mTokenGateway_Extracted(
+                msg.sender,
+                _sender,
+                accAmountIn[_sender],
+                accAmountOut[_sender],
+                amount,
+                uint32(_chainId),
+                uint32(block.chainid)
+            );
+    
     }
 
     // ----------- PRIVATE ------------
@@ -209,7 +223,8 @@ contract mTokenGateway is Ownable, ZkVerifier, ImTokenGateway, ImTokenOperationT
         if (msgSender != srcSender) {
             require(
                 allowedCallers[srcSender][msgSender] || msgSender == owner()
-                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER()),
+                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER())
+                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_BATCH_FORWARDER()),
                 mTokenGateway_CallerNotAllowed()
             );
         }

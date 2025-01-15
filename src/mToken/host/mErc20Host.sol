@@ -165,6 +165,9 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         // verify received data
         _verifyProof(journalData, seal);
 
+        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+        bytes memory singleJournal = journals[0];
+
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
             mTokenProofDecoderLib.decodeJournal(journalData);
 
@@ -202,8 +205,11 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         // verify received data
         _verifyProof(journalData, seal);
 
+        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+        bytes memory singleJournal = journals[0];
+
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
-            mTokenProofDecoderLib.decodeJournal(journalData);
+            mTokenProofDecoderLib.decodeJournal(singleJournal);
 
         // base checks
         {
@@ -235,8 +241,11 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         // verify received data
         _verifyProof(journalData, seal);
 
+        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+        bytes memory singleJournal = journals[0];
+
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
-            mTokenProofDecoderLib.decodeJournal(journalData);
+            mTokenProofDecoderLib.decodeJournal(singleJournal);
 
         // base checks
         {
