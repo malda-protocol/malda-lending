@@ -12,6 +12,7 @@ import {ImTokenOperationTypes} from "./ImToken.sol";
 
 interface IPauser is ImTokenOperationTypes {
     enum PausableType {
+        NonPausable,
         Host,
         Extension
     }
@@ -25,6 +26,7 @@ interface IPauser is ImTokenOperationTypes {
     error Pauser_NotAuthorized();
     error Pauser_AddressNotValid();
     error Pauser_AlreadyRegistered();
+    error Pauser_ContractNotEnabled();
 
     event PauseAll();
     event MarketPaused(address indexed market);

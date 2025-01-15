@@ -29,8 +29,11 @@ contract EverclearBridge is BaseBridge, IBridge {
 
     // ----------- ERRORS ------------
     error Everclear_NotImplemented();
+    error Everclear_AddressNotValid();
 
     constructor(address _roles, address _spoke) BaseBridge(_roles) {
+        require(_spoke != address(0), Everclear_AddressNotValid());
+
         everclearSpoke = IEverclearSpoke(_spoke);
     }
 

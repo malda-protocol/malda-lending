@@ -23,6 +23,7 @@ contract Roles is Ownable, IRoles {
     bytes32 public constant REBALANCER_EOA = keccak256("REBALANCER_EOA");
     bytes32 public constant GUARDIAN_PAUSE = keccak256("GUARDIAN_PAUSE");
     bytes32 public constant GUARDIAN_SEIZE = keccak256("GUARDIAN_SEIZE");
+    bytes32 public constant CHAINS_MANAGER = keccak256("CHAINS_MANAGER");
     bytes32 public constant PROOF_FORWARDER = keccak256("PROOF_FORWARDER");
     bytes32 public constant GUARDIAN_BORROW = keccak256("GUARDIAN_BORROW");
     bytes32 public constant GUARDIAN_BRIDGE = keccak256("GUARDIAN_BRIDGE");
@@ -51,6 +52,7 @@ contract Roles is Ownable, IRoles {
      * @param _allowed the new status.
      */
     function allowFor(address _contract, bytes32 _role, bool _allowed) external onlyOwner {
+        require(_contract != address(0) && _role != bytes32(0), Roles_InputNotValid());
         _roles[_contract][_role] = _allowed;
         emit Allowed(_contract, _role, _allowed);
     }

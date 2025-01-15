@@ -35,6 +35,7 @@ contract Unit is IUnit, IUnitAccess {
 
     // ----------- ERRORS ------------
     error Unit_OnlyAdmin();
+    error Unit_AddressNotValid();
 
     // ----------- EVENTS ------------
     /**
@@ -74,6 +75,7 @@ contract Unit is IUnit, IUnitAccess {
      * @param newPendingImplementation The new implementation address
      */
     function setPendingImplementation(address newPendingImplementation) external onlyAdmin {
+        require(newPendingImplementation != address(0), Unit_AddressNotValid());
         emit NewPendingImplementation(pendingOperatorImplementation, newPendingImplementation);
         pendingOperatorImplementation = newPendingImplementation;
     }
@@ -82,9 +84,8 @@ contract Unit is IUnit, IUnitAccess {
      * @inheritdoc IUnit
      */
     function acceptImplementation() external override {
-        // Check caller is pendingImplementation and pendingImplementation ≠ address(0)
-        require(msg.sender == pendingOperatorImplementation && msg.sender != address(0), Unit_OnlyAdmin());
-        // Check caller is pendingImplementation and pendingImplementation ≠ address(0)
+        // Check caller is pendingImplementation
+        require(msg.sender == pendingOperatorImplementation, Unit_OnlyAdmin());
 
         // Save current values for inclusion in log
         address oldImplementation = operatorImplementation;
@@ -104,6 +105,7 @@ contract Unit is IUnit, IUnitAccess {
      * @param newPendingAdmin New pending admin.
      */
     function setPendingAdmin(address newPendingAdmin) external onlyAdmin {
+        require(newPendingAdmin != address(0), Unit_AddressNotValid());
         emit NewPendingAdmin(pendingAdmin, newPendingAdmin);
         pendingAdmin = newPendingAdmin;
     }
@@ -112,8 +114,8 @@ contract Unit is IUnit, IUnitAccess {
      * @inheritdoc IUnitAccess
      */
     function acceptAdmin() external override {
-        // Check caller is pendingAdmin and pendingAdmin ≠ address(0)
-        require(msg.sender == pendingAdmin && msg.sender != address(0), Unit_OnlyAdmin());
+        // Check caller is pendingAdmin
+        require(msg.sender == pendingAdmin, Unit_OnlyAdmin());
 
         // Save current values for inclusion in log
         address oldAdmin = admin;

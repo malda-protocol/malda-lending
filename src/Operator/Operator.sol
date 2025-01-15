@@ -22,7 +22,8 @@ import {OperatorStorage} from "./OperatorStorage.sol";
 contract Operator is OperatorStorage, ImTokenOperationTypes {
     constructor(address _rolesOperator, address _rewardDistributor, address _admin) {
         require(_rolesOperator != address(0), Operator_InvalidRolesOperator());
-        require(_rewardDistributor != address(0), Operator_InvalidRolesOperator());
+        require(_rewardDistributor != address(0), Operator_InvalidRewardDistributor());
+        require(_admin != address(0), Operator_InvalidInput());
         admin = _admin;
         rolesOperator = IRoles(_rolesOperator);
         rewardDistributor = _rewardDistributor;
@@ -148,8 +149,12 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         newMarket.isMalded = false;
         newMarket.collateralFactorMantissa = 0;
 
-        for (uint256 i = 0; i < allMarkets.length; i++) {
+        for (uint256 i = 0; i < allMarkets.length;) {
             require(allMarkets[i] != mToken, Operator_MarketAlreadyListed());
+
+            unchecked {
+                ++i;
+            }
         }
         allMarkets.push(mToken);
 
@@ -172,9 +177,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
 
         require(numMarkets != 0 && numMarkets == numBorrowCaps, Operator_InvalidInput());
 
-        for (uint256 i; i < numMarkets; i++) {
+        for (uint256 i; i < numMarkets;) {
             borrowCaps[mTokens[i]] = newBorrowCaps[i];
             emit NewBorrowCap(mTokens[i], newBorrowCaps[i]);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -193,9 +202,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         uint256 numBorrowCaps = newSupplyCaps.length;
         require(numMarkets != 0 && numMarkets == numBorrowCaps, Operator_InvalidInput());
 
-        for (uint256 i; i < numMarkets; i++) {
+        for (uint256 i; i < numMarkets;) {
             supplyCaps[mTokens[i]] = newSupplyCaps[i];
             emit NewSupplyCap(mTokens[i], newSupplyCaps[i]);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -342,9 +355,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      */
     function enterMarkets(address[] calldata _mTokens) external override {
         uint256 len = _mTokens.length;
-        for (uint256 i = 0; i < len; i++) {
+        for (uint256 i = 0; i < len;) {
             address __mToken = _mTokens[i];
             _activateMarket(__mToken, msg.sender);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -372,10 +389,14 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         address[] memory userAssetList = accountAssets[msg.sender];
         uint256 len = userAssetList.length;
         uint256 assetIndex = len;
-        for (uint256 i; i < len; i++) {
+        for (uint256 i; i < len;) {
             if (userAssetList[i] == _mToken) {
                 assetIndex = i;
                 break;
+            }
+
+            unchecked {
+                ++i;
             }
         }
 
@@ -435,9 +456,9 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         _beforeRedeem(mToken, src, transferTokens);
 
         // Keep the flywheel moving
-        _updateMeldaSupplyIndex(mToken);
-        _distributeSupplierMelda(mToken, src);
-        _distributeSupplierMelda(mToken, dst);
+        _updateMaldaSupplyIndex(mToken);
+        _distributeSupplierMalda(mToken, src);
+        _distributeSupplierMalda(mToken, dst);
     }
 
     /**
@@ -447,8 +468,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         require(!_paused[mToken][OperationType.Mint], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
         // Keep the flywheel moving
-        _updateMeldaSupplyIndex(mToken);
-        _distributeSupplierMelda(mToken, minter);
+        _updateMaldaSupplyIndex(mToken);
+        _distributeSupplierMalda(mToken, minter);
     }
 
     /**
@@ -472,8 +493,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         _beforeRedeem(mToken, redeemer, redeemTokens);
 
         // Keep the flywheel moving
-        _updateMeldaSupplyIndex(mToken);
-        _distributeSupplierMelda(mToken, redeemer);
+        _updateMaldaSupplyIndex(mToken);
+        _distributeSupplierMalda(mToken, redeemer);
     }
 
     /**
@@ -505,8 +526,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         require(shortfall == 0, Operator_InsufficientLiquidity());
 
         // Keep the flywheel moving
-        _updateMeldaBorrowIndex(mToken);
-        _distributeBorrowerMelda(mToken, borrower);
+        _updateMaldaBorrowIndex(mToken);
+        _distributeBorrowerMalda(mToken, borrower);
     }
 
     /**
@@ -517,8 +538,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
         // Keep the flywheel moving
-        _updateMeldaBorrowIndex(mToken);
-        _distributeBorrowerMelda(mToken, borrower);
+        _updateMaldaBorrowIndex(mToken);
+        _distributeBorrowerMalda(mToken, borrower);
     }
 
     /**
@@ -564,9 +585,9 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         require(ImToken(mTokenCollateral).operator() == ImToken(mTokenBorrowed).operator(), Operator_Mismatch());
 
         // Keep the flywheel moving
-        _updateMeldaSupplyIndex(mTokenCollateral);
-        _distributeSupplierMelda(mTokenCollateral, borrower);
-        _distributeSupplierMelda(mTokenCollateral, liquidator);
+        _updateMaldaSupplyIndex(mTokenCollateral);
+        _distributeSupplierMalda(mTokenCollateral, borrower);
+        _distributeSupplierMalda(mTokenCollateral, liquidator);
     }
 
     // ----------- PRIVATE ------------
@@ -602,7 +623,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         AccountLiquidityLocalVars memory vars; // Holds all our calculation results
 
         uint256 len = accountAssets[account].length;
-        for (uint256 i; i < len; i++) {
+        for (uint256 i; i < len;) {
             address _asset = accountAssets[account][i];
 
             // Read the balances and exchange rate from the mToken
@@ -640,6 +661,10 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
                 vars.sumBorrowPlusEffects =
                     mul_ScalarTruncateAddUInt(vars.oraclePrice, borrowAmount, vars.sumBorrowPlusEffects);
             }
+
+            unchecked {
+                ++i;
+            }
         }
 
         if (vars.sumCollateral > vars.sumBorrowPlusEffects) {
@@ -653,7 +678,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      * @notice Notify reward distributor for supply index update
      * @param mToken The market whose supply index to update
      */
-    function _updateMeldaSupplyIndex(address mToken) private {
+    function _updateMaldaSupplyIndex(address mToken) private {
         IRewardDistributor(rewardDistributor).notifySupplyIndex(mToken);
     }
 
@@ -661,7 +686,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      * @notice Notify reward distributor for borrow index update
      * @param mToken The market whose borrow index to update
      */
-    function _updateMeldaBorrowIndex(address mToken) private {
+    function _updateMaldaBorrowIndex(address mToken) private {
         IRewardDistributor(rewardDistributor).notifyBorrowIndex(mToken);
     }
 
@@ -670,7 +695,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      * @param mToken The market in which the supplier is interacting
      * @param supplier The address of the supplier to distribute MALDA to
      */
-    function _distributeSupplierMelda(address mToken, address supplier) private {
+    function _distributeSupplierMalda(address mToken, address supplier) private {
         IRewardDistributor(rewardDistributor).notifySupplier(mToken, supplier);
     }
 
@@ -680,26 +705,38 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      * @param mToken The market in which the borrower is interacting
      * @param borrower The address of the borrower to distribute MALDA to
      */
-    function _distributeBorrowerMelda(address mToken, address borrower) private {
+    function _distributeBorrowerMalda(address mToken, address borrower) private {
         IRewardDistributor(rewardDistributor).notifyBorrower(mToken, borrower);
     }
 
     function _claim(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers) private {
         uint256 len = mTokens.length;
-        for (uint256 i; i < len; i++) {
+        for (uint256 i; i < len;) {
             address mToken = mTokens[i];
             require(markets[mToken].isListed, Operator_MarketNotListed());
             if (borrowers) {
-                _updateMeldaBorrowIndex(address(mToken));
-                for (uint256 j = 0; j < holders.length; j++) {
-                    _distributeBorrowerMelda(address(mToken), holders[j]);
+                _updateMaldaBorrowIndex(address(mToken));
+                for (uint256 j = 0; j < holders.length;) {
+                    _distributeBorrowerMalda(address(mToken), holders[j]);
+
+                    unchecked {
+                        ++j;
+                    }
                 }
             }
             if (suppliers) {
-                _updateMeldaSupplyIndex(address(mToken));
-                for (uint256 j = 0; j < holders.length; j++) {
-                    _distributeSupplierMelda(address(mToken), holders[j]);
+                _updateMaldaSupplyIndex(address(mToken));
+                for (uint256 j = 0; j < holders.length;) {
+                    _distributeSupplierMalda(address(mToken), holders[j]);
+
+                    unchecked {
+                        ++j;
+                    }
                 }
+            }
+
+            unchecked {
+                ++i;
             }
         }
 

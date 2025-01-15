@@ -83,14 +83,26 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     /**
      * @inheritdoc ImErc20Host
      */
-    function getProofData(uint32 dstChainId, address user) external view returns (bytes memory) {
-        return mTokenProofDecoderLib.encodeJournal(
-            user,
-            address(this),
-            accAmountInPerChain[dstChainId][user],
-            accAmountOutPerChain[dstChainId][user],
-            uint32(block.chainid)
-        );
+    function getProofData(uint32[] calldata dstChainId, address[] calldata user) external view returns (bytes memory) {
+        require(dstChainId.length == user.length, mErc20Host_ProofGenerationInputNotValid());
+
+        uint256 len = dstChainId.length;
+        bytes[] memory _res = new bytes[](len);
+        for (uint256 i; i < len;) {
+            _res[i] = mTokenProofDecoderLib.encodeJournal(
+                user[i],
+                address(this),
+                accAmountInPerChain[dstChainId[i]][user[i]],
+                accAmountOutPerChain[dstChainId[i]][user[i]],
+                uint32(block.chainid),
+                dstChainId[i]
+            );
+
+            unchecked {
+                ++i;
+            }
+        }
+        return abi.encode(_res);
     }
 
     // ----------- OWNER ------------
@@ -115,7 +127,10 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
      * @param _chainId the chain id
      * @param _status the new status
      */
-    function updateAllowedChain(uint32 _chainId, bool _status) external onlyAdmin {
+    function updateAllowedChain(uint32 _chainId, bool _status) external {
+        if (msg.sender != admin && !rolesOperator.isAllowedFor(msg.sender, rolesOperator.CHAINS_MANAGER())) {
+            revert mErc20Host_CallerNotAllowed();
+        }
         allowedChains[_chainId] = _status;
         emit mErc20Host_ChainStatusUpdated(_chainId, _status);
     }
@@ -144,19 +159,19 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         bytes calldata journalData,
         bytes calldata seal,
         address userToLiquidate,
-        address receiver,
         uint256 liquidateAmount,
         address collateral
     ) external override {
         // verify received data
         _verifyProof(journalData, seal);
 
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId) =
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
             mTokenProofDecoderLib.decodeJournal(journalData);
 
         // base checks
         {
             _checkSender(msg.sender, _sender);
+            require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
             require(_market == address(this), mErc20Host_AddressNotValid());
             require(allowedChains[_chainId], mErc20Host_ChainNotValid()); // allow only whitelisted chains
         }
@@ -170,10 +185,10 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
 
         // actions
         accAmountInPerChain[_chainId][_sender] += liquidateAmount;
-        _liquidate(receiver, userToLiquidate, liquidateAmount, collateral, false);
+        _liquidate(_sender, userToLiquidate, liquidateAmount, collateral, false);
 
         emit mErc20Host_LiquidateExternal(
-            msg.sender, _sender, userToLiquidate, receiver, collateral, _chainId, liquidateAmount
+            msg.sender, _sender, userToLiquidate, _sender, collateral, _chainId, liquidateAmount
         );
     }
 
@@ -187,12 +202,13 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         // verify received data
         _verifyProof(journalData, seal);
 
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId) =
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
             mTokenProofDecoderLib.decodeJournal(journalData);
 
         // base checks
         {
             _checkSender(msg.sender, _sender);
+            require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
             require(_market == address(this), mErc20Host_AddressNotValid());
             require(allowedChains[_chainId], mErc20Host_ChainNotValid()); // allow only whitelisted chains
         }
@@ -219,12 +235,13 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         // verify received data
         _verifyProof(journalData, seal);
 
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId) =
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
             mTokenProofDecoderLib.decodeJournal(journalData);
 
         // base checks
         {
             _checkSender(msg.sender, _sender);
+            require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
             require(_market == address(this), mErc20Host_AddressNotValid());
             require(allowedChains[_chainId], mErc20Host_ChainNotValid()); // allow only whitelisted chains
         }
@@ -254,6 +271,9 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         emit mErc20Host_WithdrawOnExtensionChain(msg.sender, dstChainId, amount);
     }
 
+    /**
+     * @inheritdoc ImErc20Host
+     */
     function borrowOnExtension(uint256 amount, uint32 dstChainId) external override {
         require(amount > 0, mErc20Host_AmountNotValid());
 

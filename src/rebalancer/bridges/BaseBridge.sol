@@ -18,11 +18,14 @@ abstract contract BaseBridge {
 
     error BaseBridge_NotAuthorized();
     error BaseBridge_AmountNotValid();
+    error BaseBridge_AddressNotValid();
 
     event MinTransferSizeUpdated(uint256 _old, uint256 _new);
     event MaxTransferSizeUpdated(uint256 _old, uint256 _new);
 
     constructor(address _roles) {
+        require(_roles != address(0), BaseBridge_AddressNotValid());
+
         roles = IRoles(_roles);
         minTransfer = 50_000 * 1e18;
     }

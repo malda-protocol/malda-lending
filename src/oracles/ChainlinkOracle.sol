@@ -23,9 +23,13 @@ contract ChainlinkOracle is IOracleOperator {
     error ChainlinkOracle_ZeroPrice();
 
     constructor(string[] memory symbols_, IAggregatorV3[] memory feeds_, uint256[] memory baseUnits_) {
-        for (uint256 i = 0; i < symbols_.length; i++) {
+        for (uint256 i = 0; i < symbols_.length;) {
             priceFeeds[symbols_[i]] = feeds_[i];
             baseUnits[symbols_[i]] = baseUnits_[i];
+
+            unchecked {
+                ++i;
+            }
         }
     }
     // ----------- PUBLIC ------------

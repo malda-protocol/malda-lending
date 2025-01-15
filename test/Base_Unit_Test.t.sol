@@ -12,7 +12,7 @@ pragma solidity =0.8.28;
 import {Roles} from "src/Roles.sol";
 import {Operator} from "src/Operator/Operator.sol";
 import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
-import {JumpRateModelV2} from "src/interest/JumpRateModelV2.sol";
+import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
 
 import {Types} from "./utils/Types.sol";
 import {Events} from "./utils/Events.sol";
@@ -37,7 +37,7 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
     Operator public operator;
     OracleMock public oracleOperator;
     RewardDistributor public rewards;
-    JumpRateModelV2 public interestModel;
+    JumpRateModelV4 public interestModel;
 
     function setUp() public virtual {
         alice = _spawnAccount(ALICE_KEY, "Alice");
@@ -57,7 +57,7 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
         operator = new Operator(address(roles), address(rewards), address(this));
         vm.label(address(operator), "Operator");
 
-        interestModel = new JumpRateModelV2(
+        interestModel = new JumpRateModelV4(
             31536000, 0, 1981861998, 43283866057, 800000000000000000, address(this), "InterestModel"
         );
         vm.label(address(interestModel), "InterestModel");

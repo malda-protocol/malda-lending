@@ -35,7 +35,6 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
         vm.expectEmit(true, true, true, true);
         emit IRebalancer.BridgeWhitelistedStatusUpdated(address(bridgeMock), true);
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
-
     }
 
     function test_WhenIsBridgeWhitelistedIsCalled() external givenSenderHasRoleGUARDIAN_BRIDGE {
@@ -64,39 +63,31 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
 
     function test_WhenSenderDoesNotHaveREBALANCER_EOARole() external givenSendMsgIsCalledWithWrongParameters {
         // it should revert with Rebalancer_NotAuthorized
-        IRebalancer.Msg memory _msg = IRebalancer.Msg({
-            dstChainId: 0,
-            token: address(weth),
-            message: "",
-            bridgeData: ""
-        });
+        IRebalancer.Msg memory _msg =
+            IRebalancer.Msg({dstChainId: 0, token: address(weth), message: "", bridgeData: ""});
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.sendMsg(address(bridgeMock), address(mWethHost), 1 ether, _msg);
     }
 
     function test_WhenBridgeIsNotWhitelisted() external givenSendMsgIsCalledWithWrongParameters {
         roles.allowFor(address(this), roles.REBALANCER_EOA(), true);
-        IRebalancer.Msg memory _msg = IRebalancer.Msg({
-            dstChainId: 0,
-            token: address(weth),
-            message: "",
-            bridgeData: ""
-        });
+        IRebalancer.Msg memory _msg =
+            IRebalancer.Msg({dstChainId: 0, token: address(weth), message: "", bridgeData: ""});
         vm.expectRevert(IRebalancer.Rebalancer_BridgeNotWhitelisted.selector);
         rebalancer.sendMsg(address(bridgeMock), address(mWethHost), 1 ether, _msg);
         // it should revert with Rebalancer_BridgeNotWhitelisted
     }
 
-    function test_WhenUnderlyingIsNotTheSameToken() external givenSendMsgIsCalledWithWrongParameters givenSenderHasRoleGUARDIAN_BRIDGE {
+    function test_WhenUnderlyingIsNotTheSameToken()
+        external
+        givenSendMsgIsCalledWithWrongParameters
+        givenSenderHasRoleGUARDIAN_BRIDGE
+    {
         // it should revert with Rebalancer_RequestNotValid
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
         roles.allowFor(address(this), roles.REBALANCER_EOA(), true);
-        IRebalancer.Msg memory _msg = IRebalancer.Msg({
-            dstChainId: 0,
-            token: address(usdc),
-            message: "",
-            bridgeData: ""
-        });
+        IRebalancer.Msg memory _msg =
+            IRebalancer.Msg({dstChainId: 0, token: address(usdc), message: "", bridgeData: ""});
         vm.expectRevert(IRebalancer.Rebalancer_RequestNotValid.selector);
         rebalancer.sendMsg(address(bridgeMock), address(mWethHost), 1 ether, _msg);
     }
@@ -106,27 +97,28 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
         _;
     }
 
-    function test_RevertWhen_MarketDoesNotHaveEnoughTokens() external givenSendMsgIsCalledWithRightParameters givenSenderHasRoleGUARDIAN_BRIDGE {
+    function test_RevertWhen_MarketDoesNotHaveEnoughTokens()
+        external
+        givenSendMsgIsCalledWithRightParameters
+        givenSenderHasRoleGUARDIAN_BRIDGE
+    {
         // it should revert
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
-        IRebalancer.Msg memory _msg = IRebalancer.Msg({
-            dstChainId: 0,
-            token: address(weth),
-            message: "",
-            bridgeData: ""
-        });
+        IRebalancer.Msg memory _msg =
+            IRebalancer.Msg({dstChainId: 0, token: address(weth), message: "", bridgeData: ""});
         vm.expectRevert();
         rebalancer.sendMsg(address(bridgeMock), address(mWethHost), 1 ether, _msg);
     }
 
-    function test_WhenMarketHasEnoughTokens(uint256 amount) external givenSendMsgIsCalledWithRightParameters givenSenderHasRoleGUARDIAN_BRIDGE inRange(amount, SMALL, LARGE) {
+    function test_WhenMarketHasEnoughTokens(uint256 amount)
+        external
+        givenSendMsgIsCalledWithRightParameters
+        givenSenderHasRoleGUARDIAN_BRIDGE
+        inRange(amount, SMALL, LARGE)
+    {
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
-        IRebalancer.Msg memory _msg = IRebalancer.Msg({
-            dstChainId: 0,
-            token: address(weth),
-            message: abi.encode(amount),
-            bridgeData: ""
-        });
+        IRebalancer.Msg memory _msg =
+            IRebalancer.Msg({dstChainId: 0, token: address(weth), message: abi.encode(amount), bridgeData: ""});
         _getTokens(weth, address(mWethHost), amount);
         rebalancer.sendMsg(address(bridgeMock), address(mWethHost), amount, _msg);
         uint256 bridgeBalance = weth.balanceOf(address(bridgeMock));

@@ -75,6 +75,16 @@ interface ImErc20Host {
     /**
      * @notice Thrown when the chain id is not LINEA
      */
+    error mErc20Host_ProofGenerationInputNotValid();
+
+    /**
+     * @notice Thrown when the dst chain id is not current chain
+     */
+    error mErc20Host_DstChainNotValid();
+
+    /**
+     * @notice Thrown when the chain id is not LINEA
+     */
     error mErc20Host_ChainNotValid();
 
     /**
@@ -116,7 +126,7 @@ interface ImErc20Host {
     /**
      * @notice Returns the proof data journal
      */
-    function getProofData(uint32 dstChainId, address user) external view returns (bytes memory);
+    function getProofData(uint32[] calldata dstChainId, address[] calldata user) external view returns (bytes memory);
 
     // ----------- PUBLIC -----------
     /**
@@ -137,7 +147,6 @@ interface ImErc20Host {
      * @param journalData The journal data for minting
      * @param seal The Zk proof seal
      * @param userToLiquidate The position to liquidate
-     * @param receiver The collateral receiver
      * @param liquidateAmount The amount to liquidate
      * @param collateral The collateral to seize
      */
@@ -145,7 +154,6 @@ interface ImErc20Host {
         bytes calldata journalData,
         bytes calldata seal,
         address userToLiquidate,
-        address receiver,
         uint256 liquidateAmount,
         address collateral
     ) external;
