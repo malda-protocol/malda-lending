@@ -9,10 +9,8 @@ pragma solidity =0.8.28;
 */
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 // contracts
 import {IRoles} from "src/interfaces/IRoles.sol";
@@ -23,7 +21,7 @@ import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
 
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 
-contract mTokenGateway is Ownable, ZkVerifier, ImTokenGateway, ImTokenOperationTypes {
+contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImTokenOperationTypes {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE -----------
@@ -43,13 +41,23 @@ contract mTokenGateway is Ownable, ZkVerifier, ImTokenGateway, ImTokenOperationT
     mapping(address => uint256) public accAmountOut;
     mapping(address => mapping(address => bool)) public allowedCallers;
 
-    uint32 private constant LINEA_CHAIN_ID = 59144;
+    uint32 private constant LINEA_CHAIN_ID = 59141;
 
-    constructor(address payable _owner, address _underlying, address _roles, address zkVerifier_) Ownable(_owner) {
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(
+        address payable _owner,
+        address _underlying,
+        address _roles,
+        address zkVerifier_
+    ) external initializer {
+        __Ownable_init(_owner);
         underlying = _underlying;
-
         rolesOperator = IRoles(_roles);
-
+        
         // Initialize the ZkVerifier
         ZkVerifier.initialize(zkVerifier_);
     }
