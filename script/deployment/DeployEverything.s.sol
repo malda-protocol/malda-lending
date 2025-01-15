@@ -10,7 +10,7 @@ import {DeployUnit} from "script/deployment/generic/DeployUnit.s.sol";
 import {DeployPauser} from "script/deployment/generic/DeployPauser.s.sol";
 import {DeployOperator} from "script/deployment/markets/DeployOperator.s.sol";
 import {DeployHostMarket} from "script/deployment/markets/host/DeployHostMarket.s.sol";
-import {DeployJumpRateModelV2} from "script/deployment/interest/DeployJumpRateModelV2.s.sol";
+import {DeployJumpRateModelV4} from "script/deployment/interest/DeployJumpRateModelV4.s.sol";
 import {DeployChainlinkOracle} from "script/deployment/oracles/DeployChainlinkOracle.s.sol";
 import {DeployRewardDistributor} from "script/deployment/rewards/DeployRewardDistributor.s.sol";
 
@@ -31,7 +31,7 @@ contract DeployEverything is Script, DeployBase {
     DeployHostMarket deployHost;
     DeployOperator deployOperator;
     DeployChainlinkOracle deployOracle;
-    DeployJumpRateModelV2 deployInterest;
+    DeployJumpRateModelV4 deployInterest;
     DeployRewardDistributor deployRewards;
 
     struct DeployData {
@@ -44,7 +44,7 @@ contract DeployEverything is Script, DeployBase {
         uint256 jumpMultiplierPerYear;
         // Host market data
         address underlyingToken;
-        uint256 exchaneRateMantissa;
+        uint256 exchangeRateMantissa;
         string name;
         string symbol;
         uint8 decimals;
@@ -58,7 +58,7 @@ contract DeployEverything is Script, DeployBase {
         deployHost = new DeployHostMarket();
         deployOperator = new DeployOperator();
         deployOracle = new DeployChainlinkOracle();
-        deployInterest = new DeployJumpRateModelV2();
+        deployInterest = new DeployJumpRateModelV4();
         deployRewards = new DeployRewardDistributor();
         super.setUp();
         deployHost.setUp();
@@ -84,9 +84,9 @@ contract DeployEverything is Script, DeployBase {
     function _dataToInterestData(DeployData memory data)
         private
         pure
-        returns (DeployJumpRateModelV2.InterestData memory)
+        returns (DeployJumpRateModelV4.InterestData memory)
     {
-        return DeployJumpRateModelV2.InterestData({
+        return DeployJumpRateModelV4.InterestData({
             kink: data.kink,
             name: data.interestName,
             blocksPerYear: data.blocksPerYear,
@@ -105,7 +105,7 @@ contract DeployEverything is Script, DeployBase {
             underlyingToken: data.underlyingToken,
             operator: operator,
             interestModel: interestModel,
-            exchaneRateMantissa: data.exchaneRateMantissa,
+            exchangeRateMantissa: data.exchangeRateMantissa,
             name: data.name,
             symbol: data.symbol,
             decimals: data.decimals,

@@ -6,7 +6,7 @@ import {DeployBase} from "script/deployers/DeployBase.sol";
 import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
 
 /**
- * forge script script/deployment/interest/DeployJumpRateModelV2.s.sol:DeployJumpRateModelV2  \
+ * forge script script/deployment/interest/DeployJumpRateModelV4.s.sol:DeployJumpRateModelV4  \
  *     --slow \
  *     --verify \
  *     --verifier-url <url> \
@@ -15,7 +15,7 @@ import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
  *     --sig "run((uint256,string,uint256,uint256,uint256,uint256))" "(750000000000000000,'ExampleName',2102400,20000000000000000,100000000000000000,500000000000000000)" \
  *     --broadcast
  */
-contract DeployJumpRateModelV2 is Script, DeployBase {
+contract DeployJumpRateModelV4 is Script, DeployBase {
     struct InterestData {
         uint256 kink;
         string name;

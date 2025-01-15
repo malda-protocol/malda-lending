@@ -13,11 +13,13 @@ import {CREATE3} from "src/libraries/CREATE3.sol";
 
 contract Deployer {
     address public admin;
+    address public pendingAdmin;
 
-    error UserNotAdmin(address user, address admin);
+    error NotAuthorized(address admin, address sender);
+
 
     modifier onlyAdmin() {
-        require(msg.sender == admin, UserNotAdmin(msg.sender, admin));
+        require(msg.sender == admin, NotAuthorized(admin, msg.sender));
         _;
     }
 
@@ -28,6 +30,10 @@ contract Deployer {
     receive() external payable {}
 
     // ----------- OWNER ------------
+    function setPendingAdmin(address newAdmin) external onlyAdmin {
+        pendingAdmin = newAdmin;
+    }
+
     function saveEth() external {
         if (admin == msg.sender) {
             (bool success,) = msg.sender.call{value: address(this).balance}("");
@@ -50,5 +56,13 @@ contract Deployer {
     // ----------- PUBLIC ------------
     function create(bytes32 salt, bytes memory code) external payable onlyAdmin returns (address) {
         return CREATE3.deploy(salt, code, msg.value);
+    }
+
+    function acceptAdmin() external {
+        if (msg.sender != pendingAdmin) {
+            revert NotAuthorized(pendingAdmin, msg.sender);
+        }
+        admin = pendingAdmin;
+        pendingAdmin = address(0);
     }
 }

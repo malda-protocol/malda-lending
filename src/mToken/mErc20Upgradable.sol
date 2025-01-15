@@ -31,7 +31,7 @@ contract mErc20Upgradable is mErc20, Initializable {
         string memory symbol_,
         uint8 decimals_,
         address payable admin_
-    ) external initializer {
+    ) public {
         // Creator of the contract is admin during initialization
         admin = payable(msg.sender);
 

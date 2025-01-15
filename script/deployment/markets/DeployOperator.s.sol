@@ -2,6 +2,8 @@
 pragma solidity =0.8.28;
 
 import {Operator} from "src/Operator/Operator.sol";
+import {Unit} from "src/Operator/Unit.sol";
+
 import {Script, console} from "forge-std/Script.sol";
 import {DeployBase} from "script/deployers/DeployBase.sol";
 
@@ -22,15 +24,37 @@ contract DeployOperator is Script, DeployBase {
 
         address owner = vm.envAddress("OWNER");
 
-        bytes32 salt = getSalt("Operator");
-        address created =
-            deployer.create(salt, abi.encodePacked(type(Operator).creationCode, abi.encode(roles, rewards, owner)));
-        Operator(created).setPriceOracle(oracle);
+        // Deploy implementation (Operator)
+        bytes32 implSalt = getSalt("OperatorImplementation");
+        address implementation = deployer.create(
+            implSalt, 
+            abi.encodePacked(
+                type(Operator).creationCode,
+                abi.encode(roles, rewards, owner)
+            )
+        );
+        console.log("Operator implementation deployed at:", implementation);
 
-        console.log(" Operator deployed at: %s", created);
+        // Deploy proxy (Unit)
+        bytes32 proxySalt = getSalt("OperatorProxy");
+        address proxy = deployer.create(
+            proxySalt,
+            abi.encodePacked(
+                type(Unit).creationCode,
+                abi.encode(owner)
+            )
+        );
+        console.log("Operator proxy (Unit) deployed at:", proxy);
+
+        // Set up the implementation in the proxy
+        Unit(payable(proxy)).setPendingImplementation(implementation);
+        Operator(implementation).become(proxy);
+
+        Operator(proxy).setPriceOracle(oracle);
+        console.log("Price oracle set to:", oracle);
 
         vm.stopBroadcast();
 
-        return created;
+        return proxy;
     }
 }

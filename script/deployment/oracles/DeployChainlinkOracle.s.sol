@@ -21,7 +21,7 @@ contract DeployChainlinkOracle is Script, DeployBase {
         vm.startBroadcast(key);
 
         string[] memory symbols = new string[](1);
-        symbols[0] = "UDSCETH";
+        symbols[0] = "USDCETH";
 
         IAggregatorV3[] memory feeds = new IAggregatorV3[](1);
         feeds[0] = IAggregatorV3(address(0));

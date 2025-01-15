@@ -14,6 +14,7 @@ import {Base_Unit_Test} from "../../Base_Unit_Test.t.sol";
 
 import {ERC20Mock} from "../../mocks/ERC20Mock.sol";
 import {Risc0VerifierMock} from "../../mocks/Risc0VerifierMock.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 abstract contract mToken_Unit_Shared is Base_Unit_Test {
     // ----------- STORAGE ------------
@@ -36,6 +37,49 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         verifierMock = new Risc0VerifierMock();
         vm.label(address(verifierMock), "verifierMock");
 
+        // Deploy implementation
+        mErc20Host implementation = new mErc20Host();
+        
+        // Deploy proxy with initialization
+        bytes memory initData = abi.encodeWithSelector(
+            mErc20Host.initialize.selector,
+            address(weth),
+            address(operator),
+            address(interestModel),
+            1e18,
+            "Market WETH",
+            "mWeth",
+            18,
+            payable(address(this)),
+            address(verifierMock)
+        );
+        ERC1967Proxy proxy = new ERC1967Proxy(
+            address(implementation),
+            initData
+        );
+        mWethHost = mErc20Host(address(proxy));
+        vm.label(address(mWethHost), "mWethHost");
+
+        // Deploy second proxy for mDaiHost
+        bytes memory initDataDai = abi.encodeWithSelector(
+            mErc20Host.initialize.selector,
+            address(dai),
+            address(operator),
+            address(interestModel),
+            1e18,
+            "Market DAI",
+            "mDai",
+            18,
+            payable(address(this)),
+            address(verifierMock)
+        );
+        ERC1967Proxy proxyDai = new ERC1967Proxy(
+            address(implementation),
+            initDataDai
+        );
+        mDaiHost = mErc20Host(address(proxyDai));
+        vm.label(address(mDaiHost), "mDaiHost");
+
         mWeth = new mErc20Immutable(
             address(weth),
             address(operator),
@@ -47,32 +91,6 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             payable(address(this))
         );
         vm.label(address(mWeth), "mWeth");
-
-        mWethHost = new mErc20Host(
-            address(weth),
-            address(operator),
-            address(interestModel),
-            1e18,
-            "Market WETH",
-            "mWeth",
-            18,
-            payable(address(this)),
-            address(verifierMock)
-        );
-        vm.label(address(mWethHost), "mWethHost");
-
-        mDaiHost = new mErc20Host(
-            address(dai),
-            address(operator),
-            address(interestModel),
-            1e18,
-            "Market DAI",
-            "mDai",
-            18,
-            payable(address(this)),
-            address(verifierMock)
-        );
-        vm.label(address(mDaiHost), "mDaiHost");
 
         mWethExtension = new mTokenGateway(payable(address(this)), address(weth), address(roles), address(verifierMock));
 
