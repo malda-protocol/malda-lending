@@ -21,7 +21,7 @@ import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
 
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
-
+import {IRoles} from "src/interfaces/IRoles.sol";
 contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperationTypes {
     using SafeERC20 for IERC20;
 
@@ -52,7 +52,8 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         string memory symbol_,
         uint8 decimals_,
         address payable admin_,
-        address zkVerifier_
+        address zkVerifier_,
+        address roles_
     )
         mErc20Immutable(
             underlying_,
@@ -67,6 +68,8 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     {
         // Initialize the ZkVerifier
         ZkVerifier.initialize(zkVerifier_);
+
+        rolesOperator = IRoles(roles_);
 
         // Set the proper admin now that initialization is done
         admin = admin_;
@@ -158,25 +161,40 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     function liquidateExternal(
         bytes calldata journalData,
         bytes calldata seal,
+        address[] calldata userToLiquidate,
+        uint256[] calldata liquidateAmount,
+        address[] calldata collateral
+    ) external override {
+        // verify received data
+        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
+            _verifyProof(journalData, seal);
+        }
+
+        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+        require(journals.length == liquidateAmount.length, "Input length mismatch");
+        require(journals.length == userToLiquidate.length, "Input length mismatch");
+        require(journals.length == collateral.length, "Input length mismatch");
+
+        for (uint256 i = 0; i < journals.length; ++i) {
+            _liquidateExternal(journals[i], userToLiquidate[i], liquidateAmount[i], collateral[i]);
+        }
+    }
+
+    function _liquidateExternal(
+        bytes memory singleJournal,
         address userToLiquidate,
         uint256 liquidateAmount,
         address collateral
-    ) external override {
-        // verify received data
-        _verifyProof(journalData, seal);
-
-        bytes[] memory journals = abi.decode(journalData, (bytes[]));
-        bytes memory singleJournal = journals[0];
-
+    ) internal {
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
-            mTokenProofDecoderLib.decodeJournal(journalData);
+            mTokenProofDecoderLib.decodeJournal(singleJournal);
 
         // base checks
         {
             _checkSender(msg.sender, _sender);
             require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
             require(_market == address(this), mErc20Host_AddressNotValid());
-            require(allowedChains[_chainId], mErc20Host_ChainNotValid()); // allow only whitelisted chains
+            require(allowedChains[_chainId], mErc20Host_ChainNotValid());
         }
         // operation checks
         {
@@ -198,16 +216,26 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     /**
      * @inheritdoc ImErc20Host
      */
-    function mintExternal(bytes calldata journalData, bytes calldata seal, uint256 mintAmount, address receiver)
-        external
-        override
-    {
-        // verify received data
-        _verifyProof(journalData, seal);
+    function mintExternal(
+        bytes calldata journalData,
+        bytes calldata seal,
+        uint256[] calldata mintAmount,
+        address[] calldata receiver
+    ) external override {
+        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
+            _verifyProof(journalData, seal);
+        }
 
         bytes[] memory journals = abi.decode(journalData, (bytes[]));
-        bytes memory singleJournal = journals[0];
+        require(journals.length == mintAmount.length, "Input length mismatch");
+        require(journals.length == receiver.length, "Input length mismatch");
 
+        for (uint256 i = 0; i < journals.length; ++i) {
+            _mintExternal(journals[i], mintAmount[i], receiver[i]);
+        }
+    }
+
+    function _mintExternal(bytes memory singleJournal, uint256 mintAmount, address receiver) internal {
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
@@ -216,7 +244,7 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
             _checkSender(msg.sender, _sender);
             require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
             require(_market == address(this), mErc20Host_AddressNotValid());
-            require(allowedChains[_chainId], mErc20Host_ChainNotValid()); // allow only whitelisted chains
+            require(allowedChains[_chainId], mErc20Host_ChainNotValid());
         }
         // operation checks
         {
@@ -234,16 +262,26 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     /**
      * @inheritdoc ImErc20Host
      */
-    function repayExternal(bytes calldata journalData, bytes calldata seal, uint256 repayAmount, address position)
-        external
-        override
-    {
-        // verify received data
-        _verifyProof(journalData, seal);
+    function repayExternal(
+        bytes calldata journalData,
+        bytes calldata seal,
+        uint256[] calldata repayAmount,
+        address[] calldata position
+    ) external override {
+        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
+            _verifyProof(journalData, seal);
+        }
 
         bytes[] memory journals = abi.decode(journalData, (bytes[]));
-        bytes memory singleJournal = journals[0];
+        require(journals.length == repayAmount.length, "Input length mismatch");
+        require(journals.length == position.length, "Input length mismatch");
 
+        for (uint256 i = 0; i < journals.length; ++i) {
+            _repayExternal(journals[i], repayAmount[i], position[i]);
+        }
+    }
+
+    function _repayExternal(bytes memory singleJournal, uint256 repayAmount, address position) internal {
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
@@ -252,9 +290,9 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
             _checkSender(msg.sender, _sender);
             require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
             require(_market == address(this), mErc20Host_AddressNotValid());
-            require(allowedChains[_chainId], mErc20Host_ChainNotValid()); // allow only whitelisted chains
+            require(allowedChains[_chainId], mErc20Host_ChainNotValid());
         }
-        // operation check
+        // operation checks
         {
             require(repayAmount > 0, mErc20Host_AmountNotValid());
             require(repayAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
@@ -305,7 +343,8 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         if (msgSender != srcSender) {
             require(
                 allowedCallers[srcSender][msgSender] || msgSender == admin
-                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER()),
+                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER())
+                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_BATCH_FORWARDER()),
                 mErc20Host_CallerNotAllowed()
             );
         }

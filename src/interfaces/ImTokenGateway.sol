@@ -44,7 +44,6 @@ interface ImTokenGateway {
         uint32 dstChainId
     );
 
-
     // ----------- ERRORS -----------+
     /**
      * @notice Thrown when the chain id is not LINEA

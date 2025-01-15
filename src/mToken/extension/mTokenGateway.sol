@@ -177,38 +177,34 @@ contract mTokenGateway is Ownable, ZkVerifier, ImTokenGateway, ImTokenOperationT
         }
     }
 
-    function _outHere(bytes memory journalData, uint256 amount)
-        internal
-    {
+    function _outHere(bytes memory journalData, uint256 amount) internal {
+        (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId) =
+            mTokenProofDecoderLib.decodeJournal(journalData);
 
-            (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId) =
-                mTokenProofDecoderLib.decodeJournal(journalData);
+        // checks
+        _checkSender(msg.sender, _sender);
+        require(_market == address(this), mTokenGateway_AddressNotValid());
+        require(_chainId == LINEA_CHAIN_ID, mTokenGateway_ChainNotValid()); // allow only Host
+        require(_dstChainId == uint32(block.chainid), mTokenGateway_ChainNotValid());
+        require(amount > 0, mTokenGateway_AmountNotValid());
+        require(_accAmountOut - accAmountOut[_sender] >= amount, mTokenGateway_AmountTooBig());
+        require(IERC20(underlying).balanceOf(address(this)) >= amount, mTokenGateway_ReleaseCashNotAvailable());
 
-            // checks
-            _checkSender(msg.sender, _sender);
-            require(_market == address(this), mTokenGateway_AddressNotValid());
-            require(_chainId == LINEA_CHAIN_ID, mTokenGateway_ChainNotValid()); // allow only Host
-            require(_dstChainId == uint32(block.chainid), mTokenGateway_ChainNotValid());
-            require(amount > 0, mTokenGateway_AmountNotValid());
-            require(_accAmountOut - accAmountOut[_sender] >= amount, mTokenGateway_AmountTooBig());
-            require(IERC20(underlying).balanceOf(address(this)) >= amount, mTokenGateway_ReleaseCashNotAvailable());
+        // effects
+        accAmountOut[_sender] += amount;
 
-            // effects
-            accAmountOut[_sender] += amount;
+        // interactions
+        IERC20(underlying).safeTransfer(_sender, amount);
 
-            // interactions
-            IERC20(underlying).safeTransfer(_sender, amount);
-
-            emit mTokenGateway_Extracted(
-                msg.sender,
-                _sender,
-                accAmountIn[_sender],
-                accAmountOut[_sender],
-                amount,
-                uint32(_chainId),
-                uint32(block.chainid)
-            );
-    
+        emit mTokenGateway_Extracted(
+            msg.sender,
+            _sender,
+            accAmountIn[_sender],
+            accAmountOut[_sender],
+            amount,
+            uint32(_chainId),
+            uint32(block.chainid)
+        );
     }
 
     // ----------- PRIVATE ------------

@@ -144,39 +144,47 @@ interface ImErc20Host {
 
     /**
      * @notice Mints tokens after external verification
-     * @param journalData The journal data for minting
+     * @param journalData The journal data for minting (array of encoded journals)
      * @param seal The Zk proof seal
-     * @param userToLiquidate The position to liquidate
-     * @param liquidateAmount The amount to liquidate
-     * @param collateral The collateral to seize
+     * @param userToLiquidate Array of positions to liquidate
+     * @param liquidateAmount Array of amounts to liquidate
+     * @param collateral Array of collaterals to seize
      */
     function liquidateExternal(
         bytes calldata journalData,
         bytes calldata seal,
-        address userToLiquidate,
-        uint256 liquidateAmount,
-        address collateral
+        address[] calldata userToLiquidate,
+        uint256[] calldata liquidateAmount,
+        address[] calldata collateral
     ) external;
 
     /**
      * @notice Mints tokens after external verification
-     * @param journalData The journal data for minting
+     * @param journalData The journal data for minting (array of encoded journals)
      * @param seal The Zk proof seal
-     * @param mintAmount The amount to mint
-     * @param receiver The tokens receiver
+     * @param mintAmount Array of amounts to mint
+     * @param receiver Array of token receivers
      */
-    function mintExternal(bytes calldata journalData, bytes calldata seal, uint256 mintAmount, address receiver)
-        external;
+    function mintExternal(
+        bytes calldata journalData,
+        bytes calldata seal,
+        uint256[] calldata mintAmount,
+        address[] calldata receiver
+    ) external;
 
     /**
      * @notice Repays tokens after external verification
-     * @param journalData The journal data for repayment
+     * @param journalData The journal data for repayment (array of encoded journals)
      * @param seal The Zk proof seal
-     * @param repayAmount The amount to repay
-     * @param position The position to repay for
+     * @param repayAmount Array of amounts to repay
+     * @param position Array of positions to repay for
      */
-    function repayExternal(bytes calldata journalData, bytes calldata seal, uint256 repayAmount, address position)
-        external;
+    function repayExternal(
+        bytes calldata journalData,
+        bytes calldata seal,
+        uint256[] calldata repayAmount,
+        address[] calldata position
+    ) external;
 
     /**
      * @notice Initiates a withdraw operation
