@@ -24,10 +24,8 @@ abstract contract Pauser_Unit_Shared is Base_Unit_Test {
         verifierMock = new Risc0VerifierMock();
         vm.label(address(verifierMock), "verifierMock");
 
-        // Deploy implementation
+        // Deploy mWethHost implementation and proxy
         mErc20Host implementation = new mErc20Host();
-        
-        // Deploy proxy with initialization
         bytes memory initData = abi.encodeWithSelector(
             mErc20Host.initialize.selector,
             address(weth),
@@ -47,7 +45,21 @@ abstract contract Pauser_Unit_Shared is Base_Unit_Test {
         mWethHost = mErc20Host(address(proxy));
         vm.label(address(mWethHost), "mWethHost");
 
-        mWethExtension = new mTokenGateway(payable(address(this)), address(weth), address(roles), address(verifierMock));
+        // Deploy mWethExtension implementation and proxy
+        mTokenGateway gatewayImpl = new mTokenGateway();
+        bytes memory gatewayInitData = abi.encodeWithSelector(
+            mTokenGateway.initialize.selector,
+            payable(address(this)),
+            address(weth),
+            address(roles),
+            address(verifierMock)
+        );
+        ERC1967Proxy gatewayProxy = new ERC1967Proxy(
+            address(gatewayImpl),
+            gatewayInitData
+        );
+        mWethExtension = mTokenGateway(address(gatewayProxy));
+        vm.label(address(mWethExtension), "mWethExtension");
 
         pauser = new Pauser(address(roles), address(operator), address(this));
     }
