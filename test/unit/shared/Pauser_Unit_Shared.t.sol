@@ -32,7 +32,8 @@ abstract contract Pauser_Unit_Shared is Base_Unit_Test {
             "mWeth",
             18,
             payable(address(this)),
-            address(verifierMock)
+            address(verifierMock),
+            address(roles)
         );
         vm.label(address(mWethHost), "mWethHost");
 

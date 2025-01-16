@@ -1,0 +1,20 @@
+.
+├── when caller is not proof forwarder
+│   └── it should revert
+├── when journal data is empty
+│   └── it should revert
+├── when selector is invalid
+│   └── it should revert
+├── when outHere
+│   ├── when it succeeds
+│   │   └── it should transfer tokens from gateway to user
+│   └── when it fails
+│       └── it should emit BatchProcessFailed
+├── when mint
+│   ├── when it succeeds
+│   │   └── it should increase user balance and total supply
+│   └── when it fails
+│       └── it should emit BatchProcessFailed
+└── when repay
+    └── when it fails
+        └── it should emit BatchProcessFailed 

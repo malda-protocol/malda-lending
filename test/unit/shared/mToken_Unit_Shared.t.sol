@@ -57,7 +57,8 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             "mWeth",
             18,
             payable(address(this)),
-            address(verifierMock)
+            address(verifierMock),
+            address(roles)
         );
         vm.label(address(mWethHost), "mWethHost");
 
@@ -70,8 +71,10 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             "mDai",
             18,
             payable(address(this)),
-            address(verifierMock)
+            address(verifierMock),
+            address(roles)
         );
+
         vm.label(address(mDaiHost), "mDaiHost");
 
         mWethExtension = new mTokenGateway(payable(address(this)), address(weth), address(roles), address(verifierMock));
@@ -96,7 +99,11 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         // | 72     | 32      | uint256 accAmountOut   |
         // | 104    | 4       | uint32 chainId         |
         // | 108    | 4       | uint32 dstChainId         |
-        return abi.encodePacked(sender, market, accAmount, accAmount, uint32(block.chainid), uint32(block.chainid));
+        bytes memory journal =
+            abi.encodePacked(sender, market, accAmount, accAmount, uint32(block.chainid), uint32(block.chainid));
+        bytes[] memory journals = new bytes[](1);
+        journals[0] = journal;
+        return abi.encode(journals);
     }
 
     function _borrowPrerequisites(address mToken, uint256 supplyAmount) internal {

@@ -72,6 +72,11 @@ interface IRoles {
     function PROOF_FORWARDER() external view returns (bytes32);
 
     /**
+     * @notice Returns PROOF_BATCH_FORWARDER role
+     */
+    function PROOF_BATCH_FORWARDER() external view returns (bytes32);
+
+    /**
      * @notice Returns PAUSE_MANAGER role
      */
     function PAUSE_MANAGER() external view returns (bytes32);

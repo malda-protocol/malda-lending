@@ -21,6 +21,7 @@ import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
 
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
+import {IRoles} from "src/interfaces/IRoles.sol";
 
 contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperationTypes {
     using SafeERC20 for IERC20;
@@ -52,7 +53,8 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         string memory symbol_,
         uint8 decimals_,
         address payable admin_,
-        address zkVerifier_
+        address zkVerifier_,
+        address roles_
     )
         mErc20Immutable(
             underlying_,
@@ -67,6 +69,8 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     {
         // Initialize the ZkVerifier
         ZkVerifier.initialize(zkVerifier_);
+
+        rolesOperator = IRoles(roles_);
 
         // Set the proper admin now that initialization is done
         admin = admin_;
@@ -89,13 +93,15 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         uint256 len = dstChainId.length;
         bytes[] memory _res = new bytes[](len);
         for (uint256 i; i < len;) {
+            uint32 _dst = dstChainId[i];
+            address _user = user[i];
             _res[i] = mTokenProofDecoderLib.encodeJournal(
-                user[i],
+                _user,
                 address(this),
-                accAmountInPerChain[dstChainId[i]][user[i]],
-                accAmountOutPerChain[dstChainId[i]][user[i]],
+                accAmountInPerChain[_dst][_user],
+                accAmountOutPerChain[_dst][_user],
                 uint32(block.chainid),
-                dstChainId[i]
+                _dst
             );
 
             unchecked {
@@ -158,104 +164,78 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     function liquidateExternal(
         bytes calldata journalData,
         bytes calldata seal,
-        address userToLiquidate,
-        uint256 liquidateAmount,
-        address collateral
+        address[] calldata userToLiquidate,
+        uint256[] calldata liquidateAmount,
+        address[] calldata collateral,
+        address receiver
     ) external override {
         // verify received data
-        _verifyProof(journalData, seal);
-
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
-            mTokenProofDecoderLib.decodeJournal(journalData);
-
-        // base checks
-        {
-            _checkSender(msg.sender, _sender);
-            require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
-            require(_market == address(this), mErc20Host_AddressNotValid());
-            require(allowedChains[_chainId], mErc20Host_ChainNotValid()); // allow only whitelisted chains
+        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
+            _verifyProof(journalData, seal);
         }
-        // operation checks
-        {
-            require(liquidateAmount > 0, mErc20Host_AmountNotValid());
-            require(liquidateAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
-            require(userToLiquidate != msg.sender && userToLiquidate != _sender, mErc20Host_CallerNotAllowed());
+
+        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+        uint256 length = journals.length;
+        require(length == liquidateAmount.length, mErc20Host_LengthMismatch());
+        require(length == userToLiquidate.length, mErc20Host_LengthMismatch());
+        require(length == collateral.length, mErc20Host_LengthMismatch());
+
+        for (uint256 i; i < length;) {
+            _liquidateExternal(journals[i], userToLiquidate[i], liquidateAmount[i], collateral[i], receiver);
+            unchecked {
+                ++i;
+            }
         }
-        collateral = collateral == address(0) ? address(this) : collateral;
-
-        // actions
-        accAmountInPerChain[_chainId][_sender] += liquidateAmount;
-        _liquidate(_sender, userToLiquidate, liquidateAmount, collateral, false);
-
-        emit mErc20Host_LiquidateExternal(
-            msg.sender, _sender, userToLiquidate, _sender, collateral, _chainId, liquidateAmount
-        );
     }
 
     /**
      * @inheritdoc ImErc20Host
      */
-    function mintExternal(bytes calldata journalData, bytes calldata seal, uint256 mintAmount, address receiver)
-        external
-        override
-    {
-        // verify received data
-        _verifyProof(journalData, seal);
-
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
-            mTokenProofDecoderLib.decodeJournal(journalData);
-
-        // base checks
-        {
-            _checkSender(msg.sender, _sender);
-            require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
-            require(_market == address(this), mErc20Host_AddressNotValid());
-            require(allowedChains[_chainId], mErc20Host_ChainNotValid()); // allow only whitelisted chains
-        }
-        // operation checks
-        {
-            require(mintAmount > 0, mErc20Host_AmountNotValid());
-            require(mintAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
+    function mintExternal(
+        bytes calldata journalData,
+        bytes calldata seal,
+        uint256[] calldata mintAmount,
+        address receiver
+    ) external override {
+        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
+            _verifyProof(journalData, seal);
         }
 
-        // actions
-        accAmountInPerChain[_chainId][_sender] += mintAmount;
-        _mint(receiver, mintAmount, false);
+        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+        uint256 length = journals.length;
+        require(length == mintAmount.length, mErc20Host_LengthMismatch());
 
-        emit mErc20Host_MintExternal(msg.sender, _sender, receiver, _chainId, mintAmount);
+        for (uint256 i; i < length;) {
+            _mintExternal(journals[i], mintAmount[i], receiver);
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     /**
      * @inheritdoc ImErc20Host
      */
-    function repayExternal(bytes calldata journalData, bytes calldata seal, uint256 repayAmount, address position)
-        external
-        override
-    {
-        // verify received data
-        _verifyProof(journalData, seal);
-
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
-            mTokenProofDecoderLib.decodeJournal(journalData);
-
-        // base checks
-        {
-            _checkSender(msg.sender, _sender);
-            require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
-            require(_market == address(this), mErc20Host_AddressNotValid());
-            require(allowedChains[_chainId], mErc20Host_ChainNotValid()); // allow only whitelisted chains
-        }
-        // operation check
-        {
-            require(repayAmount > 0, mErc20Host_AmountNotValid());
-            require(repayAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
+    function repayExternal(
+        bytes calldata journalData,
+        bytes calldata seal,
+        uint256[] calldata repayAmount,
+        address receiver
+    ) external override {
+        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
+            _verifyProof(journalData, seal);
         }
 
-        // actions
-        accAmountInPerChain[_chainId][_sender] += repayAmount;
-        _repayBehalf(position, repayAmount, false);
+        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+        uint256 length = journals.length;
+        require(length == repayAmount.length, mErc20Host_LengthMismatch());
 
-        emit mErc20Host_RepayExternal(msg.sender, _sender, position, _chainId, repayAmount);
+        for (uint256 i; i < length;) {
+            _repayExternal(journals[i], repayAmount[i], receiver);
+            unchecked {
+                ++i;
+            }
+        }
     }
 
     /**
@@ -296,9 +276,98 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         if (msgSender != srcSender) {
             require(
                 allowedCallers[srcSender][msgSender] || msgSender == admin
-                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER()),
+                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER())
+                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_BATCH_FORWARDER()),
                 mErc20Host_CallerNotAllowed()
             );
         }
+    }
+
+    function _liquidateExternal(
+        bytes memory singleJournal,
+        address userToLiquidate,
+        uint256 liquidateAmount,
+        address collateral,
+        address receiver
+    ) internal {
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
+            mTokenProofDecoderLib.decodeJournal(singleJournal);
+
+        receiver = _sender;
+
+        // base checks
+        {
+            _checkSender(msg.sender, _sender);
+            require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
+            require(_market == address(this), mErc20Host_AddressNotValid());
+            require(allowedChains[_chainId], mErc20Host_ChainNotValid());
+        }
+        // operation checks
+        {
+            require(liquidateAmount > 0, mErc20Host_AmountNotValid());
+            require(liquidateAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
+            require(userToLiquidate != msg.sender && userToLiquidate != _sender, mErc20Host_CallerNotAllowed());
+        }
+        collateral = collateral == address(0) ? address(this) : collateral;
+
+        // actions
+        accAmountInPerChain[_chainId][_sender] += liquidateAmount;
+        _liquidate(receiver, userToLiquidate, liquidateAmount, collateral, false);
+
+        emit mErc20Host_LiquidateExternal(
+            msg.sender, _sender, userToLiquidate, receiver, collateral, _chainId, liquidateAmount
+        );
+    }
+
+    function _mintExternal(bytes memory singleJournal, uint256 mintAmount, address receiver) internal {
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
+            mTokenProofDecoderLib.decodeJournal(singleJournal);
+
+        receiver = _sender;
+
+        // base checks
+        {
+            _checkSender(msg.sender, _sender);
+            require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
+            require(_market == address(this), mErc20Host_AddressNotValid());
+            require(allowedChains[_chainId], mErc20Host_ChainNotValid());
+        }
+        // operation checks
+        {
+            require(mintAmount > 0, mErc20Host_AmountNotValid());
+            require(mintAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
+        }
+
+        // actions
+        accAmountInPerChain[_chainId][_sender] += mintAmount;
+        _mint(receiver, mintAmount, false);
+
+        emit mErc20Host_MintExternal(msg.sender, _sender, receiver, _chainId, mintAmount);
+    }
+
+    function _repayExternal(bytes memory singleJournal, uint256 repayAmount, address receiver) internal {
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
+            mTokenProofDecoderLib.decodeJournal(singleJournal);
+
+        receiver = _sender;
+
+        // base checks
+        {
+            _checkSender(msg.sender, _sender);
+            require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
+            require(_market == address(this), mErc20Host_AddressNotValid());
+            require(allowedChains[_chainId], mErc20Host_ChainNotValid());
+        }
+        // operation checks
+        {
+            require(repayAmount > 0, mErc20Host_AmountNotValid());
+            require(repayAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
+        }
+
+        // actions
+        accAmountInPerChain[_chainId][_sender] += repayAmount;
+        _repayBehalf(receiver, repayAmount, false);
+
+        emit mErc20Host_RepayExternal(msg.sender, _sender, receiver, _chainId, repayAmount);
     }
 }
