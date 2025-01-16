@@ -6,7 +6,7 @@ import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
 import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
 import {Risc0VerifierMock} from "../../mocks/Risc0VerifierMock.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
     mTokenGateway public mWethExtension;
     mTokenGateway public mUsdcExtension;
@@ -23,15 +23,42 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
         verifierMock = new Risc0VerifierMock();
         vm.label(address(verifierMock), "verifierMock");
 
+        mTokenGateway gatewayImpl = new mTokenGateway();
+
+
         // Deploy mToken gateways
-        mWethExtension = new mTokenGateway(payable(address(this)), address(weth), address(roles), address(verifierMock));
+        bytes memory mWethGatewayInitData = abi.encodeWithSelector(
+            mTokenGateway.initialize.selector,
+            payable(address(this)),
+            address(weth),
+            address(roles),
+            address(verifierMock)
+        );
+        ERC1967Proxy mWethGatewayProxy = new ERC1967Proxy(
+            address(gatewayImpl),
+            mWethGatewayInitData
+        );
+        mWethExtension = mTokenGateway(address(mWethGatewayProxy));
         vm.label(address(mWethExtension), "mWethExtension");
 
-        mUsdcExtension = new mTokenGateway(payable(address(this)), address(usdc), address(roles), address(verifierMock));
+        bytes memory mUsdcGatewayInitData = abi.encodeWithSelector(
+            mTokenGateway.initialize.selector,
+            payable(address(this)),
+            address(usdc),
+            address(roles),
+            address(verifierMock)
+        );
+        ERC1967Proxy mUsdcGatewayProxy = new ERC1967Proxy(
+            address(gatewayImpl),
+            mUsdcGatewayInitData
+        );
+        mUsdcExtension = mTokenGateway(address(mUsdcGatewayProxy));
         vm.label(address(mUsdcExtension), "mUsdcExtension");
 
         // Deploy mToken hosts
-        mWethHost = new mErc20Host(
+        mErc20Host mErc20HostImpl = new mErc20Host();
+        bytes memory mWethHostInitData = abi.encodeWithSelector(
+            mErc20Host.initialize.selector,
             address(weth),
             address(operator),
             address(interestModel),
@@ -43,9 +70,15 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
             address(verifierMock),
             address(roles)
         );
+        ERC1967Proxy mWethHostProxy = new ERC1967Proxy(
+            address(mErc20HostImpl),
+            mWethHostInitData
+        );
+        mWethHost = mErc20Host(address(mWethHostProxy));
         vm.label(address(mWethHost), "mWethHost");
 
-        mUsdcHost = new mErc20Host(
+        bytes memory mUsdcHostInitData = abi.encodeWithSelector(
+            mErc20Host.initialize.selector,
             address(usdc),
             address(operator),
             address(interestModel),
@@ -57,6 +90,11 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
             address(verifierMock),
             address(roles)
         );
+        ERC1967Proxy mUsdcHostProxy = new ERC1967Proxy(
+            address(mErc20HostImpl),
+            mUsdcHostInitData
+        );
+        mUsdcHost = mErc20Host(address(mUsdcHostProxy));
         vm.label(address(mUsdcHost), "mUsdcHost");
 
         // Deploy batch submitter

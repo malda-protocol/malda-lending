@@ -16,7 +16,7 @@
 1. script/configuration/SetCollateralFactor.s.sol
 2. script/configuration/SetOperatorForRewards.s.sol
 3. script/configuration/SetRole.s.sol
-3. script/configuration/SuppoertMarket.s.sol
+3. script/configuration/SupportMarket.s.sol
 
 
 

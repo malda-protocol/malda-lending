@@ -15,7 +15,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 // contracts
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
-import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
+import {mErc20Upgradable} from "src/mToken/mErc20Upgradable.sol";
 
 import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
 
@@ -23,7 +23,7 @@ import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {IRoles} from "src/interfaces/IRoles.sol";
 
-contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperationTypes {
+contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperationTypes {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE ------------
@@ -33,7 +33,7 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     mapping(uint32 => bool) public allowedChains;
 
     /**
-     * @notice Constructs the new money market
+     * @notice Initializes the new money market
      * @param underlying_ The address of the underlying asset
      * @param operator_ The address of the Operator
      * @param interestRateModel_ The address of the interest rate model
@@ -44,7 +44,7 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
      * @param admin_ Address of the administrator of this token
      * @param zkVerifier_ The IRiscZeroVerifier address
      */
-    constructor(
+    function initialize(
         address underlying_,
         address operator_,
         address interestRateModel_,
@@ -55,8 +55,9 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
         address payable admin_,
         address zkVerifier_,
         address roles_
-    )
-        mErc20Immutable(
+    ) external initializer {
+        // Initialize the base contract
+        proxyInitialize(
             underlying_,
             operator_,
             interestRateModel_,
@@ -65,8 +66,8 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
             symbol_,
             decimals_,
             admin_
-        )
-    {
+        );
+
         // Initialize the ZkVerifier
         ZkVerifier.initialize(zkVerifier_);
 

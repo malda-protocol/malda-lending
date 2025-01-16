@@ -14,6 +14,7 @@ import {Base_Unit_Test} from "../../Base_Unit_Test.t.sol";
 
 import {ERC20Mock} from "../../mocks/ERC20Mock.sol";
 import {Risc0VerifierMock} from "../../mocks/Risc0VerifierMock.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 abstract contract mToken_Unit_Shared is Base_Unit_Test {
     // ----------- STORAGE ------------
@@ -36,6 +37,50 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         verifierMock = new Risc0VerifierMock();
         vm.label(address(verifierMock), "verifierMock");
 
+        // Deploy mWethHost implementation and proxy
+        mErc20Host implementation = new mErc20Host();
+        bytes memory initData = abi.encodeWithSelector(
+            mErc20Host.initialize.selector,
+            address(weth),
+            address(operator),
+            address(interestModel),
+            1e18,
+            "Market WETH",
+            "mWeth",
+            18,
+            payable(address(this)),
+            address(verifierMock),
+            address(roles)
+        );
+        ERC1967Proxy proxy = new ERC1967Proxy(
+            address(implementation),
+            initData
+        );
+        mWethHost = mErc20Host(address(proxy));
+        vm.label(address(mWethHost), "mWethHost");
+
+        // Deploy mDaiHost proxy
+        bytes memory initDataDai = abi.encodeWithSelector(
+            mErc20Host.initialize.selector,
+            address(dai),
+            address(operator),
+            address(interestModel),
+            1e18,
+            "Market DAI",
+            "mDai",
+            18,
+            payable(address(this)),
+            address(verifierMock),
+            address(roles)
+        );
+        ERC1967Proxy proxyDai = new ERC1967Proxy(
+            address(implementation),
+            initDataDai
+        );
+        mDaiHost = mErc20Host(address(proxyDai));
+        vm.label(address(mDaiHost), "mDaiHost");
+
+        // Deploy mWeth (non-proxy)
         mWeth = new mErc20Immutable(
             address(weth),
             address(operator),
@@ -48,36 +93,21 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         );
         vm.label(address(mWeth), "mWeth");
 
-        mWethHost = new mErc20Host(
+        // Deploy mWethExtension implementation and proxy
+        mTokenGateway gatewayImpl = new mTokenGateway();
+        bytes memory wethGatewayInitData = abi.encodeWithSelector(
+            mTokenGateway.initialize.selector,
+            payable(address(this)),
             address(weth),
-            address(operator),
-            address(interestModel),
-            1e18,
-            "Market WETH",
-            "mWeth",
-            18,
-            payable(address(this)),
-            address(verifierMock),
-            address(roles)
+            address(roles),
+            address(verifierMock)
         );
-        vm.label(address(mWethHost), "mWethHost");
-
-        mDaiHost = new mErc20Host(
-            address(dai),
-            address(operator),
-            address(interestModel),
-            1e18,
-            "Market DAI",
-            "mDai",
-            18,
-            payable(address(this)),
-            address(verifierMock),
-            address(roles)
+        ERC1967Proxy wethGatewayProxy = new ERC1967Proxy(
+            address(gatewayImpl),
+            wethGatewayInitData
         );
-
-        vm.label(address(mDaiHost), "mDaiHost");
-
-        mWethExtension = new mTokenGateway(payable(address(this)), address(weth), address(roles), address(verifierMock));
+        mWethExtension = mTokenGateway(address(wethGatewayProxy));
+        vm.label(address(mWethExtension), "mWethExtension");
 
         mDaiHost.setImageId("0x123");
         mWethHost.setImageId("0x123");

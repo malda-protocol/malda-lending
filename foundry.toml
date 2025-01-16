@@ -3,9 +3,9 @@
   out = "out"
   src = "src"
 
-  evm_version = 'Cancun'
+  evm_version = 'london'
   optimizer = true
-  optimizer_runs = 9000
+  optimizer_runs = 2499
   solc_version = '0.8.28'
 
   remappings = [

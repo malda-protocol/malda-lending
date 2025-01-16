@@ -9,6 +9,7 @@ import {Base_Unit_Test} from "../../Base_Unit_Test.t.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {Risc0VerifierMock} from "../../mocks/Risc0VerifierMock.sol";
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 abstract contract Rebalancer_Unit_Shared is Base_Unit_Test {
     mErc20Host public mWethHost;
@@ -23,7 +24,10 @@ abstract contract Rebalancer_Unit_Shared is Base_Unit_Test {
         verifierMock = new Risc0VerifierMock();
         vm.label(address(verifierMock), "verifierMock");
 
-        mWethHost = new mErc20Host(
+        // Deploy mWethHost implementation and proxy
+        mErc20Host implementation = new mErc20Host();
+        bytes memory initData = abi.encodeWithSelector(
+            mErc20Host.initialize.selector,
             address(weth),
             address(operator),
             address(interestModel),
@@ -35,10 +39,28 @@ abstract contract Rebalancer_Unit_Shared is Base_Unit_Test {
             address(verifierMock),
             address(roles)
         );
+        ERC1967Proxy proxy = new ERC1967Proxy(
+            address(implementation),
+            initData
+        );
+        mWethHost = mErc20Host(address(proxy));
         vm.label(address(mWethHost), "mWethHost");
         mWethHost.setRolesOperator(address(roles));
 
-        mWethExtension = new mTokenGateway(payable(address(this)), address(weth), address(roles), address(verifierMock));
+        // Deploy mWethExtension implementation and proxy
+        mTokenGateway gatewayImpl = new mTokenGateway();
+        bytes memory gatewayInitData = abi.encodeWithSelector(
+            mTokenGateway.initialize.selector,
+            payable(address(this)),
+            address(weth),
+            address(roles),
+            address(verifierMock)
+        );
+        ERC1967Proxy gatewayProxy = new ERC1967Proxy(
+            address(gatewayImpl),
+            gatewayInitData
+        );
+        mWethExtension = mTokenGateway(address(gatewayProxy));
         vm.label(address(mWethExtension), "mWethExtension");
 
         rebalancer = new Rebalancer(address(roles));

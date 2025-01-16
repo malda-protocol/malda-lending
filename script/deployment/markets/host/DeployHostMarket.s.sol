@@ -4,6 +4,7 @@ pragma solidity =0.8.28;
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {Script, console} from "forge-std/Script.sol";
 import {BaseMarketDeploy} from "script/deployment/markets/BaseMarketDeploy.s.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 /**
  * forge script DeployHostMarket  \
@@ -20,7 +21,7 @@ contract DeployHostMarket is BaseMarketDeploy {
         address underlyingToken;
         address operator;
         address interestModel;
-        uint256 exchaneRateMantissa;
+        uint256 exchangeRateMantissa;
         string name;
         string symbol;
         uint8 decimals;
@@ -32,23 +33,41 @@ contract DeployHostMarket is BaseMarketDeploy {
         uint256 key = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(key);
 
-        bytes32 salt = getSalt(string.concat(data.name, "mErc20Host", string(abi.encodePacked(data.underlyingToken))));
-        address created =
-            deployer.create(salt, abi.encodePacked(type(mErc20Host).creationCode, _getConstructorData(data)));
+        // Deploy implementation
+        bytes32 implSalt = getSalt(string.concat("mErc20HostImplementation", data.name));
+        address implementation = vm.envOr(
+            "MERC20_HOST_IMPLEMENTATION",
+            deployer.create(implSalt, type(mErc20Host).creationCode)
+        );
+        console.log("Implementation deployed at:", implementation);
 
-        console.log(" Host market deployed at: %s", created);
+        // Prepare initialization data
+        bytes memory initData = _getInitializationData(data);
+
+        // Deploy proxy
+        bytes32 proxySalt = getSalt(string.concat("mErc20HostProxy", data.name));
+        address proxy = deployer.create(
+            proxySalt,
+            abi.encodePacked(
+                type(ERC1967Proxy).creationCode,
+                abi.encode(implementation, initData)
+            )
+        );
+
+        console.log("Proxy deployed at:", proxy);
         vm.stopBroadcast();
 
-        return created;
+        return proxy;
     }
 
-    function _getConstructorData(MarketData memory data) private view returns (bytes memory) {
+    function _getInitializationData(MarketData memory data) private view returns (bytes memory) {
         address owner = vm.envAddress("OWNER");
-        return abi.encode(
+        return abi.encodeWithSelector(
+            mErc20Host.initialize.selector,
             data.underlyingToken,
             data.operator,
             data.interestModel,
-            data.exchaneRateMantissa,
+            data.exchangeRateMantissa,
             data.name,
             data.symbol,
             data.decimals,
