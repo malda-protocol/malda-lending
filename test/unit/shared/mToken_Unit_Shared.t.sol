@@ -49,7 +49,8 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             "mWeth",
             18,
             payable(address(this)),
-            address(verifierMock)
+            address(verifierMock),
+            address(roles)
         );
         ERC1967Proxy proxy = new ERC1967Proxy(
             address(implementation),
@@ -69,7 +70,8 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             "mDai",
             18,
             payable(address(this)),
-            address(verifierMock)
+            address(verifierMock),
+            address(roles)
         );
         ERC1967Proxy proxyDai = new ERC1967Proxy(
             address(implementation),
@@ -93,18 +95,18 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
 
         // Deploy mWethExtension implementation and proxy
         mTokenGateway gatewayImpl = new mTokenGateway();
-        bytes memory gatewayInitData = abi.encodeWithSelector(
+        bytes memory wethGatewayInitData = abi.encodeWithSelector(
             mTokenGateway.initialize.selector,
             payable(address(this)),
             address(weth),
             address(roles),
             address(verifierMock)
         );
-        ERC1967Proxy gatewayProxy = new ERC1967Proxy(
+        ERC1967Proxy wethGatewayProxy = new ERC1967Proxy(
             address(gatewayImpl),
-            gatewayInitData
+            wethGatewayInitData
         );
-        mWethExtension = mTokenGateway(address(gatewayProxy));
+        mWethExtension = mTokenGateway(address(wethGatewayProxy));
         vm.label(address(mWethExtension), "mWethExtension");
 
         mDaiHost.setImageId("0x123");
