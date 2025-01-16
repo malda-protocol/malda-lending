@@ -127,7 +127,11 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         // | 72     | 32      | uint256 accAmountOut   |
         // | 104    | 4       | uint32 chainId         |
         // | 108    | 4       | uint32 dstChainId         |
-        return abi.encodePacked(sender, market, accAmount, accAmount, uint32(block.chainid), uint32(block.chainid));
+        bytes memory journal =
+            abi.encodePacked(sender, market, accAmount, accAmount, uint32(block.chainid), uint32(block.chainid));
+        bytes[] memory journals = new bytes[](1);
+        journals[0] = journal;
+        return abi.encode(journals);
     }
 
     function _borrowPrerequisites(address mToken, uint256 supplyAmount) internal {

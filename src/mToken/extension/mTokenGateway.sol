@@ -167,16 +167,33 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     /**
      * @inheritdoc ImTokenGateway
      */
-    function outHere(bytes calldata journalData, bytes calldata seal, uint256 amount, address receiver)
+    function outHere(bytes calldata journalData, bytes calldata seal, uint256[] calldata amounts, address receiver)
         external
-        override
         notPaused(OperationType.AmountOutHere)
     {
         // verify received data
-        _verifyProof(journalData, seal);
+        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
+            _verifyProof(journalData, seal);
+        }
 
+        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+        uint256 length = journals.length;
+        require(length == amounts.length, mTokenGateway_LengthNotValid());
+
+        for (uint256 i; i < journals.length;) {
+            _outHere(journals[i], amounts[i], receiver);
+
+            unchecked {
+                ++i;
+            }
+        }
+    }
+
+    function _outHere(bytes memory journalData, uint256 amount, address receiver) internal {
         (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId) =
             mTokenProofDecoderLib.decodeJournal(journalData);
+
+        receiver = _sender;
 
         // checks
         _checkSender(msg.sender, _sender);
@@ -191,7 +208,7 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
         accAmountOut[_sender] += amount;
 
         // interactions
-        IERC20(underlying).safeTransfer(receiver, amount);
+        IERC20(underlying).safeTransfer(_sender, amount);
 
         emit mTokenGateway_Extracted(
             msg.sender,
@@ -217,7 +234,8 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
         if (msgSender != srcSender) {
             require(
                 allowedCallers[srcSender][msgSender] || msgSender == owner()
-                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER()),
+                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER())
+                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_BATCH_FORWARDER()),
                 mTokenGateway_CallerNotAllowed()
             );
         }

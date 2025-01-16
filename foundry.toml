@@ -1,21 +1,21 @@
 [profile.default]
-src = "src"
-out = "out"
-libs = ['node_modules', 'lib']
+  libs = ['node_modules', 'lib']
+  out = "out"
+  src = "src"
 
-solc_version='0.8.28'
-evm_version='london'
-optimizer = true
-optimizer_runs = 9000
+  evm_version = 'london'
+  optimizer = true
+  optimizer_runs = 9000
+  solc_version = '0.8.28'
 
-remappings = [
-	"@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
-	"@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
-	"risc0/=lib/risc0-ethereum/contracts/src/"
-]
+  remappings = [
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
+    "risc0/=lib/risc0-ethereum/contracts/src/",
+  ]
 
-# forge-deploy
-fs_permissions = [
-	{ access = "read-write", path = "./deployments"},
-	{ access = "read", path = "./out"}
-]
+  # forge-deploy
+  fs_permissions = [
+    { access = "read-write", path = "./deployments" },
+    { access = "read", path = "./out" },
+  ]

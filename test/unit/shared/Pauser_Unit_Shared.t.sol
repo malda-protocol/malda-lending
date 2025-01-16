@@ -36,7 +36,8 @@ abstract contract Pauser_Unit_Shared is Base_Unit_Test {
             "mWeth",
             18,
             payable(address(this)),
-            address(verifierMock)
+            address(verifierMock),
+            address(roles)
         );
         ERC1967Proxy proxy = new ERC1967Proxy(
             address(implementation),

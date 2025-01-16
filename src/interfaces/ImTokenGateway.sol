@@ -108,6 +108,11 @@ interface ImTokenGateway {
      */
     error mTokenGateway_NotRebalancer();
 
+    /**
+     * @notice Thrown when length is not valid
+     */
+    error mTokenGateway_LengthNotValid();
+
     // ----------- VIEW -----------
     /**
      * @notice Roles manager
@@ -178,8 +183,9 @@ interface ImTokenGateway {
      * @notice Extract tokens
      * @param journalData The supplied journal
      * @param seal The seal address
-     * @param amount The amount to withdraw
-     * @param receiver The address who should receive the underlying tokens
+     * @param amounts The amounts to withdraw for each journal
+     * @param receiver The receiver address
      */
-    function outHere(bytes calldata journalData, bytes calldata seal, uint256 amount, address receiver) external;
+    function outHere(bytes calldata journalData, bytes calldata seal, uint256[] memory amounts, address receiver)
+        external;
 }
