@@ -1,13 +1,20 @@
-BatchSubmitter_methods.t.sol
-├── given sender does not have PROOF_FORWARDER role
-│   └── when batchOutHere is called
-│       └── it should revert with BatchSubmitter_CallerNotAllowed
-├── given sender has PROOF_FORWARDER role
-│   ├── given journal data is empty
-│   │   └── when batchOutHere is called
-│   │       └── it should revert with BatchSubmitter_JournalNotValid
-│   └── given journal data is valid
-│       ├── when outHere succeeds
-│       │   └── it should process the operation without reverting
-│       └── when outHere fails
-│           └── it should emit BatchOutHereFailed event with journal and reason 
+.
+├── when caller is not proof forwarder
+│   └── it should revert
+├── when journal data is empty
+│   └── it should revert
+├── when selector is invalid
+│   └── it should revert
+├── when outHere
+│   ├── when it succeeds
+│   │   └── it should transfer tokens from gateway to user
+│   └── when it fails
+│       └── it should emit BatchProcessFailed
+├── when mint
+│   ├── when it succeeds
+│   │   └── it should increase user balance and total supply
+│   └── when it fails
+│       └── it should emit BatchProcessFailed
+└── when repay
+    └── when it fails
+        └── it should emit BatchProcessFailed 

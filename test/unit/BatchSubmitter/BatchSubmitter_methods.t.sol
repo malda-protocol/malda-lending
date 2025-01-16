@@ -186,4 +186,123 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         
         batchSubmitter.batchProcess(encodedJournals, "", testMTokens, testAmounts, testSelectors, 0, 1);
     }
+
+    function test_WhenMintSucceeds(uint256 amount) 
+        external 
+        givenSenderHasProofForwarderRole 
+        givenJournalDataIsValid
+        inRange(amount, SMALL, LARGE)
+    {
+        address[] memory senders = new address[](1);
+        senders[0] = address(this);
+
+        address[] memory testMTokens = new address[](1);
+        testMTokens[0] = address(mWethHost);
+        
+        uint256[] memory testAmounts = new uint256[](1);
+        testAmounts[0] = amount;
+
+        bytes4[] memory testSelectors = new bytes4[](1);
+        testSelectors[0] = MINT_SELECTOR;
+
+        bytes memory encodedJournals = _createBatchJournals(
+            senders, 
+            testMTokens, 
+            testAmounts,
+            TEST_SOURCE_CHAIN_ID,
+            uint32(block.chainid)
+        );
+
+        // Record balances before
+        uint256 balanceBefore = mWethHost.balanceOf(address(this));
+        uint256 totalSupplyBefore = mWethHost.totalSupply();
+        
+        batchSubmitter.batchProcess(encodedJournals, "0x123", testMTokens, testAmounts, testSelectors, 0, 1);
+
+        // Check balances after
+        uint256 balanceAfter = mWethHost.balanceOf(address(this));
+        uint256 totalSupplyAfter = mWethHost.totalSupply();
+
+        // Verify balances changed correctly
+        assertGt(balanceAfter, balanceBefore);
+        assertGt(totalSupplyAfter, totalSupplyBefore);
+        assertEq(totalSupplyAfter - amount, totalSupplyBefore);
+    }
+
+    function test_WhenMintFails() 
+        external 
+        givenSenderHasProofForwarderRole 
+        givenJournalDataIsValid 
+    {
+        address[] memory senders = new address[](1);
+        senders[0] = address(this);
+
+        address[] memory markets = new address[](1);
+        markets[0] = address(0); // Invalid market address
+
+        uint256[] memory testAmounts = new uint256[](1);
+        testAmounts[0] = 1 ether;
+
+        bytes4[] memory testSelectors = new bytes4[](1);
+        testSelectors[0] = MINT_SELECTOR;
+
+        bytes memory encodedJournals = _createBatchJournals(
+            senders, 
+            markets, 
+            testAmounts,
+            TEST_SOURCE_CHAIN_ID,
+            uint32(block.chainid)
+        );
+        bytes[] memory decodedJournals = abi.decode(encodedJournals, (bytes[]));
+        
+        address[] memory testMTokens = new address[](1);
+        testMTokens[0] = address(mWethHost);
+
+        vm.expectEmit(true, true, true, true);
+        emit BatchSubmitter.BatchProcessFailed(
+            decodedJournals[0], 
+            abi.encodePacked(ImErc20Host.mErc20Host_AddressNotValid.selector)
+        );
+        
+        batchSubmitter.batchProcess(encodedJournals, "", testMTokens, testAmounts, testSelectors, 0, 1);
+    }
+
+
+    function test_WhenRepayFails() 
+        external 
+        givenSenderHasProofForwarderRole 
+        givenJournalDataIsValid 
+    {
+        address[] memory senders = new address[](1);
+        senders[0] = address(this);
+
+        address[] memory markets = new address[](1);
+        markets[0] = address(0); // Invalid market address
+
+        uint256[] memory testAmounts = new uint256[](1);
+        testAmounts[0] = 1 ether;
+
+        bytes4[] memory testSelectors = new bytes4[](1);
+        testSelectors[0] = REPAY_SELECTOR;
+
+        bytes memory encodedJournals = _createBatchJournals(
+            senders, 
+            markets, 
+            testAmounts,
+            TEST_SOURCE_CHAIN_ID,
+            uint32(block.chainid)
+        );
+        bytes[] memory decodedJournals = abi.decode(encodedJournals, (bytes[]));
+        
+        address[] memory testMTokens = new address[](1);
+        testMTokens[0] = address(mWethHost);
+
+        vm.expectEmit(true, true, true, true);
+        emit BatchSubmitter.BatchProcessFailed(
+            decodedJournals[0], 
+            abi.encodePacked(ImErc20Host.mErc20Host_AddressNotValid.selector)
+        );
+        
+        batchSubmitter.batchProcess(encodedJournals, "", testMTokens, testAmounts, testSelectors, 0, 1);
+    }
 } 
