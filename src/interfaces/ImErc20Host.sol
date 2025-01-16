@@ -163,13 +163,11 @@ interface ImErc20Host {
      * @param journalData The journal data for minting (array of encoded journals)
      * @param seal The Zk proof seal
      * @param mintAmount Array of amounts to mint
-     * @param receiver Array of token receivers
      */
     function mintExternal(
         bytes calldata journalData,
         bytes calldata seal,
-        uint256[] calldata mintAmount,
-        address[] calldata receiver
+        uint256[] calldata mintAmount
     ) external;
 
     /**
@@ -177,13 +175,11 @@ interface ImErc20Host {
      * @param journalData The journal data for repayment (array of encoded journals)
      * @param seal The Zk proof seal
      * @param repayAmount Array of amounts to repay
-     * @param position Array of positions to repay for
      */
     function repayExternal(
         bytes calldata journalData,
         bytes calldata seal,
-        uint256[] calldata repayAmount,
-        address[] calldata position
+        uint256[] calldata repayAmount
     ) external;
 
     /**

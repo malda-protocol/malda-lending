@@ -219,8 +219,7 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     function mintExternal(
         bytes calldata journalData,
         bytes calldata seal,
-        uint256[] calldata mintAmount,
-        address[] calldata receiver
+        uint256[] calldata mintAmount
     ) external override {
         if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
             _verifyProof(journalData, seal);
@@ -228,16 +227,17 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
 
         bytes[] memory journals = abi.decode(journalData, (bytes[]));
         require(journals.length == mintAmount.length, "Input length mismatch");
-        require(journals.length == receiver.length, "Input length mismatch");
 
         for (uint256 i = 0; i < journals.length; ++i) {
-            _mintExternal(journals[i], mintAmount[i], receiver[i]);
+            _mintExternal(journals[i], mintAmount[i]);
         }
     }
 
-    function _mintExternal(bytes memory singleJournal, uint256 mintAmount, address receiver) internal {
+    function _mintExternal(bytes memory singleJournal, uint256 mintAmount) internal {
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
+
+        address receiver = _sender;
 
         // base checks
         {
@@ -265,8 +265,7 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
     function repayExternal(
         bytes calldata journalData,
         bytes calldata seal,
-        uint256[] calldata repayAmount,
-        address[] calldata position
+        uint256[] calldata repayAmount
     ) external override {
         if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
             _verifyProof(journalData, seal);
@@ -274,16 +273,17 @@ contract mErc20Host is mErc20Immutable, ZkVerifier, ImErc20Host, ImTokenOperatio
 
         bytes[] memory journals = abi.decode(journalData, (bytes[]));
         require(journals.length == repayAmount.length, "Input length mismatch");
-        require(journals.length == position.length, "Input length mismatch");
 
         for (uint256 i = 0; i < journals.length; ++i) {
-            _repayExternal(journals[i], repayAmount[i], position[i]);
+            _repayExternal(journals[i], repayAmount[i]);
         }
     }
 
-    function _repayExternal(bytes memory singleJournal, uint256 repayAmount, address position) internal {
+    function _repayExternal(bytes memory singleJournal, uint256 repayAmount) internal {
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
+
+        address position = _sender;
 
         // base checks
         {

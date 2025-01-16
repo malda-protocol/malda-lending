@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {mTokenGateway} from "./mTokenGateway.sol";
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
+import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
 
 /**
- * @title BatchSubmitterExtension
+ * @title BatchSubmitter
  * @notice Allows batching of outHere operations on the extension chain
  */
-contract BatchSubmitterExtension is ZkVerifier {
-    error BatchSubmitterExtension_CallerNotAllowed();
-    error BatchSubmitterExtension_JournalNotValid();
+contract BatchSubmitter is ZkVerifier {
+    error BatchSubmitter_CallerNotAllowed();
+    error BatchSubmitter_JournalNotValid();
 
     event BatchOutHereFailed(bytes journal, bytes reason);
 
@@ -32,15 +32,19 @@ contract BatchSubmitterExtension is ZkVerifier {
      * @param seal The seal data for verification
      * @param mTokens Array of mToken addresses
      * @param amounts Array of amounts for each operation
+     * @param startIndex Start index for processing journals
+     * @param endIndex End index for processing journals (exclusive)
      */
     function batchOutHere(
         bytes calldata journalData,
         bytes calldata seal,
         address[] calldata mTokens,
-        uint256[] calldata amounts
+        uint256[] calldata amounts,
+        uint256 startIndex,
+        uint256 endIndex
     ) external {
         if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_FORWARDER())) {
-            revert BatchSubmitterExtension_CallerNotAllowed();
+            revert BatchSubmitter_CallerNotAllowed();
         }
 
         // Verify the proof
@@ -48,9 +52,9 @@ contract BatchSubmitterExtension is ZkVerifier {
 
         // Decode journal data into array of bytes
         bytes[] memory journals = abi.decode(journalData, (bytes[]));
-        
-        uint256 length = journals.length;
-        for (uint256 i = 0; i < length;) {
+
+
+        for (uint256 i = startIndex; i < endIndex;) {
             // Create single-element array and encode it
             bytes[] memory singleJournal = new bytes[](1);
             singleJournal[0] = journals[i];
@@ -60,7 +64,7 @@ contract BatchSubmitterExtension is ZkVerifier {
             uint256[] memory singleAmount = new uint256[](1);
             singleAmount[0] = amounts[i];
 
-            try mTokenGateway(mTokens[i]).outHere(
+            try ImTokenGateway(mTokens[i]).outHere(
                 encodedJournal,
                 "",
                 singleAmount
@@ -79,7 +83,7 @@ contract BatchSubmitterExtension is ZkVerifier {
      */
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private {
         if (journalData.length == 0) {
-            revert BatchSubmitterExtension_JournalNotValid();
+            revert BatchSubmitter_JournalNotValid();
         }
 
         // verify it using the ZkVerifier contract

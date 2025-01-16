@@ -1,0 +1,13 @@
+BatchSubmitter_methods.t.sol
+├── given sender does not have PROOF_FORWARDER role
+│   └── when batchOutHere is called
+│       └── it should revert with BatchSubmitter_CallerNotAllowed
+├── given sender has PROOF_FORWARDER role
+│   ├── given journal data is empty
+│   │   └── when batchOutHere is called
+│   │       └── it should revert with BatchSubmitter_JournalNotValid
+│   └── given journal data is valid
+│       ├── when outHere succeeds
+│       │   └── it should process the operation without reverting
+│       └── when outHere fails
+│           └── it should emit BatchOutHereFailed event with journal and reason 

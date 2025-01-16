@@ -199,11 +199,9 @@ contract mErc20Host_repay is mToken_Unit_Shared {
     {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
-        address[] memory positions = new address[](1);
-        positions[0] = address(this);
 
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.repayExternal("", "0x123", amounts, positions);
+        mWethHost.repayExternal("", "0x123", amounts);
     }
 
     function test_RevertGiven_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
@@ -214,11 +212,9 @@ contract mErc20Host_repay is mToken_Unit_Shared {
     {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
-        address[] memory positions = new address[](1);
-        positions[0] = address(this);
 
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.repayExternal("", "0x123", amounts, positions);
+        mWethHost.repayExternal("", "0x123", amounts);
     }
 
     function test_GivenDecodedAmountIs0()
@@ -232,13 +228,11 @@ contract mErc20Host_repay is mToken_Unit_Shared {
     {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 0;
-        address[] memory positions = new address[](1);
-        positions[0] = address(this);
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), 0);
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.repayExternal(journalData, "0x123", amounts, positions);
+        mWethHost.repayExternal(journalData, "0x123", amounts);
     }
 
     function test_RevertWhen_SealVerificationFails(uint256 amount)
@@ -252,15 +246,13 @@ contract mErc20Host_repay is mToken_Unit_Shared {
     {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
-        address[] memory positions = new address[](1);
-        positions[0] = address(this);
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
-        mWethHost.repayExternal(journalData, "0x123", amounts, positions);
+        mWethHost.repayExternal(journalData, "0x123", amounts);
     }
 
     function test_WhenSealVerificationWasOk(uint256 amount)
@@ -284,12 +276,10 @@ contract mErc20Host_repay is mToken_Unit_Shared {
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
-        address[] memory positions = new address[](1);
-        positions[0] = address(this);
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
-        mWethHost.repayExternal(journalData, "0x123", amounts, positions);
+        mWethHost.repayExternal(journalData, "0x123", amounts);
 
         // after state
         vars.balanceUnderlyingAfter = weth.balanceOf(address(this));
