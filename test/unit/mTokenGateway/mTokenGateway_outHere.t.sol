@@ -19,7 +19,7 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         vm.expectRevert();
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
-        mWethExtension.outHere("", "0x123", amounts);
+        mWethExtension.outHere("", "0x123", amounts, address(this));
     }
 
     modifier givenMarketIsNotPaused() {
@@ -33,7 +33,7 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountNotValid.selector);
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 0;
-        mWethExtension.outHere(journalData, "0x123", amounts);
+        mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
 
     function test_WhenAccumulatedAmountReceivedOrLessThanNeeded(uint256 amount)
@@ -46,7 +46,7 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountTooBig.selector);
-        mWethExtension.outHere(journalData, "0x123", amounts);
+        mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
 
     function test_WhenMarketDoesNotHaveLiquidity(uint256 amount)
@@ -59,7 +59,7 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
         vm.expectRevert(ImTokenGateway.mTokenGateway_ReleaseCashNotAvailable.selector);
-        mWethExtension.outHere(journalData, "0x123", amounts);
+        mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
 
     function test_RevertWhen_CallerNotAllowedXQ(uint256 amount)
@@ -73,7 +73,7 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
         vm.expectRevert(ImTokenGateway.mTokenGateway_CallerNotAllowed.selector);
-        mWethExtension.outHere(journalData, "0x123", amounts);
+        mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
 
     function test_WhenParametersAreRight(uint256 amount)
@@ -88,7 +88,7 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         uint256 balanceUserBefore = weth.balanceOf(address(this));
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
-        mWethExtension.outHere(journalData, "0x123", amounts);
+        mWethExtension.outHere(journalData, "0x123", amounts, address(this));
         uint256 balanceUserAfter = weth.balanceOf(address(this));
 
         // it should increase accAmountOut
@@ -115,7 +115,7 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         _resetContext(alice);
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
-        mWethExtension.outHere(journalData, "0x123", amounts);
+        mWethExtension.outHere(journalData, "0x123", amounts, address(this));
         uint256 balanceUserAfter = weth.balanceOf(address(this));
 
         // it should increase accAmountOut

@@ -34,7 +34,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         collaterals[0] = address(mWethHost);
 
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
-        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals);
+        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
     }
 
     modifier givenMarketIsNotPaused() {
@@ -55,7 +55,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         collaterals[0] = address(mWethHost);
 
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.liquidateExternal("", "0x123", users, amounts, collaterals);
+        mWethHost.liquidateExternal("", "0x123", users, amounts, collaterals, address(this));
     }
 
     function test_RevertWhen_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
@@ -72,7 +72,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         collaterals[0] = address(mWethHost);
 
         vm.expectRevert();
-        mWethHost.liquidateExternal("0x", "0x123", users, amounts, collaterals);
+        mWethHost.liquidateExternal("0x", "0x123", users, amounts, collaterals, address(this));
     }
 
     function test_WhenDecodedAmountIs0() external givenMarketIsNotPaused {
@@ -86,7 +86,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), 0);
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals);
+        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
     }
 
     modifier whenDecodedAmountIsValid() {
@@ -111,7 +111,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
-        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals);
+        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
     }
 
     function test_RevertWhen_UserIsTheSameAsTheLiquidator(uint256 amount)
@@ -130,7 +130,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         bytes memory journalData = _createAccumulatedAmountJournal(alice, address(mWethHost), amount);
 
         vm.expectRevert(ImErc20Host.mErc20Host_CallerNotAllowed.selector);
-        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals);
+        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
     }
 
     struct LiquidateStateInternal {
@@ -182,7 +182,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         mWethHost.updateAllowedCallerStatus(alice, true);
 
         _resetContext(alice);
-        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals);
+        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
 
         // after state
         vars.balanceUnderlyingAfter = weth.balanceOf(address(bob));

@@ -201,7 +201,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         amounts[0] = amount;
 
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.repayExternal("", "0x123", amounts);
+        mWethHost.repayExternal("", "0x123", amounts, address(this));
     }
 
     function test_RevertGiven_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
@@ -214,7 +214,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         amounts[0] = amount;
 
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.repayExternal("", "0x123", amounts);
+        mWethHost.repayExternal("", "0x123", amounts, address(this));
     }
 
     function test_GivenDecodedAmountIs0()
@@ -232,7 +232,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), 0);
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.repayExternal(journalData, "0x123", amounts);
+        mWethHost.repayExternal(journalData, "0x123", amounts, address(this));
     }
 
     function test_RevertWhen_SealVerificationFails(uint256 amount)
@@ -252,7 +252,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
-        mWethHost.repayExternal(journalData, "0x123", amounts);
+        mWethHost.repayExternal(journalData, "0x123", amounts, address(this));
     }
 
     function test_WhenSealVerificationWasOk(uint256 amount)
@@ -279,7 +279,7 @@ contract mErc20Host_repay is mToken_Unit_Shared {
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
-        mWethHost.repayExternal(journalData, "0x123", amounts);
+        mWethHost.repayExternal(journalData, "0x123", amounts, address(this));
 
         // after state
         vars.balanceUnderlyingAfter = weth.balanceOf(address(this));

@@ -24,20 +24,10 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
         vm.label(address(verifierMock), "verifierMock");
 
         // Deploy mToken gateways
-        mWethExtension = new mTokenGateway(
-            payable(address(this)),
-            address(weth),
-            address(roles),
-            address(verifierMock)
-        );
+        mWethExtension = new mTokenGateway(payable(address(this)), address(weth), address(roles), address(verifierMock));
         vm.label(address(mWethExtension), "mWethExtension");
 
-        mUsdcExtension = new mTokenGateway(
-            payable(address(this)),
-            address(usdc),
-            address(roles),
-            address(verifierMock)
-        );
+        mUsdcExtension = new mTokenGateway(payable(address(this)), address(usdc), address(roles), address(verifierMock));
         vm.label(address(mUsdcExtension), "mUsdcExtension");
 
         // Deploy mToken hosts
@@ -70,10 +60,7 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
         vm.label(address(mUsdcHost), "mUsdcHost");
 
         // Deploy batch submitter
-        batchSubmitter = new BatchSubmitter(
-            address(roles),
-            address(verifierMock)
-        );
+        batchSubmitter = new BatchSubmitter(address(roles), address(verifierMock), address(this));
         vm.label(address(batchSubmitter), "BatchSubmitter");
 
         // Give BatchSubmitter the PROOF_BATCH_FORWARDER role
@@ -110,18 +97,13 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
         );
 
         bytes[] memory journals = new bytes[](senders.length);
-        
-        for (uint256 i = 0; i < senders.length;) {
-            journals[i] = abi.encodePacked(
-                senders[i],
-                markets[i],
-                amounts[i],
-                amounts[i],
-                srcChainId,
-                dstChainId
-            );
 
-            unchecked { ++i; }
+        for (uint256 i = 0; i < senders.length;) {
+            journals[i] = abi.encodePacked(senders[i], markets[i], amounts[i], amounts[i], srcChainId, dstChainId);
+
+            unchecked {
+                ++i;
+            }
         }
 
         return abi.encode(journals);
@@ -137,4 +119,4 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
         weth.approve(market, amount);
         mErc20Host(market).mint(amount);
     }
-} 
+}

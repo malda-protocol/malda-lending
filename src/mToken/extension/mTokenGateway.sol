@@ -159,7 +159,7 @@ contract mTokenGateway is Ownable, ZkVerifier, ImTokenGateway, ImTokenOperationT
     /**
      * @inheritdoc ImTokenGateway
      */
-    function outHere(bytes calldata journalData, bytes calldata seal, uint256[] calldata amount)
+    function outHere(bytes calldata journalData, bytes calldata seal, uint256[] calldata amounts, address receiver)
         external
         notPaused(OperationType.AmountOutHere)
     {
@@ -169,48 +169,49 @@ contract mTokenGateway is Ownable, ZkVerifier, ImTokenGateway, ImTokenOperationT
         }
 
         bytes[] memory journals = abi.decode(journalData, (bytes[]));
-        assert(journals.length == amount.length);
+        uint256 length = journals.length;
+        require(length == amounts.length, mTokenGateway_LengthNotValid());
 
-        for (uint256 i = 0; i < journals.length; ++i) {
-            _outHere(journals[i], amount[i]);
+        for (uint256 i; i < journals.length;) {
+            _outHere(journals[i], amounts[i], receiver);
+
+            unchecked {
+                ++i;
+            }
         }
     }
 
-    function _outHere(bytes memory journalData, uint256 amount)
-        internal
-    {
+    function _outHere(bytes memory journalData, uint256 amount, address receiver) internal {
+        (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId) =
+            mTokenProofDecoderLib.decodeJournal(journalData);
 
-            (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId) =
-                mTokenProofDecoderLib.decodeJournal(journalData);
+        receiver = _sender;
 
-            address receiver = _sender;
+        // checks
+        _checkSender(msg.sender, _sender);
+        require(_market == address(this), mTokenGateway_AddressNotValid());
+        require(_chainId == LINEA_CHAIN_ID, mTokenGateway_ChainNotValid()); // allow only Host
+        require(_dstChainId == uint32(block.chainid), mTokenGateway_ChainNotValid());
+        require(amount > 0, mTokenGateway_AmountNotValid());
+        require(_accAmountOut - accAmountOut[_sender] >= amount, mTokenGateway_AmountTooBig());
+        require(IERC20(underlying).balanceOf(address(this)) >= amount, mTokenGateway_ReleaseCashNotAvailable());
 
-            // checks
-            _checkSender(msg.sender, _sender);
-            require(_market == address(this), mTokenGateway_AddressNotValid());
-            require(_chainId == LINEA_CHAIN_ID, mTokenGateway_ChainNotValid()); // allow only Host
-            require(_dstChainId == uint32(block.chainid), mTokenGateway_ChainNotValid());
-            require(amount > 0, mTokenGateway_AmountNotValid());
-            require(_accAmountOut - accAmountOut[_sender] >= amount, mTokenGateway_AmountTooBig());
-            require(IERC20(underlying).balanceOf(address(this)) >= amount, mTokenGateway_ReleaseCashNotAvailable());
+        // effects
+        accAmountOut[_sender] += amount;
 
-            // effects
-            accAmountOut[_sender] += amount;
+        // interactions
+        IERC20(underlying).safeTransfer(_sender, amount);
 
-            // interactions
-            IERC20(underlying).safeTransfer(_sender, amount);
-
-            emit mTokenGateway_Extracted(
-                msg.sender,
-                _sender,
-                receiver,
-                accAmountIn[_sender],
-                accAmountOut[_sender],
-                amount,
-                uint32(_chainId),
-                uint32(block.chainid)
-            );
-    
+        emit mTokenGateway_Extracted(
+            msg.sender,
+            _sender,
+            receiver,
+            accAmountIn[_sender],
+            accAmountOut[_sender],
+            amount,
+            uint32(_chainId),
+            uint32(block.chainid)
+        );
     }
 
     // ----------- PRIVATE ------------

@@ -19,7 +19,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
     function setUp() public virtual override {
         super.setUp();
-        
+
         address[] memory senders = new address[](2);
         senders[0] = address(this);
         senders[1] = address(this);
@@ -38,13 +38,8 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         selectors[0] = OUT_HERE_SELECTOR;
         selectors[1] = OUT_HERE_SELECTOR;
 
-        bytes memory encodedJournals = _createBatchJournals(
-            senders, 
-            markets, 
-            amounts,
-            TEST_SOURCE_CHAIN_ID,
-            uint32(block.chainid)
-        );
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, markets, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
         journals = abi.decode(encodedJournals, (bytes[]));
     }
 
@@ -55,7 +50,11 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
     function test_RevertWhen_CallerIsNotProofForwarder() external givenSenderDoesNotHaveProofForwarderRole {
         bytes memory encodedJournals = abi.encode(journals);
         vm.expectRevert(BatchSubmitter.BatchSubmitter_CallerNotAllowed.selector);
-        batchSubmitter.batchProcess(encodedJournals, "", mTokens, amounts, selectors, 0, journals.length);
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                address(this), encodedJournals, "", mTokens, amounts, selectors, 0, journals.length
+            )
+        );
     }
 
     modifier givenSenderHasProofForwarderRole() {
@@ -67,47 +66,42 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         _;
     }
 
-    function test_RevertWhen_JournalDataIsEmpty() 
-        external 
-        givenSenderHasProofForwarderRole 
-        givenJournalDataIsEmpty 
-    {
+    function test_RevertWhen_JournalDataIsEmpty() external givenSenderHasProofForwarderRole givenJournalDataIsEmpty {
         vm.expectRevert(BatchSubmitter.BatchSubmitter_JournalNotValid.selector);
-        batchSubmitter.batchProcess("", "", mTokens, amounts, selectors, 0, 0);
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(address(this), "", "", mTokens, amounts, selectors, 0, 0)
+        );
     }
 
-    function test_RevertWhen_InvalidSelector() 
-        external 
-        givenSenderHasProofForwarderRole 
-    {
+    function test_RevertWhen_InvalidSelector() external givenSenderHasProofForwarderRole {
         bytes4[] memory invalidSelectors = new bytes4[](1);
         invalidSelectors[0] = bytes4(0x12345678); // Invalid selector
 
         address[] memory testMTokens = new address[](1);
         testMTokens[0] = address(mWethExtension);
-        
+
         uint256[] memory testAmounts = new uint256[](1);
         testAmounts[0] = 1 ether;
 
         bytes memory encodedJournals = _createBatchJournals(
-            new address[](1), 
-            testMTokens, 
-            testAmounts,
-            TEST_SOURCE_CHAIN_ID,
-            uint32(block.chainid)
+            new address[](1), testMTokens, testAmounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid)
         );
 
         vm.expectRevert(BatchSubmitter.BatchSubmitter_InvalidSelector.selector);
-        batchSubmitter.batchProcess(encodedJournals, "", testMTokens, testAmounts, invalidSelectors, 0, 1);
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                address(this), encodedJournals, "", testMTokens, testAmounts, invalidSelectors, 0, 1
+            )
+        );
     }
 
     modifier givenJournalDataIsValid() {
         _;
     }
 
-    function test_WhenOutHereSucceeds(uint256 amount) 
-        external 
-        givenSenderHasProofForwarderRole 
+    function test_WhenOutHereSucceeds(uint256 amount)
+        external
+        givenSenderHasProofForwarderRole
         givenJournalDataIsValid
         inRange(amount, SMALL, LARGE)
     {
@@ -116,29 +110,28 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         address[] memory testMTokens = new address[](1);
         testMTokens[0] = address(mWethExtension);
-        
+
         uint256[] memory testAmounts = new uint256[](1);
         testAmounts[0] = amount;
 
         bytes4[] memory testSelectors = new bytes4[](1);
         testSelectors[0] = OUT_HERE_SELECTOR;
 
-        bytes memory encodedJournals = _createBatchJournals(
-            senders, 
-            testMTokens, 
-            testAmounts,
-            TEST_SOURCE_CHAIN_ID,
-            uint32(block.chainid)
-        );
-        
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, testMTokens, testAmounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
+
         // Fund the gateway
         _getTokens(weth, address(mWethExtension), amount);
 
         // Record balances before
         uint256 balanceBefore = weth.balanceOf(address(this));
         uint256 gatewayBalanceBefore = weth.balanceOf(address(mWethExtension));
-        
-        batchSubmitter.batchProcess(encodedJournals, "0x123", testMTokens, testAmounts, testSelectors, 0, 1);
+
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                address(this), encodedJournals, "0x123", testMTokens, testAmounts, testSelectors, 0, 1
+            )
+        );
 
         // Check balances after
         uint256 balanceAfter = weth.balanceOf(address(this));
@@ -149,11 +142,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         assertEq(gatewayBalanceBefore - gatewayBalanceAfter, amount);
     }
 
-    function test_WhenOutHereFails() 
-        external 
-        givenSenderHasProofForwarderRole 
-        givenJournalDataIsValid 
-    {
+    function test_WhenOutHereFails() external givenSenderHasProofForwarderRole givenJournalDataIsValid {
         address[] memory senders = new address[](1);
         senders[0] = address(this);
 
@@ -166,30 +155,28 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         bytes4[] memory testSelectors = new bytes4[](1);
         testSelectors[0] = OUT_HERE_SELECTOR;
 
-        bytes memory encodedJournals = _createBatchJournals(
-            senders, 
-            markets, 
-            testAmounts,
-            TEST_SOURCE_CHAIN_ID,
-            uint32(block.chainid)
-        );
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, markets, testAmounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
         bytes[] memory decodedJournals = abi.decode(encodedJournals, (bytes[]));
-        
+
         address[] memory testMTokens = new address[](1);
         testMTokens[0] = address(mWethExtension);
 
         vm.expectEmit(true, true, true, true);
         emit BatchSubmitter.BatchProcessFailed(
-            decodedJournals[0], 
-            abi.encodePacked(ImTokenGateway.mTokenGateway_AddressNotValid.selector)
+            decodedJournals[0], abi.encodePacked(ImTokenGateway.mTokenGateway_AddressNotValid.selector)
         );
-        
-        batchSubmitter.batchProcess(encodedJournals, "", testMTokens, testAmounts, testSelectors, 0, 1);
+
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                address(this), encodedJournals, "", testMTokens, testAmounts, testSelectors, 0, 1
+            )
+        );
     }
 
-    function test_WhenMintSucceeds(uint256 amount) 
-        external 
-        givenSenderHasProofForwarderRole 
+    function test_WhenMintSucceeds(uint256 amount)
+        external
+        givenSenderHasProofForwarderRole
         givenJournalDataIsValid
         inRange(amount, SMALL, LARGE)
     {
@@ -198,26 +185,25 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         address[] memory testMTokens = new address[](1);
         testMTokens[0] = address(mWethHost);
-        
+
         uint256[] memory testAmounts = new uint256[](1);
         testAmounts[0] = amount;
 
         bytes4[] memory testSelectors = new bytes4[](1);
         testSelectors[0] = MINT_SELECTOR;
 
-        bytes memory encodedJournals = _createBatchJournals(
-            senders, 
-            testMTokens, 
-            testAmounts,
-            TEST_SOURCE_CHAIN_ID,
-            uint32(block.chainid)
-        );
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, testMTokens, testAmounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
 
         // Record balances before
         uint256 balanceBefore = mWethHost.balanceOf(address(this));
         uint256 totalSupplyBefore = mWethHost.totalSupply();
-        
-        batchSubmitter.batchProcess(encodedJournals, "0x123", testMTokens, testAmounts, testSelectors, 0, 1);
+
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                address(this), encodedJournals, "0x123", testMTokens, testAmounts, testSelectors, 0, 1
+            )
+        );
 
         // Check balances after
         uint256 balanceAfter = mWethHost.balanceOf(address(this));
@@ -229,11 +215,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         assertEq(totalSupplyAfter - amount, totalSupplyBefore);
     }
 
-    function test_WhenMintFails() 
-        external 
-        givenSenderHasProofForwarderRole 
-        givenJournalDataIsValid 
-    {
+    function test_WhenMintFails() external givenSenderHasProofForwarderRole givenJournalDataIsValid {
         address[] memory senders = new address[](1);
         senders[0] = address(this);
 
@@ -246,33 +228,26 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         bytes4[] memory testSelectors = new bytes4[](1);
         testSelectors[0] = MINT_SELECTOR;
 
-        bytes memory encodedJournals = _createBatchJournals(
-            senders, 
-            markets, 
-            testAmounts,
-            TEST_SOURCE_CHAIN_ID,
-            uint32(block.chainid)
-        );
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, markets, testAmounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
         bytes[] memory decodedJournals = abi.decode(encodedJournals, (bytes[]));
-        
+
         address[] memory testMTokens = new address[](1);
         testMTokens[0] = address(mWethHost);
 
         vm.expectEmit(true, true, true, true);
         emit BatchSubmitter.BatchProcessFailed(
-            decodedJournals[0], 
-            abi.encodePacked(ImErc20Host.mErc20Host_AddressNotValid.selector)
+            decodedJournals[0], abi.encodePacked(ImErc20Host.mErc20Host_AddressNotValid.selector)
         );
-        
-        batchSubmitter.batchProcess(encodedJournals, "", testMTokens, testAmounts, testSelectors, 0, 1);
+
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                address(this), encodedJournals, "", testMTokens, testAmounts, testSelectors, 0, 1
+            )
+        );
     }
 
-
-    function test_WhenRepayFails() 
-        external 
-        givenSenderHasProofForwarderRole 
-        givenJournalDataIsValid 
-    {
+    function test_WhenRepayFails() external givenSenderHasProofForwarderRole givenJournalDataIsValid {
         address[] memory senders = new address[](1);
         senders[0] = address(this);
 
@@ -285,24 +260,22 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         bytes4[] memory testSelectors = new bytes4[](1);
         testSelectors[0] = REPAY_SELECTOR;
 
-        bytes memory encodedJournals = _createBatchJournals(
-            senders, 
-            markets, 
-            testAmounts,
-            TEST_SOURCE_CHAIN_ID,
-            uint32(block.chainid)
-        );
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, markets, testAmounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
         bytes[] memory decodedJournals = abi.decode(encodedJournals, (bytes[]));
-        
+
         address[] memory testMTokens = new address[](1);
         testMTokens[0] = address(mWethHost);
 
         vm.expectEmit(true, true, true, true);
         emit BatchSubmitter.BatchProcessFailed(
-            decodedJournals[0], 
-            abi.encodePacked(ImErc20Host.mErc20Host_AddressNotValid.selector)
+            decodedJournals[0], abi.encodePacked(ImErc20Host.mErc20Host_AddressNotValid.selector)
         );
-        
-        batchSubmitter.batchProcess(encodedJournals, "", testMTokens, testAmounts, testSelectors, 0, 1);
+
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                address(this), encodedJournals, "", testMTokens, testAmounts, testSelectors, 0, 1
+            )
+        );
     }
-} 
+}
