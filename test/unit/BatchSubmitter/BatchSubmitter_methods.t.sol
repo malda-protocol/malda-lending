@@ -4,11 +4,18 @@ pragma solidity =0.8.28;
 import {BatchSubmitter_Unit_Shared} from "../shared/BatchSubmitter_Unit_Shared.t.sol";
 import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
 import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
+import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 
 contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
     bytes[] internal journals;
     uint256[] internal amounts;
     address[] internal mTokens;
+    bytes4[] internal selectors;
+
+    // Define selectors from interfaces
+    bytes4 internal constant OUT_HERE_SELECTOR = ImTokenGateway.outHere.selector;
+    bytes4 internal constant MINT_SELECTOR = ImErc20Host.mintExternal.selector;
+    bytes4 internal constant REPAY_SELECTOR = ImErc20Host.repayExternal.selector;
 
     function setUp() public virtual override {
         super.setUp();
@@ -27,6 +34,10 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         mTokens = markets;
 
+        selectors = new bytes4[](2);
+        selectors[0] = OUT_HERE_SELECTOR;
+        selectors[1] = OUT_HERE_SELECTOR;
+
         bytes memory encodedJournals = _createBatchJournals(
             senders, 
             markets, 
@@ -44,7 +55,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
     function test_RevertWhen_CallerIsNotProofForwarder() external givenSenderDoesNotHaveProofForwarderRole {
         bytes memory encodedJournals = abi.encode(journals);
         vm.expectRevert(BatchSubmitter.BatchSubmitter_CallerNotAllowed.selector);
-        batchSubmitter.batchOutHere(encodedJournals, "", mTokens, amounts, 0, journals.length);
+        batchSubmitter.batchProcess(encodedJournals, "", mTokens, amounts, selectors, 0, journals.length);
     }
 
     modifier givenSenderHasProofForwarderRole() {
@@ -62,7 +73,32 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         givenJournalDataIsEmpty 
     {
         vm.expectRevert(BatchSubmitter.BatchSubmitter_JournalNotValid.selector);
-        batchSubmitter.batchOutHere("", "", mTokens, amounts, 0, 0);
+        batchSubmitter.batchProcess("", "", mTokens, amounts, selectors, 0, 0);
+    }
+
+    function test_RevertWhen_InvalidSelector() 
+        external 
+        givenSenderHasProofForwarderRole 
+    {
+        bytes4[] memory invalidSelectors = new bytes4[](1);
+        invalidSelectors[0] = bytes4(0x12345678); // Invalid selector
+
+        address[] memory testMTokens = new address[](1);
+        testMTokens[0] = address(mWethExtension);
+        
+        uint256[] memory testAmounts = new uint256[](1);
+        testAmounts[0] = 1 ether;
+
+        bytes memory encodedJournals = _createBatchJournals(
+            new address[](1), 
+            testMTokens, 
+            testAmounts,
+            TEST_SOURCE_CHAIN_ID,
+            uint32(block.chainid)
+        );
+
+        vm.expectRevert(BatchSubmitter.BatchSubmitter_InvalidSelector.selector);
+        batchSubmitter.batchProcess(encodedJournals, "", testMTokens, testAmounts, invalidSelectors, 0, 1);
     }
 
     modifier givenJournalDataIsValid() {
@@ -84,6 +120,9 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         uint256[] memory testAmounts = new uint256[](1);
         testAmounts[0] = amount;
 
+        bytes4[] memory testSelectors = new bytes4[](1);
+        testSelectors[0] = OUT_HERE_SELECTOR;
+
         bytes memory encodedJournals = _createBatchJournals(
             senders, 
             testMTokens, 
@@ -99,7 +138,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         uint256 balanceBefore = weth.balanceOf(address(this));
         uint256 gatewayBalanceBefore = weth.balanceOf(address(mWethExtension));
         
-        batchSubmitter.batchOutHere(encodedJournals, "0x123", testMTokens, testAmounts, 0, 1);
+        batchSubmitter.batchProcess(encodedJournals, "0x123", testMTokens, testAmounts, testSelectors, 0, 1);
 
         // Check balances after
         uint256 balanceAfter = weth.balanceOf(address(this));
@@ -124,6 +163,9 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         uint256[] memory testAmounts = new uint256[](1);
         testAmounts[0] = 1 ether;
 
+        bytes4[] memory testSelectors = new bytes4[](1);
+        testSelectors[0] = OUT_HERE_SELECTOR;
+
         bytes memory encodedJournals = _createBatchJournals(
             senders, 
             markets, 
@@ -137,11 +179,11 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         testMTokens[0] = address(mWethExtension);
 
         vm.expectEmit(true, true, true, true);
-        emit BatchSubmitter.BatchOutHereFailed(
+        emit BatchSubmitter.BatchProcessFailed(
             decodedJournals[0], 
             abi.encodePacked(ImTokenGateway.mTokenGateway_AddressNotValid.selector)
         );
         
-        batchSubmitter.batchOutHere(encodedJournals, "", testMTokens, testAmounts, 0, 1);
+        batchSubmitter.batchProcess(encodedJournals, "", testMTokens, testAmounts, testSelectors, 0, 1);
     }
 } 
