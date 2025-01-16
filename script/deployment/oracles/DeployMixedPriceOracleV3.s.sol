@@ -26,9 +26,9 @@ contract DeployMixedPriceOracleV3 is Script, DeployBase {
         vm.startBroadcast(key);
 
         string[] memory symbols = new string[](2);
-        symbols[0] = "USDCUSD";
-        symbols[1] = "WETHUSD";
-        
+        symbols[0] = "mUSDC";
+        symbols[1] = "mWETH";
+
         IDefaultAdapter.PriceConfig[]
             memory configs = new IDefaultAdapter.PriceConfig[](2);
         configs[0] = IDefaultAdapter.PriceConfig({
