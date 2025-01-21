@@ -149,7 +149,7 @@ interface ImTokenGateway {
     /**
      * @notice Returns the proof data journal
      */
-    function getProofData(uint32[] calldata dstChainId, address[] calldata user) external view returns (bytes memory);
+    function getProofData(address user, uint32 dstId) external view returns (bytes memory);
 
     // ----------- PUBLIC -----------
     /**
