@@ -88,28 +88,15 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     /**
      * @inheritdoc ImErc20Host
      */
-    function getProofData(uint32[] calldata dstChainId, address[] calldata user) external view returns (bytes memory) {
-        require(dstChainId.length == user.length, mErc20Host_ProofGenerationInputNotValid());
-
-        uint256 len = dstChainId.length;
-        bytes[] memory _res = new bytes[](len);
-        for (uint256 i; i < len;) {
-            uint32 _dst = dstChainId[i];
-            address _user = user[i];
-            _res[i] = mTokenProofDecoderLib.encodeJournal(
-                _user,
-                address(this),
-                accAmountInPerChain[_dst][_user],
-                accAmountOutPerChain[_dst][_user],
-                uint32(block.chainid),
-                _dst
-            );
-
-            unchecked {
-                ++i;
-            }
-        }
-        return abi.encode(_res);
+    function getProofData(address user, uint32 dstId) external view returns (bytes memory) {
+        return mTokenProofDecoderLib.encodeJournal(
+            user,
+            address(this),
+            accAmountInPerChain[dstId][user],
+            accAmountOutPerChain[dstId][user],
+            uint32(block.chainid),
+            dstId
+        );
     }
 
     // ----------- OWNER ------------
