@@ -85,10 +85,25 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     /**
      * @inheritdoc ImTokenGateway
      */
-    function getProofData(address user) external view returns (bytes memory) {
-        return mTokenProofDecoderLib.encodeJournal(
-            user, address(this), accAmountIn[user], accAmountOut[user], uint32(block.chainid), LINEA_CHAIN_ID
-        );
+    function getProofData(uint32[] calldata, address[] calldata user) external view returns (bytes memory) {
+        uint256 len = user.length;
+        bytes[] memory _res = new bytes[](len);
+        for (uint256 i; i < len;) {
+            address _user = user[i];
+            _res[i] = mTokenProofDecoderLib.encodeJournal(
+                _user,
+                address(this),
+                accAmountIn[_user],
+                accAmountOut[_user],
+                uint32(block.chainid),
+                LINEA_CHAIN_ID
+            );
+
+            unchecked {
+                ++i;
+            }
+        }
+        return abi.encode(_res);
     }
 
     // ----------- OWNER ------------
