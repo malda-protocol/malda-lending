@@ -6,7 +6,7 @@ import {Script, console} from "forge-std/Script.sol";
 
 contract SetBorrowCap is Script {
     function run(address market, uint256 cap) public virtual {
-        uint256 key = vm.envUint("PRIVATE_KEY");
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
         address[] memory mTokens = new address[](1);

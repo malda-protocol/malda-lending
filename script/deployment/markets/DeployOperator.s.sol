@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Operator} from "src/Operator/Operator.sol";
-import {Unit} from "src/Operator/Unit.sol";
-
 import {Script, console} from "forge-std/Script.sol";
-import {DeployBase} from "script/deployers/DeployBase.sol";
+import {Deployer} from "src/utils/Deployer.sol";
+import {Operator} from "src/operator/Operator.sol";
+import {Unit} from "src/operator/Unit.sol";
 
 /**
  * forge script script/deployment/markets/DeployOperator.s.sol:DeployOperator  \
@@ -17,9 +16,14 @@ import {DeployBase} from "script/deployers/DeployBase.sol";
  *     --sig "run(address,address,address)" 0x0,0x0,0x0 \
  *     --broadcast
  */
-contract DeployOperator is Script, DeployBase {
-    function run(address oracle, address rewards, address roles) public returns (address) {
-        uint256 key = vm.envUint("PRIVATE_KEY");
+contract DeployOperator is Script {
+    function run(
+        Deployer deployer,
+        address oracle,
+        address rewardDistributor,
+        address rolesContract
+    ) public returns (address) {
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
         address owner = vm.envAddress("OWNER");
@@ -30,7 +34,7 @@ contract DeployOperator is Script, DeployBase {
             implSalt, 
             abi.encodePacked(
                 type(Operator).creationCode,
-                abi.encode(roles, rewards, owner)
+                abi.encode(rolesContract, rewardDistributor, owner)
             )
         );
         console.log("Operator implementation deployed at:", implementation);
@@ -53,8 +57,15 @@ contract DeployOperator is Script, DeployBase {
         Operator(proxy).setPriceOracle(oracle);
         console.log("Price oracle set to:", oracle);
 
-        vm.stopBroadcast();
+        console.log("Operator deployed at: %s", proxy);
 
+        vm.stopBroadcast();
         return proxy;
+    }
+
+    function getSalt(string memory name) internal view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+        );
     }
 }

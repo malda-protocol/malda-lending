@@ -2,7 +2,7 @@
 pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
-import {DeployBase} from "script/deployers/DeployBase.sol";
+import {Deployer} from "src/utils/Deployer.sol";
 import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
 
 /**
@@ -15,7 +15,7 @@ import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
  *     --sig "run((uint256,string,uint256,uint256,uint256,uint256))" "(750000000000000000,'ExampleName',2102400,20000000000000000,100000000000000000,500000000000000000)" \
  *     --broadcast
  */
-contract DeployJumpRateModelV4 is Script, DeployBase {
+contract DeployJumpRateModelV4 is Script {
     struct InterestData {
         uint256 kink;
         string name;
@@ -25,8 +25,11 @@ contract DeployJumpRateModelV4 is Script, DeployBase {
         uint256 jumpMultiplierPerYear;
     }
 
-    function run(InterestData memory data) public returns (address) {
-        uint256 key = vm.envUint("PRIVATE_KEY");
+    function run(
+        Deployer deployer,
+        InterestData memory data
+    ) public returns (address) {
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
         bytes32 salt = getSalt(string.concat(data.name, "JumpRateModelV4"));
@@ -46,10 +49,15 @@ contract DeployJumpRateModelV4 is Script, DeployBase {
             )
         );
 
-        console.log(" JumpRateModelV4 deployed at: %s", created);
+        console.log("JumpRateModelV4 deployed at: %s", created);
 
         vm.stopBroadcast();
-
         return created;
+    }
+
+    function getSalt(string memory name) internal view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+        );
     }
 }

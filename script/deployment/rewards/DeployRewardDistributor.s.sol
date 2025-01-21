@@ -3,7 +3,7 @@ pragma solidity =0.8.28;
 
 import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
 import {Script, console} from "forge-std/Script.sol";
-import {DeployBase} from "script/deployers/DeployBase.sol";
+import {Deployer} from "src/utils/Deployer.sol";
 
 /**
  * forge script DeployRewardDistributor  \
@@ -14,9 +14,9 @@ import {DeployBase} from "script/deployers/DeployBase.sol";
  *     --etherscan-api-key <key> \
  *     --broadcast
  */
-contract DeployRewardDistributor is Script, DeployBase {
-    function run() public returns (address) {
-        uint256 key = vm.envUint("PRIVATE_KEY");
+contract DeployRewardDistributor is Script {
+    function run(Deployer deployer) public returns (address) {
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
         address owner = vm.envAddress("OWNER");
@@ -30,5 +30,11 @@ contract DeployRewardDistributor is Script, DeployBase {
         vm.stopBroadcast();
 
         return created;
+    }
+
+    function getSalt(string memory name) internal view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+        );
     }
 }

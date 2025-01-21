@@ -2,7 +2,7 @@
 pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
-import {DeployBase} from "script/deployers/DeployBase.sol";
+import {Deployer} from "src/utils/Deployer.sol";
 import {MixedPriceOracleV3} from "src/oracles/MixedPriceOracleV3.sol";
 import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
 
@@ -15,22 +15,22 @@ import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
  *     --etherscan-api-key <key> \
  *     --broadcast
  */
-contract DeployMixedPriceOracleV3 is Script, DeployBase {
+contract DeployMixedPriceOracleV3 is Script {
     function run(
+        Deployer deployer,
         address usdcFeed,
         address wethFeed,
         address roles,
         uint256 stalenessPeriod
     ) public returns (address) {
-        uint256 key = vm.envUint("PRIVATE_KEY");
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
         string[] memory symbols = new string[](2);
         symbols[0] = "mUSDC";
         symbols[1] = "mWETH";
 
-        IDefaultAdapter.PriceConfig[]
-            memory configs = new IDefaultAdapter.PriceConfig[](2);
+        IDefaultAdapter.PriceConfig[] memory configs = new IDefaultAdapter.PriceConfig[](2);
         configs[0] = IDefaultAdapter.PriceConfig({
             defaultFeed: usdcFeed,
             toSymbol: "USD",
@@ -55,7 +55,12 @@ contract DeployMixedPriceOracleV3 is Script, DeployBase {
         console.log("MixedPriceOracleV3 deployed at: %s", created);
 
         vm.stopBroadcast();
-
         return created;
+    }
+
+    function getSalt(string memory name) internal view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+        );
     }
 }

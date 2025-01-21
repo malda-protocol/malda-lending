@@ -20,7 +20,7 @@ contract DeployBatchSubmitter is Script, DeployBase {
         address roles,
         address zkVerifier
     ) public returns (address) {
-        uint256 key = vm.envUint("PRIVATE_KEY");
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
         address owner = vm.envAddress("OWNER");
