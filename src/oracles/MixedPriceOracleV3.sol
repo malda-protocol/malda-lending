@@ -35,7 +35,7 @@ contract MixedPriceOracleV3 is IOracleOperator {
     }
 
     function setConfig(string memory symbol, IDefaultAdapter.PriceConfig memory config) external {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) {
+        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_ORACLE())) {
             revert MixedPriceOracle_Unauthorized();
         }
         if (config.defaultFeed == address(0)) {
