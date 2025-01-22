@@ -18,15 +18,24 @@
   fs_permissions = [
     { access = "read-write", path = "./deployments" },
     { access = "read", path = "./out" },
-    { access = "read", path = "./deployment-config.json" }
+    { access = "read", path = "./deployment-config.json" },
+    { access = "read", path = "./deployment-config.sepolia.json" },
+    { access = "read", path = "./deployment-config.op.json" },
+    { access = "read", path = "./deployment-config.linea.json" },
   ]
 
 [rpc_endpoints]
 linea_sepolia = "${LINEA_SEPOLIA_RPC_URL}"
+op_sepolia = "${OP_SEPOLIA_RPC_URL}"
 sepolia = "${SEPOLIA_RPC_URL}"
 arbitrum_sepolia = "${ARBITRUM_SEPOLIA_RPC_URL}"
 base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
-testnet1 = "${TESTNET1_RPC_URL}"
-testnet2 = "${TESTNET2_RPC_URL}"
 anvil1 = "http://localhost:8545"
 anvil2 = "http://localhost:8546"
+
+[etherscan]
+linea_sepolia = {chain = "59141", url = "https://api-sepolia.lineascan.build/api", key = "${LINEA_SEPOLIA_ETHERSCAN_API_KEY}"}
+op_sepolia = {chain = "11155420", url = "https://api-sepolia-optimistic.etherscan.io/api", key = "${OP_SEPOLIA_ETHERSCAN_API_KEY}"}
+sepolia = {chain = "11155111", url = "https://api-sepolia.etherscan.io/api", key = "${SEPOLIA_ETHERSCAN_API_KEY}"}
+arbitrum_sepolia = {url = "https://api-sepolia-arbitrum.etherscan.io/api", key = "${ARBITRUM_SEPOLIA_ETHERSCAN_API_KEY}"}
+base_sepolia = {url = "https://api-sepolia-base.etherscan.io/api", key = "${BASE_SEPOLIA_ETHERSCAN_API_KEY}"}

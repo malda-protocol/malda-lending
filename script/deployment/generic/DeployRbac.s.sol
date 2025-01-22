@@ -15,20 +15,14 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployRbac is Script {
-    function run(Deployer deployer) public returns (address) {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-        vm.startBroadcast(key);
+    function run(Deployer _deployer) public returns (address) {
+        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+
+        bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("Roles-v1")));
 
         address owner = vm.envAddress("OWNER");
-        bytes32 salt = getSalt("Roles");
 
-        address created = deployer.create(
-            salt,
-            abi.encodePacked(
-                type(Roles).creationCode,
-                abi.encode(owner)
-            )
-        );
+        address created = _deployer.create(salt, abi.encodePacked(type(Roles).creationCode, abi.encode(owner)));
 
         console.log("Roles(Rbac) deployed at: %s", created);
 

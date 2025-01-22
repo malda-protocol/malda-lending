@@ -1,0 +1,63 @@
+{
+  "deployer": {
+    "owner": "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00",
+    "salt": "FirstTry"
+  },
+  "chainId": 59141,
+  "isHost": true,
+  "oracle": {
+    "oracleType": "MixedPriceOracleV3",
+    "stalenessPeriod": 86400,
+    "usdcFeed": "0xA5c24F2449891483f0923f0D9dC7694BDFe1bC86",
+    "wethFeed": "0x2D6261dce927D5c46f7f393a897887F19F3fDf2A"
+  },
+  "markets": [
+    {
+      "underlying": "0xFEce4462D57bD51A6A552365A011b95f0E16d9B7",
+      "name": "mUSDC",
+      "symbol": "mUSDC",
+      "decimals": 6,
+      "priceFeed": "0xA5c24F2449891483f0923f0D9dC7694BDFe1bC86",
+      "interestModel": {
+        "name": "USDC Interest Model",
+        "baseRate": "20000000000000000",
+        "multiplier": "100000000000000000",
+        "jumpMultiplier": "500000000000000000",
+        "kink": "800000000000000000",
+        "blocksPerYear": 2102400
+      },
+      "collateralFactor": "800000000000000000",
+      "borrowCap": "1000000000000",
+      "supplyCap": "1000000000000"
+    },
+    {
+      "underlying": "0x06565ed324Ee9fb4DB0FF80B7eDbE4Cb007555a3",
+      "name": "mWETH",
+      "symbol": "mWETH",
+      "decimals": 18,
+      "priceFeed": "0x2D6261dce927D5c46f7f393a897887F19F3fDf2A",
+      "interestModel": {
+        "name": "WETH Interest Model",
+        "baseRate": "10000000000000000",
+        "multiplier": "80000000000000000",
+        "jumpMultiplier": "400000000000000000",
+        "kink": "900000000000000000",
+        "blocksPerYear": 2102400
+      },
+      "collateralFactor": "750000000000000000",
+      "borrowCap": "1000000000000000000000",
+      "supplyCap": "1000000000000000000000"
+    }
+  ],
+  "roles": [
+    {
+      "role": "0x0000000000000000000000000000000000000000000000000000000000000004",
+      "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"]
+    }
+  ],
+  "zkVerifier": {
+    "verifierAddress": "0x27983ee173aD10E171D17C9c5C14d5baFE997609",
+    "imageId": "0x1000000000000000000000000000000000000000000000000000000000000000"
+  },
+  "allowedChains": [11155420, 11155111]
+} 

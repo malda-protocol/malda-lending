@@ -16,10 +16,7 @@ import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
  *     --broadcast
  */
 contract DeployBatchSubmitter is Script, DeployBase {
-    function run(
-        address roles,
-        address zkVerifier
-    ) public returns (address) {
+    function run(address roles, address zkVerifier) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
@@ -27,11 +24,7 @@ contract DeployBatchSubmitter is Script, DeployBase {
 
         bytes32 salt = getSalt("BatchSubmitter");
         address created = deployer.create(
-            salt,
-            abi.encodePacked(
-                type(BatchSubmitter).creationCode,
-                abi.encode(roles, zkVerifier, owner)
-            )
+            salt, abi.encodePacked(type(BatchSubmitter).creationCode, abi.encode(roles, zkVerifier, owner))
         );
 
         console.log("BatchSubmitter deployed at:", created);
@@ -40,4 +33,4 @@ contract DeployBatchSubmitter is Script, DeployBase {
 
         return created;
     }
-} 
+}

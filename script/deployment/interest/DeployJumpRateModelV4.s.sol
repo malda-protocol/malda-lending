@@ -25,10 +25,7 @@ contract DeployJumpRateModelV4 is Script {
         uint256 jumpMultiplierPerYear;
     }
 
-    function run(
-        Deployer deployer,
-        InterestData memory data
-    ) public returns (address) {
+    function run(Deployer deployer, InterestData memory data) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 

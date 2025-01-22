@@ -1,69 +1,179 @@
 {
-  "deployer": {
-    "owner": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
-    "salt": "Mario-v1"
-  },
-  "hostChainId": 31337,
-  "chains": [
-    {
-      "id": 31337,
-      "name": "Anvil Host",
-      "rpcAlias": "anvil1",
+  "networks": {
+    "linea_sepolia": {
+      "chainId": 59141,
       "isHost": true,
-      "contracts": {
-        "oracle": {
-          "type": "Chainlink",
-          "stalenessPeriod": 3600
+      "deployer": {
+        "owner": "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00",
+        "salt": "FirstTry"
+      },
+      "oracle": {
+        "oracleType": "MixedPriceOracleV3",
+        "stalenessPeriod": 86400,
+        "usdcFeed": "0xA5c24F2449891483f0923f0D9dC7694BDFe1bC86",
+        "wethFeed": "0x2D6261dce927D5c46f7f393a897887F19F3fDf2A"
+      },
+      "markets": [
+        {
+          "borrowCap": "1000000000000",
+          "collateralFactor": "800000000000000000",
+          "decimals": 6,
+          "interestModel": {
+            "baseRate": "20000000000000000",
+            "blocksPerYear": 2102400,
+            "jumpMultiplier": "500000000000000000",
+            "kink": "800000000000000000",
+            "multiplier": "100000000000000000",
+            "name": "USDC Interest Model"
+          },
+          "name": "mUSDC",
+          "priceFeed": "0xA5c24F2449891483f0923f0D9dC7694BDFe1bC86",
+          "supplyCap": "1000000000000",
+          "symbol": "mUSDC",
+          "underlying": "0xFEce4462D57bD51A6A552365A011b95f0E16d9B7"
+        },
+        {
+          "borrowCap": "1000000000000000000000",
+          "collateralFactor": "750000000000000000",
+          "decimals": 18,
+          "interestModel": {
+            "baseRate": "10000000000000000",
+            "blocksPerYear": 2102400,
+            "jumpMultiplier": "400000000000000000",
+            "kink": "900000000000000000",
+            "multiplier": "80000000000000000",
+            "name": "WETH Interest Model"
+          },
+          "name": "mWETH",
+          "priceFeed": "0x2D6261dce927D5c46f7f393a897887F19F3fDf2A",
+          "supplyCap": "1000000000000000000000",
+          "symbol": "mWETH",
+          "underlying": "0x06565ed324Ee9fb4DB0FF80B7eDbE4Cb007555a3"
         }
+      ],
+      "roles": [
+        {
+          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "role": "0x0000000000000000000000000000000000000000000000000000000000000004"
+        }
+      ],
+      "zkVerifier": {
+        "imageId": "0x1000000000000000000000000000000000000000000000000000000000000000",
+        "verifierAddress": "0x27983ee173aD10E171D17C9c5C14d5baFE997609"
+      },
+      "allowedChains": [11155420, 11155111]
+    },
+    "op_sepolia": {
+      "chainId": 11155420,
+      "isHost": false,
+      "deployer": {
+        "owner": "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00",
+        "salt": "FirstTry"
+      },
+      "markets": [
+        {
+          "borrowCap": "0",
+          "collateralFactor": "0",
+          "decimals": 6,
+          "interestModel": {
+            "baseRate": "0",
+            "blocksPerYear": "0",
+            "jumpMultiplier": "0",
+            "kink": "0",
+            "multiplier": "0",
+            "name": ""
+          },
+          "name": "mUSDC",
+          "priceFeed": "0x0",
+          "supplyCap": "0",
+          "symbol": "mUSDC",
+          "underlying": "0x5fd84259d66Cd46123540766Be93DFE6D43130D7"
+        },
+        {
+          "borrowCap": "0",
+          "collateralFactor": "0",
+          "decimals": 18,
+          "interestModel": {
+            "baseRate": "0",
+            "blocksPerYear": "0",
+            "jumpMultiplier": "0",
+            "kink": "0",
+            "multiplier": "0",
+            "name": ""
+          },
+          "name": "mWETH",
+          "priceFeed": "0x0",
+          "supplyCap": "0",
+          "symbol": "mWETH",
+          "underlying": "0x4200000000000000000000000000000000000006"
+        }
+      ],
+      "roles": [
+        {
+          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "role": "0x0000000000000000000000000000000000000000000000000000000000000004"
+        }
+      ],
+      "zkVerifier": {
+        "imageId": "0x1000000000000000000000000000000000000000000000000000000000000000",
+        "verifierAddress": "0xB369b4dd27FBfb59921d3A4a3D23AC2fc32FB908"
       }
     },
-    {
-      "id": 31338,
-      "name": "Anvil Extension",
-      "rpcAlias": "anvil2",
-      "isHost": false
-    }
-  ],
-  "markets": [
-    {
-      "underlying": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-      "name": "mUSDC",
-      "symbol": "mUSDC",
-      "decimals": 6,
-      "priceFeed": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
-      "interestModel": {
-        "name": "USDC Interest Model",
-        "baseRate": "20000000000000000",
-        "multiplier": "100000000000000000",
-        "jumpMultiplier": "500000000000000000",
-        "kink": "800000000000000000",
-        "blocksPerYear": 2102400
+    "sepolia": {
+      "chainId": 11155111,
+      "isHost": false,
+      "deployer": {
+        "owner": "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00",
+        "salt": "FirstTry"
       },
-      "collateralFactor": "800000000000000000",
-      "borrowCap": "1000000000000",
-      "supplyCap": "1000000000000"
+      "markets": [
+        {
+          "borrowCap": "0",
+          "collateralFactor": "0",
+          "decimals": 6,
+          "interestModel": {
+            "baseRate": "0",
+            "blocksPerYear": "0",
+            "jumpMultiplier": "0",
+            "kink": "0",
+            "multiplier": "0",
+            "name": ""
+          },
+          "name": "mUSDC",
+          "priceFeed": "0x0",
+          "supplyCap": "0",
+          "symbol": "mUSDC",
+          "underlying": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
+        },
+        {
+          "borrowCap": "0",
+          "collateralFactor": "0",
+          "decimals": 18,
+          "interestModel": {
+            "baseRate": "0",
+            "blocksPerYear": "0",
+            "jumpMultiplier": "0",
+            "kink": "0",
+            "multiplier": "0",
+            "name": ""
+          },
+          "name": "mWETH",
+          "priceFeed": "0x0",
+          "supplyCap": "0",
+          "symbol": "mWETH",
+          "underlying": "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9"
+        }
+      ],
+      "roles": [
+        {
+          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "role": "0x0000000000000000000000000000000000000000000000000000000000000004"
+        }
+      ],
+      "zkVerifier": {
+        "imageId": "0x1000000000000000000000000000000000000000000000000000000000000000",
+        "verifierAddress": "0x925d8331ddc0a1F0d96E68CF073DFE1d92b69187"
+      }
     }
-  ],
-  "roles": [
-    {
-      "role": "0x0000000000000000000000000000000000000000000000000000000000000000",
-      "accounts": ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"]
-    },
-    {
-      "role": "0x0000000000000000000000000000000000000000000000000000000000000001",
-      "accounts": ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"]
-    },
-    {
-      "role": "0x0000000000000000000000000000000000000000000000000000000000000002",
-      "accounts": ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"]
-    },
-    {
-      "role": "0x0000000000000000000000000000000000000000000000000000000000000003",
-      "accounts": ["0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"]
-    }
-  ],
-  "zkVerifier": {
-    "verifierAddress": "0x0000000000000000000000000000000000000001",
-    "imageId": "0x0000000000000000000000000000000000000000000000000000000000000000"
   }
 } 

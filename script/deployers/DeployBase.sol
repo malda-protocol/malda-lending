@@ -1,99 +1,107 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Deployer} from "src/utils/Deployer.sol";
-import {Script} from "forge-std/Script.sol";
-import {console} from "forge-std/Script.sol";
+import {Script, console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {ChainConfig, OracleConfig} from "./Types.sol";
+import {Deployer} from "src/utils/Deployer.sol";
+import {DeployConfig, Market, Role, InterestConfig} from "./Types.sol";
 
 contract DeployBase is Script {
     using stdJson for string;
 
     Deployer public deployer;
-    uint256 public chainsLength;
-    mapping(uint256 => ChainConfig) public chains;
-    ChainConfig public hostChain;
+    mapping(string => DeployConfig) public configs;
+    string public configPath;
+    string[] public networks;
+    uint256 public key;
 
-    function setUp() public virtual {        
-        string memory json = vm.readFile("deployment-config.json");
-        
-        console.log("Parsing chains");
-        
-        // We know there are 2 chains from the config
-        chainsLength = 2;
-        
-        for (uint i = 0; i < chainsLength; i++) {
-            string memory path = string.concat(".chains[", vm.toString(i), "]");
-            ChainConfig memory chain;
-            
-            chain.id = abi.decode(json.parseRaw(string.concat(path, ".id")), (uint32));
-            chain.name = abi.decode(json.parseRaw(string.concat(path, ".name")), (string));
-            chain.rpcAlias = abi.decode(json.parseRaw(string.concat(path, ".rpcAlias")), (string));
-            chain.isHost = abi.decode(json.parseRaw(string.concat(path, ".isHost")), (bool));
-            
-            // Parse oracle config for host chain
-            if (chain.isHost) {
-                string memory oraclePath = string.concat(path, ".contracts.oracle");
-                OracleConfig memory oracle;
-                oracle.oracleType = abi.decode(json.parseRaw(string.concat(oraclePath, ".type")), (string));
-                oracle.stalenessPeriod = abi.decode(json.parseRaw(string.concat(oraclePath, ".stalenessPeriod")), (uint256));
-                chain.oracle = oracle;
-                hostChain = chain;
-                console.log("Host chain found: %s", chain.name);
-            }
-            
-            chains[i] = chain;
-            console.log("Chain %s parsed: %s", i, chain.name);
-        }
-        
-        console.log("Chains parsed");
-        
-        // Deploy CREATE3 deployer to all configured chains
-        _deployCreate3DeployerToAllChains();
+    function setUp() public virtual {
+        key = vm.envUint("OWNER_PRIVATE_KEY");
+        configPath = "deployment-config.json";
+        networks = vm.parseJsonKeys(vm.readFile(configPath), ".networks");
 
-        vm.makePersistent(address(deployer));
-    }
-
-    function _deployCreate3DeployerToAllChains() internal {
-        uint256 ownerPrivateKey = vm.envUint("OWNER_PRIVATE_KEY");
-        address owner = vm.addr(ownerPrivateKey);
-
-        for (uint i = 0; i < chainsLength; i++) {
-            ChainConfig memory chain = chains[i];
-            
-            // Switch to chain's RPC
-            vm.createSelectFork(vm.rpcUrl(chain.rpcAlias));
-            
-            console.log("\nDeploying CREATE3 Deployer to %s", chain.name);
-            
-            // Start broadcasting with owner's key
-            vm.startBroadcast(ownerPrivateKey);
-            
-            // Deploy CREATE3 deployer
-            _deployCreate3Deployer(owner);
-            
-            // Stop broadcast before switching chains
-            vm.stopBroadcast();
+        for (uint256 i = 0; i < networks.length; i++) {
+            string memory network = networks[i];
+            _parseBaseConfig(network);
+            vm.createSelectFork(vm.rpcUrl(network));
+            _verifyChain(network);
+            _deployCreate3Deployer(network);
         }
     }
 
-    function _deployCreate3Deployer(address owner) internal {
+    function _parseBaseConfig(string memory network) internal {
+        DeployConfig storage config = configs[network];
+        string memory json = vm.readFile(configPath);
+        string memory networkPath = string.concat(".networks.", network);
+
+        // Parse basic config
+        config.chainId = uint32(abi.decode(json.parseRaw(string.concat(networkPath, ".chainId")), (uint256)));
+        config.isHost = abi.decode(json.parseRaw(string.concat(networkPath, ".isHost")), (bool));
+
+        // Parse deployer config
+        config.deployer.owner = abi.decode(json.parseRaw(string.concat(networkPath, ".deployer.owner")), (address));
+        config.deployer.salt = abi.decode(json.parseRaw(string.concat(networkPath, ".deployer.salt")), (string));
+
+        // Parse roles
+        Role[] memory roles = abi.decode(json.parseRaw(string.concat(networkPath, ".roles")), (Role[]));
+        
+        for (uint i = 0; i < roles.length; i++) {
+            config.roles.push(roles[i]);
+        }
+
+        // Parse markets
+        Market[] memory markets = abi.decode(json.parseRaw(string.concat(networkPath, ".markets")), (Market[]));
+        for (uint i = 0; i < markets.length; i++) {
+            config.markets.push(markets[i]);
+        }
+
+        // Parse zkVerifier config
+        config.zkVerifier.verifierAddress = abi.decode(json.parseRaw(string.concat(networkPath, ".zkVerifier.verifierAddress")), (address));
+        config.zkVerifier.imageId = abi.decode(json.parseRaw(string.concat(networkPath, ".zkVerifier.imageId")), (bytes32));
+
+        // Parse host-specific config
+        if (config.isHost) {
+            _parseHostConfig(json, network, networkPath);
+        }
+    }
+
+    function _parseHostConfig(string memory json, string memory network, string memory networkPath) internal {
+        DeployConfig storage config = configs[network];
+        
+        // Parse oracle config
+        string memory oraclePath = string.concat(networkPath, ".oracle");
+        config.oracle.oracleType = abi.decode(json.parseRaw(string.concat(oraclePath, ".oracleType")), (string));
+        config.oracle.stalenessPeriod = abi.decode(json.parseRaw(string.concat(oraclePath, ".stalenessPeriod")), (uint256));
+        config.oracle.usdcFeed = abi.decode(json.parseRaw(string.concat(oraclePath, ".usdcFeed")), (address));
+        config.oracle.wethFeed = abi.decode(json.parseRaw(string.concat(oraclePath, ".wethFeed")), (address));
+
+        // Parse allowed chains
+        bytes memory allowedChainsRaw = json.parseRaw(string.concat(networkPath, ".allowedChains"));
+        config.allowedChains = abi.decode(allowedChainsRaw, (uint32[]));
+    }
+
+    function _verifyChain(string memory network) internal view {
+        require(block.chainid == configs[network].chainId, "Wrong chain");
+    }
+
+    function _deployCreate3Deployer(string memory network) internal {
+        address owner = configs[network].deployer.owner;
         bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOYER_SALT"))));
-        
+
         // Compute the deterministic address first
         bytes memory bytecode = type(Deployer).creationCode;
         bytes memory constructorArgs = abi.encode(owner);
         bytes memory bytecodeWithConstructor = abi.encodePacked(bytecode, constructorArgs);
-        
+
         address deployerAddress = _computeCreate2Address(salt, bytecodeWithConstructor);
-        
+
         // Check if deployer already exists at this address
         uint256 size;
         assembly {
             size := extcodesize(deployerAddress)
         }
-        
+
+        vm.startBroadcast(key);
         // Deploy only if not already deployed
         if (size == 0) {
             deployerAddress = _deployCreate2(salt, bytecode, constructorArgs);
@@ -101,7 +109,7 @@ contract DeployBase is Script {
         } else {
             console.log("Using existing deployer at: %s", deployerAddress);
         }
-
+        vm.stopBroadcast();
         deployer = Deployer(payable(deployerAddress));
     }
 

@@ -23,46 +23,27 @@ contract DeployExtensionMarket is Script {
         address zkVerifier;
     }
 
-    function run(
-        Deployer deployer,
-        GatewayData memory data
-    ) public returns (address) {
+    function run(Deployer deployer, GatewayData memory data) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
         address owner = vm.envAddress("OWNER");
 
         // Deploy implementation
-        bytes32 implSalt = getSalt(string.concat(
-            "mTokenGatewayImplementation",
-            string(abi.encodePacked(data.underlyingToken))
-        ));
-        address implementation = deployer.create(
-            implSalt,
-            type(mTokenGateway).creationCode
-        );
+        bytes32 implSalt =
+            getSalt(string.concat("mTokenGatewayImplementation", string(abi.encodePacked(data.underlyingToken))));
+        address implementation = deployer.create(implSalt, type(mTokenGateway).creationCode);
         console.log("Implementation deployed at:", implementation);
 
         // Prepare initialization data
         bytes memory initData = abi.encodeWithSelector(
-            mTokenGateway.initialize.selector,
-            payable(owner),
-            data.underlyingToken,
-            data.roles,
-            data.zkVerifier
+            mTokenGateway.initialize.selector, payable(owner), data.underlyingToken, data.roles, data.zkVerifier
         );
 
         // Deploy proxy
-        bytes32 proxySalt = getSalt(string.concat(
-            "mTokenGatewayProxy",
-            string(abi.encodePacked(data.underlyingToken))
-        ));
+        bytes32 proxySalt = getSalt(string.concat("mTokenGatewayProxy", string(abi.encodePacked(data.underlyingToken))));
         address proxy = deployer.create(
-            proxySalt,
-            abi.encodePacked(
-                type(ERC1967Proxy).creationCode,
-                abi.encode(implementation, initData)
-            )
+            proxySalt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initData))
         );
 
         console.log("Proxy deployed at:", proxy);

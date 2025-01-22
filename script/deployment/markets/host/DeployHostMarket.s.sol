@@ -29,10 +29,7 @@ contract DeployHostMarket is Script {
         address roles;
     }
 
-    function run(
-        Deployer deployer,
-        MarketData memory data
-    ) public returns (address) {
+    function run(Deployer deployer, MarketData memory data) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
@@ -40,10 +37,7 @@ contract DeployHostMarket is Script {
 
         // Deploy implementation
         bytes32 implSalt = getSalt(string.concat("mErc20HostImplementation", data.name));
-        address implementation = deployer.create(
-            implSalt,
-            type(mErc20Host).creationCode
-        );
+        address implementation = deployer.create(implSalt, type(mErc20Host).creationCode);
         console.log("Implementation deployed at:", implementation);
 
         // Prepare initialization data
@@ -63,11 +57,7 @@ contract DeployHostMarket is Script {
         // Deploy proxy
         bytes32 proxySalt = getSalt(string.concat("mErc20HostProxy", data.name));
         address proxy = deployer.create(
-            proxySalt,
-            abi.encodePacked(
-                type(ERC1967Proxy).creationCode,
-                abi.encode(implementation, initData)
-            )
+            proxySalt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initData))
         );
 
         console.log("Proxy deployed at:", proxy);

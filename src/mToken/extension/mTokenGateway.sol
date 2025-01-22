@@ -48,16 +48,14 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
         _disableInitializers();
     }
 
-    function initialize(
-        address payable _owner,
-        address _underlying,
-        address _roles,
-        address zkVerifier_
-    ) external initializer {
+    function initialize(address payable _owner, address _underlying, address _roles, address zkVerifier_)
+        external
+        initializer
+    {
         __Ownable_init(_owner);
         underlying = _underlying;
         rolesOperator = IRoles(_roles);
-        
+
         // Initialize the ZkVerifier
         ZkVerifier.initialize(zkVerifier_);
     }

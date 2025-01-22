@@ -17,12 +17,10 @@ import {Unit} from "src/operator/Unit.sol";
  *     --broadcast
  */
 contract DeployOperator is Script {
-    function run(
-        Deployer deployer,
-        address oracle,
-        address rewardDistributor,
-        address rolesContract
-    ) public returns (address) {
+    function run(Deployer deployer, address oracle, address rewardDistributor, address rolesContract)
+        public
+        returns (address)
+    {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
@@ -31,23 +29,13 @@ contract DeployOperator is Script {
         // Deploy implementation (Operator)
         bytes32 implSalt = getSalt("OperatorImplementation");
         address implementation = deployer.create(
-            implSalt, 
-            abi.encodePacked(
-                type(Operator).creationCode,
-                abi.encode(rolesContract, rewardDistributor, owner)
-            )
+            implSalt, abi.encodePacked(type(Operator).creationCode, abi.encode(rolesContract, rewardDistributor, owner))
         );
         console.log("Operator implementation deployed at:", implementation);
 
         // Deploy proxy (Unit)
         bytes32 proxySalt = getSalt("OperatorProxy");
-        address proxy = deployer.create(
-            proxySalt,
-            abi.encodePacked(
-                type(Unit).creationCode,
-                abi.encode(owner)
-            )
-        );
+        address proxy = deployer.create(proxySalt, abi.encodePacked(type(Unit).creationCode, abi.encode(owner)));
         console.log("Operator proxy (Unit) deployed at:", proxy);
 
         // Set up the implementation in the proxy

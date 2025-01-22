@@ -16,13 +16,10 @@ import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
  *     --broadcast
  */
 contract DeployMixedPriceOracleV3 is Script {
-    function run(
-        Deployer deployer,
-        address usdcFeed,
-        address wethFeed,
-        address roles,
-        uint256 stalenessPeriod
-    ) public returns (address) {
+    function run(Deployer deployer, address usdcFeed, address wethFeed, address roles, uint256 stalenessPeriod)
+        public
+        returns (address)
+    {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
@@ -31,24 +28,15 @@ contract DeployMixedPriceOracleV3 is Script {
         symbols[1] = "mWETH";
 
         IDefaultAdapter.PriceConfig[] memory configs = new IDefaultAdapter.PriceConfig[](2);
-        configs[0] = IDefaultAdapter.PriceConfig({
-            defaultFeed: usdcFeed,
-            toSymbol: "USD",
-            underlyingDecimals: 6
-        });
+        configs[0] = IDefaultAdapter.PriceConfig({defaultFeed: usdcFeed, toSymbol: "USD", underlyingDecimals: 6});
 
-        configs[1] = IDefaultAdapter.PriceConfig({
-            defaultFeed: wethFeed,
-            toSymbol: "USD",
-            underlyingDecimals: 18
-        });
+        configs[1] = IDefaultAdapter.PriceConfig({defaultFeed: wethFeed, toSymbol: "USD", underlyingDecimals: 18});
 
         bytes32 salt = getSalt("MixedPriceOracleV3");
         address created = deployer.create(
             salt,
             abi.encodePacked(
-                type(MixedPriceOracleV3).creationCode,
-                abi.encode(symbols, configs, roles, stalenessPeriod)
+                type(MixedPriceOracleV3).creationCode, abi.encode(symbols, configs, roles, stalenessPeriod)
             )
         );
 
