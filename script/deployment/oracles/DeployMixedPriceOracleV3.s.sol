@@ -21,7 +21,6 @@ contract DeployMixedPriceOracleV3 is Script {
         returns (address)
     {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-        vm.startBroadcast(key);
 
         string[] memory symbols = new string[](2);
         symbols[0] = "mUSDC";
@@ -33,16 +32,17 @@ contract DeployMixedPriceOracleV3 is Script {
         configs[1] = IDefaultAdapter.PriceConfig({defaultFeed: wethFeed, toSymbol: "USD", underlyingDecimals: 18});
 
         bytes32 salt = getSalt("MixedPriceOracleV3");
+        vm.startBroadcast(key);
         address created = deployer.create(
             salt,
             abi.encodePacked(
                 type(MixedPriceOracleV3).creationCode, abi.encode(symbols, configs, roles, stalenessPeriod)
             )
         );
+        vm.stopBroadcast();
 
         console.log("MixedPriceOracleV3 deployed at: %s", created);
 
-        vm.stopBroadcast();
         return created;
     }
 

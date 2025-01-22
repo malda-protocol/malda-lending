@@ -9,7 +9,10 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 
 contract UpgradeMarket is Script {
     // Market type enum to determine which implementation to deploy
-    enum MarketType { HOST, GATEWAY }
+    enum MarketType {
+        HOST,
+        GATEWAY
+    }
 
     function run(
         address create3Deployer,
@@ -39,17 +42,11 @@ contract UpgradeMarket is Script {
 
     function _deployHostImplementation(Deployer deployer, string memory salt) internal returns (address) {
         vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        
-        bytes32 implSalt = keccak256(abi.encodePacked(
-            "mErc20HostImplementation",
-            salt
-        ));
-        
-        address implementation = deployer.create(
-            implSalt,
-            type(mErc20Host).creationCode
-        );
-        
+
+        bytes32 implSalt = keccak256(abi.encodePacked("mErc20HostImplementation", salt));
+
+        address implementation = deployer.create(implSalt, type(mErc20Host).creationCode);
+
         vm.stopBroadcast();
         console.log("New mErc20Host implementation deployed at:", implementation);
         return implementation;
@@ -57,19 +54,13 @@ contract UpgradeMarket is Script {
 
     function _deployGatewayImplementation(Deployer deployer, string memory salt) internal returns (address) {
         vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        
-        bytes32 implSalt = keccak256(abi.encodePacked(
-            "mTokenGatewayImplementation",
-            salt
-        ));
-        
-        address implementation = deployer.create(
-            implSalt,
-            type(mTokenGateway).creationCode
-        );
-        
+
+        bytes32 implSalt = keccak256(abi.encodePacked("mTokenGatewayImplementation", salt));
+
+        address implementation = deployer.create(implSalt, type(mTokenGateway).creationCode);
+
         vm.stopBroadcast();
         console.log("New mTokenGateway implementation deployed at:", implementation);
         return implementation;
     }
-} 
+}

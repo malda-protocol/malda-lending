@@ -27,9 +27,9 @@ contract DeployJumpRateModelV4 is Script {
 
     function run(Deployer deployer, InterestData memory data) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-        vm.startBroadcast(key);
 
         bytes32 salt = getSalt(string.concat(data.name, "JumpRateModelV4"));
+        vm.startBroadcast(key);
         address created = deployer.create(
             salt,
             abi.encodePacked(
@@ -45,10 +45,10 @@ contract DeployJumpRateModelV4 is Script {
                 )
             )
         );
+        vm.stopBroadcast();
 
         console.log("JumpRateModelV4 deployed at: %s", created);
 
-        vm.stopBroadcast();
         return created;
     }
 

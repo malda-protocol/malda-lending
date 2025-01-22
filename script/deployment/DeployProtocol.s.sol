@@ -29,19 +29,9 @@ contract DeployProtocol is DeployBase {
 
     error UnsupportedOracleType();
 
-    // Store markets in mapping
-    uint256 public marketsLength;
-    mapping(uint256 => Market) public markets;
-
-    // Store roles in mapping
-    uint256 public rolesLength;
-    mapping(uint256 => Role) public roles;
-
     // Track deployed implementations
     address public mTokenHostImplementation;
     address public mTokenGatewayImplementation;
-
-    address public OWNER;
 
     DeployRbac deployRbac;
     DeployJumpRateModelV4 deployInterest;
@@ -54,14 +44,6 @@ contract DeployProtocol is DeployBase {
 
     function setUp() public override {
         super.setUp();
-        deployRbac = new DeployRbac();
-        deployInterest = new DeployJumpRateModelV4();
-        deployOperator = new DeployOperator();
-        deployPauser = new DeployPauser();
-        deployOracle = new DeployMixedPriceOracleV3();
-        deployReward = new DeployRewardDistributor();
-        deployHost = new DeployHostMarket();
-        deployExt = new DeployExtensionMarket();
     }
 
     function run() public {
@@ -74,14 +56,26 @@ contract DeployProtocol is DeployBase {
             console.log("\n=== Deploying to %s ===", network);
 
             // Create fork for this network
-            vm.createSelectFork(vm.rpcUrl(network));
+            forks[network] = vm.createSelectFork(network);
+
+            _deployCreate3Deployer(network);
+
+            deployRbac = new DeployRbac();
 
             address rolesContract = _deployRoles();
 
             if (configs[network].isHost) {
+                deployInterest = new DeployJumpRateModelV4();
+                deployOperator = new DeployOperator();
+                deployPauser = new DeployPauser();
+                deployOracle = new DeployMixedPriceOracleV3();
+                deployReward = new DeployRewardDistributor();
+                deployHost = new DeployHostMarket();
+
                 console.log("Deploying host chain configuration");
                 _deployHostChain(network, rolesContract);
             } else {
+                deployExt = new DeployExtensionMarket();
                 console.log("Deploying extension chain configuration");
                 _deployExtensionChain(network, rolesContract);
             }
@@ -94,24 +88,31 @@ contract DeployProtocol is DeployBase {
         address operator = _deployOperator(oracle, rewardDistributor, rolesContract);
         _deployPauser(rolesContract, operator);
 
+        // Setup roles and chain connections
+        _setupRoles(rolesContract, network);
+
         // Deploy and configure markets
         mTokenHostImplementation = _deployMTokenHostImplementation();
+        uint256 marketsLength = configs[network].markets.length;
         for (uint256 i = 0; i < marketsLength; i++) {
-            _deployAndConfigureMarket(true, configs[network].markets[i], operator, rolesContract, mTokenHostImplementation, network);
+            _deployAndConfigureMarket(
+                true, configs[network].markets[i], operator, rolesContract, mTokenHostImplementation, network
+            );
         }
 
-        // Setup roles and chain connections
-        _setupRoles(rolesContract);
     }
 
     function _deployExtensionChain(string memory network, address rolesContract) internal {
         mTokenGatewayImplementation = _deployMTokenGatewayImplementation();
 
+        uint256 marketsLength = configs[network].markets.length;
         for (uint256 i = 0; i < marketsLength; i++) {
-            _deployAndConfigureMarket(false, configs[network].markets[i], address(0), rolesContract, mTokenGatewayImplementation, network);
+            _deployAndConfigureMarket(
+                false, configs[network].markets[i], address(0), rolesContract, mTokenGatewayImplementation, network
+            );
         }
 
-        _setupRoles(rolesContract);
+        _setupRoles(rolesContract, network);
     }
 
     function _deployMTokenHostImplementation() internal returns (address) {
@@ -125,17 +126,12 @@ contract DeployProtocol is DeployBase {
 
     function _deployMTokenGatewayImplementation() internal returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-        uint256 currentNonce = vm.getNonce(vm.addr(key));
-        console.log("Starting nonce for gateway implementation:", currentNonce);
 
         bytes32 salt = getSalt("mTokenGateway-implementation");
         vm.startBroadcast(key);
         address impl = deployer.create(salt, type(mTokenGateway).creationCode);
         vm.stopBroadcast();
 
-        uint64 newNonce = vm.getNonce(vm.addr(key));
-        console.log("Nonce after gateway implementation:", newNonce);
-        vm.setNonce(vm.addr(key), newNonce);
         return impl;
     }
 
@@ -170,7 +166,7 @@ contract DeployProtocol is DeployBase {
                 market.name,
                 market.symbol,
                 market.decimals,
-                payable(OWNER),
+                payable(configs[network].deployer.owner),
                 configs[network].zkVerifier.verifierAddress,
                 rolesContract
             );
@@ -190,12 +186,11 @@ contract DeployProtocol is DeployBase {
             // Prepare initialization data
             bytes memory initData = abi.encodeWithSelector(
                 mTokenGateway.initialize.selector,
-                payable(OWNER),
+                payable(configs[network].deployer.owner),
                 market.underlying,
                 rolesContract,
                 configs[network].zkVerifier.verifierAddress
             );
-
             console.log("Deploying proxy");
 
             console.log("Extension implementation address:", marketImplementation);
@@ -238,21 +233,11 @@ contract DeployProtocol is DeployBase {
         //     isHost
         // );
         console.log("ZK image ID set up");
-        uint64 newNonce = vm.getNonce(vm.addr(key));
-        console.log("Nonce after market deployment:", newNonce);
-        vm.setNonce(vm.addr(key), newNonce);
     }
 
     function _deployRoles() internal returns (address) {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-        uint256 currentNonce = vm.getNonce(vm.addr(key));
-        console.log("Starting nonce for roles deployment:", currentNonce);
-
+        console.log("Deploying roles");
         address returnedRoles = deployRbac.run(deployer);
-
-        uint64 newNonce = vm.getNonce(vm.addr(key));
-        console.log("Nonce after roles deployment:", newNonce);
-        vm.setNonce(vm.addr(key), newNonce);
 
         console.log("Roles deployed at:", returnedRoles);
         return returnedRoles;
@@ -264,8 +249,8 @@ contract DeployProtocol is DeployBase {
 
     function _deployOracle(OracleConfig memory oracleConfig, address rolesContract) internal returns (address) {
         return deployOracle.run(
-                deployer, oracleConfig.usdcFeed, oracleConfig.wethFeed, rolesContract, oracleConfig.stalenessPeriod
-            );
+            deployer, oracleConfig.usdcFeed, oracleConfig.wethFeed, rolesContract, oracleConfig.stalenessPeriod
+        );
     }
 
     function _deployOperator(address oracle, address rewardDistributor, address rolesContract)
@@ -367,24 +352,26 @@ contract DeployProtocol is DeployBase {
         vm.stopBroadcast();
     }
 
-    function _setupRoles(address rolesContract) internal {
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+    function _setupRoles(address rolesContract, string memory network) internal {
+        uint256 rolesLength = configs[network].roles.length;
         for (uint256 i = 0; i < rolesLength; i++) {
-            Role memory role = roles[i];
+            Role memory role = configs[network].roles[i];
             for (uint256 j = 0; j < role.accounts.length; j++) {
-                Roles(rolesContract).allowFor(role.accounts[j], role.role, true);
+        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+                Roles(rolesContract).allowFor(role.accounts[j], keccak256(abi.encodePacked(role.roleName)), true);
+        vm.stopBroadcast();
+                console.log("Allowed %s for %s", role.accounts[j], role.roleName);
             }
         }
-        vm.stopBroadcast();
     }
 
     function _setupChainConnections(address market, string memory network) internal {
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
         // Allow chains in host market
         for (uint256 i = 0; i < configs[network].allowedChains.length; i++) {
+        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
             mErc20Host(market).updateAllowedChain(configs[network].allowedChains[i], true);
-        }
         vm.stopBroadcast();
+        }
     }
 
     function _setupZkImageId(address market, address batchSubmitter, bytes32 imageId, bool isHost) internal {
@@ -394,12 +381,14 @@ contract DeployProtocol is DeployBase {
         vm.stopBroadcast();
 
         // Set image ID for market
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
         if (isHost) {
+            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
             mErc20Host(market).setImageId(imageId);
+            vm.stopBroadcast();
         } else {
+            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
             mTokenGateway(market).setImageId(imageId);
+            vm.stopBroadcast();
         }
-        vm.stopBroadcast();
     }
 }

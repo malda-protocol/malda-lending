@@ -47,7 +47,7 @@ struct InterestConfig {
 
 struct Role {
     address[] accounts;
-    bytes32 role;
+    string roleName;
 }
 
 struct ZkVerifierConfig {

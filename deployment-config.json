@@ -54,7 +54,7 @@
       "roles": [
         {
           "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
-          "role": "0x0000000000000000000000000000000000000000000000000000000000000004"
+          "roleName": "CHAINS_MANAGER"
         }
       ],
       "zkVerifier": {
@@ -111,7 +111,7 @@
       "roles": [
         {
           "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
-          "role": "0x0000000000000000000000000000000000000000000000000000000000000004"
+          "roleName": "CHAINS_MANAGER"
         }
       ],
       "zkVerifier": {
@@ -167,7 +167,7 @@
       "roles": [
         {
           "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
-          "role": "0x0000000000000000000000000000000000000000000000000000000000000004"
+          "roleName": "CHAINS_MANAGER"
         }
       ],
       "zkVerifier": {

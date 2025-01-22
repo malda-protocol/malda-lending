@@ -17,17 +17,20 @@ import {Deployer} from "src/utils/Deployer.sol";
 contract DeployRewardDistributor is Script {
     function run(Deployer deployer) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-        vm.startBroadcast(key);
 
         address owner = vm.envAddress("OWNER");
 
         bytes32 salt = getSalt("RewardDistributor");
+        
+        vm.startBroadcast(key);
         address created = deployer.create(salt, type(RewardDistributor).creationCode);
-        RewardDistributor(created).initialize(owner);
-
-        console.log(" RewardDistributor deployed (and initialized) at: %s", created);
-
         vm.stopBroadcast();
+
+        vm.startBroadcast(key);
+        RewardDistributor(created).initialize(owner);
+        vm.stopBroadcast();
+
+        console.log("RewardDistributor deployed (and initialized) at: %s", created);
 
         return created;
     }

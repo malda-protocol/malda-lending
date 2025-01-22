@@ -17,17 +17,17 @@ import {Deployer} from "src/utils/Deployer.sol";
 contract DeployPauser is Script {
     function run(Deployer deployer, address roles, address operator) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-        vm.startBroadcast(key);
 
         address owner = vm.envAddress("OWNER");
         bytes32 salt = getSalt("Pauser");
 
+        vm.startBroadcast(key);
         address created =
             deployer.create(salt, abi.encodePacked(type(Pauser).creationCode, abi.encode(roles, operator, owner)));
+        vm.stopBroadcast();
 
         console.log("Pauser deployed at: %s", created);
 
-        vm.stopBroadcast();
         return created;
     }
 

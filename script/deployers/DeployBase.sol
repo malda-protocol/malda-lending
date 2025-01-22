@@ -14,6 +14,7 @@ contract DeployBase is Script {
     string public configPath;
     string[] public networks;
     uint256 public key;
+    mapping(string => uint256) public forks;
 
     function setUp() public virtual {
         key = vm.envUint("OWNER_PRIVATE_KEY");
@@ -23,9 +24,6 @@ contract DeployBase is Script {
         for (uint256 i = 0; i < networks.length; i++) {
             string memory network = networks[i];
             _parseBaseConfig(network);
-            vm.createSelectFork(vm.rpcUrl(network));
-            _verifyChain(network);
-            _deployCreate3Deployer(network);
         }
     }
 
@@ -44,20 +42,22 @@ contract DeployBase is Script {
 
         // Parse roles
         Role[] memory roles = abi.decode(json.parseRaw(string.concat(networkPath, ".roles")), (Role[]));
-        
-        for (uint i = 0; i < roles.length; i++) {
+
+        for (uint256 i = 0; i < roles.length; i++) {
             config.roles.push(roles[i]);
         }
 
         // Parse markets
         Market[] memory markets = abi.decode(json.parseRaw(string.concat(networkPath, ".markets")), (Market[]));
-        for (uint i = 0; i < markets.length; i++) {
+        for (uint256 i = 0; i < markets.length; i++) {
             config.markets.push(markets[i]);
         }
 
         // Parse zkVerifier config
-        config.zkVerifier.verifierAddress = abi.decode(json.parseRaw(string.concat(networkPath, ".zkVerifier.verifierAddress")), (address));
-        config.zkVerifier.imageId = abi.decode(json.parseRaw(string.concat(networkPath, ".zkVerifier.imageId")), (bytes32));
+        config.zkVerifier.verifierAddress =
+            abi.decode(json.parseRaw(string.concat(networkPath, ".zkVerifier.verifierAddress")), (address));
+        config.zkVerifier.imageId =
+            abi.decode(json.parseRaw(string.concat(networkPath, ".zkVerifier.imageId")), (bytes32));
 
         // Parse host-specific config
         if (config.isHost) {
@@ -67,11 +67,12 @@ contract DeployBase is Script {
 
     function _parseHostConfig(string memory json, string memory network, string memory networkPath) internal {
         DeployConfig storage config = configs[network];
-        
+
         // Parse oracle config
         string memory oraclePath = string.concat(networkPath, ".oracle");
         config.oracle.oracleType = abi.decode(json.parseRaw(string.concat(oraclePath, ".oracleType")), (string));
-        config.oracle.stalenessPeriod = abi.decode(json.parseRaw(string.concat(oraclePath, ".stalenessPeriod")), (uint256));
+        config.oracle.stalenessPeriod =
+            abi.decode(json.parseRaw(string.concat(oraclePath, ".stalenessPeriod")), (uint256));
         config.oracle.usdcFeed = abi.decode(json.parseRaw(string.concat(oraclePath, ".usdcFeed")), (address));
         config.oracle.wethFeed = abi.decode(json.parseRaw(string.concat(oraclePath, ".wethFeed")), (address));
 
@@ -101,15 +102,15 @@ contract DeployBase is Script {
             size := extcodesize(deployerAddress)
         }
 
-        vm.startBroadcast(key);
         // Deploy only if not already deployed
         if (size == 0) {
+        vm.startBroadcast(key);
             deployerAddress = _deployCreate2(salt, bytecode, constructorArgs);
+        vm.stopBroadcast();
             console.log("Deployer contract deployed at: %s", deployerAddress);
         } else {
             console.log("Using existing deployer at: %s", deployerAddress);
         }
-        vm.stopBroadcast();
         deployer = Deployer(payable(deployerAddress));
     }
 
