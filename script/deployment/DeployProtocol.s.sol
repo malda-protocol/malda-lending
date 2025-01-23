@@ -17,23 +17,32 @@ import {DeployRewardDistributor} from "./rewards/DeployRewardDistributor.s.sol";
 import {OracleConfig} from "../deployers/Types.sol";
 import {Operator} from "src/operator/Operator.sol";
 import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
+import {DeployBatchSubmitter} from "./generic/DeployBatchSubmitter.s.sol";
+import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
 import {Roles} from "src/Roles.sol";
 import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {DeployMixedPriceOracleV3} from "./oracles/DeployMixedPriceOracleV3.s.sol";
+import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+import {StorageSlot} from "@openzeppelin/contracts/utils/StorageSlot.sol";
 
 contract DeployProtocol is DeployBase {
     using stdJson for string;
 
     error UnsupportedOracleType();
 
+    address marketAddress;
+    address interestModel;
+
     // Track deployed implementations
     address public mTokenHostImplementation;
     address public mTokenGatewayImplementation;
 
     DeployRbac deployRbac;
+    DeployBatchSubmitter deployBatchSubmitter;
     DeployJumpRateModelV4 deployInterest;
     DeployOperator deployOperator;
     DeployPauser deployPauser;
@@ -61,8 +70,11 @@ contract DeployProtocol is DeployBase {
             _deployCreate3Deployer(network);
 
             deployRbac = new DeployRbac();
+            deployBatchSubmitter = new DeployBatchSubmitter();
 
             address rolesContract = _deployRoles();
+            address batchSubmitter =
+                _deployBatchSubmitter(deployer, rolesContract, configs[network].zkVerifier.verifierAddress);
 
             if (configs[network].isHost) {
                 deployInterest = new DeployJumpRateModelV4();
@@ -73,20 +85,22 @@ contract DeployProtocol is DeployBase {
                 deployHost = new DeployHostMarket();
 
                 console.log("Deploying host chain configuration");
-                _deployHostChain(network, rolesContract);
+                _deployHostChain(network, rolesContract, batchSubmitter);
             } else {
                 deployExt = new DeployExtensionMarket();
                 console.log("Deploying extension chain configuration");
-                _deployExtensionChain(network, rolesContract);
+                _deployExtensionChain(network, rolesContract, batchSubmitter);
             }
         }
     }
 
-    function _deployHostChain(string memory network, address rolesContract) internal {
+    function _deployHostChain(string memory network, address rolesContract, address batchSubmitter) internal {
         address rewardDistributor = _deployRewardDistributor();
         address oracle = _deployOracle(configs[network].oracle, rolesContract);
         address operator = _deployOperator(oracle, rewardDistributor, rolesContract);
         _deployPauser(rolesContract, operator);
+
+        _setOperatorInRewardDistributor(operator, rewardDistributor);
 
         // Setup roles and chain connections
         _setupRoles(rolesContract, network);
@@ -96,19 +110,30 @@ contract DeployProtocol is DeployBase {
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i = 0; i < marketsLength; i++) {
             _deployAndConfigureMarket(
-                true, configs[network].markets[i], operator, rolesContract, mTokenHostImplementation, network
+                true,
+                configs[network].markets[i],
+                operator,
+                rolesContract,
+                mTokenHostImplementation,
+                network,
+                batchSubmitter
             );
         }
-
     }
 
-    function _deployExtensionChain(string memory network, address rolesContract) internal {
+    function _deployExtensionChain(string memory network, address rolesContract, address batchSubmitter) internal {
         mTokenGatewayImplementation = _deployMTokenGatewayImplementation();
 
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i = 0; i < marketsLength; i++) {
             _deployAndConfigureMarket(
-                false, configs[network].markets[i], address(0), rolesContract, mTokenGatewayImplementation, network
+                false,
+                configs[network].markets[i],
+                address(0),
+                rolesContract,
+                mTokenGatewayImplementation,
+                network,
+                batchSubmitter
             );
         }
 
@@ -141,18 +166,14 @@ contract DeployProtocol is DeployBase {
         address operator,
         address rolesContract,
         address marketImplementation,
-        string memory network
+        string memory network,
+        address batchSubmitter
     ) internal {
-        address marketAddress;
-        address interestModel;
-
         // Deploy interest model only for host chain
         if (isHost) {
             console.log("Deploying interest model");
             interestModel = _deployInterestModel(market.interestModel);
         }
-
-        console.log("configuring");
 
         // Deploy proxy for market
         if (isHost) {
@@ -173,14 +194,23 @@ contract DeployProtocol is DeployBase {
             console.log("Host implementation address:", marketImplementation);
 
             // Deploy proxy
-            bytes32 proxySalt = getSalt(market.name);
-            console.log("Deploying market");
-            vm.startBroadcast(key);
-            marketAddress = deployer.create(
-                proxySalt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(marketImplementation, initData))
-            );
-            vm.stopBroadcast();
-            console.log("Market deployed at:", marketAddress);
+            {
+                bytes32 proxySalt = getSalt(market.name);
+                console.log("Deploying market");
+                vm.startBroadcast(key);
+                marketAddress = deployer.create(
+                    proxySalt,
+                    abi.encodePacked(
+                        type(TransparentUpgradeableProxy).creationCode,
+                        abi.encode(marketImplementation, configs[network].deployer.owner, initData)
+                    )
+                );
+                vm.stopBroadcast();
+                console.log("Market deployed at:", marketAddress);
+                console.logBytes32(
+                    vm.load(marketAddress, bytes32(0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103))
+                );
+            }
         } else {
             console.log("Deploying gateway");
             // Prepare initialization data
@@ -201,12 +231,18 @@ contract DeployProtocol is DeployBase {
 
                 marketAddress = deployer.create(
                     proxySalt,
-                    abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(marketImplementation, initData))
+                    abi.encodePacked(
+                        type(TransparentUpgradeableProxy).creationCode,
+                        abi.encode(marketImplementation, configs[network].deployer.owner, initData)
+                    )
                 );
                 vm.stopBroadcast();
             }
 
             console.log("Market deployed at:", marketAddress);
+            console.logBytes32(
+                vm.load(marketAddress, bytes32(0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103))
+            );
         }
 
         // Configure market if host chain
@@ -226,12 +262,7 @@ contract DeployProtocol is DeployBase {
 
         // Setup ZK verification image ID
         console.log("Setting up ZK image ID");
-        // _setupZkImageId(
-        //     marketAddress,
-        //     config.zkVerifier.verifierAddress,
-        //     config.zkVerifier.imageId,
-        //     isHost
-        // );
+        _setupZkImageId(marketAddress, batchSubmitter, configs[network].zkVerifier.imageId, isHost);
         console.log("ZK image ID set up");
     }
 
@@ -241,6 +272,16 @@ contract DeployProtocol is DeployBase {
 
         console.log("Roles deployed at:", returnedRoles);
         return returnedRoles;
+    }
+
+    function _deployBatchSubmitter(Deployer deployer, address rolesContract, address zkVerifier)
+        internal
+        returns (address)
+    {
+        console.log("Deploying batch submitter");
+        address returnedBatchSubmitter = deployBatchSubmitter.run(deployer, rolesContract, zkVerifier);
+        console.log("Batch submitter deployed at:", returnedBatchSubmitter);
+        return returnedBatchSubmitter;
     }
 
     function _deployRewardDistributor() internal returns (address) {
@@ -278,41 +319,6 @@ contract DeployProtocol is DeployBase {
         );
     }
 
-    function _deployMarket(
-        bool isHost,
-        Market memory market,
-        address operator,
-        address interestModel,
-        address rolesContract,
-        string memory network
-    ) internal returns (address) {
-        if (isHost) {
-            return deployHost.run(
-                deployer,
-                DeployHostMarket.MarketData({
-                    underlyingToken: market.underlying,
-                    operator: operator,
-                    interestModel: interestModel,
-                    exchangeRateMantissa: 1e18,
-                    name: market.name,
-                    symbol: market.symbol,
-                    decimals: market.decimals,
-                    zkVerifier: configs[network].zkVerifier.verifierAddress,
-                    roles: rolesContract
-                })
-            );
-        } else {
-            return deployExt.run(
-                deployer,
-                DeployExtensionMarket.GatewayData({
-                    underlyingToken: market.underlying,
-                    roles: rolesContract,
-                    zkVerifier: configs[network].zkVerifier.verifierAddress
-                })
-            );
-        }
-    }
-
     function _configureMarket(
         address operator,
         address market,
@@ -320,6 +326,11 @@ contract DeployProtocol is DeployBase {
         uint256 borrowCap,
         uint256 supplyCap
     ) internal {
+        console.log("borrowCap", borrowCap);
+        console.log("supplyCap", supplyCap);
+        console.log("Proof forwarder keccak256:");
+        console.logBytes32(keccak256("PROOF_FORWARDER"));
+
         // Support market
         console.log("Supporting market");
         vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
@@ -357,9 +368,9 @@ contract DeployProtocol is DeployBase {
         for (uint256 i = 0; i < rolesLength; i++) {
             Role memory role = configs[network].roles[i];
             for (uint256 j = 0; j < role.accounts.length; j++) {
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+                vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
                 Roles(rolesContract).allowFor(role.accounts[j], keccak256(abi.encodePacked(role.roleName)), true);
-        vm.stopBroadcast();
+                vm.stopBroadcast();
                 console.log("Allowed %s for %s", role.accounts[j], role.roleName);
             }
         }
@@ -368,10 +379,16 @@ contract DeployProtocol is DeployBase {
     function _setupChainConnections(address market, string memory network) internal {
         // Allow chains in host market
         for (uint256 i = 0; i < configs[network].allowedChains.length; i++) {
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
             mErc20Host(market).updateAllowedChain(configs[network].allowedChains[i], true);
-        vm.stopBroadcast();
+            vm.stopBroadcast();
         }
+    }
+
+    function _setOperatorInRewardDistributor(address operator, address rewardDistributor) internal {
+        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+        RewardDistributor(rewardDistributor).setOperator(operator);
+        vm.stopBroadcast();
     }
 
     function _setupZkImageId(address market, address batchSubmitter, bytes32 imageId, bool isHost) internal {

@@ -53,6 +53,16 @@ contract DeployBase is Script {
             config.markets.push(markets[i]);
         }
 
+        console.log("borrow cap", config.markets[0].borrowCap);
+        console.log("supply cap", config.markets[0].supplyCap);
+        console.log("collateral factor", config.markets[0].collateralFactor);
+        console.log("interest model", config.markets[0].interestModel.baseRate);
+        console.log("interest model", config.markets[0].interestModel.multiplier);
+        console.log("interest model", config.markets[0].interestModel.jumpMultiplier);
+        console.log("interest model", config.markets[0].interestModel.kink);
+        console.log("interest model", config.markets[0].interestModel.blocksPerYear);
+        console.log("interest model", config.markets[0].interestModel.name);
+
         // Parse zkVerifier config
         config.zkVerifier.verifierAddress =
             abi.decode(json.parseRaw(string.concat(networkPath, ".zkVerifier.verifierAddress")), (address));
@@ -87,7 +97,7 @@ contract DeployBase is Script {
 
     function _deployCreate3Deployer(string memory network) internal {
         address owner = configs[network].deployer.owner;
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOYER_SALT"))));
+        bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT"))));
 
         // Compute the deterministic address first
         bytes memory bytecode = type(Deployer).creationCode;
@@ -104,9 +114,9 @@ contract DeployBase is Script {
 
         // Deploy only if not already deployed
         if (size == 0) {
-        vm.startBroadcast(key);
+            vm.startBroadcast(key);
             deployerAddress = _deployCreate2(salt, bytecode, constructorArgs);
-        vm.stopBroadcast();
+            vm.stopBroadcast();
             console.log("Deployer contract deployed at: %s", deployerAddress);
         } else {
             console.log("Using existing deployer at: %s", deployerAddress);

@@ -21,7 +21,7 @@ contract DeployRewardDistributor is Script {
         address owner = vm.envAddress("OWNER");
 
         bytes32 salt = getSalt("RewardDistributor");
-        
+
         vm.startBroadcast(key);
         address created = deployer.create(salt, type(RewardDistributor).creationCode);
         vm.stopBroadcast();

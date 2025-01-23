@@ -31,7 +31,7 @@ contract DeployExtensionMarket is Script {
         // Deploy implementation
         bytes32 implSalt =
             getSalt(string.concat("mTokenGatewayImplementation", string(abi.encodePacked(data.underlyingToken))));
-        
+
         vm.startBroadcast(key);
         address implementation = deployer.create(implSalt, type(mTokenGateway).creationCode);
         vm.stopBroadcast();

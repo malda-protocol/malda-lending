@@ -16,7 +16,6 @@ import {Deployer} from "src/utils/Deployer.sol";
  */
 contract DeployRbac is Script {
     function run(Deployer _deployer) public returns (address) {
-
         bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("Roles-v1")));
 
         address owner = vm.envAddress("OWNER");

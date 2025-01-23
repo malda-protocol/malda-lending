@@ -15,38 +15,38 @@
       },
       "markets": [
         {
-          "borrowCap": "1000000000000",
-          "collateralFactor": "800000000000000000",
+          "borrowCap": 1000000000000,
+          "collateralFactor": 800000000000000000,
           "decimals": 6,
           "interestModel": {
-            "baseRate": "20000000000000000",
+            "baseRate": 20000000000000000,
             "blocksPerYear": 2102400,
-            "jumpMultiplier": "500000000000000000",
-            "kink": "800000000000000000",
-            "multiplier": "100000000000000000",
+            "jumpMultiplier": 500000000000000000,
+            "kink": 800000000000000000,
+            "multiplier": 100000000000000000,
             "name": "USDC Interest Model"
           },
           "name": "mUSDC",
           "priceFeed": "0xA5c24F2449891483f0923f0D9dC7694BDFe1bC86",
-          "supplyCap": "1000000000000",
+          "supplyCap": 1000000000000,
           "symbol": "mUSDC",
           "underlying": "0xFEce4462D57bD51A6A552365A011b95f0E16d9B7"
         },
         {
-          "borrowCap": "1000000000000000000000",
-          "collateralFactor": "750000000000000000",
+          "borrowCap": 1000000000000000000000,
+          "collateralFactor": 750000000000000000,
           "decimals": 18,
           "interestModel": {
-            "baseRate": "10000000000000000",
+            "baseRate": 10000000000000000,
             "blocksPerYear": 2102400,
-            "jumpMultiplier": "400000000000000000",
-            "kink": "900000000000000000",
-            "multiplier": "80000000000000000",
+            "jumpMultiplier": 400000000000000000,
+            "kink": 900000000000000000,
+            "multiplier": 80000000000000000,
             "name": "WETH Interest Model"
           },
           "name": "mWETH",
           "priceFeed": "0x2D6261dce927D5c46f7f393a897887F19F3fDf2A",
-          "supplyCap": "1000000000000000000000",
+          "supplyCap": 1000000000000000000000,
           "symbol": "mWETH",
           "underlying": "0x06565ed324Ee9fb4DB0FF80B7eDbE4Cb007555a3"
         }
@@ -72,38 +72,38 @@
       },
       "markets": [
         {
-          "borrowCap": "0",
-          "collateralFactor": "0",
+          "borrowCap": 0,
+          "collateralFactor": 0,
           "decimals": 6,
           "interestModel": {
-            "baseRate": "0",
-            "blocksPerYear": "0",
-            "jumpMultiplier": "0",
-            "kink": "0",
-            "multiplier": "0",
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
             "name": ""
           },
           "name": "mUSDC",
-          "priceFeed": "0x0",
-          "supplyCap": "0",
+          "priceFeed": "0x0000000000000000000000000000000000000000",
+          "supplyCap": 0,
           "symbol": "mUSDC",
           "underlying": "0x5fd84259d66Cd46123540766Be93DFE6D43130D7"
         },
         {
-          "borrowCap": "0",
-          "collateralFactor": "0",
+          "borrowCap": 0,
+          "collateralFactor": 0,
           "decimals": 18,
           "interestModel": {
-            "baseRate": "0",
-            "blocksPerYear": "0",
-            "jumpMultiplier": "0",
-            "kink": "0",
-            "multiplier": "0",
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
             "name": ""
           },
           "name": "mWETH",
-          "priceFeed": "0x0",
-          "supplyCap": "0",
+          "priceFeed": "0x0000000000000000000000000000000000000000",
+          "supplyCap": 0,
           "symbol": "mWETH",
           "underlying": "0x4200000000000000000000000000000000000006"
         }
@@ -128,38 +128,38 @@
       },
       "markets": [
         {
-          "borrowCap": "0",
-          "collateralFactor": "0",
+          "borrowCap": 0,
+          "collateralFactor": 0,
           "decimals": 6,
           "interestModel": {
-            "baseRate": "0",
-            "blocksPerYear": "0",
-            "jumpMultiplier": "0",
-            "kink": "0",
-            "multiplier": "0",
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
             "name": ""
           },
           "name": "mUSDC",
-          "priceFeed": "0x0",
-          "supplyCap": "0",
+          "priceFeed": "0x0000000000000000000000000000000000000000",
+          "supplyCap": 0,
           "symbol": "mUSDC",
           "underlying": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238"
         },
         {
-          "borrowCap": "0",
-          "collateralFactor": "0",
+          "borrowCap": 0,
+          "collateralFactor": 0,
           "decimals": 18,
           "interestModel": {
-            "baseRate": "0",
-            "blocksPerYear": "0",
-            "jumpMultiplier": "0",
-            "kink": "0",
-            "multiplier": "0",
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
             "name": ""
           },
           "name": "mWETH",
-          "priceFeed": "0x0",
-          "supplyCap": "0",
+          "priceFeed": "0x0000000000000000000000000000000000000000",
+          "supplyCap": 0,
           "symbol": "mWETH",
           "underlying": "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9"
         }

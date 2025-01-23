@@ -20,7 +20,7 @@ contract DeployerScript is Script {
     function run() public {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOYER_SALT"))));
+        bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT"))));
 
         vm.startBroadcast(key);
 

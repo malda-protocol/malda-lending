@@ -54,6 +54,11 @@ contract DeployOperator is Script {
         vm.stopBroadcast();
         console.log("Price oracle set to:", oracle);
 
+        vm.startBroadcast(key);
+        Operator(proxy).setRewardDistributor(rewardDistributor);
+        vm.stopBroadcast();
+        console.log("Reward distributor set to:", rewardDistributor);
+
         console.log("Operator deployed at: %s", proxy);
 
         return proxy;
