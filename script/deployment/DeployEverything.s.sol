@@ -6,7 +6,6 @@ import {Script} from "forge-std/Script.sol";
 import {DeployBase} from "script/deployers/DeployBase.sol";
 
 import {DeployRbac} from "script/deployment/generic/DeployRbac.s.sol";
-import {DeployUnit} from "script/deployment/generic/DeployUnit.s.sol";
 import {DeployPauser} from "script/deployment/generic/DeployPauser.s.sol";
 import {DeployOperator} from "script/deployment/markets/DeployOperator.s.sol";
 import {DeployHostMarket} from "script/deployment/markets/host/DeployHostMarket.s.sol";
@@ -26,7 +25,6 @@ import {DeployRewardDistributor} from "script/deployment/rewards/DeployRewardDis
  */
 contract DeployEverything is Script, DeployBase {
     DeployRbac deployRbac;
-    DeployUnit deployUnit;
     DeployPauser deployPauser;
     DeployHostMarket deployHost;
     DeployOperator deployOperator;
@@ -53,7 +51,6 @@ contract DeployEverything is Script, DeployBase {
 
     function setUp() public override {
         deployRbac = new DeployRbac();
-        deployUnit = new DeployUnit();
         deployPauser = new DeployPauser();
         deployHost = new DeployHostMarket();
         deployOperator = new DeployOperator();
@@ -63,12 +60,10 @@ contract DeployEverything is Script, DeployBase {
         super.setUp();
         deployHost.setUp();
         deployRbac.setUp();
-        deployUnit.setUp();
         deployOracle.setUp();
         deployPauser.setUp();
         deployRewards.setUp();
         deployInterest.setUp();
-        deployOperator.setUp();
     }
 
     function run(DeployData memory data) public {
@@ -76,7 +71,7 @@ contract DeployEverything is Script, DeployBase {
         address interestModel = deployInterest.run(_dataToInterestData(data));
         address defaultOracle = deployOracle.run();
         address defaultRewards = deployRewards.run();
-        address operator = deployOperator.run(defaultOracle, defaultRewards, roles);
+        address operator = deployOperator.run(deployer, roles, defaultRewards);
         deployPauser.run(roles, operator);
         deployHost.run(_dataToHostMarketData(data, operator, interestModel, roles));
     }

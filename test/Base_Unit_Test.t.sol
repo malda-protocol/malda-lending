@@ -21,6 +21,8 @@ import {Helpers} from "./utils/Helpers.sol";
 import {ERC20Mock} from "./mocks/ERC20Mock.sol";
 import {OracleMock} from "./mocks/OracleMock.sol";
 
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
 abstract contract Base_Unit_Test is Events, Helpers, Types {
     // ----------- USERS ------------
     address public alice;
@@ -54,7 +56,10 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
         rewards = new RewardDistributor();
         vm.label(address(rewards), "RewardDistributor");
 
-        operator = new Operator(address(roles), address(rewards), address(this));
+        Operator oprImp = new Operator();
+        bytes memory operatorInitData = abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(rewards), address(this));
+        ERC1967Proxy operatorProxy = new ERC1967Proxy(address(oprImp), operatorInitData);
+        operator = Operator(address(operatorProxy));
         vm.label(address(operator), "Operator");
 
         interestModel = new JumpRateModelV4(
