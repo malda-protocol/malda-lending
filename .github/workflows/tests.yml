@@ -39,5 +39,5 @@ jobs:
         id: build
 
       - name: Run Solidity tests
-        run: forge test --gas-report
+        run: forge test
         id: test
