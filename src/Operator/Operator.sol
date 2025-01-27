@@ -16,10 +16,12 @@ import {IRewardDistributor} from "src/interfaces/IRewardDistributor.sol";
 import {ImToken, ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {IOperatorData, IOperator, IOperatorDefender} from "src/interfaces/IOperator.sol";
 
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 // contracts
 import {OperatorStorage} from "./OperatorStorage.sol";
 
-contract Operator is OperatorStorage, ImTokenOperationTypes {
+contract Operator is OperatorStorage, ReentrancyGuard, ImTokenOperationTypes {
     constructor(address _rolesOperator, address _rewardDistributor, address _admin) {
         require(_rolesOperator != address(0), Operator_InvalidRolesOperator());
         require(_rewardDistributor != address(0), Operator_InvalidRewardDistributor());
@@ -415,7 +417,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      * @notice Claim all the MALDA accrued by holder in all markets
      * @param holder The address to claim MALDA for
      */
-    function claimMalda(address holder) external override {
+    function claimMalda(address holder) external override nonReentrant {
         address[] memory holders = new address[](1);
         holders[0] = holder;
         return _claim(holders, allMarkets, true, true);
@@ -426,7 +428,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      * @param holder The address to claim MALDA for
      * @param mTokens The list of markets to claim MALDA in
      */
-    function claimMalda(address holder, address[] memory mTokens) external override {
+    function claimMalda(address holder, address[] memory mTokens) external override nonReentrant {
         address[] memory holders = new address[](1);
         holders[0] = holder;
         _claim(holders, mTokens, true, true);
@@ -442,6 +444,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
     function claimMalda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers)
         external
         override
+        nonReentrant
     {
         _claim(holders, mTokens, borrowers, suppliers);
     }
