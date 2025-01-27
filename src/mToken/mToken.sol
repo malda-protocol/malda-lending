@@ -296,10 +296,10 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param repayAmount The amount to repay, or -1 for the full outstanding amount
      * @param doTransfer If an actual transfer should be performed
      */
-    function _repay(uint256 repayAmount, bool doTransfer) internal nonReentrant {
+    function _repay(uint256 repayAmount, bool doTransfer) internal nonReentrant returns (uint256) {
         _accrueInterest();
         // emits repay-borrow-specific logs on errors, so we don't need to
-        __repay(msg.sender, msg.sender, repayAmount, doTransfer);
+        return __repay(msg.sender, msg.sender, repayAmount, doTransfer);
     }
 
     /**
@@ -308,10 +308,10 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param repayAmount The amount to repay, or -1 for the full outstanding amount
      * @param doTransfer If an actual transfer should be performed
      */
-    function _repayBehalf(address borrower, uint256 repayAmount, bool doTransfer) internal nonReentrant {
+    function _repayBehalf(address borrower, uint256 repayAmount, bool doTransfer) internal nonReentrant returns (uint256) {
         _accrueInterest();
         // emits repay-borrow-specific logs on errors, so we don't need to
-        __repay(msg.sender, borrower, repayAmount, doTransfer);
+        return __repay(msg.sender, borrower, repayAmount, doTransfer);
     }
 
     /**
