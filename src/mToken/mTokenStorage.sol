@@ -260,7 +260,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
      * @dev Function to simply retrieve block number
      *  This exists mainly for inheriting test contracts to stub this result.
      */
-    function _getBlockNumber() internal view virtual returns (uint256) {
+    function _getBlockTimestamp() internal view virtual returns (uint256) {
         return block.timestamp;
     }
 
@@ -315,7 +315,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     // ----------- NON-VIRTUAL ------------
     function _accrueInterest() internal {
         /* Remember the initial block number */
-        uint256 currentBlockNumber = _getBlockNumber();
+        uint256 currentBlockNumber = _getBlockTimestamp();
         uint256 accrualBlockNumberPrior = accrualBlockNumber;
 
         /* Short-circuit accumulating 0 interest */

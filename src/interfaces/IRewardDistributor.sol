@@ -62,7 +62,7 @@ interface IRewardDistributor {
     /**
      * @notice Get block number
      */
-    function getBlockNumber() external view returns (uint32);
+    function getBlockTimestamp() external view returns (uint32);
 
     /**
      * @notice Notifies supply index

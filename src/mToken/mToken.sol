@@ -43,7 +43,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
 
         _setOperator(operator_);
 
-        accrualBlockNumber = _getBlockNumber();
+        accrualBlockNumber = _getBlockTimestamp();
         borrowIndex = mantissaOne;
 
         _setInterestRateModel(interestRateModel_);
@@ -436,7 +436,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         IOperatorDefender(operator).beforeMTokenLiquidate(address(this), mTokenCollateral, borrower, repayAmount);
 
         require(
-            ImToken(mTokenCollateral).accrualBlockNumber() == _getBlockNumber(), mToken_CollateralBlockNumberNotValid()
+            ImToken(mTokenCollateral).accrualBlockNumber() == _getBlockTimestamp(), mToken_CollateralBlockNumberNotValid()
         );
 
         /* Fail if repayBorrow fails */

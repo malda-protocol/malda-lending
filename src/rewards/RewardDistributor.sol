@@ -70,9 +70,9 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     /**
      * @inheritdoc IRewardDistributor
      */
-    function getBlockNumber() public view override returns (uint32) {
+    function getBlockTimestamp() public view override returns (uint32) {
         // needs to have a string error message
-        return safe32(block.timestamp, "block number exceeds 32 bits");
+        return safe32(block.timestamp, "block timestamp exceeds 32 bits");
     }
 
     /**
@@ -207,7 +207,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     function _notifySupplyIndex(address rewardToken, address mToken) private {
         IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
 
-        uint32 blockNumber = getBlockNumber();
+        uint32 blockNumber = getBlockTimestamp();
 
         if (blockNumber > marketState.supplyBlock) {
             if (marketState.supplySpeed > 0) {
@@ -230,7 +230,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
 
         IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
 
-        uint32 blockNumber = getBlockNumber();
+        uint32 blockNumber = getBlockTimestamp();
 
         if (blockNumber > marketState.borrowBlock) {
             if (marketState.borrowSpeed > 0) {
