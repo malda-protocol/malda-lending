@@ -107,7 +107,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         Exp memory newCollateralFactorExp = Exp({mantissa: newCollateralFactorMantissa});
 
         // Check collateral factor <= 0.9
-        Exp memory highLimit = Exp({mantissa: CLOSE_FACTOR_MAX_MANTISSA});
+        Exp memory highLimit = Exp({mantissa: COLLATERAL_FACTOR_MAX_MANTISSA});
         require(!lessThanExp(highLimit, newCollateralFactorExp), Operator_InvalidCollateralFactor());
 
         if (newCollateralFactorMantissa != 0 && IOracleOperator(oracleOperator).getUnderlyingPrice(mToken) == 0) {
