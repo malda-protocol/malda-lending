@@ -18,6 +18,8 @@ import {IInterestRateModel} from "src/interfaces/IInterestRateModel.sol";
 contract JumpRateModelV4 is IInterestRateModel, Ownable {
     // ----------- STORAGE ------------
 
+    error JumpRateModelV4_MultiplierNotValid();
+
     /**
      * @inheritdoc IInterestRateModel
      */
@@ -164,6 +166,8 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         multiplierPerBlock = multiplierPerYear * 1e18 / (blocksPerYear * kink_);
         jumpMultiplierPerBlock = jumpMultiplierPerYear / blocksPerYear;
         kink = kink_;
+
+        require (multiplierPerBlock < jumpMultiplierPerBlock, JumpRateModelV4_MultiplierNotValid());
 
         emit NewInterestParams(baseRatePerBlock, multiplierPerBlock, jumpMultiplierPerBlock, kink);
     }
