@@ -28,6 +28,7 @@ import {DeployMixedPriceOracleV3} from "./oracles/DeployMixedPriceOracleV3.s.sol
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {StorageSlot} from "@openzeppelin/contracts/utils/StorageSlot.sol";
+import {mTokenConfiguration} from "src/mToken/mTokenConfiguration.sol";
 // import {VerifyDeployment} from "./VerifyDeployment.s.sol";
 
 contract DeployProtocol is DeployBase {
@@ -355,7 +356,8 @@ contract DeployProtocol is DeployBase {
         // Set borrow rate max mantissa
         console.log("Setting borrow rate max mantissa");
         vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        mErc20Host(market).setBorrowRateMaxMantissa(borrowRateMaxMantissa);
+        (bool success, ) = market.call{gas: 120000}(abi.encodeWithSelector(mTokenConfiguration.setBorrowRateMaxMantissa.selector, borrowRateMaxMantissa));
+        require(success, "Failed to set borrow rate max mantissa");
         vm.stopBroadcast();
         console.log("Borrow rate max mantissa set");
 
