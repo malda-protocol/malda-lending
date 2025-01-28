@@ -28,6 +28,7 @@ import {DeployMixedPriceOracleV3} from "./oracles/DeployMixedPriceOracleV3.s.sol
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {StorageSlot} from "@openzeppelin/contracts/utils/StorageSlot.sol";
+// import {VerifyDeployment} from "./VerifyDeployment.s.sol";
 
 contract DeployProtocol is DeployBase {
     using stdJson for string;
@@ -92,6 +93,11 @@ contract DeployProtocol is DeployBase {
                 _deployExtensionChain(network, rolesContract, batchSubmitter);
             }
         }
+
+        // VerifyDeployment verifier = new VerifyDeployment();
+        // verifier.run();
+        
+        // console.log("\n=== Deployment verification completed successfully ===");
     }
 
     function _deployHostChain(string memory network, address rolesContract, address batchSubmitter) internal {
@@ -248,12 +254,16 @@ contract DeployProtocol is DeployBase {
         // Configure market if host chain
         if (isHost) {
             console.log("Configuring market");
-            _configureMarket(operator, marketAddress, market.collateralFactor, market.borrowCap, market.supplyCap);
+            _configureMarket(
+                operator,
+                marketAddress,
+                market.collateralFactor,
+                market.borrowCap,
+                market.supplyCap,
+                market.borrowRateMaxMantissa
+            );
             console.log("Market configured");
-        }
 
-        // Additional initialization
-        if (isHost) {
             console.log("Setting up chain connections");
             // Setup allowed chains on host market
             _setupChainConnections(marketAddress, network);
@@ -324,12 +334,9 @@ contract DeployProtocol is DeployBase {
         address market,
         uint256 collateralFactor,
         uint256 borrowCap,
-        uint256 supplyCap
+        uint256 supplyCap,
+        uint256 borrowRateMaxMantissa
     ) internal {
-        console.log("borrowCap", borrowCap);
-        console.log("supplyCap", supplyCap);
-        console.log("Proof forwarder keccak256:");
-        console.logBytes32(keccak256("PROOF_FORWARDER"));
 
         // Support market
         console.log("Supporting market");
@@ -345,8 +352,15 @@ contract DeployProtocol is DeployBase {
         vm.stopBroadcast();
         console.log("Collateral factor set");
 
+        // Set borrow rate max mantissa
+        console.log("Setting borrow rate max mantissa");
+        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+        mErc20Host(market).setBorrowRateMaxMantissa(borrowRateMaxMantissa);
+        vm.stopBroadcast();
+        console.log("Borrow rate max mantissa set");
+
         // Set caps
-        address[] memory marketAddrs = new address[](1); // Renamed to avoid shadowing
+        address[] memory marketAddrs = new address[](1);
         uint256[] memory caps = new uint256[](1);
         marketAddrs[0] = market;
 

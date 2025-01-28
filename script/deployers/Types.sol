@@ -26,6 +26,7 @@ struct OracleConfig {
 
 struct Market {
     uint256 borrowCap;
+    uint256 borrowRateMaxMantissa;
     uint256 collateralFactor;
     uint8 decimals;
     InterestConfig interestModel;
