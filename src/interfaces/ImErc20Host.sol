@@ -71,6 +71,11 @@ interface ImErc20Host {
      */
     event mErc20Host_WithdrawOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount);
 
+    /**
+     * @notice Emitted when gas fees are updated for a dst chain
+     */
+    event mErc20Host_GasFeeUpdated(uint32 indexed dstChainId, uint256 amount);
+
     // ----------- ERRORS -----------
     /**
      * @notice Thrown when the chain id is not LINEA
@@ -121,6 +126,11 @@ interface ImErc20Host {
      * @notice Thrown when length of array is not valid
      */
     error mErc20Host_LengthMismatch();
+
+    /**
+     * @notice Thrown when not enough gas fee was received
+     */
+    error mErc20Host_NotEnoughGasFee();
 
     // ----------- VIEW -----------
     /**
@@ -198,12 +208,12 @@ interface ImErc20Host {
      * @param amount The amount to withdraw
      * @param dstChainId The destination chain to recieve funds
      */
-    function withdrawOnExtension(uint256 amount, uint32 dstChainId) external;
+    function withdrawOnExtension(uint256 amount, uint32 dstChainId) external payable;
 
     /**
      * @notice Initiates a withdraw operation
      * @param amount The amount to withdraw
      * @param dstChainId The destination chain to recieve funds
      */
-    function borrowOnExtension(uint256 amount, uint32 dstChainId) external;
+    function borrowOnExtension(uint256 amount, uint32 dstChainId) external payable;
 }

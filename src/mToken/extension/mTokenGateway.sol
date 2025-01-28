@@ -43,21 +43,22 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
 
     uint32 private constant LINEA_CHAIN_ID = 59144;
 
+    ///@dev gas fee for `supplyOnHost`
+    uint256 public gasFee;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    function initialize(
-        address payable _owner,
-        address _underlying,
-        address _roles,
-        address zkVerifier_
-    ) external initializer {
+    function initialize(address payable _owner, address _underlying, address _roles, address zkVerifier_)
+        external
+        initializer
+    {
         __Ownable_init(_owner);
         underlying = _underlying;
         rolesOperator = IRoles(_roles);
-        
+
         // Initialize the ZkVerifier
         ZkVerifier.initialize(zkVerifier_);
     }
@@ -85,14 +86,9 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     /**
      * @inheritdoc ImTokenGateway
      */
-    function getProofData(address user, uint32 dstId) external view returns (bytes memory) {
+    function getProofData(address user, uint32) external view returns (bytes memory) {
         return mTokenProofDecoderLib.encodeJournal(
-            user,
-            address(this),
-            accAmountIn[user],
-            accAmountOut[user],
-            uint32(block.chainid),
-            LINEA_CHAIN_ID
+            user, address(this), accAmountIn[user], accAmountOut[user], uint32(block.chainid), LINEA_CHAIN_ID
         );
     }
 
@@ -137,6 +133,24 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
         IERC20(underlying).safeTransfer(msg.sender, amount);
     }
 
+    /**
+     * @notice Sets the gas fee
+     * @param amount the new gas fee
+     */
+    function setGasFee(uint256 amount) external onlyOwner {
+        gasFee = amount;
+        emit mTokenGateway_GasFeeUpdated(amount);
+    }
+
+    /**
+     * @notice Withdraw gas received so far
+     * @param receiver the receiver address
+     */
+    function withdrawGasFees(address payable receiver) external onlyOwner {
+        uint256 balance = address(this).balance;
+        receiver.transfer(balance);
+    }
+
     // ----------- PUBLIC ------------
     /**
      * @inheritdoc ImTokenGateway
@@ -149,9 +163,15 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     /**
      * @inheritdoc ImTokenGateway
      */
-    function supplyOnHost(uint256 amount, bytes4 lineaSelector) external override notPaused(OperationType.AmountIn) {
+    function supplyOnHost(uint256 amount, bytes4 lineaSelector)
+        external
+        payable
+        override
+        notPaused(OperationType.AmountIn)
+    {
         // checks
         require(amount > 0, mTokenGateway_AmountNotValid());
+        require(msg.value >= gasFee, mTokenGateway_NotEnoughGasFee());
 
         IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
 
