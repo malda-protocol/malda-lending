@@ -15,7 +15,7 @@ import {DeployExtensionMarket} from "./markets/extension/DeployExtensionMarket.s
 import {DeployJumpRateModelV4} from "./interest/DeployJumpRateModelV4.s.sol";
 import {DeployRewardDistributor} from "./rewards/DeployRewardDistributor.s.sol";
 import {OracleConfig} from "../deployers/Types.sol";
-import {Operator} from "src/operator/Operator.sol";
+import {Operator} from "src/Operator/Operator.sol";
 import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
 import {DeployBatchSubmitter} from "./generic/DeployBatchSubmitter.s.sol";
 import {RewardDistributor} from "src/rewards/RewardDistributor.sol";

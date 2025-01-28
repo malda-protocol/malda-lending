@@ -3,8 +3,8 @@ pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
 import {Deployer} from "src/utils/Deployer.sol";
-import {Operator} from "src/operator/Operator.sol";
-import {Unit} from "src/operator/Unit.sol";
+import {Operator} from "src/Operator/Operator.sol";
+import {Unit} from "src/Operator/Unit.sol";
 
 /**
  * forge script script/deployment/markets/DeployOperator.s.sol:DeployOperator  \
