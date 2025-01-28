@@ -58,14 +58,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     ) external initializer {
         // Initialize the base contract
         proxyInitialize(
-            underlying_,
-            operator_,
-            interestRateModel_,
-            initialExchangeRateMantissa_,
-            name_,
-            symbol_,
-            decimals_,
-            admin_
+            underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_, admin_
         );
 
         // Initialize the ZkVerifier

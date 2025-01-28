@@ -144,7 +144,7 @@ contract mErc20 is mToken, ImErc20 {
      * @return The quantity of underlying tokens owned by this contract
      */
     function _getCashPrior() internal view virtual override returns (uint256) {
-        return IERC20(underlying).balanceOf(address(this));
+        return totalUnderlying;
     }
 
     /**
