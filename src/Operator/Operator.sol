@@ -368,6 +368,19 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
     /**
      * @inheritdoc IOperator
      */
+    function enterMarketsWithSender(address _account) external override {
+        //sender needs to be a listed market
+        bool isMarket = ImToken(msg.sender).isMToken();
+        require(isMarket, Operator_WrongMarket());
+
+        IOperatorData.Market storage market = markets[msg.sender];
+        require(market.isListed, Operator_MarketNotListed());
+        _activateMarket(msg.sender, _account);
+    }
+
+    /**
+     * @inheritdoc IOperator
+     */
     function exitMarket(address _mToken) external override {
         IOperatorData.Market storage marketToExit = markets[_mToken];
         /* Return  if the sender is not already ‘in’ the market */

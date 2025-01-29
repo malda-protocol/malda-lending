@@ -48,16 +48,14 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
         _disableInitializers();
     }
 
-    function initialize(
-        address payable _owner,
-        address _underlying,
-        address _roles,
-        address zkVerifier_
-    ) external initializer {
+    function initialize(address payable _owner, address _underlying, address _roles, address zkVerifier_)
+        external
+        initializer
+    {
         __Ownable_init(_owner);
         underlying = _underlying;
         rolesOperator = IRoles(_roles);
-        
+
         // Initialize the ZkVerifier
         ZkVerifier.initialize(zkVerifier_);
     }
@@ -85,14 +83,9 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     /**
      * @inheritdoc ImTokenGateway
      */
-    function getProofData(address user, uint32 dstId) external view returns (bytes memory) {
+    function getProofData(address user, uint32) external view returns (bytes memory) {
         return mTokenProofDecoderLib.encodeJournal(
-            user,
-            address(this),
-            accAmountIn[user],
-            accAmountOut[user],
-            uint32(block.chainid),
-            LINEA_CHAIN_ID
+            user, address(this), accAmountIn[user], accAmountOut[user], uint32(block.chainid), LINEA_CHAIN_ID
         );
     }
 

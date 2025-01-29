@@ -95,6 +95,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
         inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWethHost))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
         _redeem(amount, false);
     }
@@ -105,6 +106,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
         inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWethHost))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
         _redeem(amount, true);
     }
@@ -179,6 +181,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         whenWithdrawOnExtensionIsCalled
         givenDecodedLiquidityIsValid
         whenMarketIsListed(address(mWethHost))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
         _borrowPrerequisites(address(mWethHost), amount);
 

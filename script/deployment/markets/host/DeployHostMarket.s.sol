@@ -35,10 +35,8 @@ contract DeployHostMarket is BaseMarketDeploy {
 
         // Deploy implementation
         bytes32 implSalt = getSalt(string.concat("mErc20HostImplementation", data.name));
-        address implementation = vm.envOr(
-            "MERC20_HOST_IMPLEMENTATION",
-            deployer.create(implSalt, type(mErc20Host).creationCode)
-        );
+        address implementation =
+            vm.envOr("MERC20_HOST_IMPLEMENTATION", deployer.create(implSalt, type(mErc20Host).creationCode));
         console.log("Implementation deployed at:", implementation);
 
         // Prepare initialization data
@@ -47,11 +45,7 @@ contract DeployHostMarket is BaseMarketDeploy {
         // Deploy proxy
         bytes32 proxySalt = getSalt(string.concat("mErc20HostProxy", data.name));
         address proxy = deployer.create(
-            proxySalt,
-            abi.encodePacked(
-                type(ERC1967Proxy).creationCode,
-                abi.encode(implementation, initData)
-            )
+            proxySalt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initData))
         );
 
         console.log("Proxy deployed at:", proxy);

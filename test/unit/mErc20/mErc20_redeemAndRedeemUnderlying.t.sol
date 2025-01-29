@@ -89,6 +89,7 @@ contract mErc20_redeem is mToken_Unit_Shared {
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWeth))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
         _redeem(amount, false);
     }
@@ -99,6 +100,7 @@ contract mErc20_redeem is mToken_Unit_Shared {
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWeth))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
         _redeem(amount, true);
     }
