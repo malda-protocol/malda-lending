@@ -9,8 +9,8 @@ contract AddPausable is Script {
     function run(address ctr, address market, bool extension) public virtual {
         uint256 key = vm.envUint("PRIVATE_KEY");
 
-        vm.startBroadcast(key);
         Pauser pauser = Pauser(ctr);
+        vm.startBroadcast(key);
         pauser.addPausableMarket(market, extension ? IPauser.PausableType.Extension: IPauser.PausableType.Host);
         vm.stopBroadcast();
 
