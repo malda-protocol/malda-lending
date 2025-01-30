@@ -370,9 +370,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      */
     function enterMarketsWithSender(address _account) external override {
         //sender needs to be a listed market
-        bool isMarket = ImToken(msg.sender).isMToken();
-        require(isMarket, Operator_WrongMarket());
-
         IOperatorData.Market storage market = markets[msg.sender];
         require(market.isListed, Operator_MarketNotListed());
         _activateMarket(msg.sender, _account);
