@@ -31,10 +31,11 @@ library mTokenProofDecoderLib {
         // | Offset | Length | Data Type               |
         // |--------|---------|----------------------- |
         // | 0      | 20      | address sender         |
-        // | 20     | 40      | address market         |
+        // | 20     | 20      | address market         |
         // | 40     | 32      | uint256 accAmountIn    |
         // | 72     | 32      | uint256 accAmountOut   |
         // | 104    | 4       | uint32 chainId         |
+        // | 108    | 4       | uint32 dstChainId      |
         sender = BytesLib.toAddress(BytesLib.slice(journalData, 0, 20), 0);
         market = BytesLib.toAddress(BytesLib.slice(journalData, 20, 20), 0);
         accAmountIn = BytesLib.toUint256(BytesLib.slice(journalData, 40, 32), 0);

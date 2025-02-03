@@ -16,12 +16,7 @@ import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
  *     --broadcast
  */
 contract SetPriceFeedOnOracle is Script {
-    function run(
-        string memory symbol,
-        address priceFeed,
-        string memory toSymbol,
-        uint8 underlyingDecimals
-    ) public {
+    function run(string memory symbol, address priceFeed, string memory toSymbol, uint8 underlyingDecimals) public {
         uint256 key = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(key);
 

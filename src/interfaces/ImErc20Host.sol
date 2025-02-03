@@ -64,7 +64,7 @@ interface ImErc20Host {
     /**
      * @notice Emitted when a borrow operation is triggered for an extension chain
      */
-    event mErc20Host_BorrowOnExternsionChain(address indexed sender, uint32 dstChainId, uint256 amount);
+    event mErc20Host_BorrowOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount);
 
     /**
      * @notice Emitted when a withdraw operation is triggered for an extension chain

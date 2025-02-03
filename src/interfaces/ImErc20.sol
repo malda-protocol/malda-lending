@@ -38,16 +38,16 @@ interface ImErc20 {
 
     /**
      * @notice Sender repays their own borrow
-     * @param repayAmount The amount to repay, or -1 for the full outstanding amount
+     * @param repayAmount The amount to repay, or type(uint256).max for the full outstanding amount
      */
-    function repay(uint256 repayAmount) external;
+    function repay(uint256 repayAmount) external returns (uint256);
 
     /**
      * @notice Sender repays a borrow belonging to borrower
      * @param borrower the account with the debt being payed off
-     * @param repayAmount The amount to repay, or -1 for the full outstanding amount
+     * @param repayAmount The amount to repay, or type(uint256).max for the full outstanding amount
      */
-    function repayBehalf(address borrower, uint256 repayAmount) external;
+    function repayBehalf(address borrower, uint256 repayAmount) external returns (uint256);
 
     /**
      * @notice The sender liquidates the borrowers collateral.
