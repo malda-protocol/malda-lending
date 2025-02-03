@@ -138,14 +138,12 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     error mToken_BorrowRateTooHigh();
     error mToken_AlreadyInitialized();
     error mToken_ReserveFactorTooHigh();
-    error mToken_BlockNumberNotValid();
     error mToken_ExchangeRateNotValid();
     error mToken_MarketMethodNotValid();
     error mToken_LiquidateSeizeTooMuch();
     error mToken_RedeemCashNotAvailable();
     error mToken_BorrowCashNotAvailable();
     error mToken_ReserveCashNotAvailable();
-    error mToken_RedeemTransferOutNotPossible();
     error mToken_CollateralBlockNumberNotValid();
 
     // ----------- ACCESS EVENTS ------------

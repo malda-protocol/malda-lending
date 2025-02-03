@@ -85,7 +85,7 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     /**
      * @inheritdoc ImTokenGateway
      */
-    function getProofData(address user, uint32 dstId) external view returns (bytes memory) {
+    function getProofData(address user, uint32) external view returns (bytes memory) {
         return mTokenProofDecoderLib.encodeJournal(
             user,
             address(this),
@@ -198,6 +198,7 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
         (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId) =
             mTokenProofDecoderLib.decodeJournal(journalData);
 
+        // temporary overwrite; will be removed in future implementations
         receiver = _sender;
 
         // checks
