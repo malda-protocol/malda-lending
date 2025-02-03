@@ -301,4 +301,51 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         assertGt(vars.accountBorrowBefore, vars.accountBorrowAfter);
         assertEq(vars.accountBorrowAfter, 0);
     }
+
+    function test_WhenSealVerificationWasOk_AndRepayingMax(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+        whenRepayExternalIsCalled
+        givenDecodedAmountIsValid
+        whenMarketIsListed(address(mWethHost))
+        whenMarketEntered(address(mWethHost))
+    {
+        RepayStateInternal memory vars;
+
+        _repayPrerequisites(address(mWethHost), amount * 2, amount);
+
+        // before state
+        vars.balanceUnderlyingBefore = weth.balanceOf(address(this));
+        vars.balanceMTokenBefore = mWethHost.balanceOf(address(this));
+        vars.totalBorrowsBefore = mWethHost.totalBorrows();
+        vars.accountBorrowBefore = mWethHost.borrowBalanceStored(address(this));
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = type(uint256).max;
+
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
+
+        mWethHost.repayExternal(journalData, "0x123", amounts, address(this));
+
+        // after state
+        vars.balanceUnderlyingAfter = weth.balanceOf(address(this));
+        vars.balanceMTokenAfter = mWethHost.balanceOf(address(this));
+        vars.totalBorrowsAfter = mWethHost.totalBorrows();
+        vars.accountBorrowAfter = mWethHost.borrowBalanceStored(address(this));
+
+        // it should not use tokens
+        assertEq(vars.balanceUnderlyingBefore, vars.balanceUnderlyingAfter);
+
+        // it should have same mToken balance
+        assertEq(vars.balanceMTokenBefore, vars.balanceMTokenAfter);
+
+        // it should decrease totalBorrows
+        assertGt(vars.totalBorrowsBefore, vars.totalBorrowsAfter);
+        assertEq(vars.totalBorrowsAfter, 0);
+
+        // it should decrease accountBorrows
+        assertGt(vars.accountBorrowBefore, vars.accountBorrowAfter);
+        assertEq(vars.accountBorrowAfter, 0);
+    }
 }

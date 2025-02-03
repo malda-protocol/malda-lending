@@ -338,17 +338,19 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
             require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
             require(_market == address(this), mErc20Host_AddressNotValid());
             require(allowedChains[_chainId], mErc20Host_ChainNotValid());
+            require(repayAmount > 0, mErc20Host_AmountNotValid());
         }
+
+        uint256 actualRepayAmount = _repayBehalf(receiver, repayAmount, false);
+
         // operation checks
         {
-            require(repayAmount > 0, mErc20Host_AmountNotValid());
-            require(repayAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
+            require(actualRepayAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
         }
 
         // actions
-        accAmountInPerChain[_chainId][_sender] += repayAmount;
-        _repayBehalf(receiver, repayAmount, false);
+        accAmountInPerChain[_chainId][_sender] += actualRepayAmount;
 
-        emit mErc20Host_RepayExternal(msg.sender, _sender, receiver, _chainId, repayAmount);
+        emit mErc20Host_RepayExternal(msg.sender, _sender, receiver, _chainId, actualRepayAmount);
     }
 }
