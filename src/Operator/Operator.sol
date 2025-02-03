@@ -79,6 +79,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      */
 
     function setPriceOracle(address newOracle) external onlyAdmin {
+        require(newOracle != address(0), Operator_InvalidInput());
         emit NewPriceOracle(oracleOperator, newOracle);
         oracleOperator = newOracle;
     }
