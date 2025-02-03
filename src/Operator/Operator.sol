@@ -89,6 +89,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      * @param newCloseFactorMantissa New close factor, scaled by 1e18
      */
     function setCloseFactor(uint256 newCloseFactorMantissa) external onlyAdmin {
+        require (newCloseFactorMantissa >= CLOSE_FACTOR_MIN_MANTISSA && newCloseFactorMantissa <= CLOSE_FACTOR_MAX_MANTISSA, Operator_InvalidInput());
         emit NewCloseFactor(closeFactorMantissa, newCloseFactorMantissa);
         closeFactorMantissa = newCloseFactorMantissa;
     }
