@@ -22,7 +22,7 @@ contract MixedPriceOracleV3 is IOracleOperator {
     event ConfigSet(string symbol, IDefaultAdapter.PriceConfig config);
 
     constructor(
-        string[] memory symbols_, 
+        string[] memory symbols_,
         IDefaultAdapter.PriceConfig[] memory configs_,
         address roles_,
         uint256 stalenessPeriod_
@@ -51,44 +51,35 @@ contract MixedPriceOracleV3 is IOracleOperator {
     }
 
     // price is extended for comptroller usage based on decimals of exchangeRate
-    function getUnderlyingPrice(
-        address mToken
-    ) external view override returns (uint256) {
+    function getUnderlyingPrice(address mToken) external view override returns (uint256) {
         string memory symbol = ImTokenMinimal(mToken).symbol();
         IDefaultAdapter.PriceConfig memory config = configs[symbol];
         uint256 priceUsd = _getPriceUSD(symbol);
         return priceUsd * 10 ** (18 - config.underlyingDecimals);
     }
 
-    function _getPriceUSD(
-        string memory symbol
-    ) internal view returns (uint256) {
+    function _getPriceUSD(string memory symbol) internal view returns (uint256) {
         IDefaultAdapter.PriceConfig memory config = configs[symbol];
         (uint256 feedPrice, uint256 feedDecimals) = _getLatestPrice(config);
         uint256 price = feedPrice * 10 ** (18 - feedDecimals);
 
-        if (
-            keccak256(abi.encodePacked(config.toSymbol)) !=
-            keccak256(abi.encodePacked("USD"))
-        ) {
+        if (keccak256(abi.encodePacked(config.toSymbol)) != keccak256(abi.encodePacked("USD"))) {
             price = (price * _getPriceUSD(config.toSymbol)) / 10 ** 18;
         }
 
         return price;
     }
 
-    function _getLatestPrice(
-        IDefaultAdapter.PriceConfig memory config
-    ) internal view returns (uint256, uint256) {
+    function _getLatestPrice(IDefaultAdapter.PriceConfig memory config) internal view returns (uint256, uint256) {
         if (config.defaultFeed == address(0)) revert("missing priceFeed");
 
         IDefaultAdapter feed = IDefaultAdapter(config.defaultFeed);
-        
+
         // Get price and timestamp
         (uint80 roundId, int256 price,, uint256 updatedAt,) = feed.latestRoundData();
         require(price > 0, MixedPriceOracle_InvalidPrice());
         require(roundId > 0, MixedPriceOracle_InvalidRound());
-        
+
         // Check for staleness
         require(block.timestamp - updatedAt < STALENESS_PERIOD, MixedPriceOracle_StalePrice());
 

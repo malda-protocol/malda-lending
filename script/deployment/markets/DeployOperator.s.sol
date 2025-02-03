@@ -26,24 +26,13 @@ contract DeployOperator is Script, DeployBase {
 
         // Deploy implementation (Operator)
         bytes32 implSalt = getSalt("OperatorImplementation");
-        address implementation = deployer.create(
-            implSalt, 
-            abi.encodePacked(
-                type(Operator).creationCode,
-                abi.encode(roles, rewards, owner)
-            )
-        );
+        address implementation =
+            deployer.create(implSalt, abi.encodePacked(type(Operator).creationCode, abi.encode(roles, rewards, owner)));
         console.log("Operator implementation deployed at:", implementation);
 
         // Deploy proxy (Unit)
         bytes32 proxySalt = getSalt("OperatorProxy");
-        address proxy = deployer.create(
-            proxySalt,
-            abi.encodePacked(
-                type(Unit).creationCode,
-                abi.encode(owner)
-            )
-        );
+        address proxy = deployer.create(proxySalt, abi.encodePacked(type(Unit).creationCode, abi.encode(owner)));
         console.log("Operator proxy (Unit) deployed at:", proxy);
 
         // Set up the implementation in the proxy

@@ -260,10 +260,14 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param redeemTokens The number of mTokens to redeem into underlying
      * @param doTransfer If an actual transfer should be performed
      */
-    function _redeem(address user, uint256 redeemTokens, bool doTransfer) internal nonReentrant {
+    function _redeem(address user, uint256 redeemTokens, bool doTransfer)
+        internal
+        nonReentrant
+        returns (uint256 underlyingAmount)
+    {
         _accrueInterest();
         // emits redeem-specific logs on errors, so we don't need to
-        __redeem(payable(user), redeemTokens, 0, doTransfer);
+        underlyingAmount = __redeem(payable(user), redeemTokens, 0, doTransfer);
     }
 
     /**
@@ -558,6 +562,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
 
     function __redeem(address payable redeemer, uint256 redeemTokensIn, uint256 redeemAmountIn, bool doTransfer)
         private
+        returns (uint256 redeemAmount)
     {
         require(redeemTokensIn == 0 || redeemAmountIn == 0, mToken_InvalidInput());
 
@@ -565,7 +570,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         Exp memory exchangeRate = Exp({mantissa: _exchangeRateStored()});
 
         uint256 redeemTokens;
-        uint256 redeemAmount;
         /* If redeemTokensIn > 0: */
         if (redeemTokensIn > 0) {
             /*

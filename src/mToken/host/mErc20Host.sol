@@ -58,14 +58,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     ) external initializer {
         // Initialize the base contract
         proxyInitialize(
-            underlying_,
-            operator_,
-            interestRateModel_,
-            initialExchangeRateMantissa_,
-            name_,
-            symbol_,
-            decimals_,
-            admin_
+            underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_, admin_
         );
 
         // Initialize the ZkVerifier
@@ -228,13 +221,14 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
 
     /**
      * @inheritdoc ImErc20Host
+     * @dev amount represents the number of mTokens to redeem
      */
     function withdrawOnExtension(uint256 amount, uint32 dstChainId) external override {
         require(amount > 0, mErc20Host_AmountNotValid());
 
         // actions
-        accAmountOutPerChain[dstChainId][msg.sender] += amount;
-        _redeemUnderlying(msg.sender, amount, false);
+        uint256 underlyingAmount = _redeem(msg.sender, amount, false);
+        accAmountOutPerChain[dstChainId][msg.sender] += underlyingAmount;
 
         emit mErc20Host_WithdrawOnExtensionChain(msg.sender, dstChainId, amount);
     }
