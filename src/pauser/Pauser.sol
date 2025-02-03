@@ -105,6 +105,7 @@ contract Pauser is Ownable, IPauser {
         _pauseMarketOperation(_market, OperationType.Seize);
         _pauseMarketOperation(_market, OperationType.Repay);
         _pauseMarketOperation(_market, OperationType.Redeem);
+        _pauseMarketOperation(_market, OperationType.Liquidate);
         emit MarketPaused(_market);
     }
 
