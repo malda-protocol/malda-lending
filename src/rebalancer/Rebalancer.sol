@@ -10,7 +10,8 @@ pragma solidity =0.8.28;
 
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {IBridge} from "src/interfaces/IBridge.sol";
-import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
+import {IOperator} from "src/interfaces/IOperator.sol";
+import {ImTokenMinimal, ImToken} from "src/interfaces/ImToken.sol";
 import {IRebalancer, IRebalanceMarket} from "src/interfaces/IRebalancer.sol";
 
 import {SafeApprove} from "src/libraries/SafeApprove.sol";
@@ -53,6 +54,9 @@ contract Rebalancer is IRebalancer {
         require(_underlying == _msg.token, Rebalancer_RequestNotValid());
 
         // retrieve amounts (make sure to check min and max for that bridge)
+        address operator = ImToken(_market).operator();
+        bool isListed = IOperator(operator).isMarketListed(_market);
+        require (isListed, Rebalancer_MarketNotValid());
         IRebalanceMarket(_market).extractForRebalancing(_amount);
 
         unchecked {

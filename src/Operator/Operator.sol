@@ -302,6 +302,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
     /**
      * @inheritdoc IOperator
      */
+    function isMarketListed(address mToken) external view override returns (bool) {
+        return markets[mToken].isListed;
+    }
+
+    /**
+     * @inheritdoc IOperator
+     */
     function getAccountLiquidity(address account) public view returns (uint256, uint256) {
         return _getHypotheticalAccountLiquidity(account, address(0), 0, 0);
     }

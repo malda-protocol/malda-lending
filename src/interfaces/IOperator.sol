@@ -132,6 +132,11 @@ interface IOperator {
     function liquidationIncentiveMantissa() external view returns (uint256);
 
     /**
+     * @notice Returns true/false
+     */
+    function isMarketListed(address market) external view returns (bool);
+
+    /**
      * @notice Returns the assets an account has entered
      * @param _user The address of the account to pull assets for
      * @return mTokens A dynamic list with the assets the account has entered
