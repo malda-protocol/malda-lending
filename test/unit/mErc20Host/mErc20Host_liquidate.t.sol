@@ -146,7 +146,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         uint256 accountBorrowAfter;
     }
 
-    function test_WhenSealVerificationWasOkQA(uint256 amount)
+    function test_WhenSealVerificationWasOk_RepayTooMuch(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
@@ -161,11 +161,6 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         _repayPrerequisites(address(mWethHost), amount * 2, amount);
 
         _getTokens(weth, alice, amount * 10);
-        vars.balanceUnderlyingBefore = weth.balanceOf(address(bob));
-        vars.balanceMTokenBefore = mWethHost.balanceOf(address(bob));
-        vars.totalBorrowsBefore = mWethHost.totalBorrows();
-        vars.accountBorrowBefore = mWethHost.borrowBalanceStored(address(this));
-
         bytes memory journalData = _createAccumulatedAmountJournal(bob, address(mWethHost), amount);
 
         uint256[] memory amounts = new uint256[](1);
@@ -175,69 +170,14 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         address[] memory collaterals = new address[](1);
         collaterals[0] = address(mWethHost);
 
-        operator.setCloseFactor(1e18);
+        operator.setCloseFactor(0.086e18);
         operator.setLiquidationIncentive(1e17);
 
         _resetContext(bob);
         mWethHost.updateAllowedCallerStatus(alice, true);
 
         _resetContext(alice);
+        vm.expectRevert();
         mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
-
-        // after state
-        vars.balanceUnderlyingAfter = weth.balanceOf(address(bob));
-        vars.balanceMTokenAfter = mWethHost.balanceOf(address(bob));
-        vars.totalBorrowsAfter = mWethHost.totalBorrows();
-        vars.accountBorrowAfter = mWethHost.borrowBalanceStored(address(this));
-
-        {
-            assertEq(vars.balanceUnderlyingBefore, vars.balanceUnderlyingAfter);
-            assertGt(vars.balanceMTokenAfter, vars.balanceMTokenBefore);
-            assertGt(vars.totalBorrowsBefore, vars.totalBorrowsAfter);
-            assertGt(vars.accountBorrowBefore, vars.accountBorrowAfter);
-        }
     }
-
-    /**
-     * function test_WhenSealVerificationWasOk_DifferentCollateral(uint256 amount)
-     *     external
-     *     inRange(amount, SMALL, LARGE)
-     *     whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-     *     whenMarketIsListed(address(mWethHost))
-     *     whenMarketEntered(address(mWethHost))
-     *     whenMarketIsListed(address(mDaiHost))
-     *     givenMarketIsNotPaused
-     *     whenDecodedAmountIsValid
-     * {
-     *     // didn't use a modifier because of stack too dep
-     *     {
-     *         address[] memory mTokens = new address[](1);
-     *         mTokens[0] = address(mDaiHost);
-     *         operator.enterMarkets(mTokens);
-     *         operator.setCollateralFactor(mTokens[0], DEFAULT_COLLATERAL_FACTOR);
-     *     }
-     *     _repayPrerequisites(address(mWethHost), amount * 2, amount);
-     *     _repayPrerequisites(address(mDaiHost), amount * 2, amount);
-     *
-     *     mWethHost.setRolesOperator(address(roles));
-     *
-     *     LiquidateStateInternal memory vars;
-     *     vars.balanceMTokenBefore = mDaiHost.balanceOf(address(alice));
-     *
-     *     bytes memory journalData = _createAccumulatedAmountJournal(alice, address(mWethHost), amount);
-     *
-     *     operator.setCloseFactor(1e18);
-     *     operator.setLiquidationIncentive(1e17);
-     *
-     *     _resetContext(alice);
-     *     mWethHost.liquidateExternal(journalData, "0x123", address(this), address(this), amount, address(mDaiHost));
-     *
-     *     // after state
-     *     vars.balanceMTokenAfter = mDaiHost.balanceOf(address(alice));
-     *
-     *     {
-     *         assertGt(vars.balanceMTokenAfter, vars.balanceMTokenBefore);
-     *     }
-     * }
-     */
 }
