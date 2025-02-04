@@ -17,7 +17,7 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployLZBridge is Script, DeployBase {
-    function run(address roles, address _deployer) public returns (address) {
+    function run(address roles, address payable _deployer) public returns (address) {
         deployer = Deployer(_deployer);
         uint256 key = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(key);
