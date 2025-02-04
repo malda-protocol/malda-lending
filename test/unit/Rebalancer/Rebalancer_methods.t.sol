@@ -115,6 +115,7 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
         givenSendMsgIsCalledWithRightParameters
         givenSenderHasRoleGUARDIAN_BRIDGE
         inRange(amount, SMALL, LARGE)
+        whenMarketIsListed(address(mWethHost))
     {
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
         IRebalancer.Msg memory _msg =
