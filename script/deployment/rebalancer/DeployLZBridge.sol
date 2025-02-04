@@ -4,6 +4,7 @@ pragma solidity =0.8.28;
 import {Script, console} from "forge-std/Script.sol";
 import {DeployBase} from "script/deployers/DeployBase.sol";
 import {LZBridge} from "src/rebalancer/bridges/LZBridge.sol";
+import {Deployer} from "src/utils/Deployer.sol";
 
 /**
  * forge script DeployLZBridge  \
@@ -16,7 +17,8 @@ import {LZBridge} from "src/rebalancer/bridges/LZBridge.sol";
  *     --broadcast
  */
 contract DeployLZBridge is Script, DeployBase {
-    function run(address roles) public returns (address) {
+    function run(address roles, address _deployer) public returns (address) {
+        deployer = Deployer(_deployer);
         uint256 key = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(key);
 

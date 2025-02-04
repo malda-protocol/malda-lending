@@ -4,6 +4,7 @@ pragma solidity =0.8.28;
 import {Script, console} from "forge-std/Script.sol";
 import {DeployBase} from "script/deployers/DeployBase.sol";
 import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
+import {Deployer} from "src/utils/Deployer.sol";
 
 /**
  * forge script DeployRebalancer  \
@@ -16,7 +17,8 @@ import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
  *     --broadcast
  */
 contract DeployRebalancer is Script, DeployBase {
-    function run(address roles) public returns (address) {
+    function run(address roles, address payable _deployer) public returns (address) {
+        deployer = Deployer(_deployer);
         uint256 key = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(key);
 

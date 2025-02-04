@@ -4,6 +4,7 @@ pragma solidity =0.8.28;
 import {Script, console} from "forge-std/Script.sol";
 import {DeployBase} from "script/deployers/DeployBase.sol";
 import {AccrossBridge} from "src/rebalancer/bridges/AcrossBridge.sol";
+import {Deployer} from "src/utils/Deployer.sol";
 
 /**
  * forge script DeployAcrossBridge  \
@@ -16,7 +17,8 @@ import {AccrossBridge} from "src/rebalancer/bridges/AcrossBridge.sol";
  *     --broadcast
  */
 contract DeployAcrossBridge is Script, DeployBase {
-    function run(address roles, address spoke) public returns (address) {
+    function run(address roles, address spoke, address _deployer) public returns (address) {
+        deployer = Deployer(_deployer);
         uint256 key = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(key);
 
