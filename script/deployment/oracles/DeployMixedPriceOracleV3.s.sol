@@ -2,7 +2,7 @@
 pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
-import {DeployBase} from "script/deployers/DeployBase.sol";
+import {Deployer} from "src/utils/Deployer.sol";
 import {MixedPriceOracleV3} from "src/oracles/MixedPriceOracleV3.sol";
 import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
 
@@ -15,47 +15,40 @@ import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
  *     --etherscan-api-key <key> \
  *     --broadcast
  */
-contract DeployMixedPriceOracleV3 is Script, DeployBase {
-    function run(
-        address usdcFeed,
-        address wethFeed,
-        address roles,
-        uint256 stalenessPeriod
-    ) public returns (address) {
-        uint256 key = vm.envUint("PRIVATE_KEY");
-        vm.startBroadcast(key);
+contract DeployMixedPriceOracleV3 is Script {
+    function run(Deployer deployer, address usdcFeed, address wethFeed, address roles, uint256 stalenessPeriod)
+        public
+        returns (address)
+    {
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         string[] memory symbols = new string[](2);
         symbols[0] = "mUSDC";
         symbols[1] = "mWETH";
 
-        IDefaultAdapter.PriceConfig[]
-            memory configs = new IDefaultAdapter.PriceConfig[](2);
-        configs[0] = IDefaultAdapter.PriceConfig({
-            defaultFeed: usdcFeed,
-            toSymbol: "USD",
-            underlyingDecimals: 6
-        });
+        IDefaultAdapter.PriceConfig[] memory configs = new IDefaultAdapter.PriceConfig[](2);
+        configs[0] = IDefaultAdapter.PriceConfig({defaultFeed: usdcFeed, toSymbol: "USD", underlyingDecimals: 6});
 
-        configs[1] = IDefaultAdapter.PriceConfig({
-            defaultFeed: wethFeed,
-            toSymbol: "USD",
-            underlyingDecimals: 18
-        });
+        configs[1] = IDefaultAdapter.PriceConfig({defaultFeed: wethFeed, toSymbol: "USD", underlyingDecimals: 18});
 
         bytes32 salt = getSalt("MixedPriceOracleV3");
+        vm.startBroadcast(key);
         address created = deployer.create(
             salt,
             abi.encodePacked(
-                type(MixedPriceOracleV3).creationCode,
-                abi.encode(symbols, configs, roles, stalenessPeriod)
+                type(MixedPriceOracleV3).creationCode, abi.encode(symbols, configs, roles, stalenessPeriod)
             )
         );
+        vm.stopBroadcast();
 
         console.log("MixedPriceOracleV3 deployed at: %s", created);
 
-        vm.stopBroadcast();
-
         return created;
+    }
+
+    function getSalt(string memory name) internal view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+        );
     }
 }

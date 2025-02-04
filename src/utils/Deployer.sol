@@ -17,7 +17,6 @@ contract Deployer {
 
     error NotAuthorized(address admin, address sender);
 
-
     modifier onlyAdmin() {
         require(msg.sender == admin, NotAuthorized(admin, msg.sender));
         _;

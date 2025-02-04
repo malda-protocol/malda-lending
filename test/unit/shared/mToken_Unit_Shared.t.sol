@@ -52,10 +52,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             address(verifierMock),
             address(roles)
         );
-        ERC1967Proxy proxy = new ERC1967Proxy(
-            address(implementation),
-            initData
-        );
+        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), initData);
         mWethHost = mErc20Host(address(proxy));
         vm.label(address(mWethHost), "mWethHost");
 
@@ -73,10 +70,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             address(verifierMock),
             address(roles)
         );
-        ERC1967Proxy proxyDai = new ERC1967Proxy(
-            address(implementation),
-            initDataDai
-        );
+        ERC1967Proxy proxyDai = new ERC1967Proxy(address(implementation), initDataDai);
         mDaiHost = mErc20Host(address(proxyDai));
         vm.label(address(mDaiHost), "mDaiHost");
 
@@ -102,10 +96,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             address(roles),
             address(verifierMock)
         );
-        ERC1967Proxy wethGatewayProxy = new ERC1967Proxy(
-            address(gatewayImpl),
-            wethGatewayInitData
-        );
+        ERC1967Proxy wethGatewayProxy = new ERC1967Proxy(address(gatewayImpl), wethGatewayInitData);
         mWethExtension = mTokenGateway(address(wethGatewayProxy));
         vm.label(address(mWethExtension), "mWethExtension");
 

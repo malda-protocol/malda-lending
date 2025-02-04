@@ -1,0 +1,32 @@
+{
+  "deployer": {
+    "owner": "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00",
+    "salt": "FirstTry"
+  },
+  "chainId": 11155111,
+  "isHost": false,
+  "markets": [
+    {
+      "underlying": "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
+      "name": "mUSDC",
+      "symbol": "mUSDC",
+      "decimals": 6
+    },
+    {
+      "underlying": "0x7b79995e5f793A07Bc00c21412e50Ecae098E7f9",
+      "name": "mWETH",
+      "symbol": "mWETH",
+      "decimals": 18
+    }
+  ],
+  "roles": [
+    {
+      "role": "0x0000000000000000000000000000000000000000000000000000000000000004",
+      "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"]
+    }
+  ],
+  "zkVerifier": {
+    "verifierAddress": "0x925d8331ddc0a1F0d96E68CF073DFE1d92b69187",
+    "imageId": "0x1000000000000000000000000000000000000000000000000000000000000000"
+  }
+} 

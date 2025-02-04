@@ -7,7 +7,7 @@ import {Script, console} from "forge-std/Script.sol";
 // forge script script/deployers/DeployCounter.s.sol:DeployCounter --slow --rpc-url <> --broadcast
 contract DeployCounter is Script {
     function run() public {
-        uint256 key = vm.envUint("PRIVATE_KEY");
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
         address created = address(new Counter());
