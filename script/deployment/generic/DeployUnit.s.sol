@@ -16,7 +16,7 @@ import {DeployBase} from "script/deployers/DeployBase.sol";
  */
 contract DeployUnit is Script, DeployBase {
     function run() public returns (address) {
-        uint256 key = vm.envUint("PRIVATE_KEY");
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
         address owner = vm.envAddress("OWNER");

@@ -39,10 +39,7 @@ abstract contract Pauser_Unit_Shared is Base_Unit_Test {
             address(verifierMock),
             address(roles)
         );
-        ERC1967Proxy proxy = new ERC1967Proxy(
-            address(implementation),
-            initData
-        );
+        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), initData);
         mWethHost = mErc20Host(address(proxy));
         vm.label(address(mWethHost), "mWethHost");
 
@@ -55,10 +52,7 @@ abstract contract Pauser_Unit_Shared is Base_Unit_Test {
             address(roles),
             address(verifierMock)
         );
-        ERC1967Proxy gatewayProxy = new ERC1967Proxy(
-            address(gatewayImpl),
-            gatewayInitData
-        );
+        ERC1967Proxy gatewayProxy = new ERC1967Proxy(address(gatewayImpl), gatewayInitData);
         mWethExtension = mTokenGateway(address(gatewayProxy));
         vm.label(address(mWethExtension), "mWethExtension");
 

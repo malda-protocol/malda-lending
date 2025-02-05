@@ -13,7 +13,7 @@ contract CounterCreate3Script is Script {
     }
 
     function run() public {
-        uint256 key = vm.envUint("PRIVATE_KEY");
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
         bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT"))));

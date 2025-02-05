@@ -3,7 +3,7 @@ pragma solidity =0.8.28;
 
 import {Pauser} from "src/pauser/Pauser.sol";
 import {Script, console} from "forge-std/Script.sol";
-import {DeployBase} from "script/deployers/DeployBase.sol";
+import {Deployer} from "src/utils/Deployer.sol";
 
 /**
  * forge script DeployPauser \
@@ -14,21 +14,26 @@ import {DeployBase} from "script/deployers/DeployBase.sol";
  *     --etherscan-api-key <key> \
  *     --broadcast
  */
-contract DeployPauser is Script, DeployBase {
-    function run(address roles, address operator) public returns (address) {
-        uint256 key = vm.envUint("PRIVATE_KEY");
-        vm.startBroadcast(key);
+contract DeployPauser is Script {
+    function run(Deployer deployer, address roles, address operator) public returns (address) {
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         address owner = vm.envAddress("OWNER");
-
         bytes32 salt = getSalt("Pauser");
+
+        vm.startBroadcast(key);
         address created =
             deployer.create(salt, abi.encodePacked(type(Pauser).creationCode, abi.encode(roles, operator, owner)));
-
-        console.log(" Pauser deployed at: %s", created);
-
         vm.stopBroadcast();
 
+        console.log("Pauser deployed at: %s", created);
+
         return created;
+    }
+
+    function getSalt(string memory name) internal view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+        );
     }
 }
