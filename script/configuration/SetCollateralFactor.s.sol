@@ -6,7 +6,7 @@ import {Script, console} from "forge-std/Script.sol";
 
 contract SetCollateralFactor is Script {
     function run(address market, uint256 factor) public virtual {
-        uint256 key = vm.envUint("PRIVATE_KEY");
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
         address operator = vm.envAddress("Operator");
