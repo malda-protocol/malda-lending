@@ -6,7 +6,7 @@ import {stdJson} from "forge-std/StdJson.sol";
 import {DeployBase} from "../deployers/DeployBase.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 import {DeployConfig, Market, Role, InterestConfig} from "../deployers/Types.sol";
-
+import {DeployDeployer} from "../deployers/DeployDeployer.s.sol";
 import {DeployRbac} from "./generic/DeployRbac.s.sol";
 import {DeployPauser} from "./generic/DeployPauser.s.sol";
 import {DeployOperator} from "./markets/DeployOperator.s.sol";
@@ -43,6 +43,9 @@ contract DeployProtocol is DeployBase {
     address public mTokenHostImplementation;
     address public mTokenGatewayImplementation;
 
+    Deployer deployer;
+
+    DeployDeployer deployDeployer;
     DeployRbac deployRbac;
     DeployBatchSubmitter deployBatchSubmitter;
     DeployJumpRateModelV4 deployInterest;
@@ -69,14 +72,14 @@ contract DeployProtocol is DeployBase {
             // Create fork for this network
             forks[network] = vm.createSelectFork(network);
 
-            _deployCreate3Deployer(network);
-
+            deployDeployer = new DeployDeployer();
             deployRbac = new DeployRbac();
             deployBatchSubmitter = new DeployBatchSubmitter();
 
+            deployer = Deployer(payable(_deployDeployer(network)));
             address rolesContract = _deployRoles();
             address batchSubmitter =
-                _deployBatchSubmitter(deployer, rolesContract, configs[network].zkVerifier.verifierAddress);
+                _deployBatchSubmitter(rolesContract, configs[network].zkVerifier.verifierAddress);
 
             if (configs[network].isHost) {
                 deployInterest = new DeployJumpRateModelV4();
@@ -277,6 +280,10 @@ contract DeployProtocol is DeployBase {
         console.log("ZK image ID set up");
     }
 
+    function _deployDeployer(string memory network) internal returns (address) {
+        return deployDeployer.run(configs[network].chainId, configs[network].deployer.owner, configs[network].deployer.salt);
+    }
+
     function _deployRoles() internal returns (address) {
         console.log("Deploying roles");
         address returnedRoles = deployRbac.run(deployer);
@@ -285,7 +292,7 @@ contract DeployProtocol is DeployBase {
         return returnedRoles;
     }
 
-    function _deployBatchSubmitter(Deployer deployer, address rolesContract, address zkVerifier)
+    function _deployBatchSubmitter(address rolesContract, address zkVerifier)
         internal
         returns (address)
     {
@@ -409,9 +416,11 @@ contract DeployProtocol is DeployBase {
 
     function _setupZkImageId(address market, address batchSubmitter, bytes32 imageId, bool isHost) internal {
         // Set image ID for batch submitter
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        BatchSubmitter(batchSubmitter).setImageId(imageId);
-        vm.stopBroadcast();
+        if(BatchSubmitter(batchSubmitter).imageId() != imageId) {
+            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+            BatchSubmitter(batchSubmitter).setImageId(imageId);
+            vm.stopBroadcast();
+        }
 
         // Set image ID for market
         if (isHost) {
