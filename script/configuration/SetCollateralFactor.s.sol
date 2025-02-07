@@ -10,7 +10,7 @@ contract SetCollateralFactor is Script {
 
         console.log("Setting collateral factor for market", market);
 
-       (, uint256 currentFactor,) = Operator(operator).markets(market);
+        (, uint256 currentFactor,) = Operator(operator).markets(market);
 
         if (currentFactor == factor) {
             console.log("Collateral factor already set");

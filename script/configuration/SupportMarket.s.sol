@@ -10,7 +10,7 @@ contract SupportMarket is Script {
 
         console.log("Supporting market", market);
 
-        (bool isListed, , ) = Operator(operator).markets(market);
+        (bool isListed,,) = Operator(operator).markets(market);
 
         if (isListed) {
             console.log("Market already supported");
