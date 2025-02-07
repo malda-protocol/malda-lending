@@ -20,15 +20,21 @@ contract DeployRewardDistributor is Script {
 
         bytes32 salt = getSalt("RewardDistributor");
 
+        console.log("Deploying RewardDistributor");
+
         vm.startBroadcast(key);
         address created = deployer.create(salt, type(RewardDistributor).creationCode);
         vm.stopBroadcast();
+
+        console.log("RewardDistributor deployed at: %s", created);
+
+        console.log("Initializing RewardDistributor");
 
         vm.startBroadcast(key);
         RewardDistributor(created).initialize(owner);
         vm.stopBroadcast();
 
-        console.log("RewardDistributor deployed (and initialized) at: %s", created);
+        console.log("RewardDistributor initialized at: %s", created);
 
         return created;
     }

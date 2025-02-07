@@ -15,10 +15,12 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployPauser is Script {
-    function run(Deployer deployer, address roles, address operator) public returns (address) {
+    function run(Deployer deployer, address roles, address operator, address owner) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         bytes32 salt = getSalt("Pauser");
+
+        console.log("Deploying Pauser");
 
         vm.startBroadcast(key);
         address created =

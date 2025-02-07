@@ -8,9 +8,11 @@ contract SetCollateralFactor is Script {
     function run(address operator, address market, uint256 factor) public virtual {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        console.log("Setting collateral factor");
+        console.log("Setting collateral factor for market", market);
 
-        if (Operator(operator).markets(market).collateralFactorMantissa == factor) {
+       (, uint256 currentFactor,) = Operator(operator).markets(market);
+
+        if (currentFactor == factor) {
             console.log("Collateral factor already set");
             return;
         }
@@ -19,6 +21,6 @@ contract SetCollateralFactor is Script {
         Operator(operator).setCollateralFactor(market, factor);
         vm.stopBroadcast();
 
-        console.log("Set collateral factor:", factor, "for market:", market);
+        console.log("Set collateral factor for market", market);
     }
 }

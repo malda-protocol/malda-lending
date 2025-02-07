@@ -13,6 +13,8 @@ contract SetBorrowCap is Script {
         mTokens[0] = market;
         caps[0] = cap;
 
+        console.log("Setting borrow cap for market", market);
+
         if (Operator(operator).borrowCaps(market) == cap) {
             console.log("Borrow cap already set");
             return;
@@ -22,6 +24,6 @@ contract SetBorrowCap is Script {
         Operator(operator).setMarketBorrowCaps(mTokens, caps);
         vm.stopBroadcast();
 
-        console.log("Borrow cap set for market %s", market);
+        console.log("Borrow cap set for market", market);
     }
 }

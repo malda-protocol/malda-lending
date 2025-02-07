@@ -18,7 +18,7 @@ contract DeployRbac is Script {
     function run(Deployer _deployer, address owner) public returns (address) {
         bytes32 salt = getSalt("Roles");
 
-        console.log("Deploying Rbac...");
+        console.log("Deploying Rbac");
 
         vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
         address created = _deployer.create(salt, abi.encodePacked(type(Roles).creationCode, abi.encode(owner)));

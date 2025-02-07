@@ -7,9 +7,9 @@ import {Script, console} from "forge-std/Script.sol";
 
 contract SetOperatorInRewardDistributor is Script {
     function run(address operator, address rewardDistributor) public {
-        console.log("Setting operator %s for reward distributor %s", operator, rewardDistributor);
-
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+
+        console.log("Setting operator %s for reward distributor %s", operator, rewardDistributor);
 
         if (RewardDistributor(rewardDistributor).operator() == operator) {
             console.log("Operator already set");

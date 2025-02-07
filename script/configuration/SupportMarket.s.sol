@@ -8,9 +8,11 @@ contract SupportMarket is Script {
     function run(address operator, address market) public virtual {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        console.log("Supporting market");
+        console.log("Supporting market", market);
 
-        if (Operator(operator).markets(market).isListed) {
+        (bool isListed, , ) = Operator(operator).markets(market);
+
+        if (isListed) {
             console.log("Market already supported");
             return;
         }

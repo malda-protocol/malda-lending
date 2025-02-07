@@ -173,7 +173,6 @@ contract DeployProtocol is DeployBase {
 
         // Deploy interest model only for host chain
         if (isHost) {
-            console.log("Deploying interest model");
             interestModel = _deployInterestModel(market.interestModel);
         }
 
@@ -201,7 +200,7 @@ contract DeployProtocol is DeployBase {
 
         // Configure market if host chain
         if (isHost) {
-            console.log("Configuring market");
+            console.log("Configuring market", marketAddress);
             _configureMarket(
                 operator,
                 marketAddress,
@@ -222,18 +221,11 @@ contract DeployProtocol is DeployBase {
     }
 
     function _deployRoles(address owner) internal returns (address) {
-        console.log("Deploying roles");
-        address returnedRoles = deployRbac.run(deployer, owner);
-
-        console.log("Roles deployed at:", returnedRoles);
-        return returnedRoles;
+        return deployRbac.run(deployer, owner);
     }
 
     function _deployBatchSubmitter(address rolesContract, address zkVerifier) internal returns (address) {
-        console.log("Deploying batch submitter");
-        address returnedBatchSubmitter = deployBatchSubmitter.run(deployer, rolesContract, zkVerifier, owner);
-        console.log("Batch submitter deployed at:", returnedBatchSubmitter);
-        return returnedBatchSubmitter;
+        return deployBatchSubmitter.run(deployer, rolesContract, zkVerifier, owner);
     }
 
     function _deployRewardDistributor() internal returns (address) {

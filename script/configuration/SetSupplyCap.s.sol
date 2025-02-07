@@ -14,6 +14,8 @@ contract SetSupplyCap is Script {
         mTokens[0] = market;
         caps[0] = cap;
 
+        console.log("Setting supply cap for market", market);
+
         if (Operator(operator).supplyCaps(market) == cap) {
             console.log("Supply cap already set");
             return;

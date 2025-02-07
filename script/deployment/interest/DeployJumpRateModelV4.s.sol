@@ -29,6 +29,9 @@ contract DeployJumpRateModelV4 is Script {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         bytes32 salt = getSalt(string.concat(data.name, "JumpRateModelV4"));
+
+        console.log("Deploying JumpRateModelV4 for %s", data.name);
+        
         vm.startBroadcast(key);
         address created = deployer.create(
             salt,

@@ -32,6 +32,8 @@ contract DeployExtensionMarket is Script {
 
         address implementation = deployer.precompute(implSalt);
 
+        console.log("Deploying mTokenGateway implementation");
+
         // Check if implementation already exists
         if (implementation.code.length > 0) {
             console.log("Implementation already exists at ", implementation);

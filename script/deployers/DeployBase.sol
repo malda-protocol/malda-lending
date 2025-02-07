@@ -52,16 +52,6 @@ contract DeployBase is Script {
             config.markets.push(markets[i]);
         }
 
-        console.log("borrow cap", config.markets[0].borrowCap);
-        console.log("supply cap", config.markets[0].supplyCap);
-        console.log("collateral factor", config.markets[0].collateralFactor);
-        console.log("interest model", config.markets[0].interestModel.baseRate);
-        console.log("interest model", config.markets[0].interestModel.multiplier);
-        console.log("interest model", config.markets[0].interestModel.jumpMultiplier);
-        console.log("interest model", config.markets[0].interestModel.kink);
-        console.log("interest model", config.markets[0].interestModel.blocksPerYear);
-        console.log("interest model", config.markets[0].interestModel.name);
-
         // Parse zkVerifier config
         config.zkVerifier.verifierAddress =
             abi.decode(json.parseRaw(string.concat(networkPath, ".zkVerifier.verifierAddress")), (address));

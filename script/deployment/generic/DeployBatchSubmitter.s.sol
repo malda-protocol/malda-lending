@@ -22,7 +22,7 @@ contract DeployBatchSubmitter is Script {
 
         bytes32 salt = getSalt("BatchSubmitter");
 
-        console.log("Deploying BatchSubmitter...");
+        console.log("Deploying BatchSubmitter");
 
         vm.startBroadcast(key);
         address created = deployer.create(

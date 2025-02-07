@@ -9,7 +9,7 @@ contract SetBorrowRateMaxMantissa is Script {
     function run(address market, uint256 borrowRateMaxMantissa) public virtual {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        console.log("Setting borrow rate max mantissa");
+        console.log("Setting borrow rate max mantissa for market", market);
 
         if (mTokenConfiguration(market).borrowRateMaxMantissa() == borrowRateMaxMantissa) {
             console.log("Borrow rate max mantissa already set");
@@ -24,6 +24,6 @@ contract SetBorrowRateMaxMantissa is Script {
 
         require(success, "Failed to set borrow rate max mantissa");
 
-        console.log("Set borrow rate max mantissa:", borrowRateMaxMantissa, "for market:", market);
+        console.log("Set borrow rate max mantissa for market", market);
     }
 }

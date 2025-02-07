@@ -38,6 +38,8 @@ contract DeployHostMarket is Script {
 
         address implementation = deployer.precompute(implSalt);
 
+        console.log("Deploying mErc20Host implementation");
+
         // Check if implementation already exists
         if (implementation.code.length > 0) {
             console.log("Implementation already exists at ", implementation);
