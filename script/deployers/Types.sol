@@ -1,6 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
+struct RebalancersDeployConfig {
+    uint32 chainId;
+    address deployer;
+    address roles;
+    RebalancerBridges bridges;
+}
+struct RebalancerBridges {
+    RebalancerEverclearBridge everclear;
+}
+struct RebalancerEverclearBridge {
+    address spoke;
+}
+
 struct DeployConfig {
     DeployerConfig deployer;
     uint32 chainId;

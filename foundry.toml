@@ -2,6 +2,7 @@
   libs = ['node_modules', 'lib']
   out = "out"
   src = "src"
+  ffi = true
 
   evm_version = 'london'
   optimizer = true
@@ -22,6 +23,7 @@
     { access = "read", path = "./deployment-config.sepolia.json" },
     { access = "read", path = "./deployment-config.op.json" },
     { access = "read", path = "./deployment-config.linea.json" },
+    { access = "read", path = "./deployment-rebalancer-config.json" },
   ]
 
 [rpc_endpoints]

@@ -19,14 +19,17 @@ contract DeployPauser is Script {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         address owner = vm.envAddress("OWNER");
-        bytes32 salt = getSalt("Pauser");
+        bytes32 salt = getSalt("PauserV0");
 
         vm.startBroadcast(key);
         address created =
             deployer.create(salt, abi.encodePacked(type(Pauser).creationCode, abi.encode(roles, operator, owner)));
         vm.stopBroadcast();
-
         console.log("Pauser deployed at: %s", created);
+
+        // set PAUSE_MANAGER for owner
+        // set GUARDIAN_PAUSE for `created`
+
 
         return created;
     }

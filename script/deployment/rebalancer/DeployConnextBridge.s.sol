@@ -2,7 +2,6 @@
 pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
-import {DeployBase} from "script/deployers/DeployBase.sol";
 import {ConnextBridge} from "src/rebalancer/bridges/ConnextBridge.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 
@@ -16,20 +15,17 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --etherscan-api-key <key> \
  *     --broadcast
  */
-contract DeployConnextBridge is Script, DeployBase {
-    function run(address roles, address connext, address payable _deployer) public returns (address) {
-        deployer = Deployer(_deployer);
-        uint256 key = vm.envUint("PRIVATE_KEY");
-        vm.startBroadcast(key);
+contract DeployConnextBridge is Script {
+    function run(address roles, address connext, address _deployer) public returns (address) {
+        bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("ConnextBridge")));
+        Deployer deployer = Deployer(payable(_deployer));
 
-        bytes32 salt = getSalt("ConnextBridge");
+        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
         address created =
             deployer.create(salt, abi.encodePacked(type(ConnextBridge).creationCode, abi.encode(roles, connext)));
-
-        console.log(" ConnextBridge deployed at: %s", created);
-
         vm.stopBroadcast();
 
+        console.log(" ConnextBridge deployed at: %s", created);
         return created;
     }
 }

@@ -26,7 +26,7 @@ contract DeployOperator is Script {
         address owner = vm.envAddress("OWNER");
 
         // Deploy implementation (Operator)
-        bytes32 implSalt = getSalt("OperatorImplementation");
+        bytes32 implSalt = getSalt("OperatorImplementationWithUnitV0");
         vm.startBroadcast(key);
         address implementation = deployer.create(
             implSalt, abi.encodePacked(type(Operator).creationCode, abi.encode(rolesContract, rewardDistributor, owner))
@@ -35,7 +35,7 @@ contract DeployOperator is Script {
         console.log("Operator implementation deployed at:", implementation);
 
         // Deploy proxy (Unit)
-        bytes32 proxySalt = getSalt("OperatorProxy");
+        bytes32 proxySalt = getSalt("OperatorProxyAsUnitV0");
         vm.startBroadcast(key);
         address proxy = deployer.create(proxySalt, abi.encodePacked(type(Unit).creationCode, abi.encode(owner)));
         vm.stopBroadcast();

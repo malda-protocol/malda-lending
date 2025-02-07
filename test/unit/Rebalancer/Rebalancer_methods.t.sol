@@ -4,10 +4,22 @@ pragma solidity =0.8.28;
 import {IRebalancer, IRebalanceMarket} from "src/interfaces/IRebalancer.sol";
 import {Rebalancer_Unit_Shared} from "../shared/Rebalancer_Unit_Shared.t.sol";
 
+import "forge-std/console.sol";
+
 contract Rebalancer_methods is Rebalancer_Unit_Shared {
     modifier givenSenderDoesNotHaveGUARDIAN_BRIDGERole() {
         //does nothing; for readability only
         _;
+    }
+
+    function test_encodeTest() external {
+     // decode message & checks
+        address market = 0x8Ef9d2057Fed09Fd18cbF393D789C6507CD3E875;
+        address outputAsset = 0x4200000000000000000000000000000000000006;
+        uint256 amount = 1e16;
+        bytes memory data = "";
+        bytes memory btw = abi.encode(market, outputAsset, amount, data);
+        console.logBytes(btw);
     }
 
     function test_WhenSetWhitelistedBridgeStatusIsCalledWithTrue() external givenSenderDoesNotHaveGUARDIAN_BRIDGERole {

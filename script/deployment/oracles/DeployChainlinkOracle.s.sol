@@ -32,7 +32,7 @@ contract DeployChainlinkOracle is Script, DeployBase {
         bytes32 salt = getSalt("ChainlinkOracle");
         address created = deployer.create(
             salt, abi.encodePacked(type(ChainlinkOracle).creationCode, abi.encode(symbols, feeds, baseUnits))
-        );
+        );                                          
 
         console.log(" ChainlinkOracle deployed at: %s", created);
 
