@@ -12,6 +12,8 @@
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
     "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
     "risc0/=lib/risc0-ethereum/contracts/src/",
+    "forge-std/=lib/forge-std/src/",
+    "mendi/=lib/lending-protocol/contracts/",
   ]
 
   # forge-deploy
@@ -19,9 +21,6 @@
     { access = "read-write", path = "./deployments" },
     { access = "read", path = "./out" },
     { access = "read", path = "./deployment-config.json" },
-    { access = "read", path = "./deployment-config.sepolia.json" },
-    { access = "read", path = "./deployment-config.op.json" },
-    { access = "read", path = "./deployment-config.linea.json" },
   ]
 
 [rpc_endpoints]

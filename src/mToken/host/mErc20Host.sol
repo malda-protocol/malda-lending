@@ -23,8 +23,27 @@ import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {IRoles} from "src/interfaces/IRoles.sol";
 
+import {Migrator} from "src/migration/Migrator.sol";
+
 contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperationTypes {
     using SafeERC20 for IERC20;
+
+    // Add flash mint events
+    event FlashMint(address indexed receiver, uint256 amount);
+    event FlashMintRepaid(address indexed receiver, uint256 amount);
+
+    // Add flash mint callback success constant
+    bytes4 private constant FLASH_MINT_CALLBACK_SUCCESS = 
+        bytes4(keccak256("onFlashMint(address,uint256,bytes)"));
+
+    // Add migrator address
+    address public migrator;
+
+    // Add modifier for migrator only
+    modifier onlyMigrator() {
+        require(msg.sender == migrator, mErc20Host_CallerNotAllowed());
+        _;
+    }
 
     // ----------- STORAGE ------------
     mapping(uint32 => mapping(address => uint256)) public accAmountInPerChain;
@@ -128,6 +147,15 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     function extractForRebalancing(uint256 amount) external {
         if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mErc20Host_NotRebalancer();
         IERC20(underlying).safeTransfer(msg.sender, amount);
+    }
+
+    /**
+     * @notice Sets the migrator address
+     * @param _migrator The new migrator address
+     */
+    function setMigrator(address _migrator) external onlyAdmin {
+        require(_migrator != address(0), mErc20Host_AddressNotValid());
+        migrator = _migrator;
     }
 
     // ----------- PUBLIC ------------
@@ -243,6 +271,38 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         _borrow(msg.sender, amount, false);
 
         emit mErc20Host_BorrowOnExternsionChain(msg.sender, dstChainId, amount);
+    }
+
+    /**
+     * @notice Allows flash minting of tokens for migration
+     * @param amount The amount of tokens to flash mint
+     * @param data Arbitrary data to pass to the callback
+     */
+    function flashMint(uint256 amount, bytes calldata data) external onlyMigrator {
+        require(amount > 0, mErc20Host_AmountNotValid());
+        
+        // Get the underlying token
+        IERC20 token = IERC20(underlying);
+        
+        // Transfer tokens to the caller
+        token.safeTransfer(msg.sender, amount);
+        emit FlashMint(msg.sender, amount);
+
+        // Invoke callback
+        bytes4 callbackSuccess = IFlashMintCallback(msg.sender).onFlashMint(
+            address(token),
+            amount,
+            data
+        );
+        require(callbackSuccess == FLASH_MINT_CALLBACK_SUCCESS, mErc20Host_CallerNotAllowed());
+
+        // Get tokens back
+        uint256 balanceBefore = token.balanceOf(address(this));
+        token.safeTransferFrom(msg.sender, address(this), amount);
+        uint256 balanceAfter = token.balanceOf(address(this));
+        
+        require(balanceAfter == balanceBefore + amount, mErc20Host_AmountNotValid());
+        emit FlashMintRepaid(msg.sender, amount);
     }
 
     // ----------- PRIVATE ------------
