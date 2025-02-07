@@ -35,10 +35,8 @@ contract DeployBase is Script {
         config.isHost = abi.decode(json.parseRaw(string.concat(networkPath, ".isHost")), (bool));
 
         // Parse deployer config
-        DeployerConfig memory deployerConfig = abi.decode(
-            json.parseRaw(string.concat(networkPath, ".deployer")),
-            (DeployerConfig)
-        );
+        DeployerConfig memory deployerConfig =
+            abi.decode(json.parseRaw(string.concat(networkPath, ".deployer")), (DeployerConfig));
         config.deployer = deployerConfig;
 
         // Parse roles

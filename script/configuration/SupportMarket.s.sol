@@ -5,15 +5,15 @@ import {Operator} from "src/Operator/Operator.sol";
 import {Script, console} from "forge-std/Script.sol";
 
 contract SupportMarket is Script {
-    function run(address market) public virtual {
+    function run(address operator, address market) public virtual {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+
+        console.log("Supporting market");
+
         vm.startBroadcast(key);
-
-        address operator = vm.envAddress("Operator");
         Operator(operator).supportMarket(market);
-
-        console.log(" Market %s added", market);
-
         vm.stopBroadcast();
+
+        console.log("Supported market:", market);
     }
 }

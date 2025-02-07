@@ -12,6 +12,7 @@
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
     "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
     "risc0/=lib/risc0-ethereum/contracts/src/",
+    "forge-std/=lib/forge-std/src/",
   ]
 
   # forge-deploy

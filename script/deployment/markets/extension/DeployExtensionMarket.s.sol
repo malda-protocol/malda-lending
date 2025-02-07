@@ -4,7 +4,7 @@ pragma solidity =0.8.28;
 import {Script, console} from "forge-std/Script.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 /**
  * forge script DeployExtensionMarket  \
@@ -17,41 +17,50 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
  *     --broadcast
  */
 contract DeployExtensionMarket is Script {
-    struct GatewayData {
-        address underlyingToken;
-        address roles;
-        address zkVerifier;
-    }
-
-    function run(Deployer deployer, GatewayData memory data) public returns (address) {
+    function run(
+        Deployer deployer,
+        address underlyingToken,
+        string calldata name,
+        address owner,
+        address zkVerifier,
+        address roles
+    ) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        address owner = vm.envAddress("OWNER");
-
         // Deploy implementation
-        bytes32 implSalt =
-            getSalt(string.concat("mTokenGatewayImplementation", string(abi.encodePacked(data.underlyingToken))));
+        bytes32 implSalt = getSalt("mTokenGateway-implementation");
 
-        vm.startBroadcast(key);
-        address implementation = deployer.create(implSalt, type(mTokenGateway).creationCode);
-        vm.stopBroadcast();
+        address implementation = deployer.precompute(implSalt);
 
-        console.log("Implementation deployed at:", implementation);
+        // Check if implementation already exists
+        if (implementation.code.length > 0) {
+            console.log("Implementation already exists at ", implementation);
+        } else {
+            vm.startBroadcast(key);
+            deployer.create(implSalt, type(mTokenGateway).creationCode);
+            vm.stopBroadcast();
+
+            console.log("Extension implementation deployed at:", implementation);
+        }
 
         // Prepare initialization data
         bytes memory initData = abi.encodeWithSelector(
-            mTokenGateway.initialize.selector, payable(owner), data.underlyingToken, data.roles, data.zkVerifier
+            mTokenGateway.initialize.selector, payable(owner), underlyingToken, roles, zkVerifier
         );
 
         // Deploy proxy
-        bytes32 proxySalt = getSalt(string.concat("mTokenGatewayProxy", string(abi.encodePacked(data.underlyingToken))));
+        bytes32 proxySalt = getSalt(name);
+
         vm.startBroadcast(key);
         address proxy = deployer.create(
-            proxySalt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initData))
+            proxySalt,
+            abi.encodePacked(
+                type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, owner, initData)
+            )
         );
         vm.stopBroadcast();
 
-        console.log("Proxy deployed at:", proxy);
+        console.log("Market deployed at:", proxy);
 
         return proxy;
     }

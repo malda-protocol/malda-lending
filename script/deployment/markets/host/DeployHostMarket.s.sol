@@ -4,7 +4,7 @@ pragma solidity =0.8.28;
 import {Script, console} from "forge-std/Script.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 /**
  * forge script DeployHostMarket  \
@@ -25,45 +25,58 @@ contract DeployHostMarket is Script {
         string name;
         string symbol;
         uint8 decimals;
+        address owner;
         address zkVerifier;
         address roles;
     }
 
-    function run(Deployer deployer, MarketData memory data) public returns (address) {
+    function run(Deployer deployer, MarketData memory marketData) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        address owner = vm.envAddress("OWNER");
-
         // Deploy implementation
-        bytes32 implSalt = getSalt(string.concat("mErc20HostImplementation", data.name));
-        vm.startBroadcast(key);
-        address implementation = deployer.create(implSalt, type(mErc20Host).creationCode);
-        vm.stopBroadcast();
-        console.log("Implementation deployed at:", implementation);
+        bytes32 implSalt = getSalt("mTokenHost-implementation");
+
+        address implementation = deployer.precompute(implSalt);
+
+        // Check if implementation already exists
+        if (implementation.code.length > 0) {
+            console.log("Implementation already exists at ", implementation);
+        } else {
+            vm.startBroadcast(key);
+            deployer.create(implSalt, type(mErc20Host).creationCode);
+            vm.stopBroadcast();
+
+            console.log("Host implementation deployed at:", implementation);
+        }
 
         // Prepare initialization data
         bytes memory initData = abi.encodeWithSelector(
             mErc20Host.initialize.selector,
-            data.underlyingToken,
-            data.operator,
-            data.interestModel,
-            data.exchangeRateMantissa,
-            data.name,
-            data.symbol,
-            data.decimals,
-            owner,
-            data.zkVerifier
+            marketData.underlyingToken,
+            marketData.operator,
+            marketData.interestModel,
+            marketData.exchangeRateMantissa,
+            marketData.name,
+            marketData.symbol,
+            marketData.decimals,
+            marketData.owner,
+            marketData.zkVerifier,
+            marketData.roles
         );
 
         // Deploy proxy
-        bytes32 proxySalt = getSalt(string.concat("mErc20HostProxy", data.name));
+        bytes32 proxySalt = getSalt(marketData.name);
+
         vm.startBroadcast(key);
         address proxy = deployer.create(
-            proxySalt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initData))
+            proxySalt,
+            abi.encodePacked(
+                type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, marketData.owner, initData)
+            )
         );
         vm.stopBroadcast();
 
-        console.log("Proxy deployed at:", proxy);
+        console.log("Market deployed at:", proxy);
 
         return proxy;
     }

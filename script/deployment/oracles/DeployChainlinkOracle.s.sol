@@ -2,7 +2,7 @@
 pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
-import {DeployBase} from "script/deployers/DeployBase.sol";
+import {Deployer} from "src/utils/Deployer.sol";
 import {ChainlinkOracle} from "src/oracles/ChainlinkOracle.sol";
 import {IAggregatorV3} from "src/interfaces/external/chainlink/IAggregatorV3.sol";
 
@@ -15,8 +15,8 @@ import {IAggregatorV3} from "src/interfaces/external/chainlink/IAggregatorV3.sol
  *     --etherscan-api-key <key> \
  *     --broadcast
  */
-contract DeployChainlinkOracle is Script, DeployBase {
-    function run() public returns (address) {
+contract DeployChainlinkOracle is Script {
+    function run(Deployer deployer) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
@@ -39,5 +39,11 @@ contract DeployChainlinkOracle is Script, DeployBase {
         vm.stopBroadcast();
 
         return created;
+    }
+
+    function getSalt(string memory name) internal view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+        );
     }
 }

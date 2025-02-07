@@ -5,15 +5,15 @@ import {Operator} from "src/Operator/Operator.sol";
 import {Script, console} from "forge-std/Script.sol";
 
 contract SetCollateralFactor is Script {
-    function run(address market, uint256 factor) public virtual {
+    function run(address operator, address market, uint256 factor) public virtual {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+
+        console.log("Setting collateral factor");
+
         vm.startBroadcast(key);
-
-        address operator = vm.envAddress("Operator");
         Operator(operator).setCollateralFactor(market, factor);
-
-        console.log(" Set collateral factor %s for market %s", factor, market);
-
         vm.stopBroadcast();
+
+        console.log("Set collateral factor:", factor, "for market:", market);
     }
 }
