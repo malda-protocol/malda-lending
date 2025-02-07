@@ -41,7 +41,7 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     mapping(address => uint256) public accAmountOut;
     mapping(address => mapping(address => bool)) public allowedCallers;
 
-    uint32 private constant LINEA_CHAIN_ID = 59141;
+    uint32 private constant LINEA_CHAIN_ID = 59144;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
