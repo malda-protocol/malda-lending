@@ -17,13 +17,11 @@ import {Unit} from "src/Operator/Unit.sol";
  *     --broadcast
  */
 contract DeployOperator is Script {
-    function run(Deployer deployer, address oracle, address rewardDistributor, address rolesContract)
+    function run(Deployer deployer, address oracle, address rewardDistributor, address rolesContract, address owner)
         public
         returns (address)
     {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-
-        address owner = vm.envAddress("OWNER");
 
         // Deploy implementation (Operator)
         bytes32 implSalt = getSalt("OperatorImplementation");

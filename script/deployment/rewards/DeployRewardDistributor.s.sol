@@ -15,10 +15,8 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployRewardDistributor is Script {
-    function run(Deployer deployer) public returns (address) {
+    function run(Deployer deployer, address owner) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-
-        address owner = vm.envAddress("OWNER");
 
         bytes32 salt = getSalt("RewardDistributor");
 

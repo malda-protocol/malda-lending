@@ -8,6 +8,11 @@ contract UpdateAllowedChains is Script {
     function run(address market, uint32 chainId, bool isAllowed) public virtual {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
+        if (mErc20Host(market).allowedChains(chainId) == isAllowed) {
+            console.log("Allowed chain already set");
+            return;
+        }
+
         vm.startBroadcast(key);
         mErc20Host(market).updateAllowedChain(chainId, isAllowed);
         vm.stopBroadcast();

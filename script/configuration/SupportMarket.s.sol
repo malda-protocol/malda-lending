@@ -10,6 +10,11 @@ contract SupportMarket is Script {
 
         console.log("Supporting market");
 
+        if (Operator(operator).markets(market).isListed) {
+            console.log("Market already supported");
+            return;
+        }
+
         vm.startBroadcast(key);
         Operator(operator).supportMarket(market);
         vm.stopBroadcast();

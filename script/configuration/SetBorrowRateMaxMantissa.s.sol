@@ -2,6 +2,7 @@
 pragma solidity =0.8.28;
 
 import {mTokenConfiguration} from "../../src/mToken/mTokenConfiguration.sol";
+
 import {Script, console} from "forge-std/Script.sol";
 
 contract SetBorrowRateMaxMantissa is Script {
@@ -9,6 +10,11 @@ contract SetBorrowRateMaxMantissa is Script {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         console.log("Setting borrow rate max mantissa");
+
+        if (mTokenConfiguration(market).borrowRateMaxMantissa() == borrowRateMaxMantissa) {
+            console.log("Borrow rate max mantissa already set");
+            return;
+        }
 
         vm.startBroadcast(key);
         (bool success,) = market.call{gas: 120000}(

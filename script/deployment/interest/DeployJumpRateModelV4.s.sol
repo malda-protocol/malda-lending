@@ -25,7 +25,7 @@ contract DeployJumpRateModelV4 is Script {
         uint256 jumpMultiplierPerYear;
     }
 
-    function run(Deployer deployer, InterestData memory data) public returns (address) {
+    function run(Deployer deployer, InterestData memory data, address owner) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         bytes32 salt = getSalt(string.concat(data.name, "JumpRateModelV4"));
@@ -40,7 +40,7 @@ contract DeployJumpRateModelV4 is Script {
                     data.multiplierPerYear,
                     data.jumpMultiplierPerYear,
                     data.kink,
-                    vm.envAddress("OWNER"),
+                    owner,
                     data.name
                 )
             )

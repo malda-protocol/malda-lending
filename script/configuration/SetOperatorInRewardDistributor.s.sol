@@ -11,6 +11,11 @@ contract SetOperatorInRewardDistributor is Script {
 
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
+        if (RewardDistributor(rewardDistributor).operator() == operator) {
+            console.log("Operator already set");
+            return;
+        }
+
         vm.startBroadcast(key);
         RewardDistributor(rewardDistributor).setOperator(operator);
         vm.stopBroadcast();

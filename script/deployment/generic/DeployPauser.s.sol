@@ -18,7 +18,6 @@ contract DeployPauser is Script {
     function run(Deployer deployer, address roles, address operator) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        address owner = vm.envAddress("OWNER");
         bytes32 salt = getSalt("Pauser");
 
         vm.startBroadcast(key);

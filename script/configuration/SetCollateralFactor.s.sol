@@ -10,6 +10,11 @@ contract SetCollateralFactor is Script {
 
         console.log("Setting collateral factor");
 
+        if (Operator(operator).markets(market).collateralFactorMantissa == factor) {
+            console.log("Collateral factor already set");
+            return;
+        }
+
         vm.startBroadcast(key);
         Operator(operator).setCollateralFactor(market, factor);
         vm.stopBroadcast();

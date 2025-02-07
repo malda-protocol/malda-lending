@@ -11,6 +11,11 @@ contract SetZkImageId is Script {
 
         console.log("Setting ZK image ID for BatchSubmitter %s", batchSubmitter);
 
+        if (BatchSubmitter(batchSubmitter).imageId() == imageId) {
+            console.log("ZK image ID already set");
+            return;
+        }
+
         vm.startBroadcast(key);
         BatchSubmitter(batchSubmitter).setImageId(imageId);
         vm.stopBroadcast();
@@ -20,9 +25,13 @@ contract SetZkImageId is Script {
         for (uint256 i = 0; i < marketAddresses.length; i++) {
             console.log("Setting ZK image ID for Market %s", marketAddresses[i]);
 
-            vm.startBroadcast(key);
-            mErc20Host(marketAddresses[i]).setImageId(imageId);
-            vm.stopBroadcast();
+            if (mErc20Host(marketAddresses[i]).imageId() == imageId) {
+                console.log("ZK image ID already set");
+            } else {
+                vm.startBroadcast(key);
+                mErc20Host(marketAddresses[i]).setImageId(imageId);
+                vm.stopBroadcast();
+            }
 
             console.log("ZK image ID set for Market %s", marketAddresses[i]);
         }
