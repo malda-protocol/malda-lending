@@ -83,8 +83,8 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     /**
      * @inheritdoc ImTokenGateway
      */
-    function getProofData(address user, uint32) external view returns (bytes memory) {
-        return abi.encodePacked(accAmountIn[user], accAmountOut[user]);
+    function getProofData(address user, uint32) external view returns  (uint256, uint256) {
+        return (accAmountIn[user], accAmountOut[user]);
     }
 
     // ----------- OWNER ------------

@@ -81,8 +81,8 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     /**
      * @inheritdoc ImErc20Host
      */
-    function getProofData(address user, uint32 dstId) external view returns (bytes memory) {
-        return abi.encodePacked(accAmountInPerChain[dstId][user], accAmountOutPerChain[dstId][user]);
+    function getProofData(address user, uint32 dstId) external view returns (uint256, uint256) {
+        return (accAmountInPerChain[dstId][user], accAmountOutPerChain[dstId][user]);
     }
 
     // ----------- OWNER ------------
