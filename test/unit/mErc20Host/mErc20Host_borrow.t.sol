@@ -233,6 +233,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         uint256 balanceUnderlyingBefore = weth.balanceOf(address(this));
         uint256 totalBorrowsBefore = mWethHost.totalBorrows();
 
+        mWethHost.updateAllowedChain(1, true);
         mWethHost.borrowOnExtension(amount, 1);
 
         {
