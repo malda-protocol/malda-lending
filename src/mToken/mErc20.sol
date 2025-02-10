@@ -76,8 +76,12 @@ contract mErc20 is mToken, ImErc20 {
      */
     function sweepToken(IERC20 token) external onlyAdmin {
         require(address(token) != underlying, mErc20_TokenNotValid());
+
+        uint256 underlyingBefore = IERC20(underlying).balanceOf(address(this));
         uint256 balance = token.balanceOf(address(this));
         token.safeTransfer(admin, balance);
+        uint256 underlyingAfter = IERC20(underlying).balanceOf(address(this));
+        require(underlyingBefore == underlyingAfter, mToken_TransferNotValid());
     }
 
     // ----------- MARKET PUBLIC ------------
