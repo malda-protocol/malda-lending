@@ -20,11 +20,17 @@ contract DeployRbac is Script {
 
         console.log("Deploying Rbac");
 
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        address created = _deployer.create(salt, abi.encodePacked(type(Roles).creationCode, abi.encode(owner)));
-        vm.stopBroadcast();
+        address created = _deployer.precompute(salt);
 
-        console.log("Roles(Rbac) deployed at: %s", created);
+        // Deploy only if not already deployed
+        if (created.code.length == 0) {
+            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+            created = _deployer.create(salt, abi.encodePacked(type(Roles).creationCode, abi.encode(owner)));
+            vm.stopBroadcast();
+            console.log("Roles(Rbac) deployed at: %s", created);
+        } else {
+            console.log("Using existing RBAC at: %s", created);
+        }
 
         return created;
     }

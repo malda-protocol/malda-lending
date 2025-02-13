@@ -25,39 +25,50 @@ contract DeployOperator is Script {
 
         // Deploy implementation (Operator)
         bytes32 implSalt = getSalt("OperatorImplementation");
-        vm.startBroadcast(key);
-        address implementation = deployer.create(
-            implSalt, abi.encodePacked(type(Operator).creationCode, abi.encode(rolesContract, rewardDistributor, owner))
-        );
-        vm.stopBroadcast();
-        console.log("Operator implementation deployed at:", implementation);
+
+        address implementation = deployer.precompute(implSalt);
+        if (implementation.code.length > 0) {
+            console.log("Implementation already exists at ", implementation);
+        } else {
+            console.log("Deploying Operator implementation");
+            vm.startBroadcast(key);
+            implementation = deployer.create(
+                implSalt, abi.encodePacked(type(Operator).creationCode, abi.encode(rolesContract, rewardDistributor, owner))
+            );
+            vm.stopBroadcast();
+            console.log("Operator implementation deployed at:", implementation);
+        }
 
         // Deploy proxy (Unit)
         bytes32 proxySalt = getSalt("OperatorProxy");
-        vm.startBroadcast(key);
-        address proxy = deployer.create(proxySalt, abi.encodePacked(type(Unit).creationCode, abi.encode(owner)));
-        vm.stopBroadcast();
-        console.log("Operator proxy (Unit) deployed at:", proxy);
+        address proxy = deployer.precompute(proxySalt);
+        if (proxy.code.length > 0) {
+            console.log("Proxy already exists at ", proxy);
+        } else {
+            console.log("Deploying Operator proxy (Unit)");
+            vm.startBroadcast(key);
+            proxy = deployer.create(proxySalt, abi.encodePacked(type(Unit).creationCode, abi.encode(owner)));
+            vm.stopBroadcast();
+            console.log("Operator proxy (Unit) deployed at:", proxy);
 
-        // Set up the implementation in the proxy
-        vm.startBroadcast(key);
-        Unit(payable(proxy)).setPendingImplementation(implementation);
-        vm.stopBroadcast();
-        vm.startBroadcast(key);
-        Operator(implementation).become(proxy);
-        vm.stopBroadcast();
+            // Set up the implementation in the proxy
+            vm.startBroadcast(key);
+            Unit(payable(proxy)).setPendingImplementation(implementation);
+            vm.stopBroadcast();
+            vm.startBroadcast(key);
+            Operator(implementation).become(proxy);
+            vm.stopBroadcast();
 
-        vm.startBroadcast(key);
-        Operator(proxy).setPriceOracle(oracle);
-        vm.stopBroadcast();
-        console.log("Price oracle set to:", oracle);
+            vm.startBroadcast(key);
+            Operator(proxy).setPriceOracle(oracle);
+            vm.stopBroadcast();
+            console.log("Price oracle set to:", oracle);
 
-        vm.startBroadcast(key);
-        Operator(proxy).setRewardDistributor(rewardDistributor);
-        vm.stopBroadcast();
-        console.log("Reward distributor set to:", rewardDistributor);
-
-        console.log("Operator deployed at: %s", proxy);
+            vm.startBroadcast(key);
+            Operator(proxy).setRewardDistributor(rewardDistributor);
+            vm.stopBroadcast();
+            console.log("Reward distributor set to:", rewardDistributor);
+        }
 
         return proxy;
     }

@@ -22,12 +22,18 @@ contract DeployPauser is Script {
 
         console.log("Deploying Pauser");
 
-        vm.startBroadcast(key);
-        address created =
-            deployer.create(salt, abi.encodePacked(type(Pauser).creationCode, abi.encode(roles, operator, owner)));
-        vm.stopBroadcast();
+        address created = deployer.precompute(salt);
 
-        console.log("Pauser deployed at: %s", created);
+        // Deploy only if not already deployed
+        if (created.code.length == 0) {
+            vm.startBroadcast(key);
+            created =
+                deployer.create(salt, abi.encodePacked(type(Pauser).creationCode, abi.encode(roles, operator, owner)));
+            vm.stopBroadcast();
+            console.log("Pauser deployed at: %s", created);
+        } else {
+            console.log("Using existing Pauser at: %s", created);
+        }
 
         return created;
     }

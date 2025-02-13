@@ -40,7 +40,7 @@ abstract contract Helpers is Test, Constants {
     }
 
     function _deployToken(string memory _name, string memory _symbol, uint8 _decimals) internal returns (ERC20Mock) {
-        ERC20Mock _token = new ERC20Mock(_name, _symbol, _decimals);
+        ERC20Mock _token = new ERC20Mock(_name, _symbol, _decimals, address(this), address(0), type(uint256).max);
         vm.label(address(_token), _name);
         return _token;
     }

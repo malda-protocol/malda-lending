@@ -28,18 +28,18 @@ contract DeployExtensionMarket is Script {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         // Deploy implementation
-        bytes32 implSalt = getSalt("mTokenGateway-implementation");
+        bytes32 implSalt = getSalt(string.concat("mTokenGateway-implementation", addressToString(underlyingToken)));
 
         address implementation = deployer.precompute(implSalt);
 
-        console.log("Deploying mTokenGateway implementation");
+        console.log("Deploying mTokenGateway implementation", name);
 
         // Check if implementation already exists
         if (implementation.code.length > 0) {
             console.log("Implementation already exists at ", implementation);
         } else {
             vm.startBroadcast(key);
-            deployer.create(implSalt, type(mTokenGateway).creationCode);
+            implementation = deployer.create(implSalt, type(mTokenGateway).creationCode);
             vm.stopBroadcast();
 
             console.log("Extension implementation deployed at:", implementation);
@@ -53,16 +53,21 @@ contract DeployExtensionMarket is Script {
         // Deploy proxy
         bytes32 proxySalt = getSalt(name);
 
-        vm.startBroadcast(key);
-        address proxy = deployer.create(
-            proxySalt,
-            abi.encodePacked(
-                type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, owner, initData)
-            )
-        );
-        vm.stopBroadcast();
-
-        console.log("Market deployed at:", proxy);
+        address proxy = deployer.precompute(proxySalt);
+        // Check if proxy already exists
+        if (proxy.code.length > 0) {
+            console.log("Extension Proxy already exists at ", proxy);
+        } else {
+            vm.startBroadcast(key);
+            proxy = deployer.create(
+                proxySalt,
+                abi.encodePacked(
+                    type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, owner, initData)
+                )
+            );
+            vm.stopBroadcast();
+            console.log("Extension Proxy deployed at:", proxy);
+        }
 
         return proxy;
     }
@@ -71,5 +76,19 @@ contract DeployExtensionMarket is Script {
         return keccak256(
             abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
         );
+    }
+    
+    function addressToString(address _addr) internal pure returns (string memory) {
+        bytes32 value = bytes32(uint256(uint160(_addr)));
+        bytes memory alphabet = "0123456789abcdef";
+
+        bytes memory str = new bytes(42);
+        str[0] = '0';
+        str[1] = 'x';
+        for (uint256 i = 0; i < 20; i++) {
+            str[2 + i * 2] = alphabet[uint8(value[i + 12] >> 4)];
+            str[3 + i * 2] = alphabet[uint8(value[i + 12] & 0x0f)];
+        }
+        return string(str);
     }
 }

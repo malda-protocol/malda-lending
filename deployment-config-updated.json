@@ -1,0 +1,129 @@
+{
+  "networks": {
+    "op_sepolia": {
+      "chainId": 11155420,
+      "isHost": false,
+      "deployer": {
+        "owner": "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00",
+        "salt": "FirstTry"
+      },
+      "markets": [
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 6,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mMockUSDCAAAB",
+          "priceFeed": "0x0000000000000000000000000000000000000000",
+          "supplyCap": 0,
+          "symbol": "mMockUSDCAAAB",
+          "underlying": "0x17aF6EBF1DaB5a1eEeeC0CBdD703237853Cf65E2"
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 6,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mMockUSDCAA",
+          "priceFeed": "0x0000000000000000000000000000000000000000",
+          "supplyCap": 0,
+          "symbol": "mMockUSDCAA",
+          "underlying": "0x17aF6EBF1DaB5a1eEeeC0CBdD703237853Cf65E2"
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 18,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mMockWstETHAA",
+          "priceFeed": "0x0000000000000000000000000000000000000000",
+          "supplyCap": 0,
+          "symbol": "mMockWstETHAA",
+          "underlying": "0x6C4221DC925E687d16FC997Eebe4D5cdE907deCe"
+        }
+      ],
+      "roles": [],
+      "zkVerifier": {
+        "imageId": "0xd1333b14cc29a5d8828e9f5842a44c881efbabec67faf033633816939bde3c08",
+        "verifierAddress": "0xB369b4dd27FBfb59921d3A4a3D23AC2fc32FB908"
+      }
+    },
+    "sepolia": {
+      "chainId": 11155111,
+      "isHost": false,
+      "deployer": {
+        "owner": "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00",
+        "salt": "FirstTry"
+      },
+      "markets": [
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 6,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mMockUSDCAA",
+          "priceFeed": "0x0000000000000000000000000000000000000000",
+          "supplyCap": 0,
+          "symbol": "mMockUSDCAA",
+          "underlying": "0x17aF6EBF1DaB5a1eEeeC0CBdD703237853Cf65E2"
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 18,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mMockWstETHAA",
+          "priceFeed": "0x0000000000000000000000000000000000000000",
+          "supplyCap": 0,
+          "symbol": "mMockWstETHAA",
+          "underlying": "0x6C4221DC925E687d16FC997Eebe4D5cdE907deCe"
+        }
+      ],
+      "roles": [],
+      "zkVerifier": {
+        "imageId": "0xd1333b14cc29a5d8828e9f5842a44c881efbabec67faf033633816939bde3c08",
+        "verifierAddress": "0x925d8331ddc0a1F0d96E68CF073DFE1d92b69187"
+      }
+    }
+  }
+}

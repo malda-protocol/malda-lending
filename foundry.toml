@@ -20,6 +20,7 @@
     { access = "read-write", path = "./deployments" },
     { access = "read", path = "./out" },
     { access = "read", path = "./deployment-config.json" },
+    { access = "read", path = "./deployment-config-updated.json" },
     { access = "read", path = "./deployment-config.sepolia.json" },
     { access = "read", path = "./deployment-config.op.json" },
     { access = "read", path = "./deployment-config.linea.json" },

@@ -32,16 +32,22 @@ contract DeployMixedPriceOracleV3 is Script {
         configs[1] = IDefaultAdapter.PriceConfig({defaultFeed: wethFeed, toSymbol: "USD", underlyingDecimals: 18});
 
         bytes32 salt = getSalt("MixedPriceOracleV3");
-        vm.startBroadcast(key);
-        address created = deployer.create(
-            salt,
-            abi.encodePacked(
-                type(MixedPriceOracleV3).creationCode, abi.encode(symbols, configs, roles, stalenessPeriod)
-            )
-        );
-        vm.stopBroadcast();
+        address created = deployer.precompute(salt);
+        if (created.code.length > 0) {
+            console.log("MixedPriceOracleV3 already deployed at: %s", created);
+        } else {
+            vm.startBroadcast(key);
+            created = deployer.create(
+                salt,
+                abi.encodePacked(
+                    type(MixedPriceOracleV3).creationCode, abi.encode(symbols, configs, roles, stalenessPeriod)
+                )
+            );
+            vm.stopBroadcast();
+            console.log("MixedPriceOracleV3 deployed at: %s", created);
+        }
 
-        console.log("MixedPriceOracleV3 deployed at: %s", created);
+
 
         return created;
     }
