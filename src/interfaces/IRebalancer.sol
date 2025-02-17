@@ -26,6 +26,7 @@ interface IRebalancer {
     event MsgSent(
         address indexed bridge, uint256 indexed dstChainId, address indexed token, bytes message, bytes bridgeData
     );
+    event EthSaved(uint256 amount);
 
     // ----------- ERRORS ------------
     error Rebalancer_NotAuthorized();
