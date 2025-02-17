@@ -2,11 +2,11 @@
 pragma solidity =0.8.28;
 
 // interfaces
-import {IRoles} from "src/interfaces/IRoles.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
+import {WrapAndSupply} from "src/utils/WrapAndSupply.sol";
 
 // tests
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
@@ -18,7 +18,7 @@ contract mErc20_mint is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
-        mWeth.mint(amount);
+        mWeth.mint(amount, address(this));
     }
 
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
@@ -27,7 +27,7 @@ contract mErc20_mint is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
-        mWeth.mint(amount);
+        mWeth.mint(amount, address(this));
     }
 
     function test_RevertGiven_WhenSupplyCapIsReached(uint256 amount)
@@ -41,7 +41,7 @@ contract mErc20_mint is mToken_Unit_Shared {
 
         // it should revert with Operator_MarketSupplyReached
         vm.expectRevert(OperatorStorage.Operator_MarketSupplyReached.selector);
-        mWeth.mint(amount);
+        mWeth.mint(amount, address(this));
     }
 
     function test_WhenSupplyCapIsGreater(uint256 amount)
@@ -56,7 +56,7 @@ contract mErc20_mint is mToken_Unit_Shared {
         uint256 totalSupplyBefore = mWeth.totalSupply();
         uint256 balanceOfBefore = mWeth.balanceOf(address(this));
 
-        mWeth.mint(amount);
+        mWeth.mint(amount, address(this));
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWeth.totalSupply();
@@ -77,6 +77,26 @@ contract mErc20_mint is mToken_Unit_Shared {
     function test_GivenAmountIs0() external whenMarketIsListed(address(mWeth)) {
         uint256 amount = ZERO_VALUE;
         vm.expectRevert(); //arithmetic underflow or overflow
-        mWeth.mint(amount);
+        mWeth.mint(amount, address(this));
+    }
+
+    function test_WrapAndSupply() external whenMarketIsListed(address(mWeth)) {
+        WrapAndSupply wrapAndSupply = new WrapAndSupply(address(weth));
+        vm.label(address(wrapAndSupply), "WrapAndSupply Helper");
+
+        uint256 totalSupplyBefore = mWeth.totalSupply();
+        uint256 balanceOfBefore = mWeth.balanceOf(address(this));
+
+        wrapAndSupply.wrapAndSupplyOnHostMarket{value: SMALL}(address(mWeth), address(this));
+
+        uint256 totalSupplyAfter = mWeth.totalSupply();
+        uint256 balanceOfAfter = mWeth.balanceOf(address(this));
+
+        // it should increse balanceOf account
+        assertGt(balanceOfAfter, balanceOfBefore);
+
+        // it should increase total supply by amount
+        assertGt(totalSupplyAfter, totalSupplyBefore);
+        assertEq(totalSupplyAfter - SMALL, totalSupplyBefore);
     }
 }

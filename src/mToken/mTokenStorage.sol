@@ -189,7 +189,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     /**
      * @notice Event emitted when tokens are minted
      */
-    event Mint(address indexed minter, uint256 mintAmount, uint256 mintTokens);
+    event Mint(address indexed minter,  address indexed receiver, uint256 mintAmount, uint256 mintTokens);
 
     /**
      * @notice Event emitted when tokens are redeemed

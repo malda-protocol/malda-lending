@@ -4,6 +4,8 @@ pragma solidity =0.8.28;
 import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
+import {WrapAndSupply} from "src/utils/WrapAndSupply.sol";
+
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
 contract mTokenGateway_supplyOnHost is mToken_Unit_Shared {
@@ -16,7 +18,7 @@ contract mTokenGateway_supplyOnHost is mToken_Unit_Shared {
     function test_RevertWhen_AmountIs0() external {
         // it should revert
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountNotValid.selector);
-        mWethExtension.supplyOnHost(0, mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector);
+        mWethExtension.supplyOnHost(0, address(this), mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector);
     }
 
     function test_RevertWhen_MarketPaused(uint256 amount) external inRange(amount, SMALL, LARGE) {
@@ -24,7 +26,7 @@ contract mTokenGateway_supplyOnHost is mToken_Unit_Shared {
 
         // it should revert
         vm.expectRevert();
-        mWethExtension.supplyOnHost(amount, mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector);
+        mWethExtension.supplyOnHost(amount, address(this), mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector);
     }
 
     modifier whenAmountGreaterThan0() {
@@ -40,7 +42,7 @@ contract mTokenGateway_supplyOnHost is mToken_Unit_Shared {
         // it should revert
         weth.approve(address(mWethExtension), amount);
         vm.expectRevert();
-        mWethExtension.supplyOnHost(amount, mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector);
+        mWethExtension.supplyOnHost(amount, address(this), mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector);
     }
 
     function test_GivenUserHasEnoughBalance(uint256 amount)
@@ -54,13 +56,25 @@ contract mTokenGateway_supplyOnHost is mToken_Unit_Shared {
         uint256 accAmountInBefore = mWethExtension.accAmountIn(address(this));
 
         weth.approve(address(mWethExtension), amount);
-        mWethExtension.supplyOnHost(amount, mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector);
+        mWethExtension.supplyOnHost(amount, address(this), mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 accAmountInAfter = mWethExtension.accAmountIn(address(this));
 
         // it should decrease the caller underlying balance
         assertEq(balanceWethAfter + amount, balanceWethBefore);
+
+        // it should increase accAmount
+        assertGt(accAmountInAfter, accAmountInBefore);
+    }
+
+    function test_WrapAndSupply() external {
+        WrapAndSupply wrapAndSupply = new WrapAndSupply(address(weth));
+        vm.label(address(wrapAndSupply), "WrapAndSupply Helper");
+
+        uint256 accAmountInBefore = mWethExtension.accAmountIn(address(this));
+        wrapAndSupply.wrapAndSupplyOnExtensionMarket{value: SMALL}(address(mWethExtension), address(this), mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector);
+        uint256 accAmountInAfter = mWethExtension.accAmountIn(address(this));
 
         // it should increase accAmount
         assertGt(accAmountInAfter, accAmountInBefore);

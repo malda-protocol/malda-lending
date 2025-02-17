@@ -321,7 +321,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
 
         // actions
         accAmountInPerChain[_chainId][_sender] += mintAmount;
-        _mint(receiver, mintAmount, false);
+        _mint(receiver, receiver, mintAmount, false);
 
         emit mErc20Host_MintExternal(msg.sender, _sender, receiver, _chainId, mintAmount);
     }

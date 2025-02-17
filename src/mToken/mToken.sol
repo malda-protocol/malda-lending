@@ -244,13 +244,14 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @notice Sender supplies assets into the market and receives mTokens in exchange
      * @dev Accrues interest whether or not the operation succeeds, unless reverted
      * @param user The user address
+     * @param user The receiver address
      * @param mintAmount The amount of the underlying asset to supply
      * @param doTransfer If an actual transfer should be performed
      */
-    function _mint(address user, uint256 mintAmount, bool doTransfer) internal nonReentrant {
+    function _mint(address user, address receiver, uint256 mintAmount, bool doTransfer) internal nonReentrant {
         _accrueInterest();
         // emits the actual Mint event if successful and logs on errors, so we don't need to
-        __mint(user, mintAmount, doTransfer);
+        __mint(user, receiver, mintAmount, doTransfer);
     }
 
     /**
@@ -618,11 +619,12 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @notice User supplies assets into the market and receives mTokens in exchange
      * @dev Assumes interest has already been accrued up to the current block
      * @param minter The address of the account which is supplying the assets
+     * @param receiver The address of the account which is receiving the assets
      * @param mintAmount The amount of the underlying asset to supply
      * @param doTransfer If an actual transfer should be performed
      */
 
-    function __mint(address minter, uint256 mintAmount, bool doTransfer) private {
+    function __mint(address minter, address receiver, uint256 mintAmount, bool doTransfer) private {
         IOperatorDefender(operator).beforeMTokenMint(address(this), minter);
 
         Exp memory exchangeRate = Exp({mantissa: _exchangeRateStored()});
@@ -662,11 +664,11 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          * And write them into storage
          */
         totalSupply = totalSupply + mintTokens;
-        accountTokens[minter] = accountTokens[minter] + mintTokens;
+        accountTokens[receiver] = accountTokens[receiver] + mintTokens;
 
         /* We emit a Mint event, and a Transfer event */
-        emit Mint(minter, actualMintAmount, mintTokens);
-        emit Transfer(address(this), minter, mintTokens);
+        emit Mint(minter, receiver, actualMintAmount, mintTokens);
+        emit Transfer(address(this), receiver, mintTokens);
 
         /* We call the defense hook */
         IOperatorDefender(operator).afterMTokenMint(address(this));

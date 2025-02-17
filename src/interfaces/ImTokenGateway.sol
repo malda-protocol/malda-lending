@@ -23,6 +23,7 @@ interface ImTokenGateway {
      */
     event mTokenGateway_Supplied(
         address indexed from,
+        address indexed receiver,
         uint256 accAmountIn,
         uint256 accAmountOut,
         uint256 amount,
@@ -175,9 +176,10 @@ interface ImTokenGateway {
     /**
      * @notice Supply underlying to the contract
      * @param amount The supplied amount
+     * @param receiver The receiver address
      * @param lineaSelector The method selector to be called on Linea by our relayer. If empty, user has to submit it
      */
-    function supplyOnHost(uint256 amount, bytes4 lineaSelector) external;
+    function supplyOnHost(uint256 amount, address receiver, bytes4 lineaSelector) external;
 
     /**
      * @notice Extract tokens

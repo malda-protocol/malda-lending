@@ -1,0 +1,83 @@
+// SPDX-License-Identifier: AGPL-3.0
+pragma solidity =0.8.28;
+
+/*
+ _____ _____ __    ____  _____ 
+|     |  _  |  |  |    \|  _  |
+| | | |     |  |__|  |  |     |
+|_|_|_|__|__|_____|____/|__|__|   
+*/
+
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+import { ImErc20 } from "src/interfaces/ImErc20.sol";
+import { ImTokenMinimal } from "src/interfaces/ImToken.sol";
+import { ImTokenGateway } from "src/interfaces/ImTokenGateway.sol";
+
+interface IWrappedNative {
+    function deposit() external payable;
+    function transfer(address to, uint value) external returns (bool);
+    function withdraw(uint) external;
+}
+
+contract WrapAndSupply {
+    IWrappedNative public immutable wrappedNative;
+
+    // ----------- ERRORS ------------
+    error WrapAndSupply_AddressNotValid();
+    error WrapAndSupply_AmountNotValid();
+
+    // ----------- EVENTS ------------
+    event WrappedAndSupplied(address indexed sender, address indexed receiver, address indexed market, uint256 amount);
+
+    constructor(address _wrappedNative) {
+        require (_wrappedNative != address(0), WrapAndSupply_AddressNotValid());
+        wrappedNative = IWrappedNative(_wrappedNative);
+    }
+
+    // ----------- PUBLIC ------------
+    /**
+     * @notice Wraps a native coin into its wrapped version and supplies on a host market
+     * @param mToken The market address
+     * @param receiver The mToken receiver
+     */
+    function wrapAndSupplyOnHostMarket(address mToken, address receiver) payable external {
+        address underlying = ImTokenMinimal(mToken).underlying();
+        require(underlying == address(wrappedNative), WrapAndSupply_AddressNotValid());
+        
+        uint256 amount = _wrap();
+
+        IERC20(underlying).approve(mToken, 0);
+        IERC20(underlying).approve(mToken, amount);
+        ImErc20(mToken).mint(amount, receiver);
+
+        emit WrappedAndSupplied(msg.sender, receiver, mToken, amount);
+    }
+
+    /**
+     * @notice Wraps a native coin into its wrapped version and supplies on an extension market
+     * @param mTokenGateway The market address
+     * @param receiver The receiver
+     * @param selector The host chain function selector
+     */
+    function wrapAndSupplyOnExtensionMarket(address mTokenGateway, address receiver, bytes4 selector) payable external {
+        address underlying = ImTokenGateway(mTokenGateway).underlying();
+        require(underlying == address(wrappedNative), WrapAndSupply_AddressNotValid());
+
+        uint256 amount = _wrap();
+        
+        IERC20(underlying).approve(mTokenGateway, 0);
+        IERC20(underlying).approve(mTokenGateway, amount);
+        ImTokenGateway(mTokenGateway).supplyOnHost(amount, receiver, selector);
+    }
+
+    // ----------- PRIVATE ------------
+    function _wrap() private returns (uint256) {
+        uint256 amount = msg.value;
+        require (amount > 0, WrapAndSupply_AmountNotValid());
+
+        wrappedNative.deposit{value: amount}();
+        return amount;
+    }
+    
+}

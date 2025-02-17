@@ -142,19 +142,20 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     /**
      * @inheritdoc ImTokenGateway
      */
-    function supplyOnHost(uint256 amount, bytes4 lineaSelector) external override notPaused(OperationType.AmountIn) {
+    function supplyOnHost(uint256 amount, address receiver, bytes4 lineaSelector) external override notPaused(OperationType.AmountIn) {
         // checks
         require(amount > 0, mTokenGateway_AmountNotValid());
 
         IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
 
         // effects
-        accAmountIn[msg.sender] += amount;
+        accAmountIn[receiver] += amount;
 
         emit mTokenGateway_Supplied(
             msg.sender,
-            accAmountIn[msg.sender],
-            accAmountOut[msg.sender],
+            receiver,
+            accAmountIn[receiver],
+            accAmountOut[receiver],
             amount,
             uint32(block.chainid),
             LINEA_CHAIN_ID,
