@@ -22,9 +22,6 @@ contract DeployRbac is Script {
 
         address created = _deployer.precompute(salt);
         
-        //TODO: addr
-        created = 0xaF15224767C030FF851a5f2AF8355230b2203F46;
-
         // Deploy only if not already deployed
         if (created.code.length == 0) {
             vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));

@@ -28,8 +28,6 @@ contract DeployOperator is Script {
 
         address implementation = deployer.precompute(implSalt);
 
-        //TODO: addr
-        implementation = 0x9A49890da2ca057E7f0Fac0388D9B060D87045c8;
         if (implementation.code.length > 0) {
             console.log("Operator Implementation already exists at ", implementation);
         } else {
@@ -46,8 +44,6 @@ contract DeployOperator is Script {
         bytes32 proxySalt = getSalt("OperatorProxy");
         address proxy = deployer.precompute(proxySalt);
         
-        //TODO: addr
-        proxy = 0xC04150FE7D2aF34fA9A843F852040F1d39Ada577;
         if (proxy.code.length > 0) {
             console.log("Operator Proxy already exists at ", proxy);
         } else {

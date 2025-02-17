@@ -26,8 +26,6 @@ contract DeployDeployer is Script {
         bytes memory constructorArgs = abi.encode(owner);
         bytes memory bytecodeWithConstructor = abi.encodePacked(bytecode, constructorArgs);
         address deployerAddress = _computeCreate2Address(_salt, bytecodeWithConstructor);
-        //TODO: addr
-        deployerAddress = 0x7DE862D3f944b5BCbE30C43aa5434eE964a31a8C;
         // Deploy only if not already deployed
         if (deployerAddress.code.length == 0) {
             console.log("Deploying deployer. Nothing found on", deployerAddress);
