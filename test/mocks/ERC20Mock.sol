@@ -35,6 +35,11 @@ contract ERC20Mock is ERC20 {
         onlyVerified = status;
     }
 
+    function setMintLimit(uint256 _limit) external {
+        require(msg.sender == admin, ERC20Mock_NotAuthorized());
+        mintLimit = _limit;
+    }
+
     /// @dev view
     function decimals() public view override returns (uint8) {
         return _d;

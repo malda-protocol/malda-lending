@@ -23,6 +23,8 @@ contract DeployBatchSubmitter is Script {
         bytes32 salt = getSalt("BatchSubmitter");
 
         address created = deployer.precompute(salt);
+        //TODO: addr
+        created = 0xb4282799022073790c8Ae500Ac6C91C622021079;
 
         // Deploy only if not already deployed
         if (created.code.length == 0) {
