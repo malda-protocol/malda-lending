@@ -67,7 +67,6 @@ contract LZBridge is BaseBridge, IBridge {
         // compute fee and craft message
         (MessagingFee memory fees, SendParam memory sendParam) = _getFee(_dstChainId, _message, _composeMsg);
         if (msg.value < fees.nativeFee) revert LZBridge_NotEnoughFees();
-        require(sendParam.amountLD >= minTransfer && sendParam.amountLD <= maxTransfer, BaseBridge_AmountNotValid());
 
         // retrieve tokens from `Rebalancer`
         IERC20(_token).safeTransferFrom(msg.sender, address(this), sendParam.amountLD);

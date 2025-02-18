@@ -73,7 +73,6 @@ contract AccrossBridge is BaseBridge, IBridge {
     {
         // decode message & checks
         DecodedMessage memory msgData = _decodeMessage(_message);
-        require(msgData.inputAmount >= minTransfer && msgData.inputAmount <= maxTransfer, BaseBridge_AmountNotValid());
 
         // retrieve tokens from `Rebalancer`
         IERC20(_token).safeTransferFrom(msg.sender, address(this), msgData.inputAmount);

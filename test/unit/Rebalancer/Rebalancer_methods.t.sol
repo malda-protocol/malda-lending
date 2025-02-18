@@ -5,6 +5,13 @@ import {IRebalancer, IRebalanceMarket} from "src/interfaces/IRebalancer.sol";
 import {Rebalancer_Unit_Shared} from "../shared/Rebalancer_Unit_Shared.t.sol";
 
 contract Rebalancer_methods is Rebalancer_Unit_Shared {
+    function setUp() public override {
+        super.setUp();
+
+        rebalancer.setMaxTransferSize(0, address(weth), type(uint256).max);
+        rebalancer.setMaxTransferSize(1, address(weth), type(uint256).max);
+
+    }
     modifier givenSenderDoesNotHaveGUARDIAN_BRIDGERole() {
         //does nothing; for readability only
         _;
@@ -117,6 +124,23 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
+        IRebalancer.Msg memory _msg =
+            IRebalancer.Msg({dstChainId: 0, token: address(weth), message: abi.encode(amount), bridgeData: ""});
+        _getTokens(weth, address(mWethHost), amount);
+        rebalancer.sendMsg(address(bridgeMock), address(mWethHost), amount, _msg);
+        uint256 bridgeBalance = weth.balanceOf(address(bridgeMock));
+        assertEq(bridgeBalance, amount);
+        // it should extract and rebalance
+    }
+
+    function test_WhenMarketHasEnoughTokensButTransferSizeIsNotMet(uint256 amount)
+        external
+        givenSendMsgIsCalledWithRightParameters
+        givenSenderHasRoleGUARDIAN_BRIDGE
+        inRange(amount, SMALL, LARGE)
+    {
+        rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
+        rebalancer.setMaxTransferSize(0, address(weth), amount - 1);
         IRebalancer.Msg memory _msg =
             IRebalancer.Msg({dstChainId: 0, token: address(weth), message: abi.encode(amount), bridgeData: ""});
         _getTokens(weth, address(mWethHost), amount);

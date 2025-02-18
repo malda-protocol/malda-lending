@@ -63,7 +63,6 @@ contract ConnextBridge is BaseBridge, IBridge {
     {
         // decode message & checks
         DecodedMessage memory msgData = _decodeMessage(_message);
-        require(msgData.amount >= minTransfer && msgData.amount <= maxTransfer, BaseBridge_AmountNotValid());
         require(msg.value >= msgData.relayerFee, Connext_NotEnoughFees());
 
         // retrieve tokens from `Rebalancer`
