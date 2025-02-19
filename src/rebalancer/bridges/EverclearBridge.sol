@@ -50,15 +50,16 @@ contract EverclearBridge is BaseBridge, IBridge {
     /**
      * @inheritdoc IBridge
      */
-    function sendMsg(uint32 _dstChainId, address _token, bytes memory _message, bytes memory)
+    function sendMsg(uint256 _extractedAmount, address _market, uint32 _dstChainId, address _token, bytes memory _message, bytes memory)
         external
         payable
         onlyRebalancer
     {
         // decode message & checks
-        (address market, address outputAsset, uint256 amount, bytes memory data) =
-            abi.decode(_message, (address, address, uint256, bytes));
+        (address outputAsset, uint256 amount, bytes memory data) =
+            abi.decode(_message, (address, uint256, bytes));
         require(amount >= minTransfer && amount <= maxTransfer, BaseBridge_AmountNotValid());
+        require(_extractedAmount == amount, BaseBridge_AmountMismatch());
 
         // retrieve tokens from `Rebalancer`
         IERC20(_token).safeTransferFrom(msg.sender, address(this), amount);
@@ -67,7 +68,7 @@ contract EverclearBridge is BaseBridge, IBridge {
         uint32[] memory destinations = new uint32[](1);
         destinations[0] = _dstChainId;
         SafeApprove.safeApprove(_token, address(everclearSpoke), amount);
-        (bytes32 _intentId,) = everclearSpoke.newIntent(destinations, market, _token, outputAsset, amount, 0, 0, data);
-        emit MsgSent(_dstChainId, market, amount, _intentId);
+        (bytes32 _intentId,) = everclearSpoke.newIntent(destinations, _market, _token, outputAsset, amount, 0, 0, data);
+        emit MsgSent(_dstChainId, _market, amount, _intentId);
     }
 }

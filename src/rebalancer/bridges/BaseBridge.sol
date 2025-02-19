@@ -17,6 +17,7 @@ abstract contract BaseBridge {
     uint256 public maxTransfer;
 
     error BaseBridge_NotAuthorized();
+    error BaseBridge_AmountMismatch();
     error BaseBridge_AmountNotValid();
     error BaseBridge_AddressNotValid();
 

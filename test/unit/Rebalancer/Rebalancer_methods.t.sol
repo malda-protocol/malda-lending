@@ -85,6 +85,7 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
     {
         // it should revert with Rebalancer_RequestNotValid
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
+        rebalancer.setWhitelistedDestination(0, true);
         roles.allowFor(address(this), roles.REBALANCER_EOA(), true);
         IRebalancer.Msg memory _msg =
             IRebalancer.Msg({dstChainId: 0, token: address(usdc), message: "", bridgeData: ""});
@@ -117,6 +118,8 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
+        rebalancer.setWhitelistedDestination(0, true);
+
         IRebalancer.Msg memory _msg =
             IRebalancer.Msg({dstChainId: 0, token: address(weth), message: abi.encode(amount), bridgeData: ""});
         _getTokens(weth, address(mWethHost), amount);

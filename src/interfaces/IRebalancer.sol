@@ -24,14 +24,16 @@ interface IRebalancer {
 
     event BridgeWhitelistedStatusUpdated(address indexed bridge, bool status);
     event MsgSent(
-        address indexed bridge, uint256 indexed dstChainId, address indexed token, bytes message, bytes bridgeData
+        address indexed bridge, uint32 indexed dstChainId, address indexed token, bytes message, bytes bridgeData
     );
+    event DestinationWhitelistedStatusUpdated(uint32 indexed dstChainId, bool status);
 
     // ----------- ERRORS ------------
     error Rebalancer_NotAuthorized();
     error Rebalancer_RequestNotValid();
     error Rebalancer_AddressNotValid();
     error Rebalancer_BridgeNotWhitelisted();
+    error Rebalancer_DestinationNotWhitelisted();
 
     // ----------- VIEW METHODS ------------
     /**
@@ -43,6 +45,11 @@ interface IRebalancer {
      * @notice returns if a bridge implementation is whitelisted
      */
     function isBridgeWhitelisted(address bridge) external view returns (bool);
+
+    /**
+     * @notice returns if a destination is whitelisted
+     */
+    function isDestinationWhitelisted(uint32 dstId) external view returns (bool);
 
     // ----------- EXTERNAL METHODS ------------
     /**
