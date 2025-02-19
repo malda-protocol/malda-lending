@@ -36,6 +36,7 @@ contract BatchSubmitter is ZkVerifier, Ownable {
         bytes seal;
         address[] mTokens;
         uint256[] amounts;
+        uint256[] minAmountsOut;
         bytes4[] selectors;
         uint256 startIndex;
         uint256 endIndex;
@@ -98,7 +99,9 @@ contract BatchSubmitter is ZkVerifier, Ownable {
             bytes4 selector = data.selectors[i];
             bytes memory encodedJournal = abi.encode(singleJournal);
             if (selector == MINT_SELECTOR) {
-                try ImErc20Host(data.mTokens[i]).mintExternal(encodedJournal, "", singleAmount, data.receiver) {}
+                uint256[] memory singleMinAmounts = new uint256[](1);
+                singleMinAmounts[0] = data.minAmountsOut[i];
+                try ImErc20Host(data.mTokens[i]).mintExternal(encodedJournal, "", singleAmount, singleMinAmounts, data.receiver) {}
                 catch (bytes memory reason) {
                     emit BatchProcessFailed(journals[i], reason);
                 }

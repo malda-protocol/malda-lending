@@ -245,12 +245,13 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @dev Accrues interest whether or not the operation succeeds, unless reverted
      * @param user The user address
      * @param mintAmount The amount of the underlying asset to supply
+     * @param minAmountOut The minimum amount to be received
      * @param doTransfer If an actual transfer should be performed
      */
-    function _mint(address user, uint256 mintAmount, bool doTransfer) internal nonReentrant {
+    function _mint(address user, uint256 mintAmount, uint256 minAmountOut, bool doTransfer) internal nonReentrant {
         _accrueInterest();
         // emits the actual Mint event if successful and logs on errors, so we don't need to
-        __mint(user, mintAmount, doTransfer);
+        __mint(user, mintAmount, minAmountOut, doTransfer);
     }
 
     /**
@@ -619,10 +620,11 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @dev Assumes interest has already been accrued up to the current block
      * @param minter The address of the account which is supplying the assets
      * @param mintAmount The amount of the underlying asset to supply
+     * @param minAmountOut The min amount to be received
      * @param doTransfer If an actual transfer should be performed
      */
 
-    function __mint(address minter, uint256 mintAmount, bool doTransfer) private {
+    function __mint(address minter, uint256 mintAmount, uint256 minAmountOut, bool doTransfer) private {
         IOperatorDefender(operator).beforeMTokenMint(address(this), minter);
 
         Exp memory exchangeRate = Exp({mantissa: _exchangeRateStored()});
@@ -640,6 +642,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          *  of cash.
          */
         uint256 actualMintAmount = doTransfer ? _doTransferIn(minter, mintAmount) : mintAmount;
+        require(actualMintAmount >= minAmountOut, mToken_MinAmountNotValid());
 
         /*
          * We get the current exchange rate and calculate the number of mTokens to be minted:

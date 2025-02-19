@@ -13,8 +13,9 @@ interface ImErc20 {
      * @notice Sender supplies assets into the market and receives mTokens in exchange
      * @dev Accrues interest whether or not the operation succeeds, unless reverted
      * @param mintAmount The amount of the underlying asset to supply
+     * @param minAmountOut The min amounts to be received
      */
-    function mint(uint256 mintAmount) external;
+    function mint(uint256 mintAmount, uint256 minAmountOut) external;
 
     /**
      * @notice Sender redeems mTokens in exchange for the underlying asset

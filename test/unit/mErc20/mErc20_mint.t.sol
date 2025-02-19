@@ -18,7 +18,7 @@ contract mErc20_mint is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
-        mWeth.mint(amount);
+        mWeth.mint(amount, amount);
     }
 
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
@@ -27,7 +27,7 @@ contract mErc20_mint is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
-        mWeth.mint(amount);
+        mWeth.mint(amount, amount);
     }
 
     function test_RevertGiven_WhenSupplyCapIsReached(uint256 amount)
@@ -41,7 +41,7 @@ contract mErc20_mint is mToken_Unit_Shared {
 
         // it should revert with Operator_MarketSupplyReached
         vm.expectRevert(OperatorStorage.Operator_MarketSupplyReached.selector);
-        mWeth.mint(amount);
+        mWeth.mint(amount, amount);
     }
 
     function test_WhenSupplyCapIsGreater(uint256 amount)
@@ -56,7 +56,7 @@ contract mErc20_mint is mToken_Unit_Shared {
         uint256 totalSupplyBefore = mWeth.totalSupply();
         uint256 balanceOfBefore = mWeth.balanceOf(address(this));
 
-        mWeth.mint(amount);
+        mWeth.mint(amount, amount);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWeth.totalSupply();
@@ -77,6 +77,6 @@ contract mErc20_mint is mToken_Unit_Shared {
     function test_GivenAmountIs0() external whenMarketIsListed(address(mWeth)) {
         uint256 amount = ZERO_VALUE;
         vm.expectRevert(); //arithmetic underflow or overflow
-        mWeth.mint(amount);
+        mWeth.mint(amount, amount);
     }
 }

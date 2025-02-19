@@ -170,12 +170,14 @@ interface ImErc20Host {
      * @param journalData The journal data for minting (array of encoded journals)
      * @param seal The Zk proof seal
      * @param mintAmount Array of amounts to mint
+     * @param minAmountsOut Array of min amounts accepted
      * @param receiver The tokens receiver
      */
     function mintExternal(
         bytes calldata journalData,
         bytes calldata seal,
         uint256[] calldata mintAmount,
+        uint256[] calldata minAmountsOut,
         address receiver
     ) external;
 

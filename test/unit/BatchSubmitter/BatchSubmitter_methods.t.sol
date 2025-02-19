@@ -52,7 +52,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         vm.expectRevert(BatchSubmitter.BatchSubmitter_CallerNotAllowed.selector);
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                address(this), encodedJournals, "", mTokens, amounts, selectors, 0, journals.length
+                address(this), encodedJournals, "", mTokens, amounts, amounts, selectors, 0, journals.length
             )
         );
     }
@@ -69,7 +69,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
     function test_RevertWhen_JournalDataIsEmpty() external givenSenderHasProofForwarderRole givenJournalDataIsEmpty {
         vm.expectRevert(BatchSubmitter.BatchSubmitter_JournalNotValid.selector);
         batchSubmitter.batchProcess(
-            BatchSubmitter.BatchProcessMsg(address(this), "", "", mTokens, amounts, selectors, 0, 0)
+            BatchSubmitter.BatchProcessMsg(address(this), "", "", mTokens, amounts, amounts, selectors, 0, 0)
         );
     }
 
@@ -90,7 +90,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         vm.expectRevert(BatchSubmitter.BatchSubmitter_InvalidSelector.selector);
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                address(this), encodedJournals, "", testMTokens, testAmounts, invalidSelectors, 0, 1
+                address(this), encodedJournals, "", testMTokens, testAmounts, testAmounts, invalidSelectors, 0, 1
             )
         );
     }
@@ -129,7 +129,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                address(this), encodedJournals, "0x123", testMTokens, testAmounts, testSelectors, 0, 1
+                address(this), encodedJournals, "0x123", testMTokens, testAmounts, testAmounts, testSelectors, 0, 1
             )
         );
 
@@ -169,7 +169,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                address(this), encodedJournals, "", testMTokens, testAmounts, testSelectors, 0, 1
+                address(this), encodedJournals, "", testMTokens, testAmounts, testAmounts, testSelectors, 0, 1
             )
         );
     }
@@ -201,7 +201,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                address(this), encodedJournals, "0x123", testMTokens, testAmounts, testSelectors, 0, 1
+                address(this), encodedJournals, "0x123", testMTokens, testAmounts, testAmounts, testSelectors, 0, 1
             )
         );
 
@@ -242,7 +242,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                address(this), encodedJournals, "", testMTokens, testAmounts, testSelectors, 0, 1
+                address(this), encodedJournals, "", testMTokens, testAmounts, testAmounts, testSelectors, 0, 1
             )
         );
     }
@@ -274,7 +274,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                address(this), encodedJournals, "", testMTokens, testAmounts, testSelectors, 0, 1
+                address(this), encodedJournals, "", testMTokens, testAmounts, testAmounts, testSelectors, 0, 1
             )
         );
     }
