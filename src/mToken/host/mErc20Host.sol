@@ -19,9 +19,10 @@ import {mErc20Upgradable} from "src/mToken/mErc20Upgradable.sol";
 
 import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
 
-import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
-import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {IRoles} from "src/interfaces/IRoles.sol";
+import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
+import {IOperatorDefender} from "src/interfaces/IOperator.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperationTypes {
     using SafeERC20 for IERC20;
@@ -126,6 +127,8 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
      * @inheritdoc ImErc20Host
      */
     function extractForRebalancing(uint256 amount) external {
+        IOperatorDefender(operator).beforeRebalancing(address(this));
+
         if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mErc20Host_NotRebalancer();
         IERC20(underlying).safeTransfer(msg.sender, amount);
     }

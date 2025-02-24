@@ -125,7 +125,7 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     /**
      * @inheritdoc ImTokenGateway
      */
-    function extractForRebalancing(uint256 amount) external {
+    function extractForRebalancing(uint256 amount) external notPaused(OperationType.Rebalancing) {
         if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mTokenGateway_NotRebalancer();
         IERC20(underlying).safeTransfer(msg.sender, amount);
     }

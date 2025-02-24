@@ -448,6 +448,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
 
     /**
      * @inheritdoc IOperatorDefender
+    */
+    function beforeRebalancing(address mToken) external view override {
+        require(!_paused[mToken][OperationType.Rebalancing], Operator_Paused());
+    }
+
+    /**
+     * @inheritdoc IOperatorDefender
      */
     function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external override {
         require(!_paused[mToken][OperationType.Transfer], Operator_Paused());
