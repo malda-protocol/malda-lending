@@ -50,7 +50,7 @@ contract ChainlinkOracle is IOracleOperator {
      * @inheritdoc IOracleOperator
      */
     function getUnderlyingPrice(address mToken) external view override returns (uint256) {
-        string memory symbol = ImTokenMinimal(mToken).symbol();
+        string memory symbol = ImTokenMinimal(ImTokenMinimal(mToken).underlying()).symbol();
         uint256 feedDecimals = priceFeeds[symbol].decimals();
 
         (uint256 price,) = _getLatestPrice(symbol);
