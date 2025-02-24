@@ -10,12 +10,13 @@ pragma solidity =0.8.28;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
 import {ImToken} from "src/interfaces/ImToken.sol";
 import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
 import {IRewardDistributor, IRewardDistributorData} from "src/interfaces/IRewardDistributor.sol";
 
-contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializable, OwnableUpgradeable {
+contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
     // ----------- STORAGE ------------
     uint224 public constant REWARD_INITIAL_INDEX = 1e36;
 
@@ -56,8 +57,13 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
         _;
     }
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     // ----------- PUBLIC ------------
-    function claim(address[] memory holders) public override {
+    function claim(address[] memory holders) public override nonReentrant {
         for (uint256 i = 0; i < rewardTokens.length;) {
             _claim(rewardTokens[i], holders);
 
