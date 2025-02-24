@@ -27,6 +27,7 @@ interface IRebalancer {
         address indexed bridge, uint32 indexed dstChainId, address indexed token, bytes message, bytes bridgeData
     );
     event MaxTransferSizeUpdated(uint32 indexed dstChainId, address indexed token, uint256 newLimit);
+    event MinTransferSizeUpdated(uint32 indexed dstChainId, address indexed token, uint256 newLimit);
 
     // ----------- ERRORS ------------
     error Rebalancer_NotAuthorized();
@@ -34,6 +35,7 @@ interface IRebalancer {
     error Rebalancer_AddressNotValid();
     error Rebalancer_BridgeNotWhitelisted();
     error Rebalancer_TransferSizeExcedeed();
+    error Rebalancer_TransferSizeMinNotMet();
 
     // ----------- VIEW METHODS ------------
     /**

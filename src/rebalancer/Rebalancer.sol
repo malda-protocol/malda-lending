@@ -27,6 +27,7 @@ contract Rebalancer is IRebalancer {
         uint256 timestamp;
     }
     mapping(uint32 => mapping(address => uint256)) public maxTransferSizes;
+    mapping(uint32 => mapping(address => uint256)) public minTransferSizes;
     mapping(uint32 => mapping(address => TransferInfo)) public currentTransferSize;
     uint256 public transferTimeWindow;
 
@@ -43,7 +44,14 @@ contract Rebalancer is IRebalancer {
         emit BridgeWhitelistedStatusUpdated(_bridge, _status);
     }
 
+     function setMinTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external {
+        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+        minTransferSizes[_dstChainId][_token] = _limit;
+        emit MinTransferSizeUpdated(_dstChainId, _token, _limit);
+    }
+
     function setMaxTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external {
+        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
         maxTransferSizes[_dstChainId][_token] = _limit;
         emit MaxTransferSizeUpdated(_dstChainId, _token, _limit);
     }
@@ -75,7 +83,8 @@ contract Rebalancer is IRebalancer {
         } else {
             currentTransferSize[_msg.dstChainId][_msg.token].size += _amount;
         }
-        require(transferInfo.size < currentTransferSize[_msg.dstChainId][_msg.token].size, Rebalancer_TransferSizeExcedeed()); 
+        require(transferInfo.size + _amount < maxTransferSizes[_msg.dstChainId][_msg.token], Rebalancer_TransferSizeExcedeed()); 
+        require(transferInfo.size + _amount > minTransferSizes[_msg.dstChainId][_msg.token], Rebalancer_TransferSizeMinNotMet()); 
 
         // retrieve amounts (make sure to check min and max for that bridge)
         IRebalanceMarket(_market).extractForRebalancing(_amount);
