@@ -10,6 +10,7 @@ pragma solidity =0.8.28;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 import {SafeApprove} from "src/libraries/SafeApprove.sol";
 
@@ -19,7 +20,7 @@ import {IAcrossSpokePoolV3} from "src/interfaces/external/across/IAcrossSpokePoo
 
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 
-contract AccrossBridge is BaseBridge, IBridge {
+contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE ------------
@@ -106,7 +107,7 @@ contract AccrossBridge is BaseBridge, IBridge {
         uint256 amount,
         address, // relayer is unused
         bytes memory message
-    ) external onlySpokePool {
+    ) external onlySpokePool nonReentrant {
         address market = abi.decode(message, (address));
         address _underlying = ImTokenMinimal(market).underlying();
         require(_underlying == tokenSent, AcrossBridge_TokenMismatch());
