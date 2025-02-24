@@ -36,14 +36,14 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         string memory symbol_,
         uint8 decimals_
     ) public onlyAdmin {
-        require(accrualBlockNumber == 0 && borrowIndex == 0, mToken_AlreadyInitialized());
+        require(accrualBlockTimestamp == 0 && borrowIndex == 0, mToken_AlreadyInitialized());
         require(initialExchangeRateMantissa_ > 0, mToken_ExchangeRateNotValid());
         // Set initial exchange rate
         initialExchangeRateMantissa = initialExchangeRateMantissa_;
 
         _setOperator(operator_);
 
-        accrualBlockNumber = _getBlockTimestamp();
+        accrualBlockTimestamp = _getBlockTimestamp();
         borrowIndex = mantissaOne;
 
         _setInterestRateModel(interestRateModel_);
@@ -436,7 +436,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         IOperatorDefender(operator).beforeMTokenLiquidate(address(this), mTokenCollateral, borrower, repayAmount);
 
         require(
-            ImToken(mTokenCollateral).accrualBlockNumber() == _getBlockTimestamp(), mToken_CollateralBlockNumberNotValid()
+            ImToken(mTokenCollateral).accrualBlockTimestamp() == _getBlockTimestamp(), mToken_CollateralBlockTimestampNotValid()
         );
 
         /* Fail if repayBorrow fails */
