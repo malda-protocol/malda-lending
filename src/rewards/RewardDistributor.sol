@@ -44,9 +44,10 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     mapping(address => bool) public isRewardToken;
 
     error RewardDistributor_OnlyOperator();
+    error RewardDistributor_TransferFailed();
+    error RewardDistributor_RewardNotValid();
     error RewardDistributor_AddressNotValid();
     error RewardDistributor_AddressAlreadyRegistered();
-    error RewardDistributor_RewardNotValid();
     error RewardDistributor_SupplySpeedArrayLengthMismatch();
     error RewardDistributor_BorrowSpeedArrayLengthMismatch();
 
@@ -322,7 +323,8 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     function _grantReward(address token, address user, uint256 amount) internal returns (uint256) {
         uint256 remaining = ImToken(token).balanceOf(address(this));
         if (amount > 0 && amount <= remaining) {
-            ImToken(token).transfer(user, amount);
+            bool status = ImToken(token).transfer(user, amount);
+            require(status, RewardDistributor_TransferFailed());
 
             emit RewardGranted(token, user, amount);
 
