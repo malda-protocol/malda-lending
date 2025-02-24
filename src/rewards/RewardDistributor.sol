@@ -89,15 +89,18 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
 
     function setOperator(address _operator) external onlyOwner {
         require(_operator != address(0), RewardDistributor_AddressNotValid());
+        emit OperatorSet(operator, _operator);
         operator = _operator;
     }
 
     function whitelistToken(address rewardToken_) public onlyOwner {
         require(rewardToken_ != address(0), RewardDistributor_AddressNotValid());
         require(!isRewardToken[rewardToken_], RewardDistributor_AddressAlreadyRegistered());
-
+        
         rewardTokens.push(rewardToken_);
         isRewardToken[rewardToken_] = true;
+
+        emit WhitelistedToken(rewardToken_);
     }
 
     function updateRewardSpeeds(
@@ -132,6 +135,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
         for (uint256 i = 0; i < rewardTokens.length;) {
             _notifySupplyIndex(rewardTokens[i], mToken);
 
+            emit SupplyIndexNotified(rewardTokens[i], mToken);
             unchecked {
                 ++i;
             }
@@ -145,6 +149,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
         for (uint256 i = 0; i < rewardTokens.length;) {
             _notifyBorrowIndex(rewardTokens[i], mToken);
 
+            emit BorrowIndexNotified(rewardTokens[i], mToken);
             unchecked {
                 ++i;
             }

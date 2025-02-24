@@ -59,6 +59,8 @@ interface ImTokenGateway {
         uint32 dstChainId
     );
 
+    event mTokenGateway_PausedState(ImTokenOperationTypes.OperationType indexed _type, bool _status);
+
     // ----------- ERRORS -----------+
     /**
      * @notice Thrown when the chain id is not LINEA
