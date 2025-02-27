@@ -251,6 +251,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
 
             marketState.borrowBlock = blockNumber;
         }
+        emit BorrowIndexNotified(rewardToken, mToken);
     }
 
     function _notifySupplier(address rewardToken, address mToken, address supplier) private {
