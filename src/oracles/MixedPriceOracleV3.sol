@@ -37,7 +37,7 @@ contract MixedPriceOracleV3 is IOracleOperator {
     }
 
     function setStaleness(string memory symbol, uint256 val) external {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) {
+        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_ORACLE())) {
             revert MixedPriceOracle_Unauthorized();
         }   
         stalenessPerSymbol[symbol] = val;
