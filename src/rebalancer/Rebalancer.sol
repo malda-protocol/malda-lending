@@ -75,7 +75,10 @@ contract Rebalancer is IRebalancer {
         address _underlying = ImTokenMinimal(_market).underlying();
         require(_underlying == _msg.token, Rebalancer_RequestNotValid());
 
-        // transfer size checks
+        // min transfer size check
+        require(_amount > minTransferSizes[_msg.dstChainId][_msg.token], Rebalancer_TransferSizeMinNotMet()); 
+
+        // max transfer size checks
         TransferInfo memory transferInfo = currentTransferSize[_msg.dstChainId][_msg.token];
         uint256 transferSizeDeadline = transferInfo.timestamp + transferTimeWindow;
         if (transferSizeDeadline < block.timestamp) {
@@ -84,7 +87,6 @@ contract Rebalancer is IRebalancer {
             currentTransferSize[_msg.dstChainId][_msg.token].size += _amount;
         }
         require(transferInfo.size + _amount < maxTransferSizes[_msg.dstChainId][_msg.token], Rebalancer_TransferSizeExcedeed()); 
-        require(transferInfo.size + _amount > minTransferSizes[_msg.dstChainId][_msg.token], Rebalancer_TransferSizeMinNotMet()); 
 
         // retrieve amounts (make sure to check min and max for that bridge)
         IRebalanceMarket(_market).extractForRebalancing(_amount);
