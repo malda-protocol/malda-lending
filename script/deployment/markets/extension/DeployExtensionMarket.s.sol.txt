@@ -17,22 +17,28 @@ import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transpa
  *     --broadcast
  */
 contract DeployExtensionMarket is Script {
-    function run(
-        Deployer deployer,
-        address underlyingToken,
-        string calldata name,
-        address owner,
-        address zkVerifier,
-        address roles
-    ) public returns (address) {
+    function run() public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        // Deploy implementation
-        bytes32 implSalt = getSalt(string.concat("mTokenGateway-implementation", addressToString(underlyingToken)));
+        Deployer deployer = Deployer(payable(0x7DE862D3f944b5BCbE30C43aa5434eE964a31a8C));
+        address roles = 0xaF15224767C030FF851a5f2AF8355230b2203F46;
+        //string memory name = "mUSDCMock";
+        string memory name = "mwstETHMock";
+        address owner = 0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00;
+        //address underlyingToken = 0xc6e1FB449b08B26B2063c289DF9BBcb79B91c992; // usdc
+        address underlyingToken = 0x0d7Ee0ee6E449e38269F2E089262b40cA4096594; // wstEth
 
-        address implementation = deployer.precompute(implSalt);
+        // sepolia
+        //address zkVerifier = 0x925d8331ddc0a1F0d96E68CF073DFE1d92b69187;
+
+        // op sepolia
+        address zkVerifier = 0xB369b4dd27FBfb59921d3A4a3D23AC2fc32FB908;
+
+        // Deploy implementation
+        bytes32 implSalt = getSalt(string.concat("mTokenGateway-implementationv2.0", addressToString(underlyingToken)));
 
         console.log("Deploying mTokenGateway implementation", name);
+        address implementation = deployer.precompute(implSalt);
         console.log("Deploying mTokenGateway implementation for token ", underlyingToken);
 
         // Check if implementation already exists
@@ -51,26 +57,26 @@ contract DeployExtensionMarket is Script {
             mTokenGateway.initialize.selector, payable(owner), underlyingToken, roles, zkVerifier
         );
 
-        // Deploy proxy
-        bytes32 proxySalt = getSalt(name);
+        // // Deploy proxy
+        // bytes32 proxySalt = getSalt(name);
 
-        address proxy = deployer.precompute(proxySalt);
-        // Check if proxy already exists
-        if (proxy.code.length > 0) {
-            console.log("Extension Proxy already exists at ", proxy);
-        } else {
-            vm.startBroadcast(key);
-            proxy = deployer.create(
-                proxySalt,
-                abi.encodePacked(
-                    type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, owner, initData)
-                )
-            );
-            vm.stopBroadcast();
-            console.log("Extension Proxy deployed at:", proxy);
-        }
+        // address proxy = deployer.precompute(proxySalt);
+        // // Check if proxy already exists
+        // if (proxy.code.length > 0) {
+        //     console.log("Extension Proxy already exists at ", proxy);
+        // } else {
+        //     vm.startBroadcast(key);
+        //     proxy = deployer.create(
+        //         proxySalt,
+        //         abi.encodePacked(
+        //             type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, owner, initData)
+        //         )
+        //     );
+        //     vm.stopBroadcast();
+        //     console.log("Extension Proxy deployed at:", proxy);
+        // }
 
-        return proxy;
+        // return proxy;
     }
 
     function getSalt(string memory name) internal view returns (bytes32) {

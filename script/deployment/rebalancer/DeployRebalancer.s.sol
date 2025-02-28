@@ -2,39 +2,36 @@
 pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
-import {DeployBase} from "script/deployers/DeployBase.sol";
-import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
+import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 
 /**
- * forge script DeployBatchSubmitter  \
+ * forge script DeployRebalancer  \
  *     --slow \
  *     --verify \
  *     --verifier-url <url> \
  *     --rpc-url <url> \
+ *     --sig "run(address)" 0x0 \
  *     --etherscan-api-key <key> \
- *     --sig "run(address,address)" 0x0 0x0\
  *     --broadcast
  */
-contract DeployBatchSubmitter is Script {
-    function run(Deployer deployer, address roles, address zkVerifier, address owner) public returns (address) {
+contract DeployRebalancer is Script {
+    function run(address roles, Deployer deployer) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-
-        bytes32 salt = getSalt("BatchSubmitter");
+        bytes32 salt = getSalt("Rebalancer");
 
         address created = deployer.precompute(salt);
         // Deploy only if not already deployed
         if (created.code.length == 0) {
             vm.startBroadcast(key);
-            created = deployer.create(
-                salt, abi.encodePacked(type(BatchSubmitter).creationCode, abi.encode(roles, zkVerifier, owner))
-            );
+            created = deployer.create(salt, abi.encodePacked(type(Rebalancer).creationCode, abi.encode(roles)));
             vm.stopBroadcast();
-            console.log("BatchSubmitter deployed at:", created);
+            console.log("Rebalancer deployed at:", created);
         } else {
-            console.log("Using existing BatchSubmitter at: %s", created);
+            console.log("Using existing Rebalancer at: %s", created);
         }
 
+       
         return created;
     }
 

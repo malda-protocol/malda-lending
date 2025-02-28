@@ -34,7 +34,7 @@ contract DeployHostMarket is Script {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         // Deploy implementation
-        bytes32 implSalt = getSalt(string.concat("mTokenHost-implementation", addressToString(marketData.underlyingToken)));
+        bytes32 implSalt = getSalt(string.concat("mTokenHost-implementation1", addressToString(marketData.underlyingToken)));
 
         address implementation = deployer.precompute(implSalt);
 
@@ -85,7 +85,6 @@ contract DeployHostMarket is Script {
         }
 
 
-        console.log("----returning:", proxy);
         return proxy;
     }
 

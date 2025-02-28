@@ -29,7 +29,6 @@ contract Pauser is Ownable, IPauser {
 
     constructor(address _roles, address _operator, address _owner) Ownable(_owner) {
         require(_roles != address(0), Pauser_AddressNotValid());
-        require(_operator != address(0), Pauser_AddressNotValid());
         roles = IRoles(_roles);
         operator = IOperator(_operator);
     }

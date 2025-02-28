@@ -20,20 +20,18 @@ contract UpgradeMarket is Script {
     bytes32 internal constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 
     function run(
-        address,
-        address proxy,
-        MarketType,
-        string memory // Optional: for deterministic deployment
     ) public {
         // Setup
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-
+        //address proxy = 0x4631d3E5803332448e0D9cBb9bF501A4C50B95ed; //usdc
+        address proxy = 0x9A3e5153E7642913d007C0685938010011A865C7; //weth
         // Get ProxyAdmin address from proxy
         address proxyAdmin = address(uint160(uint256(vm.load(proxy, ADMIN_SLOT))));
         console.log("ProxyAdmin address:", proxyAdmin);
 
+
         // Deploy new implementation
-        address newImpl = address(0xe37f534097F2234dEDF66818Af5b8E3d10f20cdC);
+        address newImpl = address(0x303a043cfE627bEb2d50eC66F8426943068Dc46f);
         // if (marketType == MarketType.HOST) {
         //     newImpl = _deployHostImplementation(deployer, salt);
         // } else {

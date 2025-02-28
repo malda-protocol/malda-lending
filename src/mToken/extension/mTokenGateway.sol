@@ -41,7 +41,7 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     mapping(address => uint256) public accAmountOut;
     mapping(address => mapping(address => bool)) public allowedCallers;
 
-    uint32 private constant LINEA_CHAIN_ID = 59144;
+    uint32 private constant LINEA_CHAIN_ID = 59141;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -85,7 +85,7 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
      */
     function getProofData(address user, uint32 dstId) external view returns (bytes memory) {
         return mTokenProofDecoderLib.encodeJournal(
-            user, address(this), accAmountIn[user], accAmountOut[user], uint32(block.chainid), LINEA_CHAIN_ID
+            user, address(this), accAmountIn[user], accAmountOut[user], uint32(block.chainid), 59141
         );
     }
 
@@ -103,6 +103,8 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
         } else {
             require(msg.sender == owner(), mTokenGateway_CallerNotAllowed());
         }
+
+        emit mTokenGateway_PausedState(_type, state);
         paused[_type] = state;
     }
 
@@ -157,7 +159,7 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
             accAmountOut[msg.sender],
             amount,
             uint32(block.chainid),
-            LINEA_CHAIN_ID,
+            59141,
             lineaSelector
         );
     }
@@ -196,7 +198,7 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
         // checks
         _checkSender(msg.sender, _sender);
         require(_market == address(this), mTokenGateway_AddressNotValid());
-        require(_chainId == LINEA_CHAIN_ID, mTokenGateway_ChainNotValid()); // allow only Host
+        require(_chainId == 59141, mTokenGateway_ChainNotValid()); // allow only Host
         require(_dstChainId == uint32(block.chainid), mTokenGateway_ChainNotValid());
         require(amount > 0, mTokenGateway_AmountNotValid());
         require(_accAmountOut - accAmountOut[_sender] >= amount, mTokenGateway_AmountTooBig());

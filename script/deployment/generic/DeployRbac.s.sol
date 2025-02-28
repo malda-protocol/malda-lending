@@ -21,7 +21,6 @@ contract DeployRbac is Script {
         console.log("Deploying Rbac");
 
         address created = _deployer.precompute(salt);
-        
         // Deploy only if not already deployed
         if (created.code.length == 0) {
             vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
