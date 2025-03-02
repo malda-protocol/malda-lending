@@ -76,9 +76,9 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     /**
      * @inheritdoc IRewardDistributor
      */
-    function getBlockNumber() public view override returns (uint32) {
+    function getBlockTimestamp() public view override returns (uint32) {
         // needs to have a string error message
-        return safe32(block.timestamp, "block number exceeds 32 bits");
+        return safe32(block.timestamp, "block timestamp exceeds 32 bits");
     }
 
     /**
@@ -213,11 +213,11 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     function _notifySupplyIndex(address rewardToken, address mToken) private {
         IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
 
-        uint32 blockNumber = getBlockNumber();
+        uint32 blockTimestamp = getBlockTimestamp();
 
-        if (blockNumber > marketState.supplyBlock) {
+        if (blockTimestamp > marketState.supplyBlock) {
             if (marketState.supplySpeed > 0) {
-                uint256 deltaBlocks = blockNumber - marketState.supplyBlock;
+                uint256 deltaBlocks = blockTimestamp - marketState.supplyBlock;
                 uint256 supplyTokens = ImToken(mToken).totalSupply();
                 uint256 accrued = mul_(deltaBlocks, marketState.supplySpeed);
                 Double memory ratio = supplyTokens > 0 ? fraction(accrued, supplyTokens) : Double({mantissa: 0});
@@ -227,7 +227,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
                 );
             }
 
-            marketState.supplyBlock = blockNumber;
+            marketState.supplyBlock = blockTimestamp;
         }
     }
 
@@ -236,11 +236,11 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
 
         IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
 
-        uint32 blockNumber = getBlockNumber();
+        uint32 blockTimestamp = getBlockTimestamp();
 
-        if (blockNumber > marketState.borrowBlock) {
+        if (blockTimestamp > marketState.borrowBlock) {
             if (marketState.borrowSpeed > 0) {
-                uint256 deltaBlocks = blockNumber - marketState.borrowBlock;
+                uint256 deltaBlocks = blockTimestamp - marketState.borrowBlock;
                 uint256 borrowAmount = div_(ImToken(mToken).totalBorrows(), marketBorrowIndex);
                 uint256 accrued = mul_(deltaBlocks, marketState.borrowSpeed);
                 Double memory ratio = borrowAmount > 0 ? fraction(accrued, borrowAmount) : Double({mantissa: 0});
@@ -250,7 +250,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
                 );
             }
 
-            marketState.borrowBlock = blockNumber;
+            marketState.borrowBlock = blockTimestamp;
         }
     }
 

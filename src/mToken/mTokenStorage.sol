@@ -68,7 +68,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     /**
      * @inheritdoc ImToken
      */
-    uint256 public accrualBlockNumber;
+    uint256 public accrualBlockTimestamp;
 
     /**
      * @inheritdoc ImToken
@@ -138,7 +138,6 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     error mToken_BorrowRateTooHigh();
     error mToken_AlreadyInitialized();
     error mToken_ReserveFactorTooHigh();
-    error mToken_BlockNumberNotValid();
     error mToken_ExchangeRateNotValid();
     error mToken_MarketMethodNotValid();
     error mToken_LiquidateSeizeTooMuch();
@@ -146,7 +145,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     error mToken_BorrowCashNotAvailable();
     error mToken_ReserveCashNotAvailable();
     error mToken_RedeemTransferOutNotPossible();
-    error mToken_CollateralBlockNumberNotValid();
+    error mToken_CollateralBlockTimestampNotValid();
 
     // ----------- ACCESS EVENTS ------------
     /**
@@ -257,10 +256,10 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     }
 
     /**
-     * @dev Function to simply retrieve block number
+     * @dev Function to simply retrieve block timestamp
      *  This exists mainly for inheriting test contracts to stub this result.
      */
-    function _getBlockNumber() internal view virtual returns (uint256) {
+    function _getBlockTimestamp() internal view virtual returns (uint256) {
         return block.timestamp;
     }
 
@@ -314,12 +313,12 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
 
     // ----------- NON-VIRTUAL ------------
     function _accrueInterest() internal {
-        /* Remember the initial block number */
-        uint256 currentBlockNumber = _getBlockNumber();
-        uint256 accrualBlockNumberPrior = accrualBlockNumber;
+        /* Remember the initial block timestamp */
+        uint256 currentBlockTimestamp = _getBlockTimestamp();
+        uint256 accrualBlockTimestampPrior = accrualBlockTimestamp;
 
         /* Short-circuit accumulating 0 interest */
-        if (accrualBlockNumberPrior == currentBlockNumber) return;
+        if (accrualBlockTimestampPrior == currentBlockTimestamp) return;
 
         /* Read the previous values out of storage */
         uint256 cashPrior = _getCashPrior();
@@ -333,7 +332,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
         require(borrowRateMantissa <= borrowRateMaxMantissa, mToken_BorrowRateTooHigh());
 
         /* Calculate the number of blocks elapsed since the last accrual */
-        uint256 blockDelta = currentBlockNumber - accrualBlockNumberPrior;
+        uint256 blockDelta = currentBlockTimestamp - accrualBlockTimestampPrior;
 
         /*
          * Calculate the interest accumulated into borrows and reserves and the new index:
@@ -356,7 +355,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
         // (No safe failures beyond this point)
 
         /* We write the previously calculated values into storage */
-        accrualBlockNumber = currentBlockNumber;
+        accrualBlockTimestamp = currentBlockTimestamp;
         borrowIndex = borrowIndexNew;
         totalBorrows = totalBorrowsNew;
         totalReserves = totalReservesNew;

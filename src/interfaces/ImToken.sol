@@ -104,9 +104,9 @@ interface ImToken is ImTokenMinimal {
     function reserveFactorMantissa() external view returns (uint256);
 
     /**
-     * @notice Block number that interest was last accrued at
+     * @notice Block timestamp that interest was last accrued at
      */
-    function accrualBlockNumber() external view returns (uint256);
+    function accrualBlockTimestamp() external view returns (uint256);
 
     /**
      * @notice Accumulator of the total earned interest rate since the opening of the market
