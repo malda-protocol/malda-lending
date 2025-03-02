@@ -64,4 +64,9 @@ abstract contract Rebalancer_Unit_Shared is Base_Unit_Test {
         bridgeMock = new BridgeMock(address(roles));
         vm.label(address(bridgeMock), "BridgeMock");
     }
+
+    modifier whenMarketIsListed(address mToken) {
+        operator.supportMarket(mToken);
+        _;
+    }
 }

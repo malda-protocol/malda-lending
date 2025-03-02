@@ -29,6 +29,7 @@ interface IRebalancer {
 
     // ----------- ERRORS ------------
     error Rebalancer_NotAuthorized();
+    error Rebalancer_MarketNotValid();
     error Rebalancer_RequestNotValid();
     error Rebalancer_AddressNotValid();
     error Rebalancer_BridgeNotWhitelisted();
