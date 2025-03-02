@@ -119,7 +119,7 @@ contract mErc20 is mToken, ImErc20 {
     /**
      * @inheritdoc ImErc20
      */
-    function repayBehalf(address borrower, uint256 repayAmount) external  returns (uint256) {
+    function repayBehalf(address borrower, uint256 repayAmount) external returns (uint256) {
         return _repayBehalf(borrower, repayAmount, true);
     }
 

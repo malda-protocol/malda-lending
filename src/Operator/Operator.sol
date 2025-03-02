@@ -181,8 +181,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         );
 
         uint256 numMarkets = mTokens.length;
-        uint256 numBorrowCaps = newSupplyCaps.length;
-        require(numMarkets != 0 && numMarkets == numBorrowCaps, Operator_InvalidInput());
+        uint256 numSupplyCaps = newSupplyCaps.length;
+        require(numMarkets != 0 && numMarkets == numSupplyCaps, Operator_InvalidInput());
 
         for (uint256 i; i < numMarkets;) {
             supplyCaps[mTokens[i]] = newSupplyCaps[i];

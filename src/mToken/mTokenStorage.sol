@@ -96,8 +96,8 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     uint256 public totalUnderlying;
 
     /**
-     * @notice Maximum borrow rate that can ever be applied (.0005% / block)
-     */
+     * @notice Maximum borrow rate that can ever be applied
+    */
     uint256 public borrowRateMaxMantissa = 0.00004e16;
 
     /**

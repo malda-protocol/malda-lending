@@ -294,7 +294,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
 
     /**
      * @notice Sender repays their own borrow
-     * @param repayAmount The amount to repay, or -1 for the full outstanding amount
+     * @param repayAmount The amount to repay, or `type(uint256).max` for the full outstanding amount
      * @param doTransfer If an actual transfer should be performed
      */
     function _repay(uint256 repayAmount, bool doTransfer) internal nonReentrant returns (uint256) {
@@ -306,10 +306,14 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     /**
      * @notice Sender repays a borrow belonging to borrower
      * @param borrower the account with the debt being payed off
-     * @param repayAmount The amount to repay, or -1 for the full outstanding amount
+     * @param repayAmount The amount to repay, or `type(uint256).max` for the full outstanding amount
      * @param doTransfer If an actual transfer should be performed
      */
-    function _repayBehalf(address borrower, uint256 repayAmount, bool doTransfer) internal nonReentrant returns (uint256) {
+    function _repayBehalf(address borrower, uint256 repayAmount, bool doTransfer)
+        internal
+        nonReentrant
+        returns (uint256)
+    {
         _accrueInterest();
         // emits repay-borrow-specific logs on errors, so we don't need to
         return __repay(msg.sender, borrower, repayAmount, doTransfer);
@@ -469,7 +473,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @notice Borrows are repaid by another user (possibly the borrower).
      * @param payer the account paying off the borrow
      * @param borrower the account with the debt being payed off
-     * @param repayAmount the amount of underlying tokens being returned, or -1 for the full outstanding amount
+     * @param repayAmount the amount of underlying tokens being returned, or `type(uint256).max` for the full outstanding amount
      * @param doTransfer If an actual transfer should be performed
      */
 

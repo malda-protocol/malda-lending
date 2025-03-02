@@ -18,8 +18,6 @@ import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
 contract SetPriceFeedOnOracle is Script {
     function run(string memory symbol, address priceFeed, string memory toSymbol, uint8 underlyingDecimals) public {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-        vm.startBroadcast(key);
-
         address oracle = vm.envAddress("ORACLE");
 
         IDefaultAdapter.PriceConfig memory config = IDefaultAdapter.PriceConfig({
@@ -28,13 +26,14 @@ contract SetPriceFeedOnOracle is Script {
             underlyingDecimals: underlyingDecimals
         });
 
+        vm.startBroadcast(key);
         MixedPriceOracleV3(oracle).setConfig(symbol, config);
+        vm.stopBroadcast();
 
         console.log("Set price feed for %s on oracle %s:", symbol, oracle);
         console.log(" - Price Feed: %s", priceFeed);
         console.log(" - To Symbol: %s", toSymbol);
         console.log(" - Underlying Decimals: %d", underlyingDecimals);
 
-        vm.stopBroadcast();
     }
 }
