@@ -44,7 +44,7 @@ contract mErc20_mint is mToken_Unit_Shared {
         mWeth.mint(amount);
     }
 
-    function test_WhenSupplyCapIsGreater(uint256 amount)
+    function test_WhenSupplyCapIsGreaterXX(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWeth))
@@ -55,12 +55,16 @@ contract mErc20_mint is mToken_Unit_Shared {
         uint256 balanceWethBefore = weth.balanceOf(address(this));
         uint256 totalSupplyBefore = mWeth.totalSupply();
         uint256 balanceOfBefore = mWeth.balanceOf(address(this));
+        bool enteredBefore = operator.checkMembership(address(this), address(mWeth));
+        assertFalse(enteredBefore);
 
         mWeth.mint(amount);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWeth.totalSupply();
         uint256 balanceOfAfter = mWeth.balanceOf(address(this));
+        bool enteredAfter = operator.checkMembership(address(this), address(mWeth));
+        assertTrue(enteredAfter);
 
         // it should increse balanceOf account
         assertGt(balanceOfAfter, balanceOfBefore);

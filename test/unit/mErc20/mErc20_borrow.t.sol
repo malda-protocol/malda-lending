@@ -34,6 +34,7 @@ contract mErc20_borrow is mToken_Unit_Shared {
     function test_RevertGiven_OracleReturnsEmptyPrice(uint256 amount)
         external
         whenPriceIs(ZERO_VALUE)
+        whenUnderlyingPriceIs(ZERO_VALUE)
         whenMarketIsListed(address(mWeth))
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
@@ -110,13 +111,10 @@ contract mErc20_borrow is mToken_Unit_Shared {
         _borrowPrerequisites(address(mWeth), amount * 2);
 
         // before state
-        bool memberBefore = operator.checkMembership(address(this), address(mWeth));
         uint256 balanceUnderlyingBefore = weth.balanceOf(address(this));
         uint256 balanceUnderlyingMTokenBefore = weth.balanceOf(address(mWeth));
         uint256 supplyUnderlyingBefore = weth.totalSupply();
         uint256 totalBorrowsBefore = mWeth.totalBorrows();
-
-        assertFalse(memberBefore);
 
         // borrow; should fail
         vm.expectRevert(OperatorStorage.Operator_InsufficientLiquidity.selector);

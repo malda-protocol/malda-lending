@@ -8,7 +8,6 @@ import {Deployer} from "src/utils/Deployer.sol";
 import {Script, console} from "forge-std/Script.sol";
 
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 /**
  * forge script script/deployment/markets/DeployOperator.s.sol:DeployOperator  \

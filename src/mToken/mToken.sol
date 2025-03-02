@@ -676,6 +676,12 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
 
         /* We call the defense hook */
         IOperatorDefender(operator).afterMTokenMint(address(this));
+
+        // Activate market by default if not entered already
+        bool isEntered = IOperator(operator).checkMembership(minter, address(this));
+        if (!isEntered) {
+            IOperator(operator).enterMarketsWithSender(minter);
+        }
     }
 
     /**

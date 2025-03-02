@@ -225,6 +225,12 @@ interface IOperator {
     function enterMarkets(address[] calldata _mTokens) external;
 
     /**
+     * @notice Add asset (msg.sender) to be included in account liquidity calculation
+     * @param _account The account to add for
+     */
+    function enterMarketsWithSender(address _account) external;
+
+    /**
      * @notice Removes asset from sender's account liquidity calculation
      * @dev Sender must not have an outstanding borrow balance in the asset,
      *  or be providing necessary collateral for an outstanding borrow.
