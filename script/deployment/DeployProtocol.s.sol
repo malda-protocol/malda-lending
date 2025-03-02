@@ -309,7 +309,7 @@ contract DeployProtocol is DeployBase {
         internal
         returns (address)
     {
-        return deployOperator.run(deployer, oracle, rewardDistributor, rolesContract);
+        return deployOperator.run(deployer, oracle, rolesContract, rewardDistributor);
     }
 
     function _deployPauser(address rolesContract, address operator) internal {

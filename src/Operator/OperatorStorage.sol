@@ -19,16 +19,6 @@ import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
 abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNoError {
     // ----------- STORAGE ------------
     /**
-     * @notice Administrator for this contract
-     */
-    address public admin;
-
-    /**
-     * @notice Pending administrator for this contract
-     */
-    address public pendingAdmin;
-
-    /**
      * @inheritdoc IOperator
      */
     IRoles public rolesOperator;
@@ -183,23 +173,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     event NewPriceOracle(address indexed oldPriceOracle, address indexed newPriceOracle);
 
     /**
-     * @notice Emitted when pendingAdmin is changed
-     */
-    event NewPendingAdmin(address indexed oldPendingAdmin, address indexed newPendingAdmin);
-
-    /**
-     * @notice Emitted when pendingAdmin is accepted, which means admin is updated
-     */
-    event NewAdmin(address indexed oldAdmin, address indexed newAdmin);
-
-    /**
      * @notice Event emitted when rolesOperator is changed
      */
     event NewRolesOperator(address indexed oldRoles, address indexed newRoles);
-
-    // ----------- MODIFIERS ------------
-    modifier onlyAdmin() {
-        require(msg.sender == admin, Operator_OnlyAdmin());
-        _;
-    }
 }

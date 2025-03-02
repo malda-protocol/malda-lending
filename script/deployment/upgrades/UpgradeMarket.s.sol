@@ -35,11 +35,11 @@ contract UpgradeMarket is Script {
 
         // Deploy new implementation
         address newImpl = address(0xe37f534097F2234dEDF66818Af5b8E3d10f20cdC);
-        // if (marketType == MarketType.HOST) {
-        //     newImpl = _deployHostImplementation(deployer, salt);
-        // } else {
-        //     newImpl = _deployGatewayImplementation(deployer, salt);
-        // }
+        if (marketType == MarketType.HOST) {
+            newImpl = _deployHostImplementation(deployer, salt);
+        } else {
+            newImpl = _deployGatewayImplementation(deployer, salt);
+        }
 
         // Upgrade proxy through ProxyAdmin
         vm.startBroadcast(key);
