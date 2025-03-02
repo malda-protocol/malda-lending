@@ -242,7 +242,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         accAmountOutPerChain[dstChainId][msg.sender] += amount;
         _borrow(msg.sender, amount, false);
 
-        emit mErc20Host_BorrowOnExternsionChain(msg.sender, dstChainId, amount);
+        emit mErc20Host_BorrowOnExtensionChain(msg.sender, dstChainId, amount);
     }
 
     // ----------- PRIVATE ------------
