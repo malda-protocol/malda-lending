@@ -55,6 +55,11 @@ interface ImTokenMinimal {
     function totalSupply() external view returns (uint256);
 
     /**
+     * @notice Returns the amount of underlying tokens
+     */
+    function totalUnderlying() external view returns (uint256);
+
+    /**
      * @notice Returns the value of tokens owned by `account`.
      * @param account The account to check for
      */

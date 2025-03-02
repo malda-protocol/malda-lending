@@ -211,6 +211,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
 
         // doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
         _doTransferOut(payable(msg.sender), reduceAmount);
+        totalUnderlying -= reduceAmount;
 
         emit ReservesReduced(admin, reduceAmount, totalReservesNew);
     }
@@ -403,6 +404,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          */
 
         actualAddAmount = _doTransferIn(msg.sender, addAmount);
+        totalUnderlying += actualAddAmount;
 
         totalReservesNew = totalReserves + actualAddAmount;
 
@@ -492,6 +494,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          *   it returns the amount actually transferred, in case of a fee.
          */
         uint256 actualRepayAmount = doTransfer ? _doTransferIn(payer, repayAmountFinal) : repayAmountFinal;
+        totalUnderlying += actualRepayAmount;
 
         /*
          * We calculate the new borrower and total borrow balances, failing on underflow:
@@ -551,6 +554,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
             */
             _doTransferOut(borrower, borrowAmount);
         }
+        totalUnderlying -= borrowAmount;
 
         /* We emit a Borrow event */
         emit Borrow(borrower, borrowAmount, accountBorrowsNew, totalBorrowsNew);
@@ -609,6 +613,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          *  _doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
          */
         if (doTransfer) _doTransferOut(redeemer, redeemAmount);
+        totalUnderlying -= redeemAmount;
 
         /* We emit a Transfer event, and a Redeem event */
         emit Transfer(redeemer, address(this), redeemTokens);
@@ -640,6 +645,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          *  of cash.
          */
         uint256 actualMintAmount = doTransfer ? _doTransferIn(minter, mintAmount) : mintAmount;
+        totalUnderlying += actualMintAmount;
 
         /*
          * We get the current exchange rate and calculate the number of mTokens to be minted:
