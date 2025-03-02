@@ -53,8 +53,12 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
         roles = new Roles(address(this));
         vm.label(address(roles), "Roles");
 
-        rewards = new RewardDistributor();
+        RewardDistributor rewardsImpl = new RewardDistributor();
+        bytes memory rewardsInitData = abi.encodeWithSelector(RewardDistributor.initialize.selector, address(this));
+        ERC1967Proxy rewardsProxy = new ERC1967Proxy(address(rewardsImpl), rewardsInitData);
+        rewards = RewardDistributor(address(rewardsProxy));
         vm.label(address(rewards), "RewardDistributor");
+
 
         Operator oprImp = new Operator();
         bytes memory operatorInitData = abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(rewards), address(this));
@@ -71,7 +75,6 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
         vm.label(address(oracleOperator), "oracleOperator");
 
         // **** SETUP ****
-        rewards.initialize(address(this));
         rewards.setOperator(address(operator));
         operator.setPriceOracle(address(oracleOperator));
     }
