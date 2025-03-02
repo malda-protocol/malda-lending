@@ -58,8 +58,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
      * @notice Sets a new price oracle
      * @dev Admin function to set a new price oracle
      */
-
     function setPriceOracle(address newOracle) external onlyOwner {
+        require(newOracle != address(0), Operator_InvalidInput());
         emit NewPriceOracle(oracleOperator, newOracle);
         oracleOperator = newOracle;
     }
