@@ -544,7 +544,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
             require(borrowBalance >= repayAmount, Operator_RepayAmountNotValid());
         } else {
             (, uint256 shortfall) = _getHypotheticalAccountLiquidity(borrower, address(0), 0, 0);
-            require(shortfall == 0, Operator_InsufficientLiquidity());
+            require(shortfall > 0, Operator_InsufficientLiquidity());
 
             /* The liquidator may not repay more than what is allowed by the closeFactor */
             uint256 maxClose = mul_ScalarTruncate(Exp({mantissa: closeFactorMantissa}), borrowBalance);
