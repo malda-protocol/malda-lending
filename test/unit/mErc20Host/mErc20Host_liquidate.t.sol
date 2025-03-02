@@ -158,7 +158,6 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
     {
         mWethHost.setRolesOperator(address(roles));
 
-        LiquidateStateInternal memory vars;
         _repayPrerequisites(address(mWethHost), amount * 2, amount);
 
         _getTokens(weth, alice, amount * 10);

@@ -4,7 +4,7 @@ pragma solidity =0.8.28;
 import {Script, console} from "forge-std/Script.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 /**
  * forge script DeployExtensionMarket  \
@@ -47,7 +47,7 @@ contract DeployExtensionMarket is Script {
         bytes32 proxySalt = getSalt(string.concat("mTokenGatewayProxy", string(abi.encodePacked(data.underlyingToken))));
         vm.startBroadcast(key);
         address proxy = deployer.create(
-            proxySalt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initData))
+            proxySalt, abi.encodePacked(type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, initData))
         );
         vm.stopBroadcast();
 

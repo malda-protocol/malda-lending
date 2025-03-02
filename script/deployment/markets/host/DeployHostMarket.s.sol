@@ -4,7 +4,7 @@ pragma solidity =0.8.28;
 import {Script, console} from "forge-std/Script.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 /**
  * forge script DeployHostMarket  \
@@ -59,7 +59,7 @@ contract DeployHostMarket is Script {
         bytes32 proxySalt = getSalt(string.concat("mErc20HostProxy", data.name));
         vm.startBroadcast(key);
         address proxy = deployer.create(
-            proxySalt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initData))
+            proxySalt, abi.encodePacked(type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, initData))
         );
         vm.stopBroadcast();
 
