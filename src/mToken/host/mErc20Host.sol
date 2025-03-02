@@ -31,6 +31,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     mapping(uint32 => mapping(address => uint256)) public accAmountOutPerChain;
     mapping(address => mapping(address => bool)) public allowedCallers;
     mapping(uint32 => bool) public allowedChains;
+    mapping(uint32 => uint256) public gasFees;
 
     /**
      * @notice Initializes the new money market
@@ -130,6 +131,25 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         IERC20(underlying).safeTransfer(msg.sender, amount);
     }
 
+    /**
+     * @notice Sets the gas fee
+     * @param dstChainId the destination chain id
+     * @param amount the gas fee amount
+     */
+    function setGasFee(uint32 dstChainId, uint256 amount) external onlyAdmin {
+        gasFees[dstChainId] = amount;
+        emit mErc20Host_GasFeeUpdated(dstChainId, amount);
+    }
+
+    /**
+     * @notice Withdraw gas received so far
+     * @param receiver the receiver address
+     */
+    function withdrawGasFees(address payable receiver) external onlyAdmin {
+        uint256 balance = address(this).balance;
+        receiver.transfer(balance);
+    }
+
     // ----------- PUBLIC ------------
     /**
      * @inheritdoc ImErc20Host
@@ -222,8 +242,9 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     /**
      * @inheritdoc ImErc20Host
      */
-    function withdrawOnExtension(uint256 amount, uint32 dstChainId) external override {
+    function withdrawOnExtension(uint256 amount, uint32 dstChainId) external payable override {
         require(amount > 0, mErc20Host_AmountNotValid());
+        require(msg.value >= gasFees[dstChainId], mErc20Host_NotEnoughGasFee());
 
         // actions
         accAmountOutPerChain[dstChainId][msg.sender] += amount;
@@ -235,8 +256,9 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     /**
      * @inheritdoc ImErc20Host
      */
-    function borrowOnExtension(uint256 amount, uint32 dstChainId) external override {
+    function borrowOnExtension(uint256 amount, uint32 dstChainId) external payable override {
         require(amount > 0, mErc20Host_AmountNotValid());
+        require(msg.value >= gasFees[dstChainId], mErc20Host_NotEnoughGasFee());
 
         // actions
         accAmountOutPerChain[dstChainId][msg.sender] += amount;

@@ -59,6 +59,11 @@ interface ImTokenGateway {
         uint32 dstChainId
     );
 
+    /**
+     * @notice Emitted when the gas fee is updated
+     */
+    event mTokenGateway_GasFeeUpdated(uint256 amount);
+
     // ----------- ERRORS -----------+
     /**
      * @notice Thrown when the chain id is not LINEA
@@ -112,6 +117,11 @@ interface ImTokenGateway {
      * @notice Thrown when length is not valid
      */
     error mTokenGateway_LengthNotValid();
+
+    /**
+     * @notice Thrown when not enough gas fee was received
+     */
+    error mTokenGateway_NotEnoughGasFee();
 
     // ----------- VIEW -----------
     /**
@@ -177,7 +187,7 @@ interface ImTokenGateway {
      * @param amount The supplied amount
      * @param lineaSelector The method selector to be called on Linea by our relayer. If empty, user has to submit it
      */
-    function supplyOnHost(uint256 amount, bytes4 lineaSelector) external;
+    function supplyOnHost(uint256 amount, bytes4 lineaSelector) external payable;
 
     /**
      * @notice Extract tokens
