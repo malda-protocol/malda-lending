@@ -27,11 +27,6 @@ interface IRoles {
     function GUARDIAN_PAUSE() external view returns (bytes32);
 
     /**
-     * @notice Returns GUARDIAN_BORROW role
-     */
-    function GUARDIAN_BORROW() external view returns (bytes32);
-
-    /**
      * @notice Returns GUARDIAN_BRIDGE role
      */
     function GUARDIAN_BRIDGE() external view returns (bytes32);

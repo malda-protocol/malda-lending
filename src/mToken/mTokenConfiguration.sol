@@ -118,7 +118,7 @@ abstract contract mTokenConfiguration is mTokenStorage {
      * @dev Admin function to update the interest rate model
      * @param newInterestRateModel the new interest rate model to use
      */
-    function _setInterestRateModel(address newInterestRateModel) internal onlyAdmin {
+    function _setInterestRateModel(address newInterestRateModel) internal {
         // Ensure invoke newInterestRateModel.isInterestRateModel() returns true
         require(IInterestRateModel(newInterestRateModel).isInterestRateModel(), mToken_MarketMethodNotValid());
 

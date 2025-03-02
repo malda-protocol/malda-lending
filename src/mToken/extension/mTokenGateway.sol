@@ -218,6 +218,7 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
         (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId) =
             mTokenProofDecoderLib.decodeJournal(journalData);
 
+        // temporary overwrite; will be removed in future implementations
         receiver = _sender;
 
         // checks

@@ -121,7 +121,6 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     error Operator_InvalidRewardDistributor();
     error Operator_OracleUnderlyingFetchError();
     error Operator_Deactivate_MarketBalanceOwed();
-    error Operator_Deactivate_SnapshotFetchingFailed();
 
     // ----------- EVENTS ------------
     /**
