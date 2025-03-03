@@ -23,8 +23,11 @@ contract Rebalancer is IRebalancer {
     mapping(uint32 => mapping(uint256 => Msg)) public logs;
     mapping(address => bool) public whitelistedBridges;
 
-    constructor(address _roles) {
+    address public saveAddress;
+
+    constructor(address _roles, address _saveAddress) {
         roles = IRoles(_roles);
+        saveAddress = _saveAddress;
     }
 
     // ----------- OWNER METHODS ------------
@@ -34,6 +37,15 @@ contract Rebalancer is IRebalancer {
         whitelistedBridges[_bridge] = _status;
         emit BridgeWhitelistedStatusUpdated(_bridge, _status);
     }
+
+    function saveEth() external {
+        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+
+        uint256 amount = address(this).balance;
+        // no need to check return value
+        saveAddress.call{value: amount}("");
+        emit EthSaved(amount);
+    }   
 
     // ----------- VIEW METHODS ------------
     /**
