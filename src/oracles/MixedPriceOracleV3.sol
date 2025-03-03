@@ -52,7 +52,8 @@ contract MixedPriceOracleV3 is IOracleOperator {
 
     // price is extended for comptroller usage based on decimals of exchangeRate
     function getUnderlyingPrice(address mToken) external view override returns (uint256) {
-        string memory symbol = ImTokenMinimal(mToken).symbol();
+        // ImTokenMinimal cast is needed for `.symbol()` call. No need to import a different interface
+        string memory symbol = ImTokenMinimal(ImTokenMinimal(mToken).underlying()).symbol();
         IDefaultAdapter.PriceConfig memory config = configs[symbol];
         uint256 priceUsd = _getPriceUSD(symbol);
         return priceUsd * 10 ** (18 - config.underlyingDecimals);
