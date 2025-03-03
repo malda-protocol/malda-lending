@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import { IERC20 } from "lib/forge-std/src/interfaces/IERC20.sol";
+import {IERC20} from "lib/forge-std/src/interfaces/IERC20.sol";
 import {Script} from "forge-std/Script.sol";
 import {IEverclearSpoke} from "src/interfaces/external/everclear/IEverclearSpoke.sol";
 

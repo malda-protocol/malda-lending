@@ -16,12 +16,14 @@ import {Deployer} from "src/utils/Deployer.sol";
  */
 contract DeployMockOracle is Script {
     address constant OWNER = 0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00;
+
     function run(Deployer deployer) public returns (address) {
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("MockOracleV3")));
+        bytes32 salt =
+            keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("MockOracleV3")));
 
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
-        address created = deployer.create(salt, abi.encodePacked(type(OracleMock).creationCode, abi.encode(OWNER)));                                          
+        address created = deployer.create(salt, abi.encodePacked(type(OracleMock).creationCode, abi.encode(OWNER)));
         vm.stopBroadcast();
         console.log(" OracleMock deployed at: %s", created);
 

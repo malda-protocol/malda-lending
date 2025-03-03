@@ -34,7 +34,8 @@ contract DeployHostMarket is Script {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         // Deploy implementation
-        bytes32 implSalt = getSalt(string.concat("mTokenHost-implementation1", addressToString(marketData.underlyingToken)));
+        bytes32 implSalt =
+            getSalt(string.concat("mTokenHost-implementation1", addressToString(marketData.underlyingToken)));
 
         address implementation = deployer.precompute(implSalt);
 
@@ -77,13 +78,13 @@ contract DeployHostMarket is Script {
             proxy = deployer.create(
                 proxySalt,
                 abi.encodePacked(
-                    type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, marketData.owner, initData)
+                    type(TransparentUpgradeableProxy).creationCode,
+                    abi.encode(implementation, marketData.owner, initData)
                 )
             );
             vm.stopBroadcast();
             console.log("Host Proxy deployed at:", proxy);
         }
-
 
         return proxy;
     }
@@ -99,8 +100,8 @@ contract DeployHostMarket is Script {
         bytes memory alphabet = "0123456789abcdef";
 
         bytes memory str = new bytes(42);
-        str[0] = '0';
-        str[1] = 'x';
+        str[0] = "0";
+        str[1] = "x";
         for (uint256 i = 0; i < 20; i++) {
             str[2 + i * 2] = alphabet[uint8(value[i + 12] >> 4)];
             str[3 + i * 2] = alphabet[uint8(value[i + 12] & 0x0f)];

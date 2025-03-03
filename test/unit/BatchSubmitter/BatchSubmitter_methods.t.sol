@@ -63,15 +63,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         vm.expectRevert(BatchSubmitter.BatchSubmitter_CallerNotAllowed.selector);
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers,
-                encodedJournals,
-                "",
-                mTokens,
-                amounts,
-                amounts,
-                selectors,
-                initHashes,
-                0
+                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0
             )
         );
     }
@@ -87,25 +79,15 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
     function test_RevertWhen_JournalDataIsEmpty() external givenSenderHasProofForwarderRole givenJournalDataIsEmpty {
         vm.expectRevert(BatchSubmitter.BatchSubmitter_JournalNotValid.selector);
-        
+
         receivers = new address[](1);
         receivers[0] = address(this);
-        
+
         initHashes = new bytes32[](1);
         initHashes[0] = bytes32(0);
 
         batchSubmitter.batchProcess(
-            BatchSubmitter.BatchProcessMsg(
-                receivers,
-                "",
-                "",
-                mTokens,
-                amounts,
-                amounts,
-                selectors,
-                initHashes,
-                0
-            )
+            BatchSubmitter.BatchProcessMsg(receivers, "", "", mTokens, amounts, amounts, selectors, initHashes, 0)
         );
     }
 
@@ -123,9 +105,8 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         receivers = new address[](1);
         receivers[0] = address(this);
 
-        bytes memory encodedJournals = _createBatchJournals(
-            new address[](1), mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid)
-        );
+        bytes memory encodedJournals =
+            _createBatchJournals(new address[](1), mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
         journals = abi.decode(encodedJournals, (bytes[]));
 
         initHashes = new bytes32[](1);
@@ -134,15 +115,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         vm.expectRevert(BatchSubmitter.BatchSubmitter_InvalidSelector.selector);
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers,
-                encodedJournals,
-                "",
-                mTokens,
-                amounts,
-                amounts,
-                invalidSelectors,
-                initHashes,
-                0
+                receivers, encodedJournals, "", mTokens, amounts, amounts, invalidSelectors, initHashes, 0
             )
         );
     }
@@ -170,9 +143,8 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         receivers = new address[](1);
         receivers[0] = address(this);
 
-        bytes memory encodedJournals = _createBatchJournals(
-            receivers, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid)
-        );
+        bytes memory encodedJournals =
+            _createBatchJournals(receivers, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
         journals = abi.decode(encodedJournals, (bytes[]));
 
         initHashes = new bytes32[](1);
@@ -187,15 +159,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers,
-                encodedJournals,
-                "0x123",
-                mTokens,
-                amounts,
-                amounts,
-                selectors,
-                initHashes,
-                0
+                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0
             )
         );
 
@@ -242,15 +206,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers,
-                encodedJournals,
-                "",
-                mTokens,
-                amounts,
-                amounts,
-                selectors,
-                initHashes,
-                0
+                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0
             )
         );
     }
@@ -290,15 +246,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers,
-                encodedJournals,
-                "0x123",
-                mTokens,
-                amounts,
-                amounts,
-                selectors,
-                initHashes,
-                0
+                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0
             )
         );
 
@@ -346,15 +294,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers,
-                encodedJournals,
-                "",
-                mTokens,
-                amounts,
-                amounts,
-                selectors,
-                initHashes,
-                0
+                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0
             )
         );
     }
@@ -393,15 +333,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers,
-                encodedJournals,
-                "",
-                mTokens,
-                amounts,
-                amounts,
-                selectors,
-                initHashes,
-                0
+                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0
             )
         );
     }

@@ -15,6 +15,7 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
         rebalancer.setMaxTransferSize(1, address(weth), type(uint256).max);
         roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), false);
     }
+
     modifier givenSenderDoesNotHaveGUARDIAN_BRIDGERole() {
         //does nothing; for readability only
         _;

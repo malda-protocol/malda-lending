@@ -16,11 +16,9 @@ import {IRewardDistributor} from "src/interfaces/IRewardDistributor.sol";
 import {ImToken, ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {IOperatorData, IOperator, IOperatorDefender} from "src/interfaces/IOperator.sol";
 
-
 // contracts
 import {OperatorStorage} from "./OperatorStorage.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-
 
 contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable {
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -28,11 +26,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         _disableInitializers();
     }
 
-    function initialize(
-        address _rolesOperator,
-        address _rewardDistributor,
-        address _admin
-    ) public initializer {
+    function initialize(address _rolesOperator, address _rewardDistributor, address _admin) public initializer {
         require(_rolesOperator != address(0), Operator_InvalidRolesOperator());
         require(_rewardDistributor != address(0), Operator_InvalidRewardDistributor());
         require(_admin != address(0), Operator_InvalidInput());
@@ -70,7 +64,10 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
      * @param newCloseFactorMantissa New close factor, scaled by 1e18
      */
     function setCloseFactor(uint256 newCloseFactorMantissa) external onlyOwner {
-        require (newCloseFactorMantissa >= CLOSE_FACTOR_MIN_MANTISSA && newCloseFactorMantissa <= CLOSE_FACTOR_MAX_MANTISSA, Operator_InvalidInput());
+        require(
+            newCloseFactorMantissa >= CLOSE_FACTOR_MIN_MANTISSA && newCloseFactorMantissa <= CLOSE_FACTOR_MAX_MANTISSA,
+            Operator_InvalidInput()
+        );
         emit NewCloseFactor(closeFactorMantissa, newCloseFactorMantissa);
         closeFactorMantissa = newCloseFactorMantissa;
     }
@@ -438,7 +435,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
 
     /**
      * @inheritdoc IOperatorDefender
-    */
+     */
     function beforeRebalancing(address mToken) external view override {
         require(!_paused[mToken][OperationType.Rebalancing], Operator_Paused());
     }

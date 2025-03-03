@@ -30,9 +30,9 @@ interface IOperatorDefender {
     /**
      * @notice Checks if the account should be allowed to rebalance tokens
      * @param mToken The market to verify the transfer against
-    */
+     */
     function beforeRebalancing(address mToken) external;
-    
+
     /**
      * @notice Checks if the account should be allowed to transfer tokens in the given market
      * @param mToken The market to verify the transfer against

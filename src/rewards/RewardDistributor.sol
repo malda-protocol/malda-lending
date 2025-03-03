@@ -16,7 +16,13 @@ import {ImToken} from "src/interfaces/ImToken.sol";
 import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
 import {IRewardDistributor, IRewardDistributorData} from "src/interfaces/IRewardDistributor.sol";
 
-contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable {
+contract RewardDistributor is
+    IRewardDistributor,
+    ExponentialNoError,
+    Initializable,
+    OwnableUpgradeable,
+    ReentrancyGuardUpgradeable
+{
     // ----------- STORAGE ------------
     uint224 public constant REWARD_INITIAL_INDEX = 1e36;
 
@@ -103,7 +109,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     function whitelistToken(address rewardToken_) public onlyOwner {
         require(rewardToken_ != address(0), RewardDistributor_AddressNotValid());
         require(!isRewardToken[rewardToken_], RewardDistributor_AddressAlreadyRegistered());
-        
+
         rewardTokens.push(rewardToken_);
         isRewardToken[rewardToken_] = true;
 

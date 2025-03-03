@@ -29,7 +29,12 @@ interface IBridge {
      * @param _message operation message data
      * @param _bridgeData specific bridge datas
      */
-    function sendMsg(uint256 _extractedAmount, address _market, uint32 _dstChainId, address _token, bytes memory _message, bytes memory _bridgeData)
-        external
-        payable;
+    function sendMsg(
+        uint256 _extractedAmount,
+        address _market,
+        uint32 _dstChainId,
+        address _token,
+        bytes memory _message,
+        bytes memory _bridgeData
+    ) external payable;
 }

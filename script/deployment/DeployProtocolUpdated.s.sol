@@ -38,8 +38,6 @@ import {SetSupplyCap} from "../configuration/SetSupplyCap.s.sol";
 import {UpdateAllowedChains} from "../configuration/UpdateAllowedChains.s.sol";
 import {SetZkImageId} from "../configuration/SetZkImageId.s.sol";
 
-
-
 // import {VerifyDeployment} from "./VerifyDeployment.s.sol";
 
 contract DeployProtocolUpdated is DeployBase {
@@ -81,7 +79,6 @@ contract DeployProtocolUpdated is DeployBase {
     function setUp() public override {
         configPath = "deployment-config-updated.json";
         super.setUp();
-
     }
 
     function run() public {
@@ -154,7 +151,9 @@ contract DeployProtocolUpdated is DeployBase {
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i; i < marketsLength;) {
             _deployAndConfigureMarket(true, configs[network].markets[i], operator, rolesContract, network);
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -164,7 +163,9 @@ contract DeployProtocolUpdated is DeployBase {
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i; i < marketsLength;) {
             _deployAndConfigureMarket(false, configs[network].markets[i], address(0), rolesContract, network);
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
 
         // Set image ID for all markets

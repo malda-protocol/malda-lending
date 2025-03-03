@@ -40,16 +40,17 @@ contract DeployDeployer is Script {
         return deployerAddress;
     }
 
-    function _computeCreate2Address(bytes32 salt, bytes memory bytecodeWithConstructor) internal view returns (address) {
+    function _computeCreate2Address(bytes32 salt, bytes memory bytecodeWithConstructor)
+        internal
+        view
+        returns (address)
+    {
         bytes32 bytecodeHash = keccak256(bytecodeWithConstructor);
         bytes32 _data = keccak256(abi.encodePacked(bytes1(0xff), address(this), salt, bytecodeHash));
         return address(uint160(uint256(_data)));
     }
 
-    function _deployCreate2(bytes32 salt, address owner)
-        internal
-        returns (address)
-    {
+    function _deployCreate2(bytes32 salt, address owner) internal returns (address) {
         Deployer deployer = new Deployer{salt: salt}(owner);
         return address(deployer);
     }

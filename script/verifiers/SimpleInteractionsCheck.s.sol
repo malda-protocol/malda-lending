@@ -28,10 +28,8 @@ contract SimpleInteractionsCheck is Script {
         Operator operator = Operator(market.operator());
 
         console.log("Market has decimals:  %s", decimals);
-        amount = 1 * (10**decimals) / 200;
+        amount = 1 * (10 ** decimals) / 200;
         console.log("Supply amount:  %s", amount);
-    
-
 
         uint256 balanceOfUser = IERC20(underlying).balanceOf(USER);
 

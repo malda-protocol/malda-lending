@@ -19,12 +19,7 @@ contract UpgradeMarket is Script {
     // Admin slot from ERC1967
     bytes32 internal constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 
-    function run(
-        address create3Deployer,
-        address proxy,
-        MarketType marketType,
-        string memory salt
-    ) public {
+    function run(address create3Deployer, address proxy, MarketType marketType, string memory salt) public {
         // Setup
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         Deployer deployer = Deployer(payable(create3Deployer));

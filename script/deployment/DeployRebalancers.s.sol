@@ -6,10 +6,9 @@ import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 import {Roles} from "src/Roles.sol";
 import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
-import { DeployRebalancer } from "script/deployment/rebalancer/DeployRebalancer.s.sol";
-import { DeployEverclearBridge } from "script/deployment/rebalancer/DeployEverclearBridge.s.sol";
-import { RebalancersDeployConfig } from "../deployers/Types.sol";
-
+import {DeployRebalancer} from "script/deployment/rebalancer/DeployRebalancer.s.sol";
+import {DeployEverclearBridge} from "script/deployment/rebalancer/DeployEverclearBridge.s.sol";
+import {RebalancersDeployConfig} from "../deployers/Types.sol";
 
 contract DeployRebalancers is Script {
     using stdJson for string;
@@ -18,7 +17,7 @@ contract DeployRebalancers is Script {
     DeployEverclearBridge deployEverclearBridge;
 
     string[] public networks;
-    string public  configPath = "deployment-rebalancer-config.json";
+    string public configPath = "deployment-rebalancer-config.json";
     mapping(string => RebalancersDeployConfig) public configs;
 
     function setUp() public {
@@ -27,7 +26,9 @@ contract DeployRebalancers is Script {
             string memory network = networks[i];
             _parseConfig(network);
 
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -47,10 +48,11 @@ contract DeployRebalancers is Script {
             _initializeDeployers();
 
             address deployedRebalancer = _deployRebalancer(config.roles, config.deployer);
-            address deployedBridge = _deployEverclearBridge(config.roles, config.bridges.everclear.spoke, config.deployer);
+            address deployedBridge =
+                _deployEverclearBridge(config.roles, config.bridges.everclear.spoke, config.deployer);
 
-            Roles roleContract = Roles(config.roles); 
-            
+            Roles roleContract = Roles(config.roles);
+
             // set REBALANCER_EOA role
             address rebalancerEOA = vm.envAddress("DEPLOYER_ADMIN_ADDRESS");
             bool hasEOARole = roleContract.isAllowedFor(rebalancerEOA, roleContract.REBALANCER_EOA());
@@ -62,7 +64,7 @@ contract DeployRebalancers is Script {
 
             // set GUARDIAN_BRIDGE role
             address guardianBridge = vm.envAddress("DEPLOYER_ADMIN_ADDRESS");
-            bool hasGuardianBridge =  roleContract.isAllowedFor(guardianBridge, roleContract.GUARDIAN_BRIDGE());
+            bool hasGuardianBridge = roleContract.isAllowedFor(guardianBridge, roleContract.GUARDIAN_BRIDGE());
             if (!hasGuardianBridge) {
                 vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
                 roleContract.allowFor(vm.envAddress("DEPLOYER_ADMIN_ADDRESS"), roleContract.GUARDIAN_BRIDGE(), true);
@@ -80,8 +82,9 @@ contract DeployRebalancers is Script {
             roleContract.allowFor(address(deployedRebalancer), roleContract.REBALANCER(), true);
             vm.stopBroadcast();
 
-
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -112,7 +115,8 @@ contract DeployRebalancers is Script {
         config.chainId = uint32(abi.decode(json.parseRaw(string.concat(networkPath, ".chainId")), (uint256)));
         config.deployer = abi.decode(json.parseRaw(string.concat(networkPath, ".deployer")), (address));
         config.roles = abi.decode(json.parseRaw(string.concat(networkPath, ".roles")), (address));
-        config.bridges.everclear.spoke = abi.decode(json.parseRaw(string.concat(networkPath, ".bridges.everclear.spoke")), (address));
+        config.bridges.everclear.spoke =
+            abi.decode(json.parseRaw(string.concat(networkPath, ".bridges.everclear.spoke")), (address));
 
         configs[network] = config;
         return config;

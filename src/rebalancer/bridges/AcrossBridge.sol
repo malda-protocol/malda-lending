@@ -40,7 +40,9 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
 
     // ----------- EVENTS ------------
     event Rebalanced(address indexed market, uint256 amount);
-    event WhitelistedRelayerStatusUpdated(address indexed sender, uint32 indexed dstId, address indexed delegate, bool status);
+    event WhitelistedRelayerStatusUpdated(
+        address indexed sender, uint32 indexed dstId, address indexed delegate, bool status
+    );
 
     // ----------- ERRORS ------------
     error AcrossBridge_TokenMismatch();
@@ -90,11 +92,14 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
     /**
      * @inheritdoc IBridge
      */
-    function sendMsg(uint256 _extractedAmount, address _market, uint32 _dstChainId, address _token, bytes memory _message, bytes memory)
-        external
-        payable
-        onlyRebalancer
-    {
+    function sendMsg(
+        uint256 _extractedAmount,
+        address _market,
+        uint32 _dstChainId,
+        address _token,
+        bytes memory _message,
+        bytes memory
+    ) external payable onlyRebalancer {
         // decode message & checks
         DecodedMessage memory msgData = _decodeMessage(_message);
         require(_extractedAmount == msgData.inputAmount, BaseBridge_AmountMismatch());
@@ -102,17 +107,18 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
 
         // retrieve tokens from `Rebalancer`
         IERC20(_token).safeTransferFrom(msg.sender, address(this), msgData.inputAmount);
-        
+
         if (msgData.inputAmount > msgData.outputAmount) {
             uint256 maxSlippageInputAmount = msgData.inputAmount * maxSlippage / SLIPPAGE_PRECISION;
-            require (msgData.inputAmount - msgData.outputAmount <= maxSlippageInputAmount, AcrossBridge_SlippageNotValid());
+            require(
+                msgData.inputAmount - msgData.outputAmount <= maxSlippageInputAmount, AcrossBridge_SlippageNotValid()
+            );
         }
 
         // approve and send with Across
         _depositV3Now(_message, _token, _dstChainId, _market);
     }
 
-  
     /**
      * @notice handles AcrossV3 SpokePool message
      * @param tokenSent the token address received
@@ -137,13 +143,8 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
 
     // ----------- PRIVATE ------------
     function _decodeMessage(bytes memory _message) private pure returns (DecodedMessage memory) {
-        (
-            uint256 inputAmount,
-            uint256 outputAmount,
-            address relayer,
-            uint32 deadline,
-            uint32 exclusivityDeadline
-        ) = abi.decode(_message, (uint256, uint256, address, uint32, uint32));
+        (uint256 inputAmount, uint256 outputAmount, address relayer, uint32 deadline, uint32 exclusivityDeadline) =
+            abi.decode(_message, (uint256, uint256, address, uint32, uint32));
 
         return DecodedMessage(inputAmount, outputAmount, relayer, deadline, exclusivityDeadline);
     }
@@ -166,6 +167,4 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
             abi.encode(_market)
         );
     }
-
-
 }

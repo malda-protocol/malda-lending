@@ -86,7 +86,7 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     /**
      * @inheritdoc ImTokenGateway
      */
-    function getProofData(address user, uint32) external view returns  (uint256, uint256) {
+    function getProofData(address user, uint32) external view returns (uint256, uint256) {
         return (accAmountIn[user], accAmountOut[user]);
     }
 
@@ -163,7 +163,12 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     /**
      * @inheritdoc ImTokenGateway
      */
-    function supplyOnHost(uint256 amount, address receiver, bytes4 lineaSelector) external payable override notPaused(OperationType.AmountIn) {
+    function supplyOnHost(uint256 amount, address receiver, bytes4 lineaSelector)
+        external
+        payable
+        override
+        notPaused(OperationType.AmountIn)
+    {
         // checks
         require(amount > 0, mTokenGateway_AmountNotValid());
         require(msg.value >= gasFee, mTokenGateway_NotEnoughGasFee());

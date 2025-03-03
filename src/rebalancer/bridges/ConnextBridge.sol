@@ -25,7 +25,7 @@ contract ConnextBridge is BaseBridge, IBridge {
     IConnext public immutable connext;
     mapping(uint32 => uint32) public domainIds;
     mapping(uint32 => mapping(address => bool)) public whitelistedDelegates;
-    
+
     struct DecodedMessage {
         address delegate;
         uint256 amount;
@@ -36,7 +36,9 @@ contract ConnextBridge is BaseBridge, IBridge {
     // ----------- EVENTS ------------
     event MsgSent(uint256 indexed dstChainId, address indexed market, uint256 amountLD, uint256 slippage, bytes32 id);
     event DomainIdSet(uint32 indexed dstId, uint32 indexed domainId);
-    event WhitelistedDelegateStatusUpdated(address indexed sender, uint32 indexed dstId, address indexed delegate, bool status);
+    event WhitelistedDelegateStatusUpdated(
+        address indexed sender, uint32 indexed dstId, address indexed delegate, bool status
+    );
 
     // ----------- ERRORS ------------
     error Connext_NotEnoughFees();
@@ -50,7 +52,8 @@ contract ConnextBridge is BaseBridge, IBridge {
     // ----------- OWNER ------------
     /**
      * @notice Set domain id
-    */
+     */
+
     function setDomainId(uint32 _dstId, uint32 _domainId) external onlyBridgeConfigurator {
         domainIds[_dstId] = _domainId;
         emit DomainIdSet(_dstId, _domainId);
@@ -85,11 +88,14 @@ contract ConnextBridge is BaseBridge, IBridge {
     /**
      * @inheritdoc IBridge
      */
-    function sendMsg(uint256 _extractedAmount, address _market, uint32 _dstChainId, address _token, bytes memory _message, bytes memory)
-        external
-        payable
-        onlyRebalancer
-    {
+    function sendMsg(
+        uint256 _extractedAmount,
+        address _market,
+        uint32 _dstChainId,
+        address _token,
+        bytes memory _message,
+        bytes memory
+    ) external payable onlyRebalancer {
         // decode message & checks
         DecodedMessage memory msgData = _decodeMessage(_message);
         require(msg.value >= msgData.relayerFee, Connext_NotEnoughFees());

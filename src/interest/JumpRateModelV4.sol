@@ -167,7 +167,7 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         jumpMultiplierPerBlock = jumpMultiplierPerYear / blocksPerYear;
         kink = kink_;
 
-        require (multiplierPerBlock < jumpMultiplierPerBlock, JumpRateModelV4_MultiplierNotValid());
+        require(multiplierPerBlock < jumpMultiplierPerBlock, JumpRateModelV4_MultiplierNotValid());
 
         emit NewInterestParams(baseRatePerBlock, multiplierPerBlock, jumpMultiplierPerBlock, kink);
     }

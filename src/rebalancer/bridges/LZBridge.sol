@@ -55,16 +55,19 @@ contract LZBridge is BaseBridge, IBridge {
     /**
      * @inheritdoc IBridge
      */
-    function sendMsg(uint256 _extractedAmount, address _market, uint32 _dstChainId, address _token, bytes memory _message, bytes memory _composeMsg)
-        external
-        payable
-        onlyRebalancer
-    {
+    function sendMsg(
+        uint256 _extractedAmount,
+        address _market,
+        uint32 _dstChainId,
+        address _token,
+        bytes memory _message,
+        bytes memory _composeMsg
+    ) external payable onlyRebalancer {
         require(_dstChainId > 0, LZBridge_ChainNotRegistered());
 
         // get market
         (address market,,,) = abi.decode(_message, (address, uint256, uint256, bytes));
-        require (_market == market, LZBridge_DestinationMismatch());
+        require(_market == market, LZBridge_DestinationMismatch());
 
         // compute fee and craft message
         (MessagingFee memory fees, SendParam memory sendParam) = _getFee(_dstChainId, _message, _composeMsg);

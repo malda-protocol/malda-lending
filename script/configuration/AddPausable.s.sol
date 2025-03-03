@@ -11,10 +11,9 @@ contract AddPausable is Script {
 
         Pauser pauser = Pauser(ctr);
         vm.startBroadcast(key);
-        pauser.addPausableMarket(market, extension ? IPauser.PausableType.Extension: IPauser.PausableType.Host);
+        pauser.addPausableMarket(market, extension ? IPauser.PausableType.Extension : IPauser.PausableType.Host);
         vm.stopBroadcast();
 
         console.log(" Added pausable market %s", market);
-
     }
 }

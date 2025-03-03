@@ -50,14 +50,16 @@ contract EverclearBridge is BaseBridge, IBridge {
     /**
      * @inheritdoc IBridge
      */
-    function sendMsg(uint256 _extractedAmount, address _market, uint32 _dstChainId, address _token, bytes memory _message, bytes memory)
-        external
-        payable
-        onlyRebalancer
-    {
+    function sendMsg(
+        uint256 _extractedAmount,
+        address _market,
+        uint32 _dstChainId,
+        address _token,
+        bytes memory _message,
+        bytes memory
+    ) external payable onlyRebalancer {
         // decode message & checks
-        (address outputAsset, uint256 amount, bytes memory data) =
-            abi.decode(_message, (address, uint256, bytes));
+        (address outputAsset, uint256 amount, bytes memory data) = abi.decode(_message, (address, uint256, bytes));
         require(_extractedAmount == amount, BaseBridge_AmountMismatch());
 
         // retrieve tokens from `Rebalancer`

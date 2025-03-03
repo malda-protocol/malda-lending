@@ -42,15 +42,14 @@ interface IRewardDistributor {
     event SupplySpeedUpdated(address indexed rewardToken, address indexed mToken, uint256 supplySpeed);
 
     event BorrowSpeedUpdated(address indexed rewardToken, address indexed mToken, uint256 borrowSpeed);
-    
+
     event OperatorSet(address indexed oldOperator, address indexed newOperator);
 
     event WhitelistedToken(address indexed token);
-    
-    event SupplyIndexNotified(address indexed rewardToken, address indexed mToken);
-    
-    event BorrowIndexNotified(address indexed rewardToken, address indexed mToken);
 
+    event SupplyIndexNotified(address indexed rewardToken, address indexed mToken);
+
+    event BorrowIndexNotified(address indexed rewardToken, address indexed mToken);
 
     /**
      * @notice The operator that rewards are distributed to

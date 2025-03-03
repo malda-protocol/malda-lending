@@ -28,7 +28,10 @@ contract DeployMockToken is Script {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
-        address created = deployer.create(salt, abi.encodePacked(type(ERC20Mock).creationCode, abi.encode(NAME, SYMBOL, DECIMALS, OWNER, POH_VERIFY, LIMIT)));                                          
+        address created = deployer.create(
+            salt,
+            abi.encodePacked(type(ERC20Mock).creationCode, abi.encode(NAME, SYMBOL, DECIMALS, OWNER, POH_VERIFY, LIMIT))
+        );
 
         console.log(" ERC20Mock deployed at: %s", created);
 

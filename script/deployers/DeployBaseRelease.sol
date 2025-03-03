@@ -3,11 +3,20 @@ pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {DeployNetworksConfigRelease, DeployGenericConfigRelease, ConnextDomain, OracleFeed, MarketRelease, Role, InterestConfig, DeployerConfig} from "./Types.sol";
+import {
+    DeployNetworksConfigRelease,
+    DeployGenericConfigRelease,
+    ConnextDomain,
+    OracleFeed,
+    MarketRelease,
+    Role,
+    InterestConfig,
+    DeployerConfig
+} from "./Types.sol";
 
 contract DeployBaseRelease is Script {
     using stdJson for string;
-    
+
     mapping(uint32 => address) internal spokePoolAddresses;
     mapping(uint32 => address) internal connextAddresses;
     mapping(uint32 => address) internal everclearAddresses;
@@ -32,11 +41,10 @@ contract DeployBaseRelease is Script {
             string memory network = networks[i];
             _parseNetworkConfig(network);
         }
-
     }
 
     function _parseGenericConfig() internal {
-        string memory json =  vm.readFile(configPath);
+        string memory json = vm.readFile(configPath);
         string memory domainsPath = string.concat(".generic.connextDomains");
 
         // Parse generic config
@@ -44,7 +52,9 @@ contract DeployBaseRelease is Script {
 
         for (uint256 i; i < connextDomains.length;) {
             genericConfig.connextDomains.push(connextDomains[i]);
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
     }
 
@@ -61,7 +71,7 @@ contract DeployBaseRelease is Script {
         // Parse deployer config
         DeployerConfig memory deployerConfig =
             abi.decode(json.parseRaw(string.concat(networkPath, ".deployer")), (DeployerConfig));
-        config.deployer = deployerConfig;   
+        config.deployer = deployerConfig;
 
         // Parse roles
         Role[] memory roles = abi.decode(json.parseRaw(string.concat(networkPath, ".roles")), (Role[]));
@@ -71,7 +81,8 @@ contract DeployBaseRelease is Script {
         }
 
         // Parse markets
-        MarketRelease[] memory markets = abi.decode(json.parseRaw(string.concat(networkPath, ".markets")), (MarketRelease[]));
+        MarketRelease[] memory markets =
+            abi.decode(json.parseRaw(string.concat(networkPath, ".markets")), (MarketRelease[]));
         for (uint256 i = 0; i < markets.length; i++) {
             config.markets.push(markets[i]);
         }

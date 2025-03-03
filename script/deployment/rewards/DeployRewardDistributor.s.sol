@@ -29,7 +29,7 @@ contract DeployRewardDistributor is Script {
             created = deployer.create(salt, type(RewardDistributor).creationCode);
             vm.stopBroadcast();
             console.log("RewardDistributor deployed at: %s", created);
-                
+
             console.log("Initializing RewardDistributor");
 
             vm.startBroadcast(key);

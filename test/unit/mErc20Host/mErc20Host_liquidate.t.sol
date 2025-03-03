@@ -164,7 +164,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         bytes memory journalData = _createAccumulatedAmountJournal(bob, address(mWethHost), amount);
 
         uint256[] memory amounts = new uint256[](1);
-        amounts[0] = amount/10;
+        amounts[0] = amount / 10;
         address[] memory users = new address[](1);
         users[0] = address(this);
         address[] memory collaterals = new address[](1);

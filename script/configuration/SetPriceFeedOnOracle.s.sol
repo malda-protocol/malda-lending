@@ -34,6 +34,5 @@ contract SetPriceFeedOnOracle is Script {
         console.log(" - Price Feed: %s", priceFeed);
         console.log(" - To Symbol: %s", toSymbol);
         console.log(" - Underlying Decimals: %d", underlyingDecimals);
-
     }
 }

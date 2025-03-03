@@ -97,7 +97,9 @@ contract BatchSubmitter is ZkVerifier, Ownable {
             if (selector == MINT_SELECTOR) {
                 uint256[] memory singleMinAmounts = new uint256[](1);
                 singleMinAmounts[0] = data.minAmountsOut[i];
-                try ImErc20Host(data.mTokens[i]).mintExternal(encodedJournal, "", singleAmount, singleMinAmounts, data.receivers[i]) {
+                try ImErc20Host(data.mTokens[i]).mintExternal(
+                    encodedJournal, "", singleAmount, singleMinAmounts, data.receivers[i]
+                ) {
                     emit BatchProcessSuccess(data.initHashes[i]);
                 } catch (bytes memory reason) {
                     emit BatchProcessFailed(data.initHashes[i], reason);

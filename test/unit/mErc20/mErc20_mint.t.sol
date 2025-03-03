@@ -19,7 +19,6 @@ contract mErc20_mint is mToken_Unit_Shared {
     {
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
         mWeth.mint(amount, address(this), amount);
-
     }
 
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
@@ -29,7 +28,6 @@ contract mErc20_mint is mToken_Unit_Shared {
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         mWeth.mint(amount, address(this), amount);
-
     }
 
     function test_RevertGiven_WhenSupplyCapIsReached(uint256 amount)

@@ -250,7 +250,10 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param minAmountOut The minimum amount to be received
      * @param doTransfer If an actual transfer should be performed
      */
-    function _mint(address user, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer) internal nonReentrant {
+    function _mint(address user, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer)
+        internal
+        nonReentrant
+    {
         _accrueInterest();
         // emits the actual Mint event if successful and logs on errors, so we don't need to
         __mint(user, receiver, mintAmount, minAmountOut, doTransfer);
@@ -448,7 +451,8 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         IOperatorDefender(operator).beforeMTokenLiquidate(address(this), mTokenCollateral, borrower, repayAmount);
 
         require(
-            ImToken(mTokenCollateral).accrualBlockTimestamp() == _getBlockTimestamp(), mToken_CollateralBlockTimestampNotValid()
+            ImToken(mTokenCollateral).accrualBlockTimestamp() == _getBlockTimestamp(),
+            mToken_CollateralBlockTimestampNotValid()
         );
 
         /* Fail if repayBorrow fails */
@@ -638,7 +642,10 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param minAmountOut The min amount to be received
      * @param doTransfer If an actual transfer should be performed
      */
-    function __mint(address minter, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer) private {
+
+    function __mint(address minter, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer)
+        private
+    {
         IOperatorDefender(operator).beforeMTokenMint(address(this), minter);
 
         Exp memory exchangeRate = Exp({mantissa: _exchangeRateStored()});

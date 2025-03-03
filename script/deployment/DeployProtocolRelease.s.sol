@@ -16,7 +16,9 @@ import {IPauser} from "src/interfaces/IPauser.sol";
 import {IOwnable} from "src/interfaces/IOwnable.sol";
 import {Pauser} from "src/pauser/Pauser.sol";
 
-import {DeployConfig, MarketRelease, Role, InterestConfig, OracleConfigRelease, OracleFeed} from "../deployers/Types.sol";
+import {
+    DeployConfig, MarketRelease, Role, InterestConfig, OracleConfigRelease, OracleFeed
+} from "../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../deployers/DeployBaseRelease.sol";
 import {DeployDeployer} from "../deployers/DeployDeployer.s.sol";
@@ -41,11 +43,11 @@ import {SetSupplyCap} from "../configuration/SetSupplyCap.s.sol";
 import {UpdateAllowedChains} from "../configuration/UpdateAllowedChains.s.sol";
 import {SetZkImageId} from "../configuration/SetZkImageId.s.sol";
 
-import { DeployRebalancer } from "script/deployment/rebalancer/DeployRebalancer.s.sol";
-import { DeployAcrossBridge } from "script/deployment/rebalancer/DeployAcrossBridge.s.sol";
-import { DeployConnextBridge } from "script/deployment/rebalancer/DeployConnextBridge.s.sol";
-import { DeployEverclearBridge } from "script/deployment/rebalancer/DeployEverclearBridge.s.sol";
-import { DeployLZBridge } from "script/deployment/rebalancer/DeployLZBridge.s.sol";
+import {DeployRebalancer} from "script/deployment/rebalancer/DeployRebalancer.s.sol";
+import {DeployAcrossBridge} from "script/deployment/rebalancer/DeployAcrossBridge.s.sol";
+import {DeployConnextBridge} from "script/deployment/rebalancer/DeployConnextBridge.s.sol";
+import {DeployEverclearBridge} from "script/deployment/rebalancer/DeployEverclearBridge.s.sol";
+import {DeployLZBridge} from "script/deployment/rebalancer/DeployLZBridge.s.sol";
 
 // import {VerifyDeployment} from "./VerifyDeployment.s.sol";
 
@@ -120,7 +122,6 @@ contract DeployProtocolRelease is DeployBaseRelease {
         everclearAddresses[59144] = 0xc24dC29774fD2c1c0c5FA31325Bb9cbC11D8b751;
     }
 
-  
     function run() public {
         // Deploy to all networks
         for (uint256 i = 0; i < networks.length; i++) {
@@ -164,7 +165,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
                 setBorrowCap = new SetBorrowCap();
                 setSupplyCap = new SetSupplyCap();
                 updateAllowedChains = new UpdateAllowedChains();
-            
+
                 console.log("Deploying host chain");
                 pauser = _deployHostChain(network, rolesContract, batchSubmitter);
             } else {
@@ -193,9 +194,11 @@ contract DeployProtocolRelease is DeployBaseRelease {
             console.log(" -- for Roles");
             IOwnable(rolesContract).transferOwnership(configs[network].ownership);
             console.log(" -- for mTokenGateway addresses [count]", extensionMarketAddresses.length);
-            for (uint256 j; j < extensionMarketAddresses.length; ) {
+            for (uint256 j; j < extensionMarketAddresses.length;) {
                 IOwnable(extensionMarketAddresses[j]).transferOwnership(configs[network].ownership);
-                unchecked { ++j; }
+                unchecked {
+                    ++j;
+                }
             }
 
             vm.stopBroadcast();
@@ -210,22 +213,26 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         if (spokePoolAddresses[configs[network].chainId] != address(0)) {
             console.log(" --- Deploying acrossBridge");
-            address acrossBridge = deployAcrossBridge.run(rolesContract, spokePoolAddresses[configs[network].chainId], deployer);
+            address acrossBridge =
+                deployAcrossBridge.run(rolesContract, spokePoolAddresses[configs[network].chainId], deployer);
             console.log(" --- Deployed acrossBridge at ", acrossBridge);
-        }
-        else {
-            console.log("---- AcrossBridge cannot be deployed on current chain because SpokePool is address(0). Chain: ", configs[network].chainId);
+        } else {
+            console.log(
+                "---- AcrossBridge cannot be deployed on current chain because SpokePool is address(0). Chain: ",
+                configs[network].chainId
+            );
         }
         console.log(" --- Deploying connextBridge");
-        address connextBridge = deployConnextBridge.run(rolesContract, connextAddresses[configs[network].chainId], deployer);
+        address connextBridge =
+            deployConnextBridge.run(rolesContract, connextAddresses[configs[network].chainId], deployer);
         console.log(" --- Deployed connextBridge at ", connextBridge);
         console.log(" --- Deploying everclearBridge");
-        address everclearBridge = deployEverclearBridge.run(rolesContract, everclearAddresses[configs[network].chainId], deployer);
+        address everclearBridge =
+            deployEverclearBridge.run(rolesContract, everclearAddresses[configs[network].chainId], deployer);
         console.log(" --- Deployed everclearBridge at ", everclearBridge);
         console.log(" --- Deploying lzBridge");
         address lzBridge = deployLZBridge.run(rolesContract, deployer);
         console.log(" --- Deployed lzBridge at ", lzBridge);
-        
 
         console.log(" ---- Setting REBALANCER role for the Rebalancer contract");
         setRole.run(rolesContract, address(rebalancer), keccak256(abi.encodePacked("REBALANCER")), true);
@@ -233,7 +240,10 @@ contract DeployProtocolRelease is DeployBaseRelease {
         console.log(" --- All rebalancer contracts deployed and configured for network", network);
     }
 
-    function _deployHostChain(string memory network, address rolesContract, address) internal returns (address pauser) {
+    function _deployHostChain(string memory network, address rolesContract, address)
+        internal
+        returns (address pauser)
+    {
         address rewardDistributor = _deployRewardDistributor();
         address oracle = _deployOracle(configs[network].oracle, rolesContract);
         address operator = _deployOperator(oracle, rewardDistributor, rolesContract);
@@ -250,28 +260,31 @@ contract DeployProtocolRelease is DeployBaseRelease {
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i; i < marketsLength;) {
             _deployAndConfigureMarket(true, configs[network].markets[i], operator, rolesContract, network, pauser);
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
-
     }
 
-    function _deployExtensionChain(string memory network, address rolesContract, address) internal returns (address pauser) {
+    function _deployExtensionChain(string memory network, address rolesContract, address)
+        internal
+        returns (address pauser)
+    {
         _setRoles(rolesContract, network);
 
         console.log("Deploying Pauser on extension chain");
         pauser = _deployPauser(rolesContract, address(0));
         console.log("Pauser deployed on host chain", pauser);
 
-
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i; i < marketsLength;) {
             _deployAndConfigureMarket(false, configs[network].markets[i], address(0), rolesContract, network, pauser);
-            unchecked { ++i; }
+            unchecked {
+                ++i;
+            }
         }
-        
 
         //
-
     }
 
     function _deployAndConfigureMarket(
@@ -354,9 +367,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
     }
 
     function _deployOracle(OracleConfigRelease memory oracleConfig, address rolesContract) internal returns (address) {
-        return deployOracle.runWithFeeds(
-            deployer, feeds, rolesContract, oracleConfig.stalenessPeriod
-        );
+        return deployOracle.runWithFeeds(deployer, feeds, rolesContract, oracleConfig.stalenessPeriod);
     }
 
     function _deployOperator(address oracle, address rewardDistributor, address rolesContract)
@@ -410,10 +421,12 @@ contract DeployProtocolRelease is DeployBaseRelease {
         );
     }
 
-    function _deployExtensionMarket(Deployer _deployer, MarketRelease memory market, address zkVerifier, address rolesContract)
-        internal
-        returns (address)
-    {
+    function _deployExtensionMarket(
+        Deployer _deployer,
+        MarketRelease memory market,
+        address zkVerifier,
+        address rolesContract
+    ) internal returns (address) {
         return deployExt.run(_deployer, market.underlying, market.name, owner, zkVerifier, rolesContract);
     }
 

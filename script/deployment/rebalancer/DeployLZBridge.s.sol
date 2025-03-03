@@ -20,8 +20,7 @@ contract DeployLZBridge is Script {
         bytes32 salt = getSalt("LZBridge");
 
         vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        address created =
-            deployer.create(salt, abi.encodePacked(type(LZBridge).creationCode, abi.encode(roles)));
+        address created = deployer.create(salt, abi.encodePacked(type(LZBridge).creationCode, abi.encode(roles)));
         vm.stopBroadcast();
 
         console.log(" LZBridge deployed at: %s", created);

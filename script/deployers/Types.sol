@@ -7,9 +7,11 @@ struct RebalancersDeployConfig {
     address roles;
     RebalancerBridges bridges;
 }
+
 struct RebalancerBridges {
     RebalancerEverclearBridge everclear;
 }
+
 struct RebalancerEverclearBridge {
     address spoke;
 }
@@ -19,6 +21,7 @@ struct DeployGenericConfigRelease {
     uint256 version;
     ConnextDomain[] connextDomains;
 }
+
 struct ConnextDomain {
     uint32 chainId;
     uint32 domainId;
@@ -37,7 +40,6 @@ struct DeployNetworksConfigRelease {
     MarketRelease[] markets;
 }
 
-
 struct MarketRelease {
     uint256 borrowCap;
     uint256 borrowRateMaxMantissa;
@@ -50,7 +52,6 @@ struct MarketRelease {
     address underlying;
 }
 
-
 struct OracleConfigRelease {
     string oracleType;
     uint256 stalenessPeriod;
@@ -62,7 +63,6 @@ struct OracleFeed {
     string toSymbol;
     uint8 underlyingDecimals;
 }
-
 
 // ---- Testnet configs ---
 struct DeployConfig {

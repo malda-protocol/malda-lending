@@ -21,12 +21,19 @@ contract ERC20Mock is ERC20 {
     error ERC20Mock_PohFailed();
     error ERC20Mock_TooMuch();
 
-    constructor(string memory _name, string memory _symbol, uint8 _decimals, address _owner, address _pohVerify, uint256 _limit) ERC20(_name, _symbol) {
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals,
+        address _owner,
+        address _pohVerify,
+        uint256 _limit
+    ) ERC20(_name, _symbol) {
         _d = _decimals;
         admin = _owner;
         pohVerify = _pohVerify;
 
-        mintLimit = _limit == 0 ? 1000 * (10**_d) : _limit;
+        mintLimit = _limit == 0 ? 1000 * (10 ** _d) : _limit;
     }
 
     /// @dev onlyAdmin
@@ -47,7 +54,7 @@ contract ERC20Mock is ERC20 {
 
     /// @dev mint up to `mintLimit` using a proof of humanity verification
     function mint(address _to, uint256 _amount, bytes memory signature) external {
-        require (minted[_to] + _amount < mintLimit, ERC20Mock_AlreadyMinted());
+        require(minted[_to] + _amount < mintLimit, ERC20Mock_AlreadyMinted());
         bool verified = IPohVerifier(pohVerify).verify(signature, msg.sender);
         require(verified, ERC20Mock_PohFailed());
         minted[_to] += _amount;
@@ -60,17 +67,17 @@ contract ERC20Mock is ERC20 {
     /// @dev public
     /// @dev mint up to `mintLimit` when `onlyVerified == false`
     function mint(address _to, uint256 _amount) external {
-        require (!onlyVerified, ERC20Mock_OnlyVerified());
-        require (minted[_to] + _amount < mintLimit, ERC20Mock_AlreadyMinted());
+        require(!onlyVerified, ERC20Mock_OnlyVerified());
+        require(minted[_to] + _amount < mintLimit, ERC20Mock_AlreadyMinted());
         minted[_to] += _amount;
         _mint(_to, _amount);
     }
-    
+
     /// @dev public
     /// @dev burn does not reset `minted`
     function burn(uint256 _amount) external {
         require(minted[msg.sender] >= _amount, ERC20Mock_TooMuch());
-        //minted[msg.sender] -= _amount; 
+        //minted[msg.sender] -= _amount;
         _burn(msg.sender, _amount);
     }
 

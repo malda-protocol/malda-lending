@@ -39,7 +39,7 @@ contract MixedPriceOracleV3 is IOracleOperator {
     function setStaleness(string memory symbol, uint256 val) external {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_ORACLE())) {
             revert MixedPriceOracle_Unauthorized();
-        }   
+        }
         stalenessPerSymbol[symbol] = val;
         emit StalenessUpdated(symbol, val);
     }
@@ -81,7 +81,11 @@ contract MixedPriceOracleV3 is IOracleOperator {
         return price;
     }
 
-    function _getLatestPrice(string memory symbol, IDefaultAdapter.PriceConfig memory config) internal view returns (uint256, uint256) {
+    function _getLatestPrice(string memory symbol, IDefaultAdapter.PriceConfig memory config)
+        internal
+        view
+        returns (uint256, uint256)
+    {
         if (config.defaultFeed == address(0)) revert("missing priceFeed");
 
         IDefaultAdapter feed = IDefaultAdapter(config.defaultFeed);

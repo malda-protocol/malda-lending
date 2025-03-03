@@ -16,10 +16,7 @@ interface IPohVerifier {
      * @param human the address for which the signature has been crafted
      * @return True if the signature was made by signer, false otherwise
      */
-    function verify(
-        bytes memory signature,
-        address human
-    ) external view returns (bool);
+    function verify(bytes memory signature, address human) external view returns (bool);
 
     /**
      * @notice Returns the signer's address

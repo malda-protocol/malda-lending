@@ -31,7 +31,6 @@ contract DeployRebalancer is Script {
             console.log("Using existing Rebalancer at: %s", created);
         }
 
-       
         return created;
     }
 

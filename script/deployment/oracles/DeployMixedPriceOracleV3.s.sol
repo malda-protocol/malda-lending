@@ -17,10 +17,9 @@ import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
  *     --broadcast
  */
 contract DeployMixedPriceOracleV3 is Script {
-
-    function runWithFeeds(Deployer deployer, OracleFeed[] memory feeds, address roles, uint256 stalenessPeriod) 
+    function runWithFeeds(Deployer deployer, OracleFeed[] memory feeds, address roles, uint256 stalenessPeriod)
         public
-        returns (address) 
+        returns (address)
     {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
@@ -28,9 +27,15 @@ contract DeployMixedPriceOracleV3 is Script {
         string[] memory symbols = new string[](len);
         IDefaultAdapter.PriceConfig[] memory configs = new IDefaultAdapter.PriceConfig[](len);
         for (uint256 i; i < len;) {
-            symbols[i] = feeds[i].symbol;    
-            configs[i] = IDefaultAdapter.PriceConfig({defaultFeed: feeds[i].defaultFeed, toSymbol: feeds[i].toSymbol, underlyingDecimals: feeds[i].underlyingDecimals});
-            unchecked { ++i; }
+            symbols[i] = feeds[i].symbol;
+            configs[i] = IDefaultAdapter.PriceConfig({
+                defaultFeed: feeds[i].defaultFeed,
+                toSymbol: feeds[i].toSymbol,
+                underlyingDecimals: feeds[i].underlyingDecimals
+            });
+            unchecked {
+                ++i;
+            }
         }
         bytes32 salt = getSalt("MixedPriceOracleV3");
         address created = deployer.precompute(salt);
@@ -81,8 +86,6 @@ contract DeployMixedPriceOracleV3 is Script {
             vm.stopBroadcast();
             console.log("MixedPriceOracleV3 deployed at: %s", created);
         }
-
-
 
         return created;
     }

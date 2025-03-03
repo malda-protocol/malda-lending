@@ -11,29 +11,28 @@ pragma solidity =0.8.28;
 import {ImToken, ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {IOperator} from "src/interfaces/IOperator.sol";
 
-
 contract LiquidationHelper {
-    function getBorrowerPosition(address borrower, address market) 
-        external 
-        view 
-        returns (bool shouldLiquidate, uint256 repayAmount) 
+    function getBorrowerPosition(address borrower, address market)
+        external
+        view
+        returns (bool shouldLiquidate, uint256 repayAmount)
     {
         shouldLiquidate = false;
         repayAmount = 0;
 
         // check if market is paused for liquidation
         IOperator operator = IOperator(ImToken(market).operator());
-        if (operator.isPaused(market, ImTokenOperationTypes.OperationType.Liquidate)) { 
+        if (operator.isPaused(market, ImTokenOperationTypes.OperationType.Liquidate)) {
             return (shouldLiquidate, repayAmount);
         }
 
         /**
-        // check if market is listed
-        (bool isListed) = operator.isMarketListed(market);
-        if (!isListed) {
-            return (shouldLiquidate, repayAmount);
-        }
-        */
+         * // check if market is listed
+         *     (bool isListed) = operator.isMarketListed(market);
+         *     if (!isListed) {
+         *         return (shouldLiquidate, repayAmount);
+         *     }
+         */
 
         // get borrow balance
         ImToken marketContract = ImToken(market);

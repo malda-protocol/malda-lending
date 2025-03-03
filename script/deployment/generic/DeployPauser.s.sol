@@ -38,7 +38,6 @@ contract DeployPauser is Script {
         // set PAUSE_MANAGER for owner
         // set GUARDIAN_PAUSE for `created`
 
-
         return created;
     }
 
