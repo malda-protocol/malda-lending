@@ -82,15 +82,8 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     /**
      * @inheritdoc ImErc20Host
      */
-    function getProofData(address user, uint32 dstId) external view returns (bytes memory) {
-        return mTokenProofDecoderLib.encodeJournal(
-            user,
-            address(this),
-            accAmountInPerChain[dstId][user],
-            accAmountOutPerChain[dstId][user],
-            uint32(block.chainid),
-            dstId
-        );
+    function getProofData(address user, uint32 dstId) external view returns (uint256, uint256) {
+        return (accAmountInPerChain[dstId][user], accAmountOutPerChain[dstId][user]);
     }
 
     // ----------- OWNER ------------
