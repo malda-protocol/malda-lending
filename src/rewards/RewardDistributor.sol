@@ -200,6 +200,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
             }
 
             _notifySupplyIndex(rewardToken, mToken);
+            emit SupplyIndexNotified(rewardToken, mToken);
             marketState.supplySpeed = supplySpeed;
             emit SupplySpeedUpdated(rewardToken, mToken, supplySpeed);
         }
@@ -210,6 +211,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
             }
 
             _notifyBorrowIndex(rewardToken, mToken);
+            emit BorrowIndexNotified(rewardToken, mToken);
             marketState.borrowSpeed = borrowSpeed;
             emit BorrowSpeedUpdated(rewardToken, mToken, borrowSpeed);
         }
