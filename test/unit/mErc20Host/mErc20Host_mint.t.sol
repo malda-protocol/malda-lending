@@ -24,7 +24,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
-        mWethHost.mint(amount);
+        mWethHost.mint(amount, address(this));
     }
 
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
@@ -33,7 +33,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
-        mWethHost.mint(amount);
+        mWethHost.mint(amount, address(this));
     }
 
     function test_RevertGiven_WhenSupplyCapIsReached(uint256 amount)
@@ -46,7 +46,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         weth.approve(address(mWethHost), amount);
 
         vm.expectRevert(OperatorStorage.Operator_MarketSupplyReached.selector);
-        mWethHost.mint(amount);
+        mWethHost.mint(amount, address(this));
         // it should revert with Operator_MarketSupplyReached
     }
 
@@ -62,7 +62,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
-        mWethHost.mint(amount);
+        mWethHost.mint(amount, address(this));
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethHost.totalSupply();
@@ -83,7 +83,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
     function test_GivenAmountIs0() external whenMarketIsListed(address(mWethHost)) {
         uint256 amount = 0;
         vm.expectRevert(); //arithmetic underflow or overflow
-        mWethHost.mint(amount);
+        mWethHost.mint(amount, address(this));
     }
 
     modifier whenMintExternalIsCalled() {

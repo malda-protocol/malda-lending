@@ -45,16 +45,18 @@ contract ERC20Mock is ERC20 {
         return _d;
     }
 
-    /// @dev public
     /// @dev mint up to `mintLimit` using a proof of humanity verification
     function mint(address _to, uint256 _amount, bytes memory signature) external {
         require (minted[_to] + _amount < mintLimit, ERC20Mock_AlreadyMinted());
         bool verified = IPohVerifier(pohVerify).verify(signature, msg.sender);
         require(verified, ERC20Mock_PohFailed());
         minted[_to] += _amount;
-        _mint(_to, _amount);
     }
-    
+
+    function deposit() external payable {
+        _mint(msg.sender, msg.value);
+    }
+
     /// @dev public
     /// @dev mint up to `mintLimit` when `onlyVerified == false`
     function mint(address _to, uint256 _amount) external {

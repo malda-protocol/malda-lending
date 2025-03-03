@@ -66,7 +66,7 @@ contract SimpleInteractionsCheck is Script {
         IERC20(underlying).approve(address(market), factoredAmount);
 
         console.log("Supplying to market");
-        market.mint(factoredAmount);
+        market.mint(factoredAmount, USER);
 
         uint256 suppliedAmount = market.balanceOf(USER);
         console.log("Supply amount %s", suppliedAmount);
