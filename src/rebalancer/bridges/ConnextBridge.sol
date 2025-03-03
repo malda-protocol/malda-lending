@@ -23,6 +23,7 @@ contract ConnextBridge is BaseBridge, IBridge {
 
     // ----------- STORAGE ------------
     IConnext public immutable connext;
+    mapping(uint32 => uint32) public domainIds;
 
     struct DecodedMessage {
         address market;
@@ -34,13 +35,23 @@ contract ConnextBridge is BaseBridge, IBridge {
 
     // ----------- EVENTS ------------
     event MsgSent(uint256 indexed dstChainId, address indexed market, uint256 amountLD, uint256 slippage, bytes32 id);
+    event DomainIdSet(uint32 indexed dstId, uint32 indexed domainId);
 
     // ----------- ERRORS ------------
     error Connext_NotEnoughFees();
     error Connext_NotImplemented();
+    error Connext_DomainIdNotSet();
 
     constructor(address _roles, address _connext) BaseBridge(_roles) {
         connext = IConnext(_connext);
+    }
+    // ----------- OWNER ------------
+    /**
+     * @notice Set domain id
+    */
+    function setDomainId(uint32 _dstId, uint32 _domainId) external onlyBridgeConfigurator {
+        domainIds[_dstId] = _domainId;
+        emit DomainIdSet(_dstId, _domainId);
     }
 
     // ----------- VIEW ------------
@@ -64,6 +75,7 @@ contract ConnextBridge is BaseBridge, IBridge {
         // decode message & checks
         DecodedMessage memory msgData = _decodeMessage(_message);
         require(msg.value >= msgData.relayerFee, Connext_NotEnoughFees());
+        require(domainIds[_dstChainId] > 0, Connext_DomainIdNotSet());
 
         // retrieve tokens from `Rebalancer`
         IERC20(_token).safeTransferFrom(msg.sender, address(this), msgData.amount);
@@ -71,7 +83,7 @@ contract ConnextBridge is BaseBridge, IBridge {
         // approve and send with Connext
         SafeApprove.safeApprove(_token, address(connext), msgData.amount);
         bytes32 id = connext.xcall{value: msgData.relayerFee}(
-            _dstChainId, // _destination: Domain ID of the destination chain
+            domainIds[_dstChainId], // _destination: Domain ID of the destination chain
             msgData.market, // _to: address receiving the funds on the destination
             _token, // _asset: address of the token contract
             msgData.delegate, // _delegate: address that can revert or forceLocal on destination
