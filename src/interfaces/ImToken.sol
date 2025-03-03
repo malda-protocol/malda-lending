@@ -22,7 +22,8 @@ interface ImTokenOperationTypes {
         Borrow,
         Repay,
         Redeem,
-        Liquidate
+        Liquidate,
+        Rebalancing
     }
 }
 
