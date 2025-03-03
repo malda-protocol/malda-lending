@@ -246,6 +246,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     function withdrawOnExtension(uint256 amount, uint32 dstChainId) external payable override {
         require(amount > 0, mErc20Host_AmountNotValid());
         require(msg.value >= gasFees[dstChainId], mErc20Host_NotEnoughGasFee());
+        require(allowedChains[dstChainId], mErc20Host_ChainNotValid());
 
         // actions
         uint256 underlyingAmount = _redeem(msg.sender, amount, false);
@@ -260,6 +261,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     function borrowOnExtension(uint256 amount, uint32 dstChainId) external payable override {
         require(amount > 0, mErc20Host_AmountNotValid());
         require(msg.value >= gasFees[dstChainId], mErc20Host_NotEnoughGasFee());
+        require(allowedChains[dstChainId], mErc20Host_ChainNotValid());
 
         // actions
         accAmountOutPerChain[dstChainId][msg.sender] += amount;

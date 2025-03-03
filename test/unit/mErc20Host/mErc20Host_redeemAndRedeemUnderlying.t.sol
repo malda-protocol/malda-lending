@@ -191,6 +191,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
+        mWethHost.updateAllowedChain(1, true);
         mWethHost.withdrawOnExtension(amount, 1);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
