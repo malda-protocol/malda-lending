@@ -143,6 +143,6 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
     function _repayPrerequisites(address market, uint256 amount) internal {
         _getTokens(weth, address(this), amount);
         weth.approve(market, amount);
-        mErc20Host(market).mint(amount, address(this));
+        mErc20Host(market).mint(amount, address(this), amount);
     }
 }

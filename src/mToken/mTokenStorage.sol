@@ -140,6 +140,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     error mToken_InvalidInput();
     error mToken_OnlyAdminOrRole();
     error mToken_TransferNotValid();
+    error mToken_MinAmountNotValid();
     error mToken_BorrowRateTooHigh();
     error mToken_AlreadyInitialized();
     error mToken_ReserveFactorTooHigh();

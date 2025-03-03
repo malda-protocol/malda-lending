@@ -41,7 +41,7 @@ contract WrapAndSupply {
      * @param mToken The market address
      * @param receiver The mToken receiver
      */
-    function wrapAndSupplyOnHostMarket(address mToken, address receiver) payable external {
+    function wrapAndSupplyOnHostMarket(address mToken, address receiver, uint256 minAmount) payable external {
         address underlying = ImTokenMinimal(mToken).underlying();
         require(underlying == address(wrappedNative), WrapAndSupply_AddressNotValid());
         
@@ -49,7 +49,7 @@ contract WrapAndSupply {
 
         IERC20(underlying).approve(mToken, 0);
         IERC20(underlying).approve(mToken, amount);
-        ImErc20(mToken).mint(amount, receiver);
+        ImErc20(mToken).mint(amount, receiver, minAmount);
 
         emit WrappedAndSupplied(msg.sender, receiver, mToken, amount);
     }

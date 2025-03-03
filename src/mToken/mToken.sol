@@ -247,12 +247,13 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param user The user address
      * @param user The receiver address
      * @param mintAmount The amount of the underlying asset to supply
+     * @param minAmountOut The minimum amount to be received
      * @param doTransfer If an actual transfer should be performed
      */
-    function _mint(address user, address receiver, uint256 mintAmount, bool doTransfer) internal nonReentrant {
+    function _mint(address user, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer) internal nonReentrant {
         _accrueInterest();
         // emits the actual Mint event if successful and logs on errors, so we don't need to
-        __mint(user, receiver, mintAmount, doTransfer);
+        __mint(user, receiver, mintAmount, minAmountOut, doTransfer);
     }
 
     /**
@@ -634,10 +635,10 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param minter The address of the account which is supplying the assets
      * @param receiver The address of the account which is receiving the assets
      * @param mintAmount The amount of the underlying asset to supply
+     * @param minAmountOut The min amount to be received
      * @param doTransfer If an actual transfer should be performed
      */
-
-    function __mint(address minter, address receiver, uint256 mintAmount, bool doTransfer) private {
+    function __mint(address minter, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer) private {
         IOperatorDefender(operator).beforeMTokenMint(address(this), minter);
 
         Exp memory exchangeRate = Exp({mantissa: _exchangeRateStored()});
@@ -656,6 +657,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          */
         uint256 actualMintAmount = doTransfer ? _doTransferIn(minter, mintAmount) : mintAmount;
         totalUnderlying += actualMintAmount;
+        require(actualMintAmount >= minAmountOut, mToken_MinAmountNotValid());
 
         /*
          * We get the current exchange rate and calculate the number of mTokens to be minted:

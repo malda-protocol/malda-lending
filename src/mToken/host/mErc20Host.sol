@@ -189,6 +189,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         bytes calldata journalData,
         bytes calldata seal,
         uint256[] calldata mintAmount,
+        uint256[] calldata minAmountsOut,
         address receiver
     ) external override {
         if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
@@ -200,7 +201,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         require(length == mintAmount.length, mErc20Host_LengthMismatch());
 
         for (uint256 i; i < length;) {
-            _mintExternal(journals[i], mintAmount[i], receiver);
+            _mintExternal(journals[i], mintAmount[i], minAmountsOut[i], receiver);
             unchecked {
                 ++i;
             }
@@ -319,7 +320,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         );
     }
 
-    function _mintExternal(bytes memory singleJournal, uint256 mintAmount, address receiver) internal {
+    function _mintExternal(bytes memory singleJournal, uint256 mintAmount, uint256 minAmountOut, address receiver) internal {
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
@@ -341,7 +342,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
 
         // actions
         accAmountInPerChain[_chainId][_sender] += mintAmount;
-        _mint(receiver, receiver, mintAmount, false);
+        _mint(receiver, receiver, mintAmount, minAmountOut, false);
 
         emit mErc20Host_MintExternal(msg.sender, _sender, receiver, _chainId, mintAmount);
     }

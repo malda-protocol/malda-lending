@@ -88,8 +88,8 @@ contract mErc20 is mToken, ImErc20 {
     /**
      * @inheritdoc ImErc20
      */
-    function mint(uint256 mintAmount, address receiver) external {
-        _mint(msg.sender, receiver, mintAmount, true);
+    function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external {
+        _mint(msg.sender, receiver, mintAmount, minAmountOut, true);
     }
 
     /**
