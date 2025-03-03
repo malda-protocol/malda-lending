@@ -7,6 +7,14 @@ import {Rebalancer_Unit_Shared} from "../shared/Rebalancer_Unit_Shared.t.sol";
 import "forge-std/console.sol";
 
 contract Rebalancer_methods is Rebalancer_Unit_Shared {
+    function setUp() public override {
+        super.setUp();
+
+        roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), true);
+        rebalancer.setMaxTransferSize(0, address(weth), type(uint256).max);
+        rebalancer.setMaxTransferSize(1, address(weth), type(uint256).max);
+        roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), false);
+    }
     modifier givenSenderDoesNotHaveGUARDIAN_BRIDGERole() {
         //does nothing; for readability only
         _;
@@ -127,5 +135,20 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
         uint256 bridgeBalance = weth.balanceOf(address(bridgeMock));
         assertEq(bridgeBalance, amount);
         // it should extract and rebalance
+    }
+
+    function test_WhenMarketHasEnoughTokensButTransferSizeIsNotMet(uint256 amount)
+        external
+        givenSendMsgIsCalledWithRightParameters
+        givenSenderHasRoleGUARDIAN_BRIDGE
+        inRange(amount, SMALL, LARGE)
+    {
+        rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
+        rebalancer.setMaxTransferSize(0, address(weth), amount - 1);
+        IRebalancer.Msg memory _msg =
+            IRebalancer.Msg({dstChainId: 0, token: address(weth), message: abi.encode(amount), bridgeData: ""});
+        _getTokens(weth, address(mWethHost), amount);
+        vm.expectRevert();
+        rebalancer.sendMsg(address(bridgeMock), address(mWethHost), amount, _msg);
     }
 }

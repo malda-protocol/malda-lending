@@ -24,9 +24,11 @@ interface IRebalancer {
 
     event BridgeWhitelistedStatusUpdated(address indexed bridge, bool status);
     event MsgSent(
-        address indexed bridge, uint256 indexed dstChainId, address indexed token, bytes message, bytes bridgeData
+        address indexed bridge, uint32 indexed dstChainId, address indexed token, bytes message, bytes bridgeData
     );
     event EthSaved(uint256 amount);
+    event MaxTransferSizeUpdated(uint32 indexed dstChainId, address indexed token, uint256 newLimit);
+    event MinTransferSizeUpdated(uint32 indexed dstChainId, address indexed token, uint256 newLimit);
 
     // ----------- ERRORS ------------
     error Rebalancer_NotAuthorized();
@@ -34,6 +36,8 @@ interface IRebalancer {
     error Rebalancer_RequestNotValid();
     error Rebalancer_AddressNotValid();
     error Rebalancer_BridgeNotWhitelisted();
+    error Rebalancer_TransferSizeExcedeed();
+    error Rebalancer_TransferSizeMinNotMet();
 
     // ----------- VIEW METHODS ------------
     /**

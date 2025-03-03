@@ -58,7 +58,6 @@ contract EverclearBridge is BaseBridge, IBridge {
         // decode message & checks
         (address market, address outputAsset, uint256 amount, bytes memory data) =
             abi.decode(_message, (address, address, uint256, bytes));
-        require(amount >= minTransfer && amount <= maxTransfer, BaseBridge_AmountNotValid());
 
         // retrieve tokens from `Rebalancer`
         IERC20(_token).safeTransferFrom(msg.sender, address(this), amount);
