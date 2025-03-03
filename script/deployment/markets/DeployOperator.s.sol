@@ -20,10 +20,8 @@ import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transpa
  *     --broadcast
  */
 contract DeployOperator is Script {
-
-    function run(Deployer deployer, address oracle, address roles, address rewards) public returns (address) {
+    function run(Deployer deployer, address oracle, address roles, address rewards, address owner) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-        address owner = vm.envAddress("OWNER");
 
         bytes32 salt = _getSalt("OperatorImplementation");
         vm.startBroadcast(key);
@@ -54,7 +52,6 @@ contract DeployOperator is Script {
         Operator(operatorAddress).setPriceOracle(oracle);
         vm.stopBroadcast();
         console.log("Oracle has been set");
-
 
         return operatorAddress;
     }

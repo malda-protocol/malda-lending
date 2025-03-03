@@ -3,41 +3,65 @@ pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {DeployConfig, Market, Role, InterestConfig, DeployerConfig} from "./Types.sol";
+import {DeployNetworksConfigRelease, DeployGenericConfigRelease, ConnextDomain, OracleFeed, MarketRelease, Role, InterestConfig, DeployerConfig} from "./Types.sol";
 
-contract DeployBase is Script {
+contract DeployBaseRelease is Script {
     using stdJson for string;
-
-    mapping(string => DeployConfig) public configs;
+    
+    mapping(uint32 => address) internal spokePoolAddresses;
+    mapping(uint32 => address) internal connextAddresses;
+    mapping(uint32 => address) internal everclearAddresses;
+    mapping(string => DeployNetworksConfigRelease) internal configs;
+    DeployGenericConfigRelease internal genericConfig;
     string public configPath;
     string[] public networks;
     uint256 public key;
     mapping(string => uint256) public forks;
+    OracleFeed[] internal feeds;
 
     function setUp() public virtual {
         key = vm.envUint("OWNER_PRIVATE_KEY");
-        //configPath = "deployment-config.json";
+        configPath = "deployment-config-release.json";
         networks = vm.parseJsonKeys(vm.readFile(configPath), ".networks");
 
+        // parse generic config
+        _parseGenericConfig();
+
+        // parse networks configs
         for (uint256 i = 0; i < networks.length; i++) {
             string memory network = networks[i];
-            _parseBaseConfig(network);
+            _parseNetworkConfig(network);
+        }
+
+    }
+
+    function _parseGenericConfig() internal {
+        string memory json =  vm.readFile(configPath);
+        string memory domainsPath = string.concat(".generic.connextDomains");
+
+        // Parse generic config
+        ConnextDomain[] memory connextDomains = abi.decode(json.parseRaw(domainsPath), (ConnextDomain[]));
+
+        for (uint256 i; i < connextDomains.length;) {
+            genericConfig.connextDomains.push(connextDomains[i]);
+            unchecked { ++i; }
         }
     }
 
-    function _parseBaseConfig(string memory network) internal {
-        DeployConfig storage config = configs[network];
+    function _parseNetworkConfig(string memory network) internal {
+        DeployNetworksConfigRelease storage config = configs[network];
         string memory json = vm.readFile(configPath);
         string memory networkPath = string.concat(".networks.", network);
 
         // Parse basic config
         config.chainId = uint32(abi.decode(json.parseRaw(string.concat(networkPath, ".chainId")), (uint256)));
+        config.ownership = address(abi.decode(json.parseRaw(string.concat(networkPath, ".ownership")), (address)));
         config.isHost = abi.decode(json.parseRaw(string.concat(networkPath, ".isHost")), (bool));
 
         // Parse deployer config
         DeployerConfig memory deployerConfig =
             abi.decode(json.parseRaw(string.concat(networkPath, ".deployer")), (DeployerConfig));
-        config.deployer = deployerConfig;
+        config.deployer = deployerConfig;   
 
         // Parse roles
         Role[] memory roles = abi.decode(json.parseRaw(string.concat(networkPath, ".roles")), (Role[]));
@@ -47,7 +71,7 @@ contract DeployBase is Script {
         }
 
         // Parse markets
-        Market[] memory markets = abi.decode(json.parseRaw(string.concat(networkPath, ".markets")), (Market[]));
+        MarketRelease[] memory markets = abi.decode(json.parseRaw(string.concat(networkPath, ".markets")), (MarketRelease[]));
         for (uint256 i = 0; i < markets.length; i++) {
             config.markets.push(markets[i]);
         }
@@ -65,15 +89,13 @@ contract DeployBase is Script {
     }
 
     function _parseHostConfig(string memory json, string memory network, string memory networkPath) internal {
-        DeployConfig storage config = configs[network];
+        DeployNetworksConfigRelease storage config = configs[network];
 
         // Parse oracle config
         string memory oraclePath = string.concat(networkPath, ".oracle");
         config.oracle.oracleType = abi.decode(json.parseRaw(string.concat(oraclePath, ".oracleType")), (string));
         config.oracle.stalenessPeriod =
             abi.decode(json.parseRaw(string.concat(oraclePath, ".stalenessPeriod")), (uint256));
-        config.oracle.usdcFeed = abi.decode(json.parseRaw(string.concat(oraclePath, ".usdcFeed")), (address));
-        config.oracle.wethFeed = abi.decode(json.parseRaw(string.concat(oraclePath, ".wethFeed")), (address));
 
         // Parse allowed chains
         bytes memory allowedChainsRaw = json.parseRaw(string.concat(networkPath, ".allowedChains"));

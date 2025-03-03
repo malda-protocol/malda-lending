@@ -17,18 +17,22 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployBatchSubmitter is Script {
-    function run(Deployer deployer, address roles, address zkVerifier) public returns (address) {
+    function run(Deployer deployer, address roles, address zkVerifier, address owner) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-        address owner = vm.envAddress("OWNER");
-
         bytes32 salt = getSalt("BatchSubmitter");
-        vm.startBroadcast(key);
-        address created = deployer.create(
-            salt, abi.encodePacked(type(BatchSubmitter).creationCode, abi.encode(roles, zkVerifier, owner))
-        );
-        vm.stopBroadcast();
 
-        console.log("BatchSubmitter deployed at:", created);
+        address created = deployer.precompute(salt);
+        // Deploy only if not already deployed
+        if (created.code.length == 0) {
+            vm.startBroadcast(key);
+            created = deployer.create(
+                salt, abi.encodePacked(type(BatchSubmitter).creationCode, abi.encode(roles, zkVerifier, owner))
+            );
+            vm.stopBroadcast();
+            console.log("BatchSubmitter deployed at:", created);
+        } else {
+            console.log("Using existing BatchSubmitter at: %s", created);
+        }
 
         return created;
     }

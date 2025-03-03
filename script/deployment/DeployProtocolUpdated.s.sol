@@ -26,6 +26,7 @@ import {DeployJumpRateModelV4} from "./interest/DeployJumpRateModelV4.s.sol";
 import {DeployRewardDistributor} from "./rewards/DeployRewardDistributor.s.sol";
 import {DeployBatchSubmitter} from "./generic/DeployBatchSubmitter.s.sol";
 import {DeployMixedPriceOracleV3} from "./oracles/DeployMixedPriceOracleV3.s.sol";
+import {DeployMockOracle} from "./oracles/DeployMockOracle.s.sol";
 
 import {SetOperatorInRewardDistributor} from "../configuration/SetOperatorInRewardDistributor.s.sol";
 import {SetRole} from "../configuration/SetRole.s.sol";
@@ -37,9 +38,11 @@ import {SetSupplyCap} from "../configuration/SetSupplyCap.s.sol";
 import {UpdateAllowedChains} from "../configuration/UpdateAllowedChains.s.sol";
 import {SetZkImageId} from "../configuration/SetZkImageId.s.sol";
 
+
+
 // import {VerifyDeployment} from "./VerifyDeployment.s.sol";
 
-contract DeployProtocol is DeployBase {
+contract DeployProtocolUpdated is DeployBase {
     using stdJson for string;
 
     error UnsupportedOracleType();
@@ -61,6 +64,7 @@ contract DeployProtocol is DeployBase {
     DeployOperator deployOperator;
     DeployPauser deployPauser;
     DeployMixedPriceOracleV3 deployOracle;
+    DeployMockOracle deployMockOracle;
     DeployRewardDistributor deployReward;
     DeployHostMarket deployHost;
     DeployExtensionMarket deployExt;
@@ -75,8 +79,9 @@ contract DeployProtocol is DeployBase {
     SetZkImageId setZkImageId;
 
     function setUp() public override {
-        configPath = "deployment-config.json";
+        configPath = "deployment-config-updated.json";
         super.setUp();
+
     }
 
     function run() public {
@@ -91,8 +96,12 @@ contract DeployProtocol is DeployBase {
             // Create fork for this network
             forks[network] = vm.createSelectFork(network);
 
+            // deploys or fetches the existing one
             deployDeployer = new DeployDeployer();
+
+            // deploys or fetches the existing one
             deployRbac = new DeployRbac();
+
             deployBatchSubmitter = new DeployBatchSubmitter();
             setRole = new SetRole();
             setZkImageId = new SetZkImageId();
@@ -107,6 +116,7 @@ contract DeployProtocol is DeployBase {
                 deployOperator = new DeployOperator();
                 deployPauser = new DeployPauser();
                 deployOracle = new DeployMixedPriceOracleV3();
+                deployMockOracle = new DeployMockOracle();
                 deployReward = new DeployRewardDistributor();
                 deployHost = new DeployHostMarket();
                 setOperatorInRewardDistributor = new SetOperatorInRewardDistributor();
@@ -128,11 +138,6 @@ contract DeployProtocol is DeployBase {
             // Set image ID for all markets
             _setZkImageId(marketAddresses, batchSubmitter, configs[network].zkVerifier.imageId);
         }
-
-        // VerifyDeployment verifier = new VerifyDeployment();
-        // verifier.run();
-
-        // console.log("\n=== Deployment verification completed successfully ===");
     }
 
     function _deployHostChain(string memory network, address rolesContract, address) internal {
@@ -147,8 +152,9 @@ contract DeployProtocol is DeployBase {
         _setRoles(rolesContract, network);
 
         uint256 marketsLength = configs[network].markets.length;
-        for (uint256 i = 0; i < marketsLength; i++) {
+        for (uint256 i; i < marketsLength;) {
             _deployAndConfigureMarket(true, configs[network].markets[i], operator, rolesContract, network);
+            unchecked { ++i; }
         }
     }
 
@@ -156,8 +162,9 @@ contract DeployProtocol is DeployBase {
         _setRoles(rolesContract, network);
 
         uint256 marketsLength = configs[network].markets.length;
-        for (uint256 i = 0; i < marketsLength; i++) {
+        for (uint256 i; i < marketsLength;) {
             _deployAndConfigureMarket(false, configs[network].markets[i], address(0), rolesContract, network);
+            unchecked { ++i; }
         }
 
         // Set image ID for all markets
@@ -182,38 +189,30 @@ contract DeployProtocol is DeployBase {
             marketAddress = _deployHostMarket(
                 deployer, market, operator, interestModel, configs[network].zkVerifier.verifierAddress, rolesContract
             );
+            console.log("------------marketAddress", marketAddress);
+            console.log("------------market.name", market.name);
 
             marketAddresses.push(marketAddress);
-
-            console.log("Proxy admin address:");
-            console.logBytes32(
-                vm.load(marketAddress, bytes32(0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103))
-            );
         } else {
             marketAddress =
                 _deployExtensionMarket(deployer, market, configs[network].zkVerifier.verifierAddress, rolesContract);
-
-            console.log("Proxy admin address:");
-            console.logBytes32(
-                vm.load(marketAddress, bytes32(0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103))
-            );
         }
 
         // Configure market if host chain
         if (isHost) {
             console.log("Configuring market", marketAddress);
-            _configureMarket(
-                operator,
-                marketAddress,
-                market.collateralFactor,
-                market.borrowCap,
-                market.supplyCap,
-                market.borrowRateMaxMantissa
-            );
+            // _configureMarket(
+            //     operator,
+            //     marketAddress,
+            //     market.collateralFactor,
+            //     market.borrowCap,
+            //     market.supplyCap,
+            //     market.borrowRateMaxMantissa
+            // );
             console.log("Market configured");
 
             // Setup allowed chains on host market
-            _updateAllowedChains(marketAddress, network);
+            //_updateAllowedChains(marketAddress, network);
         }
     }
 
@@ -234,9 +233,14 @@ contract DeployProtocol is DeployBase {
     }
 
     function _deployOracle(OracleConfig memory oracleConfig, address rolesContract) internal returns (address) {
-        return deployOracle.run(
-            deployer, oracleConfig.usdcFeed, oracleConfig.wethFeed, rolesContract, oracleConfig.stalenessPeriod
-        );
+        string memory _type = oracleConfig.oracleType;
+        if (keccak256(bytes(_type)) == keccak256(bytes("MixedPriceOracleV3"))) {
+            return deployOracle.run(
+                deployer, oracleConfig.usdcFeed, oracleConfig.wethFeed, rolesContract, oracleConfig.stalenessPeriod
+            );
+        } else {
+            return deployMockOracle.run(deployer);
+        }
     }
 
     function _deployOperator(address oracle, address rewardDistributor, address rolesContract)
@@ -294,6 +298,7 @@ contract DeployProtocol is DeployBase {
         internal
         returns (address)
     {
+        console.log("----------------- market.name", market.name);
         return deployExt.run(_deployer, market.underlying, market.name, owner, zkVerifier, rolesContract);
     }
 

@@ -29,8 +29,6 @@ contract DeployRebalancers is Script {
 
             unchecked { ++i; }
         }
-
-
     }
 
     function run() public {
@@ -94,14 +92,14 @@ contract DeployRebalancers is Script {
 
     function _deployRebalancer(address roles, address deployer) private returns (address) {
         console.log("Deploying Rebalancer");
-        address result = deployRebalancer.run(roles, deployer);
+        address result = deployRebalancer.run(roles, Deployer(payable(deployer)));
         console.log("Rebalancer deployed at:", result);
         return result;
     }
 
     function _deployEverclearBridge(address roles, address spoke, address deployer) private returns (address) {
         console.log("Deploying Everclear bridge");
-        address result = deployEverclearBridge.run(roles, spoke, deployer);
+        address result = deployEverclearBridge.run(roles, spoke, Deployer(payable(deployer)));
         console.log("Everclear bridge deployed at: ");
         return result;
     }

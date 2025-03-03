@@ -25,29 +25,38 @@ contract DeployJumpRateModelV4 is Script {
         uint256 jumpMultiplierPerYear;
     }
 
-    function run(Deployer deployer, InterestData memory data) public returns (address) {
+    function run(Deployer deployer, InterestData memory data, address owner) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         bytes32 salt = getSalt(string.concat(data.name, "JumpRateModelV4"));
-        vm.startBroadcast(key);
-        address created = deployer.create(
-            salt,
-            abi.encodePacked(
-                type(JumpRateModelV4).creationCode,
-                abi.encode(
-                    data.blocksPerYear,
-                    data.baseRatePerYear,
-                    data.multiplierPerYear,
-                    data.jumpMultiplierPerYear,
-                    data.kink,
-                    vm.envAddress("OWNER"),
-                    data.name
-                )
-            )
-        );
-        vm.stopBroadcast();
+    
+        console.log("Deploying JumpRateModelV4 for %s", data.name);
 
-        console.log("JumpRateModelV4 deployed at: %s", created);
+        address created = deployer.precompute(salt);
+        
+        // Deploy only if not already deployed
+        if (created.code.length == 0) {
+            vm.startBroadcast(key);
+            created = deployer.create(
+                salt,
+                abi.encodePacked(
+                    type(JumpRateModelV4).creationCode,
+                    abi.encode(
+                        data.blocksPerYear,
+                        data.baseRatePerYear,
+                        data.multiplierPerYear,
+                        data.jumpMultiplierPerYear,
+                        data.kink,
+                        owner,
+                        data.name
+                    )
+                )
+            );
+            vm.stopBroadcast();
+            console.log("JumpRateModelV4 deployed at: %s", created);
+        } else {
+            console.log("Using existing JumpRateModelV4 at: %s", created);
+        }
 
         return created;
     }

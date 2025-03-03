@@ -63,6 +63,7 @@ interface ImTokenGateway {
      * @notice Emitted when the gas fee is updated
      */
     event mTokenGateway_GasFeeUpdated(uint256 amount);
+    event mTokenGateway_PausedState(ImTokenOperationTypes.OperationType indexed _type, bool _status);
 
     // ----------- ERRORS -----------+
     /**

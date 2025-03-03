@@ -16,9 +16,8 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployAcrossBridge is Script {
-    function run(address roles, address spoke, address _deployer) public returns (address) {
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("AcrossBridge")));
-        Deployer deployer = Deployer(payable(_deployer));
+    function run(address roles, address spoke, Deployer deployer) public returns (address) {
+        bytes32 salt = getSalt("AcrossBridge");
 
         vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
         address created =
@@ -27,5 +26,11 @@ contract DeployAcrossBridge is Script {
 
         console.log(" AccrossBridge deployed at: %s", created);
         return created;
+    }
+
+    function getSalt(string memory name) internal view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+        );
     }
 }

@@ -15,14 +15,20 @@ import {ERC20Mock} from "test/mocks/ERC20Mock.sol";
  *     --broadcast
  */
 contract DeployMockToken is Script {
-    function run() public returns (address) {
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("ERC20Mock-v1")));
+    string constant NAME = "wstETH Mock";
+    string constant SYMBOL = "wstETH-M";
+    uint8 constant DECIMALS = 18;
+    address constant OWNER = 0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00;
+    address constant POH_VERIFY = 0xBf14cFAFD7B83f6de881ae6dc10796ddD7220831; //linea
+    uint256 constant LIMIT = 1000e6;
+
+    function run(Deployer deployer) public returns (address) {
+        bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("Mock-wstETH")));
 
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
-        
-        Deployer deployer = Deployer(payable(0x7DE862D3f944b5BCbE30C43aa5434eE964a31a8C));
-        address created = deployer.create(salt, abi.encodePacked(type(ERC20Mock).creationCode, abi.encode("AAA", "AA", 18)));                                          
+
+        address created = deployer.create(salt, abi.encodePacked(type(ERC20Mock).creationCode, abi.encode(NAME, SYMBOL, DECIMALS, OWNER, POH_VERIFY, LIMIT)));                                          
 
         console.log(" ERC20Mock deployed at: %s", created);
 

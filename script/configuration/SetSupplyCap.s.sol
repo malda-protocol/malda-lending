@@ -5,7 +5,7 @@ import {Operator} from "src/Operator/Operator.sol";
 import {Script, console} from "forge-std/Script.sol";
 
 contract SetSupplyCap is Script {
-    function run(address market, uint256 cap) public virtual {
+    function run(address operator, address market, uint256 cap) public {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);
 
@@ -14,7 +14,13 @@ contract SetSupplyCap is Script {
         mTokens[0] = market;
         caps[0] = cap;
 
-        address operator = vm.envAddress("Operator");
+        console.log("Setting supply cap for market", market);
+
+        if (Operator(operator).supplyCaps(market) == cap) {
+            console.log("Supply cap already set");
+            return;
+        }
+
         Operator(operator).setMarketSupplyCaps(mTokens, caps);
 
         console.log(" Supply cap set for market %s", market);

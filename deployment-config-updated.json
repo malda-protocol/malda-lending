@@ -1,0 +1,173 @@
+{
+  "networks": {
+    "linea_sepolia": {
+      "chainId": 59141,
+      "isHost": true,
+      "deployer": {
+        "owner": "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00",
+        "salt": "FirstTry"
+      },
+      "oracle": {
+        "oracleType": "MixedPriceOracleV3",
+        "stalenessPeriod": 86400,
+        "usdcFeed": "0xc6e1FB449b08B26B2063c289DF9BBcb79B91c992",
+        "wethFeed": "0x2D6261dce927D5c46f7f393a897887F19F3fDf2A"
+      },
+      "markets": [
+        {
+          "borrowCap": 1000000000000,
+          "borrowRateMaxMantissa": 500000000000000000,
+          "collateralFactor": 800000000000000000,
+          "decimals": 6,
+          "interestModel": {
+            "baseRate": 20000000000000000,
+            "blocksPerYear": 2102400,
+            "jumpMultiplier": 500000000000000000,
+            "kink": 800000000000000000,
+            "multiplier": 100000000000000000,
+            "name": "Mock USDC Interest Model"
+          },
+          "name": "mUSDCMock",
+          "priceFeed": "0xA5c24F2449891483f0923f0D9dC7694BDFe1bC86",
+          "supplyCap": 1000000000000,
+          "symbol": "mUSDCMock",
+          "underlying": "0xc6e1FB449b08B26B2063c289DF9BBcb79B91c992"
+        },
+        {
+          "borrowCap": 1000000000000000000000,
+          "borrowRateMaxMantissa": 500000000000000000,
+          "collateralFactor": 750000000000000000,
+          "decimals": 18,
+          "interestModel": {
+            "baseRate": 10000000000000000,
+            "blocksPerYear": 2102400,
+            "jumpMultiplier": 400000000000000000,
+            "kink": 900000000000000000,
+            "multiplier": 80000000000000000,
+            "name": "Mock wstETH Interest Model"
+          },
+          "name": "mwstETHMock",
+          "priceFeed": "0x2D6261dce927D5c46f7f393a897887F19F3fDf2A",
+          "supplyCap": 1000000000000000000000,
+          "symbol": "mwstETHMock",
+          "underlying": "0x0d7Ee0ee6E449e38269F2E089262b40cA4096594"
+        }
+      ],
+      "roles": [],
+      "zkVerifier": {
+        "imageId": "0xd1333b14cc29a5d8828e9f5842a44c881efbabec67faf033633816939bde3c08",
+        "verifierAddress": "0x27983ee173aD10E171D17C9c5C14d5baFE997609"
+      },
+      "allowedChains": [
+        11155420,
+        11155111
+      ]
+    },
+    "op_sepolia": {
+      "chainId": 11155420,
+      "isHost": false,
+      "deployer": {
+        "owner": "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00",
+        "salt": "FirstTry"
+      },
+      "markets": [
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 6,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mUSDCMock",
+          "priceFeed": "0x0000000000000000000000000000000000000000",
+          "supplyCap": 0,
+          "symbol": "mUSDCMock",
+          "underlying": "0xc6e1FB449b08B26B2063c289DF9BBcb79B91c992"
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 6,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mwstETHMock",
+          "priceFeed": "0x0000000000000000000000000000000000000000",
+          "supplyCap": 0,
+          "symbol": "mwstETHMock",
+          "underlying": "0x17aF6EBF1DaB5a1eEeeC0CBdD703237853Cf65E2"
+        }
+      ],
+      "roles": [],
+      "zkVerifier": {
+        "imageId": "0xd1333b14cc29a5d8828e9f5842a44c881efbabec67faf033633816939bde3c08",
+        "verifierAddress": "0xB369b4dd27FBfb59921d3A4a3D23AC2fc32FB908"
+      }
+    },
+    "sepolia": {
+      "chainId": 11155111,
+      "isHost": false,
+      "deployer": {
+        "owner": "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00",
+        "salt": "FirstTry"
+      },
+      "markets": [
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 6,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mUSDCMock",
+          "priceFeed": "0x0000000000000000000000000000000000000000",
+          "supplyCap": 0,
+          "symbol": "mUSDCMock",
+          "underlying": "0xc6e1FB449b08B26B2063c289DF9BBcb79B91c992"
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 18,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mwstETHMock",
+          "priceFeed": "0x0000000000000000000000000000000000000000",
+          "supplyCap": 0,
+          "symbol": "mwstETHMock",
+          "underlying": "0x0d7Ee0ee6E449e38269F2E089262b40cA4096594"
+        }
+      ],
+      "roles": [],
+      "zkVerifier": {
+        "imageId": "0xd1333b14cc29a5d8828e9f5842a44c881efbabec67faf033633816939bde3c08",
+        "verifierAddress": "0x925d8331ddc0a1F0d96E68CF073DFE1d92b69187"
+      }
+    }
+  }
+}

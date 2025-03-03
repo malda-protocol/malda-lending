@@ -106,6 +106,8 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
         } else {
             require(msg.sender == owner(), mTokenGateway_CallerNotAllowed());
         }
+
+        emit mTokenGateway_PausedState(_type, state);
         paused[_type] = state;
     }
 

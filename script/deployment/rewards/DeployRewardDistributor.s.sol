@@ -15,22 +15,29 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployRewardDistributor is Script {
-    function run(Deployer deployer) public returns (address) {
+    function run(Deployer deployer, address owner) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-
-        address owner = vm.envAddress("OWNER");
 
         bytes32 salt = getSalt("RewardDistributor");
 
-        vm.startBroadcast(key);
-        address created = deployer.create(salt, type(RewardDistributor).creationCode);
-        vm.stopBroadcast();
+        console.log("Deploying RewardDistributor");
+        address created = deployer.precompute(salt);
+        if (created.code.length > 0) {
+            console.log("RewardDistributor already deployed at: %s", created);
+        } else {
+            vm.startBroadcast(key);
+            created = deployer.create(salt, type(RewardDistributor).creationCode);
+            vm.stopBroadcast();
+            console.log("RewardDistributor deployed at: %s", created);
+                
+            console.log("Initializing RewardDistributor");
 
-        vm.startBroadcast(key);
-        RewardDistributor(created).initialize(owner);
-        vm.stopBroadcast();
+            vm.startBroadcast(key);
+            RewardDistributor(created).initialize(owner);
+            vm.stopBroadcast();
 
-        console.log("RewardDistributor deployed (and initialized) at: %s", created);
+            console.log("RewardDistributor initialized at: %s", created);
+        }
 
         return created;
     }

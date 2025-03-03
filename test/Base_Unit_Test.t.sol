@@ -71,7 +71,7 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
         );
         vm.label(address(interestModel), "InterestModel");
 
-        oracleOperator = new OracleMock();
+        oracleOperator = new OracleMock(address(this));
         vm.label(address(oracleOperator), "oracleOperator");
 
         // **** SETUP ****

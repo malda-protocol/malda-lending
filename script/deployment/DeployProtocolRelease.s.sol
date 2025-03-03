@@ -12,10 +12,13 @@ import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
 import {Roles} from "src/Roles.sol";
 import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
 import {mTokenConfiguration} from "src/mToken/mTokenConfiguration.sol";
+import {IPauser} from "src/interfaces/IPauser.sol";
+import {IOwnable} from "src/interfaces/IOwnable.sol";
+import {Pauser} from "src/pauser/Pauser.sol";
 
-import {DeployConfig, Market, Role, InterestConfig, OracleConfig} from "../deployers/Types.sol";
+import {DeployConfig, MarketRelease, Role, InterestConfig, OracleConfigRelease, OracleFeed} from "../deployers/Types.sol";
 
-import {DeployBase} from "../deployers/DeployBase.sol";
+import {DeployBaseRelease} from "../deployers/DeployBaseRelease.sol";
 import {DeployDeployer} from "../deployers/DeployDeployer.s.sol";
 import {DeployRbac} from "./generic/DeployRbac.s.sol";
 import {DeployPauser} from "./generic/DeployPauser.s.sol";
@@ -26,6 +29,7 @@ import {DeployJumpRateModelV4} from "./interest/DeployJumpRateModelV4.s.sol";
 import {DeployRewardDistributor} from "./rewards/DeployRewardDistributor.s.sol";
 import {DeployBatchSubmitter} from "./generic/DeployBatchSubmitter.s.sol";
 import {DeployMixedPriceOracleV3} from "./oracles/DeployMixedPriceOracleV3.s.sol";
+import {DeployMockOracle} from "./oracles/DeployMockOracle.s.sol";
 
 import {SetOperatorInRewardDistributor} from "../configuration/SetOperatorInRewardDistributor.s.sol";
 import {SetRole} from "../configuration/SetRole.s.sol";
@@ -37,15 +41,22 @@ import {SetSupplyCap} from "../configuration/SetSupplyCap.s.sol";
 import {UpdateAllowedChains} from "../configuration/UpdateAllowedChains.s.sol";
 import {SetZkImageId} from "../configuration/SetZkImageId.s.sol";
 
+import { DeployRebalancer } from "script/deployment/rebalancer/DeployRebalancer.s.sol";
+import { DeployAcrossBridge } from "script/deployment/rebalancer/DeployAcrossBridge.s.sol";
+import { DeployConnextBridge } from "script/deployment/rebalancer/DeployConnextBridge.s.sol";
+import { DeployEverclearBridge } from "script/deployment/rebalancer/DeployEverclearBridge.s.sol";
+import { DeployLZBridge } from "script/deployment/rebalancer/DeployLZBridge.s.sol";
+
 // import {VerifyDeployment} from "./VerifyDeployment.s.sol";
 
-contract DeployProtocol is DeployBase {
+contract DeployProtocolRelease is DeployBaseRelease {
     using stdJson for string;
 
     error UnsupportedOracleType();
 
     address marketAddress;
     address[] marketAddresses;
+    address[] extensionMarketAddresses;
     address owner;
 
     // Track deployed implementations
@@ -73,26 +84,61 @@ contract DeployProtocol is DeployBase {
     SetSupplyCap setSupplyCap;
     UpdateAllowedChains updateAllowedChains;
     SetZkImageId setZkImageId;
+    DeployRebalancer deployRebalancer;
+    DeployAcrossBridge deployAcrossBridge;
+    DeployConnextBridge deployConnextBridge;
+    DeployEverclearBridge deployEverclearBridge;
+    DeployLZBridge deployLZBridge;
 
     function setUp() public override {
-        configPath = "deployment-config.json";
         super.setUp();
+
+        feeds.push(OracleFeed("mUSDC", 0xAADAa473C1bDF7317ec07c915680Af29DeBfdCb5, "USD", 6));
+        feeds.push(OracleFeed("mWETH", 0x58B375D4A5ddAa7df7C54FE5A6A4B7024747fBE3, "USD", 18));
+        feeds.push(OracleFeed("mUSDT", 0xefCA2bbe0EdD0E22b2e0d2F8248E99F4bEf4A7dB, "USD", 6));
+        feeds.push(OracleFeed("mDAI", 0x5133D67c38AFbdd02997c14Abd8d83676B4e309A, "USD", 18));
+        feeds.push(OracleFeed("mWBTC", 0x7A99092816C8BD5ec8ba229e3a6E6Da1E628E1F9, "USD", 8));
+        feeds.push(OracleFeed("mwstETH", 0x8eCE1AbA32716FdDe8D6482bfd88E9a0ee01f565, "USD", 18));
+        feeds.push(OracleFeed("mezETH", 0xD707bD88A6AAe8174C1447af4C746D55676C84BA, "mWETH_api3", 18));
+        feeds.push(OracleFeed("mweETH", 0xEAd770C0F71f55D0337B0C7524AC3c72103cc032, "USD", 18));
+        feeds.push(OracleFeed("mwrsETH", 0x6feCd2f4798D37fBe64BFDe1eBeCaE3B3fB1Ab9B, "mWETH_api3", 18));
+        feeds.push(OracleFeed("mWETH_api3", 0x14D8CA4d05cfd1EA4739AbAB06b28D8dC7C6d6cA, "USD", 18));
+
+        spokePoolAddresses[1] = 0x5c7BCd6E7De5423a257D81B442095A1a6ced35C5;
+        spokePoolAddresses[10] = 0x6f26Bf09B1C792e3228e5467807a900A503c0281;
+        spokePoolAddresses[8453] = 0x09aea4b2242abC8bb4BB78D537A67a245A7bEC64;
+        spokePoolAddresses[59144] = address(0);
+
+        connextAddresses[1] = 0x8898B472C54c31894e3B9bb83cEA802a5d0e63C6;
+        connextAddresses[10] = 0x8f7492DE823025b4CfaAB1D34c58963F2af5DEDA;
+        connextAddresses[8453] = 0xB8448C6f7f7887D36DcA487370778e419e9ebE3F;
+        connextAddresses[59144] = 0xa05eF29e9aC8C75c530c2795Fa6A800e188dE0a9;
+
+        everclearAddresses[1] = 0xa05A3380889115bf313f1Db9d5f335157Be4D816;
+        everclearAddresses[10] = 0xa05A3380889115bf313f1Db9d5f335157Be4D816;
+        everclearAddresses[8453] = 0xa05A3380889115bf313f1Db9d5f335157Be4D816;
+        everclearAddresses[59144] = 0xc24dC29774fD2c1c0c5FA31325Bb9cbC11D8b751;
     }
 
+  
     function run() public {
-        string memory json = vm.readFile(configPath);
-        string[] memory networks = vm.parseJsonKeys(json, ".networks");
-
         // Deploy to all networks
         for (uint256 i = 0; i < networks.length; i++) {
+            delete marketAddresses;
+            delete extensionMarketAddresses;
+
             string memory network = networks[i];
             console.log("\n=== Deploying to %s ===", network);
 
             // Create fork for this network
             forks[network] = vm.createSelectFork(network);
 
+            // deploys or fetches the existing one
             deployDeployer = new DeployDeployer();
+
+            // deploys or fetches the existing one
             deployRbac = new DeployRbac();
+
             deployBatchSubmitter = new DeployBatchSubmitter();
             setRole = new SetRole();
             setZkImageId = new SetZkImageId();
@@ -102,10 +148,12 @@ contract DeployProtocol is DeployBase {
             address rolesContract = _deployRoles(owner);
             address batchSubmitter = _deployBatchSubmitter(rolesContract, configs[network].zkVerifier.verifierAddress);
 
+            deployPauser = new DeployPauser();
+
+            address pauser;
             if (configs[network].isHost) {
                 deployInterest = new DeployJumpRateModelV4();
                 deployOperator = new DeployOperator();
-                deployPauser = new DeployPauser();
                 deployOracle = new DeployMixedPriceOracleV3();
                 deployReward = new DeployRewardDistributor();
                 deployHost = new DeployHostMarket();
@@ -116,30 +164,83 @@ contract DeployProtocol is DeployBase {
                 setBorrowCap = new SetBorrowCap();
                 setSupplyCap = new SetSupplyCap();
                 updateAllowedChains = new UpdateAllowedChains();
-
+            
                 console.log("Deploying host chain");
-                _deployHostChain(network, rolesContract, batchSubmitter);
+                pauser = _deployHostChain(network, rolesContract, batchSubmitter);
             } else {
                 deployExt = new DeployExtensionMarket();
                 console.log("Deploying extension chain");
-                _deployExtensionChain(network, rolesContract, batchSubmitter);
+                pauser = _deployExtensionChain(network, rolesContract, batchSubmitter);
             }
+
+            deployRebalancer = new DeployRebalancer();
+            deployAcrossBridge = new DeployAcrossBridge();
+            deployConnextBridge = new DeployConnextBridge();
+            deployEverclearBridge = new DeployEverclearBridge();
+            deployLZBridge = new DeployLZBridge();
+            _deployAndConfigRebalancerAndBridges(network, rolesContract);
 
             // Set image ID for all markets
             _setZkImageId(marketAddresses, batchSubmitter, configs[network].zkVerifier.imageId);
+
+            // Transfer ownerhip
+            console.log("Transfer ownership to", configs[network].ownership);
+            uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+            vm.startBroadcast(key);
+
+            console.log(" -- for Pauser");
+            IOwnable(pauser).transferOwnership(configs[network].ownership);
+            console.log(" -- for Roles");
+            IOwnable(rolesContract).transferOwnership(configs[network].ownership);
+            console.log(" -- for mTokenGateway addresses [count]", extensionMarketAddresses.length);
+            for (uint256 j; j < extensionMarketAddresses.length; ) {
+                IOwnable(extensionMarketAddresses[j]).transferOwnership(configs[network].ownership);
+                unchecked { ++j; }
+            }
+
+            vm.stopBroadcast();
+            console.log("-------------------- DONE");
         }
-
-        // VerifyDeployment verifier = new VerifyDeployment();
-        // verifier.run();
-
-        // console.log("\n=== Deployment verification completed successfully ===");
     }
 
-    function _deployHostChain(string memory network, address rolesContract, address) internal {
+    function _deployAndConfigRebalancerAndBridges(string memory network, address rolesContract) internal {
+        console.log(" --- Deploying rebalancer");
+        address rebalancer = deployRebalancer.run(rolesContract, deployer);
+        console.log(" --- Deployed rebalancer at ", rebalancer);
+
+        if (spokePoolAddresses[configs[network].chainId] != address(0)) {
+            console.log(" --- Deploying acrossBridge");
+            address acrossBridge = deployAcrossBridge.run(rolesContract, spokePoolAddresses[configs[network].chainId], deployer);
+            console.log(" --- Deployed acrossBridge at ", acrossBridge);
+        }
+        else {
+            console.log("---- AcrossBridge cannot be deployed on current chain because SpokePool is address(0). Chain: ", configs[network].chainId);
+        }
+        console.log(" --- Deploying connextBridge");
+        address connextBridge = deployConnextBridge.run(rolesContract, connextAddresses[configs[network].chainId], deployer);
+        console.log(" --- Deployed connextBridge at ", connextBridge);
+        console.log(" --- Deploying everclearBridge");
+        address everclearBridge = deployEverclearBridge.run(rolesContract, everclearAddresses[configs[network].chainId], deployer);
+        console.log(" --- Deployed everclearBridge at ", everclearBridge);
+        console.log(" --- Deploying lzBridge");
+        address lzBridge = deployLZBridge.run(rolesContract, deployer);
+        console.log(" --- Deployed lzBridge at ", lzBridge);
+        
+
+        console.log(" ---- Setting REBALANCER role for the Rebalancer contract");
+        setRole.run(rolesContract, address(rebalancer), keccak256(abi.encodePacked("REBALANCER")), true);
+
+        console.log(" --- All rebalancer contracts deployed and configured for network", network);
+    }
+
+    function _deployHostChain(string memory network, address rolesContract, address) internal returns (address pauser) {
         address rewardDistributor = _deployRewardDistributor();
         address oracle = _deployOracle(configs[network].oracle, rolesContract);
         address operator = _deployOperator(oracle, rewardDistributor, rolesContract);
-        _deployPauser(rolesContract, operator);
+
+        console.log("Deploying Pauser on host chain");
+        pauser = _deployPauser(rolesContract, operator);
+        console.log("Pauser deployed on host chain", pauser);
 
         _setOperatorInRewardDistributor(operator, rewardDistributor);
 
@@ -147,28 +248,39 @@ contract DeployProtocol is DeployBase {
         _setRoles(rolesContract, network);
 
         uint256 marketsLength = configs[network].markets.length;
-        for (uint256 i = 0; i < marketsLength; i++) {
-            _deployAndConfigureMarket(true, configs[network].markets[i], operator, rolesContract, network);
+        for (uint256 i; i < marketsLength;) {
+            _deployAndConfigureMarket(true, configs[network].markets[i], operator, rolesContract, network, pauser);
+            unchecked { ++i; }
         }
+
     }
 
-    function _deployExtensionChain(string memory network, address rolesContract, address) internal {
+    function _deployExtensionChain(string memory network, address rolesContract, address) internal returns (address pauser) {
         _setRoles(rolesContract, network);
 
-        uint256 marketsLength = configs[network].markets.length;
-        for (uint256 i = 0; i < marketsLength; i++) {
-            _deployAndConfigureMarket(false, configs[network].markets[i], address(0), rolesContract, network);
-        }
+        console.log("Deploying Pauser on extension chain");
+        pauser = _deployPauser(rolesContract, address(0));
+        console.log("Pauser deployed on host chain", pauser);
 
-        // Set image ID for all markets
+
+        uint256 marketsLength = configs[network].markets.length;
+        for (uint256 i; i < marketsLength;) {
+            _deployAndConfigureMarket(false, configs[network].markets[i], address(0), rolesContract, network, pauser);
+            unchecked { ++i; }
+        }
+        
+
+        //
+
     }
 
     function _deployAndConfigureMarket(
         bool isHost,
-        Market memory market,
+        MarketRelease memory market,
         address operator,
         address rolesContract,
-        string memory network
+        string memory network,
+        address pauser
     ) internal {
         address interestModel;
 
@@ -176,6 +288,7 @@ contract DeployProtocol is DeployBase {
         if (isHost) {
             interestModel = _deployInterestModel(market.interestModel);
         }
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         // Deploy proxy for market
         if (isHost) {
@@ -185,18 +298,20 @@ contract DeployProtocol is DeployBase {
 
             marketAddresses.push(marketAddress);
 
-            console.log("Proxy admin address:");
-            console.logBytes32(
-                vm.load(marketAddress, bytes32(0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103))
-            );
+            console.log(" -- adding HOST market to pausable contract");
+            vm.startBroadcast(key);
+            Pauser(pauser).addPausableMarket(marketAddress, IPauser.PausableType.Host);
+            vm.stopBroadcast();
         } else {
             marketAddress =
                 _deployExtensionMarket(deployer, market, configs[network].zkVerifier.verifierAddress, rolesContract);
+            marketAddresses.push(marketAddress);
+            extensionMarketAddresses.push(marketAddress);
 
-            console.log("Proxy admin address:");
-            console.logBytes32(
-                vm.load(marketAddress, bytes32(0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103))
-            );
+            console.log(" -- adding EXTENSION market to pausable contract");
+            vm.startBroadcast(key);
+            Pauser(pauser).addPausableMarket(marketAddress, IPauser.PausableType.Extension);
+            vm.stopBroadcast();
         }
 
         // Configure market if host chain
@@ -226,16 +341,21 @@ contract DeployProtocol is DeployBase {
     }
 
     function _deployBatchSubmitter(address rolesContract, address zkVerifier) internal returns (address) {
-        return deployBatchSubmitter.run(deployer, rolesContract, zkVerifier, owner);
+        address created = deployBatchSubmitter.run(deployer, rolesContract, zkVerifier, owner);
+
+        console.log(" ---- Setting PROOF_BATCH_FORWARDER role for the BatchSubmitter contract");
+        setRole.run(rolesContract, address(created), keccak256(abi.encodePacked("PROOF_BATCH_FORWARDER")), true);
+
+        return created;
     }
 
     function _deployRewardDistributor() internal returns (address) {
         return deployReward.run(deployer, owner);
     }
 
-    function _deployOracle(OracleConfig memory oracleConfig, address rolesContract) internal returns (address) {
-        return deployOracle.run(
-            deployer, oracleConfig.usdcFeed, oracleConfig.wethFeed, rolesContract, oracleConfig.stalenessPeriod
+    function _deployOracle(OracleConfigRelease memory oracleConfig, address rolesContract) internal returns (address) {
+        return deployOracle.runWithFeeds(
+            deployer, feeds, rolesContract, oracleConfig.stalenessPeriod
         );
     }
 
@@ -246,8 +366,8 @@ contract DeployProtocol is DeployBase {
         return deployOperator.run(deployer, oracle, rewardDistributor, rolesContract, owner);
     }
 
-    function _deployPauser(address rolesContract, address operator) internal {
-        deployPauser.run(deployer, rolesContract, operator, owner);
+    function _deployPauser(address rolesContract, address operator) internal returns (address) {
+        return deployPauser.run(deployer, rolesContract, operator, owner);
     }
 
     function _deployInterestModel(InterestConfig memory modelConfig) internal returns (address) {
@@ -267,7 +387,7 @@ contract DeployProtocol is DeployBase {
 
     function _deployHostMarket(
         Deployer _deployer,
-        Market memory market,
+        MarketRelease memory market,
         address operator,
         address interestModel,
         address zkVerifier,
@@ -290,7 +410,7 @@ contract DeployProtocol is DeployBase {
         );
     }
 
-    function _deployExtensionMarket(Deployer _deployer, Market memory market, address zkVerifier, address rolesContract)
+    function _deployExtensionMarket(Deployer _deployer, MarketRelease memory market, address zkVerifier, address rolesContract)
         internal
         returns (address)
     {

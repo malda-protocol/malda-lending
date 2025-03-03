@@ -13,6 +13,7 @@
     "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
     "@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/",
     "risc0/=lib/risc0-ethereum/contracts/src/",
+    "forge-std/=lib/forge-std/src/",
   ]
 
   # forge-deploy
@@ -20,6 +21,8 @@
     { access = "read-write", path = "./deployments" },
     { access = "read", path = "./out" },
     { access = "read", path = "./deployment-config.json" },
+    { access = "read", path = "./deployment-config-updated.json" },
+    { access = "read", path = "./deployment-config-release.json" },
     { access = "read", path = "./deployment-config.sepolia.json" },
     { access = "read", path = "./deployment-config.op.json" },
     { access = "read", path = "./deployment-config.linea.json" },
@@ -27,6 +30,12 @@
   ]
 
 [rpc_endpoints]
+#mainnet
+linea="${LINEA_RPC_URL}"
+mainnet="${MAINNET_RPC_URL}"
+optimism="${OPTIMISM_RPC_URL}"
+base="${BASE_RPC_URL}"
+#testnet
 linea_sepolia = "${LINEA_SEPOLIA_RPC_URL}"
 op_sepolia = "${OP_SEPOLIA_RPC_URL}"
 sepolia = "${SEPOLIA_RPC_URL}"
@@ -36,6 +45,12 @@ anvil1 = "http://localhost:8545"
 anvil2 = "http://localhost:8546"
 
 [etherscan]
+#mainnet
+linea = {chain = "59144", url = "https://api.lineascan.build/api", key = "${LINEA_ETHERSCAN_API_KEY}"}
+mainnet = {chain = "1", url = "https://api.etherscan.io/api", key = "${MAINNET_ETHERSCAN_API_KEY}"}
+optimism = {chain = "10", url = "https://api-optimistic.etherscan.io/api", key = "${OPTIMISM_ETHERSCAN_API_KEY}"}
+base = {chain = "8453", url = "https://api.basescan.org/api", key = "${BASE_ETHERSCAN_API_KEY}"}
+#testnet
 linea_sepolia = {chain = "59141", url = "https://api-sepolia.lineascan.build/api", key = "${LINEA_SEPOLIA_ETHERSCAN_API_KEY}"}
 op_sepolia = {chain = "11155420", url = "https://api-sepolia-optimistic.etherscan.io/api", key = "${OP_SEPOLIA_ETHERSCAN_API_KEY}"}
 sepolia = {chain = "11155111", url = "https://api-sepolia.etherscan.io/api", key = "${SEPOLIA_ETHERSCAN_API_KEY}"}

@@ -23,18 +23,17 @@ contract UpgradeMarket is Script {
         address create3Deployer,
         address proxy,
         MarketType marketType,
-        string memory salt // Optional: for deterministic deployment
+        string memory salt
     ) public {
         // Setup
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         Deployer deployer = Deployer(payable(create3Deployer));
-
         // Get ProxyAdmin address from proxy
         address proxyAdmin = address(uint160(uint256(vm.load(proxy, ADMIN_SLOT))));
         console.log("ProxyAdmin address:", proxyAdmin);
 
         // Deploy new implementation
-        address newImpl = address(0xe37f534097F2234dEDF66818Af5b8E3d10f20cdC);
+        address newImpl;
         if (marketType == MarketType.HOST) {
             newImpl = _deployHostImplementation(deployer, salt);
         } else {

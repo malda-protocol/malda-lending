@@ -15,17 +15,25 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployPauser is Script {
-    function run(Deployer deployer, address roles, address operator) public returns (address) {
+    function run(Deployer deployer, address roles, address operator, address owner) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        address owner = vm.envAddress("OWNER");
-        bytes32 salt = getSalt("PauserV0");
+        bytes32 salt = getSalt("Pauser");
 
-        vm.startBroadcast(key);
-        address created =
-            deployer.create(salt, abi.encodePacked(type(Pauser).creationCode, abi.encode(roles, operator, owner)));
-        vm.stopBroadcast();
-        console.log("Pauser deployed at: %s", created);
+        console.log("Deploying Pauser");
+
+        address created = deployer.precompute(salt);
+
+        // Deploy only if not already deployed
+        if (created.code.length == 0) {
+            vm.startBroadcast(key);
+            created =
+                deployer.create(salt, abi.encodePacked(type(Pauser).creationCode, abi.encode(roles, operator, owner)));
+            vm.stopBroadcast();
+            console.log("Pauser deployed at: %s", created);
+        } else {
+            console.log("Using existing Pauser at: %s", created);
+        }
 
         // set PAUSE_MANAGER for owner
         // set GUARDIAN_PAUSE for `created`

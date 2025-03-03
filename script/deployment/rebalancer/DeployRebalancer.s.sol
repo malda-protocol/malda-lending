@@ -16,15 +16,28 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployRebalancer is Script {
-    function run(address roles, address _deployer) public returns (address) {
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("Rebalancer")));
-        Deployer deployer = Deployer(payable(_deployer));
+    function run(address roles, Deployer deployer) public returns (address) {
+        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+        bytes32 salt = getSalt("Rebalancer");
 
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        address created = deployer.create(salt, abi.encodePacked(type(Rebalancer).creationCode, abi.encode(roles)));
-        vm.stopBroadcast();
+        address created = deployer.precompute(salt);
+        // Deploy only if not already deployed
+        if (created.code.length == 0) {
+            vm.startBroadcast(key);
+            created = deployer.create(salt, abi.encodePacked(type(Rebalancer).creationCode, abi.encode(roles)));
+            vm.stopBroadcast();
+            console.log("Rebalancer deployed at:", created);
+        } else {
+            console.log("Using existing Rebalancer at: %s", created);
+        }
 
-        console.log(" Rebalancer deployed at: %s", created);
+       
         return created;
+    }
+
+    function getSalt(string memory name) internal view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+        );
     }
 }

@@ -16,9 +16,8 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployEverclearBridge is Script {
-    function run(address roles, address spoke, address _deployer) public returns (address) {
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("EverclearBridge")));
-        Deployer deployer = Deployer(payable(_deployer));
+    function run(address roles, address spoke, Deployer deployer) public returns (address) {
+        bytes32 salt = getSalt("EverclearBridge");
 
         vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
         address created =
@@ -27,5 +26,11 @@ contract DeployEverclearBridge is Script {
 
         console.log(" EverclearBridge deployed at: %s", created);
         return created;
+    }
+
+    function getSalt(string memory name) internal view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+        );
     }
 }
