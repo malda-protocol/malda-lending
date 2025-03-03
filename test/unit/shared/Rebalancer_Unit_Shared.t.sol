@@ -61,6 +61,7 @@ abstract contract Rebalancer_Unit_Shared is Base_Unit_Test {
         vm.label(address(rebalancer), "Rebalancer");
         roles.allowFor(address(rebalancer), roles.REBALANCER(), true);
 
+
         bridgeMock = new BridgeMock(address(roles));
         vm.label(address(bridgeMock), "BridgeMock");
     }

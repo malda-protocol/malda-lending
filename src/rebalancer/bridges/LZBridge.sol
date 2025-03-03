@@ -31,6 +31,7 @@ contract LZBridge is BaseBridge, IBridge {
 
     error LZBridge_NotEnoughFees();
     error LZBridge_ChainNotRegistered();
+    error LZBridge_DestinationMismatch();
 
     constructor(address _roles) BaseBridge(_roles) {}
 
@@ -54,7 +55,7 @@ contract LZBridge is BaseBridge, IBridge {
     /**
      * @inheritdoc IBridge
      */
-    function sendMsg(uint32 _dstChainId, address _token, bytes memory _message, bytes memory _composeMsg)
+    function sendMsg(uint256 _extractedAmount, address _market, uint32 _dstChainId, address _token, bytes memory _message, bytes memory _composeMsg)
         external
         payable
         onlyRebalancer
@@ -63,15 +64,16 @@ contract LZBridge is BaseBridge, IBridge {
 
         // get market
         (address market,,,) = abi.decode(_message, (address, uint256, uint256, bytes));
+        require (_market == market, LZBridge_DestinationMismatch());
 
         // compute fee and craft message
         (MessagingFee memory fees, SendParam memory sendParam) = _getFee(_dstChainId, _message, _composeMsg);
         if (msg.value < fees.nativeFee) revert LZBridge_NotEnoughFees();
+        require(_extractedAmount == sendParam.amountLD, BaseBridge_AmountMismatch());
 
         // retrieve tokens from `Rebalancer`
         IERC20(_token).safeTransferFrom(msg.sender, address(this), sendParam.amountLD);
 
-        //TODO: add result guid to event
         // send OFT
         (MessagingReceipt memory msgReceipt,) = ILayerZeroOFT(_token).send{value: msg.value}(sendParam, fees, market); // refundAddress = market
 

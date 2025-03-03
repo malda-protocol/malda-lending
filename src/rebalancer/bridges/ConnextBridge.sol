@@ -24,9 +24,9 @@ contract ConnextBridge is BaseBridge, IBridge {
     // ----------- STORAGE ------------
     IConnext public immutable connext;
     mapping(uint32 => uint32) public domainIds;
-
+    mapping(uint32 => mapping(address => bool)) public whitelistedDelegates;
+    
     struct DecodedMessage {
-        address market;
         address delegate;
         uint256 amount;
         uint256 slippage;
@@ -36,11 +36,13 @@ contract ConnextBridge is BaseBridge, IBridge {
     // ----------- EVENTS ------------
     event MsgSent(uint256 indexed dstChainId, address indexed market, uint256 amountLD, uint256 slippage, bytes32 id);
     event DomainIdSet(uint32 indexed dstId, uint32 indexed domainId);
+    event WhitelistedDelegateStatusUpdated(address indexed sender, uint32 indexed dstId, address indexed delegate, bool status);
 
     // ----------- ERRORS ------------
     error Connext_NotEnoughFees();
     error Connext_NotImplemented();
     error Connext_DomainIdNotSet();
+    error Connext_DelegateNotValid();
 
     constructor(address _roles, address _connext) BaseBridge(_roles) {
         connext = IConnext(_connext);
@@ -54,6 +56,15 @@ contract ConnextBridge is BaseBridge, IBridge {
         emit DomainIdSet(_dstId, _domainId);
     }
 
+    // ----------- OWNER ------------
+    /**
+     * @notice Whitelists a delegate address
+     */
+    function setWhitelistedDelegate(uint32 _dstId, address _delegate, bool status) external onlyBridgeConfigurator {
+        whitelistedDelegates[_dstId][_delegate] = status;
+        emit WhitelistedDelegateStatusUpdated(msg.sender, _dstId, _delegate, status);
+    }
+
     // ----------- VIEW ------------
     /**
      * @inheritdoc IBridge
@@ -63,11 +74,18 @@ contract ConnextBridge is BaseBridge, IBridge {
         revert Connext_NotImplemented();
     }
 
+    /**
+     * @notice returns if an address represents a whitelisted delegates
+     */
+    function isDelegateWhitelisted(uint32 dstChain, address delegate) external view returns (bool) {
+        return whitelistedDelegates[dstChain][delegate];
+    }
+
     // ----------- EXTERNAL ------------
     /**
      * @inheritdoc IBridge
      */
-    function sendMsg(uint32 _dstChainId, address _token, bytes memory _message, bytes memory)
+    function sendMsg(uint256 _extractedAmount, address _market, uint32 _dstChainId, address _token, bytes memory _message, bytes memory)
         external
         payable
         onlyRebalancer
@@ -76,6 +94,8 @@ contract ConnextBridge is BaseBridge, IBridge {
         DecodedMessage memory msgData = _decodeMessage(_message);
         require(msg.value >= msgData.relayerFee, Connext_NotEnoughFees());
         require(domainIds[_dstChainId] > 0, Connext_DomainIdNotSet());
+        require(_extractedAmount == msgData.amount, BaseBridge_AmountMismatch());
+        require(whitelistedDelegates[_dstChainId][msgData.delegate], Connext_DelegateNotValid());
 
         // retrieve tokens from `Rebalancer`
         IERC20(_token).safeTransferFrom(msg.sender, address(this), msgData.amount);
@@ -84,21 +104,21 @@ contract ConnextBridge is BaseBridge, IBridge {
         SafeApprove.safeApprove(_token, address(connext), msgData.amount);
         bytes32 id = connext.xcall{value: msgData.relayerFee}(
             domainIds[_dstChainId], // _destination: Domain ID of the destination chain
-            msgData.market, // _to: address receiving the funds on the destination
+            _market, // _to: address receiving the funds on the destination
             _token, // _asset: address of the token contract
             msgData.delegate, // _delegate: address that can revert or forceLocal on destination
             msgData.amount, // _amount: amount of tokens to transfer
             msgData.slippage, // _slippage: the maximum amount of slippage the user will accept in BPS (e.g. 30 = 0.3%)
             "" // _callData: empty bytes because we're only sending funds
         );
-        emit MsgSent(_dstChainId, msgData.market, msgData.amount, msgData.slippage, id);
+        emit MsgSent(_dstChainId, _market, msgData.amount, msgData.slippage, id);
     }
 
     // ----------- PRIVATE ------------
     function _decodeMessage(bytes memory _message) private pure returns (DecodedMessage memory) {
-        (address market, address delegate, uint256 amount, uint256 slippage, uint256 relayerFee) =
-            abi.decode(_message, (address, address, uint256, uint256, uint256));
+        (address delegate, uint256 amount, uint256 slippage, uint256 relayerFee) =
+            abi.decode(_message, (address, uint256, uint256, uint256));
 
-        return DecodedMessage(market, delegate, amount, slippage, relayerFee);
+        return DecodedMessage(delegate, amount, slippage, relayerFee);
     }
 }

@@ -15,6 +15,7 @@ abstract contract BaseBridge {
     IRoles public roles;
 
     error BaseBridge_NotAuthorized();
+    error BaseBridge_AmountMismatch();
     error BaseBridge_AmountNotValid();
     error BaseBridge_AddressNotValid();
 

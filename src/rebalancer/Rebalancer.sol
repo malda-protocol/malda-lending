@@ -22,6 +22,7 @@ contract Rebalancer is IRebalancer {
     uint256 public nonce;
     mapping(uint32 => mapping(uint256 => Msg)) public logs;
     mapping(address => bool) public whitelistedBridges;
+    mapping(uint32 => bool) public whitelistedDestinations;
 
     address public saveAddress;
 
@@ -47,6 +48,12 @@ contract Rebalancer is IRebalancer {
         whitelistedBridges[_bridge] = _status;
         emit BridgeWhitelistedStatusUpdated(_bridge, _status);
     }
+        
+    function setWhitelistedDestination(uint32 _dstId, bool _status) external {
+        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+        emit DestinationWhitelistedStatusUpdated(_dstId, _status);
+        whitelistedDestinations[_dstId] = _status;
+    }
 
     function saveEth() external {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
@@ -69,6 +76,7 @@ contract Rebalancer is IRebalancer {
         emit MaxTransferSizeUpdated(_dstChainId, _token, _limit);
     }
 
+
     // ----------- VIEW METHODS ------------
     /**
      * @inheritdoc IRebalancer
@@ -77,14 +85,22 @@ contract Rebalancer is IRebalancer {
         return whitelistedBridges[bridge];
     }
 
+    /**
+     * @inheritdoc IRebalancer
+     */
+    function isDestinationWhitelisted(uint32 dstId) external view returns (bool) {
+        return whitelistedDestinations[dstId];
+    }
+
     // ----------- EXTERNAL METHODS ------------
     /**
      * @inheritdoc IRebalancer
      */
     function sendMsg(address _bridge, address _market, uint256 _amount, Msg calldata _msg) external payable {
-        // param checks
+        // checks
         if (!roles.isAllowedFor(msg.sender, roles.REBALANCER_EOA())) revert Rebalancer_NotAuthorized();
         require(whitelistedBridges[_bridge], Rebalancer_BridgeNotWhitelisted());
+        require(whitelistedDestinations[_msg.dstChainId], Rebalancer_DestinationNotWhitelisted());
         address _underlying = ImTokenMinimal(_market).underlying();
         require(_underlying == _msg.token, Rebalancer_RequestNotValid());
 
@@ -115,7 +131,7 @@ contract Rebalancer is IRebalancer {
 
         // approve and trigger send
         SafeApprove.safeApprove(_msg.token, _bridge, _amount);
-        IBridge(_bridge).sendMsg{value: msg.value}(_msg.dstChainId, _msg.token, _msg.message, _msg.bridgeData);
+        IBridge(_bridge).sendMsg{value: msg.value}(_amount, _market, _msg.dstChainId, _msg.token, _msg.message, _msg.bridgeData);
 
         emit MsgSent(_bridge, _msg.dstChainId, _msg.token, _msg.message, _msg.bridgeData);
     }

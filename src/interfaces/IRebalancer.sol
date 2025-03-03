@@ -26,9 +26,11 @@ interface IRebalancer {
     event MsgSent(
         address indexed bridge, uint32 indexed dstChainId, address indexed token, bytes message, bytes bridgeData
     );
+
     event EthSaved(uint256 amount);
     event MaxTransferSizeUpdated(uint32 indexed dstChainId, address indexed token, uint256 newLimit);
     event MinTransferSizeUpdated(uint32 indexed dstChainId, address indexed token, uint256 newLimit);
+    event DestinationWhitelistedStatusUpdated(uint32 indexed dstChainId, bool status);
 
     // ----------- ERRORS ------------
     error Rebalancer_NotAuthorized();
@@ -38,6 +40,7 @@ interface IRebalancer {
     error Rebalancer_BridgeNotWhitelisted();
     error Rebalancer_TransferSizeExcedeed();
     error Rebalancer_TransferSizeMinNotMet();
+    error Rebalancer_DestinationNotWhitelisted();
 
     // ----------- VIEW METHODS ------------
     /**
@@ -49,6 +52,11 @@ interface IRebalancer {
      * @notice returns if a bridge implementation is whitelisted
      */
     function isBridgeWhitelisted(address bridge) external view returns (bool);
+
+    /**
+     * @notice returns if a destination is whitelisted
+     */
+    function isDestinationWhitelisted(uint32 dstId) external view returns (bool);
 
     // ----------- EXTERNAL METHODS ------------
     /**

@@ -24,9 +24,12 @@ contract AccrossBridge is BaseBridge, IBridge {
 
     // ----------- STORAGE ------------
     address public immutable acrossSpokePool;
+    uint256 public immutable maxSlippage;
+    mapping(uint32 => mapping(address => bool)) public whitelistedRelayers;
+
+    uint256 private constant SLIPPAGE_PRECISION = 1e5;
 
     struct DecodedMessage {
-        address market;
         uint256 inputAmount;
         uint256 outputAmount;
         address relayer;
@@ -36,21 +39,34 @@ contract AccrossBridge is BaseBridge, IBridge {
 
     // ----------- EVENTS ------------
     event Rebalanced(address indexed market, uint256 amount);
+    event WhitelistedRelayerStatusUpdated(address indexed sender, uint32 indexed dstId, address indexed delegate, bool status);
 
     // ----------- ERRORS ------------
     error AcrossBridge_TokenMismatch();
     error AcrossBridge_NotAuthorized();
     error AcrossBridge_NotImplemented();
     error AcrossBridge_AddressNotValid();
+    error AcrossBridge_SlippageNotValid();
+    error AcrossBridge_RelayerNotValid();
 
     constructor(address _roles, address _spokePool) BaseBridge(_roles) {
         require(_spokePool != address(0), AcrossBridge_AddressNotValid());
         acrossSpokePool = _spokePool;
+        maxSlippage = 1e4;
     }
 
     modifier onlySpokePool() {
         require(msg.sender == acrossSpokePool, AcrossBridge_NotAuthorized());
         _;
+    }
+
+    // ----------- OWNER ------------
+    /**
+     * @notice Whitelists a delegate address
+     */
+    function setWhitelistedRelayer(uint32 _dstId, address _relayer, bool status) external onlyBridgeConfigurator {
+        whitelistedRelayers[_dstId][_relayer] = status;
+        emit WhitelistedRelayerStatusUpdated(msg.sender, _dstId, _relayer, status);
     }
 
     // ----------- VIEW ------------
@@ -62,38 +78,40 @@ contract AccrossBridge is BaseBridge, IBridge {
         revert AcrossBridge_NotImplemented();
     }
 
+    /**
+     * @notice returns if an address represents a whitelisted delegates
+     */
+    function isRelayerWhitelisted(uint32 dstChain, address relayer) external view returns (bool) {
+        return whitelistedRelayers[dstChain][relayer];
+    }
+
     // ----------- EXTERNAL ------------
     /**
      * @inheritdoc IBridge
      */
-    function sendMsg(uint32 _dstChainId, address _token, bytes memory _message, bytes memory)
+    function sendMsg(uint256 _extractedAmount, address _market, uint32 _dstChainId, address _token, bytes memory _message, bytes memory)
         external
         payable
         onlyRebalancer
     {
         // decode message & checks
         DecodedMessage memory msgData = _decodeMessage(_message);
+        require(_extractedAmount == msgData.inputAmount, BaseBridge_AmountMismatch());
+        require(whitelistedRelayers[_dstChainId][msgData.relayer], AcrossBridge_RelayerNotValid());
 
         // retrieve tokens from `Rebalancer`
         IERC20(_token).safeTransferFrom(msg.sender, address(this), msgData.inputAmount);
+        
+        if (msgData.inputAmount > msgData.outputAmount) {
+            uint256 maxSlippageInputAmount = msgData.inputAmount * maxSlippage / SLIPPAGE_PRECISION;
+            require (msgData.inputAmount - msgData.outputAmount <= maxSlippageInputAmount, AcrossBridge_SlippageNotValid());
+        }
 
         // approve and send with Across
-        SafeApprove.safeApprove(_token, address(acrossSpokePool), msgData.inputAmount);
-        IAcrossSpokePoolV3(acrossSpokePool).depositV3Now( // no need for `msg.value`; fee is taken from amount
-            msg.sender, //depositor
-            address(this), //recipient
-            _token,
-            address(0), //outputToken is automatically resolved to the same token on destination
-            msgData.inputAmount,
-            msgData.outputAmount, //outputAmount should be set as the inputAmount - relay fees; use Across API
-            uint256(_dstChainId),
-            msgData.relayer, //exclusiveRelayer
-            msgData.deadline, //fillDeadline
-            msgData.exclusivityDeadline, //can use Across API/suggested-fees or 0 to disable
-            abi.encode(msgData.market)
-        );
+        _depositV3Now(_message, _token, _dstChainId, _market);
     }
 
+  
     /**
      * @notice handles AcrossV3 SpokePool message
      * @param tokenSent the token address received
@@ -119,14 +137,34 @@ contract AccrossBridge is BaseBridge, IBridge {
     // ----------- PRIVATE ------------
     function _decodeMessage(bytes memory _message) private pure returns (DecodedMessage memory) {
         (
-            address market,
             uint256 inputAmount,
             uint256 outputAmount,
             address relayer,
             uint32 deadline,
             uint32 exclusivityDeadline
-        ) = abi.decode(_message, (address, uint256, uint256, address, uint32, uint32));
+        ) = abi.decode(_message, (uint256, uint256, address, uint32, uint32));
 
-        return DecodedMessage(market, inputAmount, outputAmount, relayer, deadline, exclusivityDeadline);
+        return DecodedMessage(inputAmount, outputAmount, relayer, deadline, exclusivityDeadline);
     }
+
+    function _depositV3Now(bytes memory _message, address _token, uint32 _dstChainId, address _market) private {
+        DecodedMessage memory msgData = _decodeMessage(_message);
+        // approve and send with Across
+        SafeApprove.safeApprove(_token, address(acrossSpokePool), msgData.inputAmount);
+        IAcrossSpokePoolV3(acrossSpokePool).depositV3Now( // no need for `msg.value`; fee is taken from amount
+            msg.sender, //depositor
+            address(this), //recipient
+            _token,
+            address(0), //outputToken is automatically resolved to the same token on destination
+            msgData.inputAmount,
+            msgData.outputAmount, //outputAmount should be set as the inputAmount - relay fees; use Across API
+            uint256(_dstChainId),
+            msgData.relayer, //exclusiveRelayer
+            msgData.deadline, //fillDeadline
+            msgData.exclusivityDeadline, //can use Across API/suggested-fees or 0 to disable
+            abi.encode(_market)
+        );
+    }
+
+
 }
