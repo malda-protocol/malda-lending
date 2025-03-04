@@ -1,16 +1,26 @@
 # Operator
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\Operator\Operator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\Operator\Operator.sol)
 
 **Inherits:**
-[OperatorStorage](/src\Operator\OperatorStorage.sol\abstract.OperatorStorage.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
+[OperatorStorage](/src\Operator\OperatorStorage.sol\abstract.OperatorStorage.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md), OwnableUpgradeable
 
 
 ## Functions
 ### constructor
 
+**Note:**
+oz-upgrades-unsafe-allow: constructor
+
 
 ```solidity
-constructor(address _rolesOperator, address _rewardDistributor, address _admin);
+constructor();
+```
+
+### initialize
+
+
+```solidity
+function initialize(address _rolesOperator, address _rewardDistributor, address _admin) public initializer;
 ```
 
 ### setRolesOperator
@@ -21,35 +31,7 @@ Sets a new Operator for the market
 
 
 ```solidity
-function setRolesOperator(address _roles) external onlyAdmin;
-```
-
-### setPendingAdmin
-
-Begins transfer of admin rights. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.
-
-*Admin function to begin change of admin. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.*
-
-
-```solidity
-function setPendingAdmin(address newPendingAdmin) external onlyAdmin;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`newPendingAdmin`|`address`|New pending admin.|
-
-
-### acceptAdmin
-
-Accepts transfer of admin rights. msg.sender must be pendingAdmin
-
-*Admin function for pending admin to accept role and update admin*
-
-
-```solidity
-function acceptAdmin() external;
+function setRolesOperator(address _roles) external onlyOwner;
 ```
 
 ### setPriceOracle
@@ -60,7 +42,7 @@ Sets a new price oracle
 
 
 ```solidity
-function setPriceOracle(address newOracle) external onlyAdmin;
+function setPriceOracle(address newOracle) external onlyOwner;
 ```
 
 ### setCloseFactor
@@ -71,7 +53,7 @@ Sets the closeFactor used when liquidating borrows
 
 
 ```solidity
-function setCloseFactor(uint256 newCloseFactorMantissa) external onlyAdmin;
+function setCloseFactor(uint256 newCloseFactorMantissa) external onlyOwner;
 ```
 **Parameters**
 
@@ -88,7 +70,7 @@ Sets the collateralFactor for a market
 
 
 ```solidity
-function setCollateralFactor(address mToken, uint256 newCollateralFactorMantissa) external onlyAdmin;
+function setCollateralFactor(address mToken, uint256 newCollateralFactorMantissa) external onlyOwner;
 ```
 **Parameters**
 
@@ -106,7 +88,7 @@ Sets liquidationIncentive
 
 
 ```solidity
-function setLiquidationIncentive(uint256 newLiquidationIncentiveMantissa) external onlyAdmin;
+function setLiquidationIncentive(uint256 newLiquidationIncentiveMantissa) external onlyOwner;
 ```
 **Parameters**
 
@@ -123,7 +105,7 @@ Add the market to the markets mapping and set it as listed
 
 
 ```solidity
-function supportMarket(address mToken) external onlyAdmin;
+function supportMarket(address mToken) external onlyOwner;
 ```
 **Parameters**
 
@@ -187,28 +169,13 @@ Admin function to change the Reward Distributor
 
 
 ```solidity
-function setRewardDistributor(address newRewardDistributor) external onlyAdmin;
+function setRewardDistributor(address newRewardDistributor) external onlyOwner;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`newRewardDistributor`|`address`|The address of the new Reward Distributor|
-
-
-### become
-
-Accepts IUnit implementation
-
-
-```solidity
-function become(address _unit) external;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_unit`|`address`|the new unit implementation|
 
 
 ### isOperator
@@ -305,6 +272,15 @@ function isDeprecated(address mToken) external view override returns (bool);
 |`mToken`|`address`|The market to check if deprecated|
 
 
+### isMarketListed
+
+Returns true/false
+
+
+```solidity
+function isMarketListed(address mToken) external view override returns (bool);
+```
+
 ### getAccountLiquidity
 
 Determine the current account liquidity wrt collateral requirements
@@ -394,6 +370,21 @@ function enterMarkets(address[] calldata _mTokens) external override;
 |`_mTokens`|`address[]`|The list of addresses of the mToken markets to be enabled|
 
 
+### enterMarketsWithSender
+
+Add asset (msg.sender) to be included in account liquidity calculation
+
+
+```solidity
+function enterMarketsWithSender(address _account) external override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_account`|`address`|The account to add for|
+
+
 ### exitMarket
 
 Removes asset from sender's account liquidity calculation
@@ -461,6 +452,21 @@ function claimMalda(address[] memory holders, address[] memory mTokens, bool bor
 |`mTokens`|`address[]`|The list of markets to claim MALDA in|
 |`borrowers`|`bool`|Whether or not to claim MALDA earned by borrowing|
 |`suppliers`|`bool`|Whether or not to claim MALDA earned by supplying|
+
+
+### beforeRebalancing
+
+Checks if the account should be allowed to rebalance tokens
+
+
+```solidity
+function beforeRebalancing(address mToken) external view override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market to verify the transfer against|
 
 
 ### beforeMTokenTransfer
@@ -629,13 +635,13 @@ function _getHypotheticalAccountLiquidity(
 ) private view returns (uint256, uint256);
 ```
 
-### _updateMeldaSupplyIndex
+### _updateMaldaSupplyIndex
 
 Notify reward distributor for supply index update
 
 
 ```solidity
-function _updateMeldaSupplyIndex(address mToken) private;
+function _updateMaldaSupplyIndex(address mToken) private;
 ```
 **Parameters**
 
@@ -644,13 +650,13 @@ function _updateMeldaSupplyIndex(address mToken) private;
 |`mToken`|`address`|The market whose supply index to update|
 
 
-### _updateMeldaBorrowIndex
+### _updateMaldaBorrowIndex
 
 Notify reward distributor for borrow index update
 
 
 ```solidity
-function _updateMeldaBorrowIndex(address mToken) private;
+function _updateMaldaBorrowIndex(address mToken) private;
 ```
 **Parameters**
 
@@ -659,13 +665,13 @@ function _updateMeldaBorrowIndex(address mToken) private;
 |`mToken`|`address`|The market whose borrow index to update|
 
 
-### _distributeSupplierMelda
+### _distributeSupplierMalda
 
 Notify reward distributor for supplier update
 
 
 ```solidity
-function _distributeSupplierMelda(address mToken, address supplier) private;
+function _distributeSupplierMalda(address mToken, address supplier) private;
 ```
 **Parameters**
 
@@ -675,7 +681,7 @@ function _distributeSupplierMelda(address mToken, address supplier) private;
 |`supplier`|`address`|The address of the supplier to distribute MALDA to|
 
 
-### _distributeBorrowerMelda
+### _distributeBorrowerMalda
 
 Notify reward distributor for borrower update
 
@@ -683,7 +689,7 @@ Notify reward distributor for borrower update
 
 
 ```solidity
-function _distributeBorrowerMelda(address mToken, address borrower) private;
+function _distributeBorrowerMalda(address mToken, address borrower) private;
 ```
 **Parameters**
 

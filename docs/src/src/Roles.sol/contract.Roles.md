@@ -1,5 +1,5 @@
 # Roles
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\Roles.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\Roles.sol)
 
 **Inherits:**
 Ownable, [IRoles](/src\interfaces\IRoles.sol\interface.IRoles.md)
@@ -13,10 +13,10 @@ mapping(address => mapping(bytes32 => bool)) private _roles;
 ```
 
 
-### LOGS_ADD
+### REBALANCER
 
 ```solidity
-bytes32 public constant LOGS_ADD = keccak256("LOGS_ADD");
+bytes32 public constant REBALANCER = keccak256("REBALANCER");
 ```
 
 
@@ -27,10 +27,10 @@ bytes32 public constant PAUSE_MANAGER = keccak256("PAUSE_MANAGER");
 ```
 
 
-### GUARDIAN_MINT
+### REBALANCER_EOA
 
 ```solidity
-bytes32 public constant GUARDIAN_MINT = keccak256("GUARDIAN_MINT");
+bytes32 public constant REBALANCER_EOA = keccak256("REBALANCER_EOA");
 ```
 
 
@@ -41,10 +41,10 @@ bytes32 public constant GUARDIAN_PAUSE = keccak256("GUARDIAN_PAUSE");
 ```
 
 
-### GUARDIAN_SEIZE
+### CHAINS_MANAGER
 
 ```solidity
-bytes32 public constant GUARDIAN_SEIZE = keccak256("GUARDIAN_SEIZE");
+bytes32 public constant CHAINS_MANAGER = keccak256("CHAINS_MANAGER");
 ```
 
 
@@ -55,10 +55,24 @@ bytes32 public constant PROOF_FORWARDER = keccak256("PROOF_FORWARDER");
 ```
 
 
-### GUARDIAN_BORROW
+### PROOF_BATCH_FORWARDER
 
 ```solidity
-bytes32 public constant GUARDIAN_BORROW = keccak256("GUARDIAN_BORROW");
+bytes32 public constant PROOF_BATCH_FORWARDER = keccak256("PROOF_BATCH_FORWARDER");
+```
+
+
+### GUARDIAN_BRIDGE
+
+```solidity
+bytes32 public constant GUARDIAN_BRIDGE = keccak256("GUARDIAN_BRIDGE");
+```
+
+
+### GUARDIAN_ORACLE
+
+```solidity
+bytes32 public constant GUARDIAN_ORACLE = keccak256("GUARDIAN_ORACLE");
 ```
 
 
@@ -66,13 +80,6 @@ bytes32 public constant GUARDIAN_BORROW = keccak256("GUARDIAN_BORROW");
 
 ```solidity
 bytes32 public constant GUARDIAN_RESERVE = keccak256("GUARDIAN_RESERVE");
-```
-
-
-### GUARDIAN_TRANSFER
-
-```solidity
-bytes32 public constant GUARDIAN_TRANSFER = keccak256("GUARDIAN_TRANSFER");
 ```
 
 

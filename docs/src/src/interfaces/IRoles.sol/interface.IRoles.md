@@ -1,8 +1,26 @@
 # IRoles
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\interfaces\IRoles.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\interfaces\IRoles.sol)
 
 
 ## Functions
+### REBALANCER
+
+Returns REBALANCER role
+
+
+```solidity
+function REBALANCER() external view returns (bytes32);
+```
+
+### REBALANCER_EOA
+
+Returns REBALANCER_EOA role
+
+
+```solidity
+function REBALANCER_EOA() external view returns (bytes32);
+```
+
 ### GUARDIAN_PAUSE
 
 Returns GUARDIAN_PAUSE role
@@ -12,40 +30,13 @@ Returns GUARDIAN_PAUSE role
 function GUARDIAN_PAUSE() external view returns (bytes32);
 ```
 
-### GUARDIAN_TRANSFER
+### GUARDIAN_BRIDGE
 
-Returns GUARDIAN_TRANSFER role
-
-
-```solidity
-function GUARDIAN_TRANSFER() external view returns (bytes32);
-```
-
-### GUARDIAN_SEIZE
-
-Returns GUARDIAN_SEIZE role
+Returns GUARDIAN_BRIDGE role
 
 
 ```solidity
-function GUARDIAN_SEIZE() external view returns (bytes32);
-```
-
-### GUARDIAN_MINT
-
-Returns GUARDIAN_MINT role
-
-
-```solidity
-function GUARDIAN_MINT() external view returns (bytes32);
-```
-
-### GUARDIAN_BORROW
-
-Returns GUARDIAN_BORROW role
-
-
-```solidity
-function GUARDIAN_BORROW() external view returns (bytes32);
+function GUARDIAN_BRIDGE() external view returns (bytes32);
 ```
 
 ### GUARDIAN_BORROW_CAP
@@ -84,13 +75,13 @@ Returns PROOF_FORWARDER role
 function PROOF_FORWARDER() external view returns (bytes32);
 ```
 
-### LOGS_ADD
+### PROOF_BATCH_FORWARDER
 
-Returns LOGS_ADD role
+Returns PROOF_BATCH_FORWARDER role
 
 
 ```solidity
-function LOGS_ADD() external view returns (bytes32);
+function PROOF_BATCH_FORWARDER() external view returns (bytes32);
 ```
 
 ### PAUSE_MANAGER
@@ -100,6 +91,24 @@ Returns PAUSE_MANAGER role
 
 ```solidity
 function PAUSE_MANAGER() external view returns (bytes32);
+```
+
+### CHAINS_MANAGER
+
+Returns CHAINS_MANAGER role
+
+
+```solidity
+function CHAINS_MANAGER() external view returns (bytes32);
+```
+
+### GUARDIAN_ORACLE
+
+Returns GUARDIAN_ORACLE role
+
+
+```solidity
+function GUARDIAN_ORACLE() external view returns (bytes32);
 ```
 
 ### isAllowedFor
@@ -117,4 +126,11 @@ function isAllowedFor(address _contract, bytes32 _role) external view returns (b
 |`_contract`|`address`|the contract address|
 |`_role`|`bytes32`|the bytes32 role|
 
+
+## Errors
+### Roles_InputNotValid
+
+```solidity
+error Roles_InputNotValid();
+```
 

@@ -1,5 +1,5 @@
 # mTokenStorage
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\mToken\mTokenStorage.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\mToken\mTokenStorage.sol)
 
 **Inherits:**
 [ImToken](/src\interfaces\ImToken.sol\interface.ImToken.md), [ExponentialNoError](/src\utils\ExponentialNoError.sol\abstract.ExponentialNoError.md)
@@ -87,12 +87,12 @@ uint256 public reserveFactorMantissa;
 ```
 
 
-### accrualBlockNumber
-Block number that interest was last accrued at
+### accrualBlockTimestamp
+Block timestamp that interest was last accrued at
 
 
 ```solidity
-uint256 public accrualBlockNumber;
+uint256 public accrualBlockTimestamp;
 ```
 
 
@@ -132,6 +132,24 @@ uint256 public totalSupply;
 ```
 
 
+### totalUnderlying
+Returns the amount of underlying tokens
+
+
+```solidity
+uint256 public totalUnderlying;
+```
+
+
+### borrowRateMaxMantissa
+Maximum borrow rate that can ever be applied
+
+
+```solidity
+uint256 public borrowRateMaxMantissa = 0.00004e16;
+```
+
+
 ### accountBorrows
 
 ```solidity
@@ -159,15 +177,6 @@ Initial exchange rate used when minting the first mTokens (used when totalSupply
 
 ```solidity
 uint256 internal initialExchangeRateMantissa;
-```
-
-
-### BORROW_RATE_MAX_MANTISSA
-Maximum borrow rate that can ever be applied (.0005% / block)
-
-
-```solidity
-uint256 internal constant BORROW_RATE_MAX_MANTISSA = 0.00004e16;
 ```
 
 
@@ -199,21 +208,23 @@ Accrues interest on the contract's outstanding loans
 function accrueInterest() external virtual;
 ```
 
-### _getBlockNumber
+### _getBlockTimestamp
 
-*Function to simply retrieve block number
+*Function to simply retrieve block timestamp
 This exists mainly for inheriting test contracts to stub this result.*
 
 
 ```solidity
-function _getBlockNumber() internal view virtual returns (uint256);
+function _getBlockTimestamp() internal view virtual returns (uint256);
 ```
 
 ### _exchangeRateStored
 
 Calculates the exchange rate from the underlying to the MToken
 
-*This function does not accrue interest before calculating the exchange rate*
+*This function does not accrue interest before calculating the exchange rate
+Can generate issues if inflated by an attacker when market is created
+Solution: use 0 collateral factor initially*
 
 
 ```solidity
@@ -333,7 +344,7 @@ Event emitted when tokens are minted
 
 
 ```solidity
-event Mint(address indexed minter, uint256 mintAmount, uint256 mintTokens);
+event Mint(address indexed minter, address indexed receiver, uint256 mintAmount, uint256 mintTokens);
 ```
 
 ### Redeem
@@ -408,6 +419,14 @@ Event emitted when the reserves are reduced
 event ReservesReduced(address indexed admin, uint256 reduceAmount, uint256 newTotalReserves);
 ```
 
+### NewBorrowRateMaxMantissa
+Event emitted when the borrow max mantissa is updated
+
+
+```solidity
+event NewBorrowRateMaxMantissa(uint256 oldVal, uint256 maxMantissa);
+```
+
 ## Errors
 ### mToken_OnlyAdmin
 
@@ -439,6 +458,12 @@ error mToken_OnlyAdminOrRole();
 error mToken_TransferNotValid();
 ```
 
+### mToken_MinAmountNotValid
+
+```solidity
+error mToken_MinAmountNotValid();
+```
+
 ### mToken_BorrowRateTooHigh
 
 ```solidity
@@ -455,12 +480,6 @@ error mToken_AlreadyInitialized();
 
 ```solidity
 error mToken_ReserveFactorTooHigh();
-```
-
-### mToken_BlockNumberNotValid
-
-```solidity
-error mToken_BlockNumberNotValid();
 ```
 
 ### mToken_ExchangeRateNotValid
@@ -505,10 +524,10 @@ error mToken_ReserveCashNotAvailable();
 error mToken_RedeemTransferOutNotPossible();
 ```
 
-### mToken_CollateralBlockNumberNotValid
+### mToken_CollateralBlockTimestampNotValid
 
 ```solidity
-error mToken_CollateralBlockNumberNotValid();
+error mToken_CollateralBlockTimestampNotValid();
 ```
 
 ## Structs

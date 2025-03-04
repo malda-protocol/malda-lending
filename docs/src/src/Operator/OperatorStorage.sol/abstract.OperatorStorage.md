@@ -1,29 +1,11 @@
 # OperatorStorage
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\Operator\OperatorStorage.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\Operator\OperatorStorage.sol)
 
 **Inherits:**
 [IOperator](/src\interfaces\IOperator.sol\interface.IOperator.md), [IOperatorDefender](/src\interfaces\IOperator.sol\interface.IOperatorDefender.md), [ExponentialNoError](/src\utils\ExponentialNoError.sol\abstract.ExponentialNoError.md)
 
 
 ## State Variables
-### admin
-Administrator for this contract
-
-
-```solidity
-address public admin;
-```
-
-
-### pendingAdmin
-Pending administrator for this contract
-
-
-```solidity
-address public pendingAdmin;
-```
-
-
 ### rolesOperator
 Roles manager
 
@@ -144,14 +126,6 @@ uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18;
 ```
 
 
-## Functions
-### onlyAdmin
-
-
-```solidity
-modifier onlyAdmin();
-```
-
 ## Events
 ### ActionPaused
 Emitted when pause status is changed
@@ -241,22 +215,6 @@ Emitted when price oracle is changed
 
 ```solidity
 event NewPriceOracle(address indexed oldPriceOracle, address indexed newPriceOracle);
-```
-
-### NewPendingAdmin
-Emitted when pendingAdmin is changed
-
-
-```solidity
-event NewPendingAdmin(address indexed oldPendingAdmin, address indexed newPendingAdmin);
-```
-
-### NewAdmin
-Emitted when pendingAdmin is accepted, which means admin is updated
-
-
-```solidity
-event NewAdmin(address indexed oldAdmin, address indexed newAdmin);
 ```
 
 ### NewRolesOperator
@@ -398,12 +356,6 @@ error Operator_OracleUnderlyingFetchError();
 
 ```solidity
 error Operator_Deactivate_MarketBalanceOwed();
-```
-
-### Operator_Deactivate_SnapshotFetchingFailed
-
-```solidity
-error Operator_Deactivate_SnapshotFetchingFailed();
 ```
 
 ## Structs

@@ -31,6 +31,8 @@
         <!-- Custom theme stylesheets -->
         <link rel="stylesheet" href="../../../book.css">
 
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
         <!-- Provide site root to javascript -->
         <script>
@@ -127,7 +129,7 @@
                         <a href="../../../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
-                        <a href="https://github.com/https://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@malda-protocol/malda-lending" title="Git repository" aria-label="Git repository">
+                        <a href="https://github.com/malda-protocol/malda-lending" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
 
@@ -157,7 +159,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="irewarddistributor"><a class="header" href="#irewarddistributor">IRewardDistributor</a></h1>
-<p><a href="https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src%5Cinterfaces%5CIRewardDistributor.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src%5Cinterfaces%5CIRewardDistributor.sol">Git Source</a></p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="operator"><a class="header" href="#operator">operator</a></h3>
 <p>The operator that rewards are distributed to</p>
@@ -176,9 +178,9 @@
 <p>Added reward tokens</p>
 <pre><code class="language-solidity">function getRewardTokens() external view returns (address[] memory);
 </code></pre>
-<h3 id="getblocknumber"><a class="header" href="#getblocknumber">getBlockNumber</a></h3>
-<p>Get block number</p>
-<pre><code class="language-solidity">function getBlockNumber() external view returns (uint32);
+<h3 id="getblocktimestamp"><a class="header" href="#getblocktimestamp">getBlockTimestamp</a></h3>
+<p>Get block timestamp</p>
+<pre><code class="language-solidity">function getBlockTimestamp() external view returns (uint32);
 </code></pre>
 <h3 id="notifysupplyindex"><a class="header" href="#notifysupplyindex">notifySupplyIndex</a></h3>
 <p>Notifies supply index</p>
@@ -217,6 +219,18 @@
 </code></pre>
 <h3 id="borrowspeedupdated"><a class="header" href="#borrowspeedupdated">BorrowSpeedUpdated</a></h3>
 <pre><code class="language-solidity">event BorrowSpeedUpdated(address indexed rewardToken, address indexed mToken, uint256 borrowSpeed);
+</code></pre>
+<h3 id="operatorset"><a class="header" href="#operatorset">OperatorSet</a></h3>
+<pre><code class="language-solidity">event OperatorSet(address indexed oldOperator, address indexed newOperator);
+</code></pre>
+<h3 id="whitelistedtoken"><a class="header" href="#whitelistedtoken">WhitelistedToken</a></h3>
+<pre><code class="language-solidity">event WhitelistedToken(address indexed token);
+</code></pre>
+<h3 id="supplyindexnotified"><a class="header" href="#supplyindexnotified">SupplyIndexNotified</a></h3>
+<pre><code class="language-solidity">event SupplyIndexNotified(address indexed rewardToken, address indexed mToken);
+</code></pre>
+<h3 id="borrowindexnotified"><a class="header" href="#borrowindexnotified">BorrowIndexNotified</a></h3>
+<pre><code class="language-solidity">event BorrowIndexNotified(address indexed rewardToken, address indexed mToken);
 </code></pre>
 
                     </main>

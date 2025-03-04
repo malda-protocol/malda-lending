@@ -1,18 +1,11 @@
 # mErc20Host
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\mToken\host\mErc20Host.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\mToken\host\mErc20Host.sol)
 
 **Inherits:**
-[mErc20Immutable](/src\mToken\mErc20Immutable.sol\contract.mErc20Immutable.md), [ZkVerifier](/src\verifier\ZkVerifier.sol\abstract.ZkVerifier.md), [ImErc20Host](/src\interfaces\ImErc20Host.sol\interface.ImErc20Host.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
+[mErc20Upgradable](/src\mToken\mErc20Upgradable.sol\contract.mErc20Upgradable.md), [ZkVerifier](/src\verifier\ZkVerifier.sol\abstract.ZkVerifier.md), [ImErc20Host](/src\interfaces\ImErc20Host.sol\interface.ImErc20Host.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
 
 
 ## State Variables
-### nonce
-
-```solidity
-uint32 public nonce;
-```
-
-
 ### accAmountInPerChain
 
 ```solidity
@@ -27,30 +20,35 @@ mapping(uint32 => mapping(address => uint256)) public accAmountOutPerChain;
 ```
 
 
-### DEFAULT_NONCE
+### allowedCallers
 
 ```solidity
-int32 private constant DEFAULT_NONCE = -1;
+mapping(address => mapping(address => bool)) public allowedCallers;
 ```
 
 
-### logsOperator
-Logs manager
-
+### allowedChains
 
 ```solidity
-ImTokenLogs public logsOperator;
+mapping(uint32 => bool) public allowedChains;
+```
+
+
+### gasFees
+
+```solidity
+mapping(uint32 => uint256) public gasFees;
 ```
 
 
 ## Functions
-### constructor
+### initialize
 
-Constructs the new money market
+Initializes the new money market
 
 
 ```solidity
-constructor(
+function initialize(
     address underlying_,
     address operator_,
     address interestRateModel_,
@@ -60,18 +58,8 @@ constructor(
     uint8 decimals_,
     address payable admin_,
     address zkVerifier_,
-    address logs_
-)
-    mErc20Immutable(
-        underlying_,
-        operator_,
-        interestRateModel_,
-        initialExchangeRateMantissa_,
-        name_,
-        symbol_,
-        decimals_,
-        admin_
-    );
+    address roles_
+) external initializer;
 ```
 **Parameters**
 
@@ -86,8 +74,26 @@ constructor(
 |`decimals_`|`uint8`|ERC-20 decimal precision of this token|
 |`admin_`|`address payable`|Address of the administrator of this token|
 |`zkVerifier_`|`address`|The IRiscZeroVerifier address|
-|`logs_`|`address`||
+|`roles_`|`address`||
 
+
+### isCallerAllowed
+
+Returns if a caller is allowed for sender
+
+
+```solidity
+function isCallerAllowed(address sender, address caller) external view returns (bool);
+```
+
+### getProofData
+
+Returns the proof data journal
+
+
+```solidity
+function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
+```
 
 ### setVerifier
 
@@ -119,24 +125,109 @@ function setImageId(bytes32 _imageId) external onlyAdmin;
 |`_imageId`|`bytes32`|the new image id|
 
 
+### updateAllowedChain
+
+Updates an allowed chain status
+
+
+```solidity
+function updateAllowedChain(uint32 _chainId, bool _status) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_chainId`|`uint32`|the chain id|
+|`_status`|`bool`|the new status|
+
+
+### extractForRebalancing
+
+Extract amount to be used for rebalancing operation
+
+
+```solidity
+function extractForRebalancing(uint256 amount) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`amount`|`uint256`|The amount to rebalance|
+
+
+### setGasFee
+
+Sets the gas fee
+
+
+```solidity
+function setGasFee(uint32 dstChainId, uint256 amount) external onlyAdmin;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`dstChainId`|`uint32`|the destination chain id|
+|`amount`|`uint256`|the gas fee amount|
+
+
+### withdrawGasFees
+
+Withdraw gas received so far
+
+
+```solidity
+function withdrawGasFees(address payable receiver) external onlyAdmin;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`receiver`|`address payable`|the receiver address|
+
+
+### updateAllowedCallerStatus
+
+Set caller status for `msg.sender`
+
+
+```solidity
+function updateAllowedCallerStatus(address caller, bool status) external override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`caller`|`address`|The caller address|
+|`status`|`bool`|The status to set for `caller`|
+
+
 ### liquidateExternal
 
 Mints tokens after external verification
 
 
 ```solidity
-function liquidateExternal(bytes calldata journalData, bytes calldata seal, uint256 liquidateAmount, address collateral)
-    external
-    override;
+function liquidateExternal(
+    bytes calldata journalData,
+    bytes calldata seal,
+    address[] calldata userToLiquidate,
+    uint256[] calldata liquidateAmount,
+    address[] calldata collateral,
+    address receiver
+) external override;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`journalData`|`bytes`|The journal data for minting|
+|`journalData`|`bytes`|The journal data for minting (array of encoded journals)|
 |`seal`|`bytes`|The Zk proof seal|
-|`liquidateAmount`|`uint256`|The amount to liquidate|
-|`collateral`|`address`|The collateral to seize|
+|`userToLiquidate`|`address[]`|Array of positions to liquidate|
+|`liquidateAmount`|`uint256[]`|Array of amounts to liquidate|
+|`collateral`|`address[]`|Array of collaterals to seize|
+|`receiver`|`address`|The collateral receiver|
 
 
 ### mintExternal
@@ -145,32 +236,23 @@ Mints tokens after external verification
 
 
 ```solidity
-function mintExternal(bytes calldata journalData, bytes calldata seal, uint256 mintAmount) external override;
+function mintExternal(
+    bytes calldata journalData,
+    bytes calldata seal,
+    uint256[] calldata mintAmount,
+    uint256[] calldata minAmountsOut,
+    address receiver
+) external override;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`journalData`|`bytes`|The journal data for minting|
+|`journalData`|`bytes`|The journal data for minting (array of encoded journals)|
 |`seal`|`bytes`|The Zk proof seal|
-|`mintAmount`|`uint256`|The amount to mint|
-
-
-### borrowExternal
-
-Borrows tokens after external verification
-
-
-```solidity
-function borrowExternal(bytes calldata journalData, bytes calldata seal, uint256 borrowAmount) external override;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`journalData`|`bytes`|The journal data for borrowing|
-|`seal`|`bytes`|The Zk proof seal|
-|`borrowAmount`|`uint256`|The amount to borrow|
+|`mintAmount`|`uint256[]`|Array of amounts to mint|
+|`minAmountsOut`|`uint256[]`|Array of min amounts accepted|
+|`receiver`|`address`|The tokens receiver|
 
 
 ### repayExternal
@@ -179,41 +261,32 @@ Repays tokens after external verification
 
 
 ```solidity
-function repayExternal(bytes calldata journalData, bytes calldata seal, uint256 repayAmount) external override;
+function repayExternal(
+    bytes calldata journalData,
+    bytes calldata seal,
+    uint256[] calldata repayAmount,
+    address receiver
+) external override;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`journalData`|`bytes`|The journal data for repayment|
+|`journalData`|`bytes`|The journal data for repayment (array of encoded journals)|
 |`seal`|`bytes`|The Zk proof seal|
-|`repayAmount`|`uint256`|The amount to repay|
-
-
-### withdrawExternal
-
-Withdraws tokens after external verification
-
-
-```solidity
-function withdrawExternal(bytes calldata journalData, bytes calldata seal, uint256 amount) external override;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`journalData`|`bytes`|The journal data for withdrawing|
-|`seal`|`bytes`|The Zk proof seal|
-|`amount`|`uint256`|The amount to withdraw|
+|`repayAmount`|`uint256[]`|Array of amounts to repay|
+|`receiver`|`address`|The position to repay for|
 
 
 ### withdrawOnExtension
 
 Initiates a withdraw operation
 
+*amount represents the number of mTokens to redeem*
+
 
 ```solidity
-function withdrawOnExtension(uint256 amount, uint32 dstChainId, address[] calldata allowedCallers) external override;
+function withdrawOnExtension(uint256 amount, uint32 dstChainId) external payable override;
 ```
 **Parameters**
 
@@ -221,14 +294,36 @@ function withdrawOnExtension(uint256 amount, uint32 dstChainId, address[] callda
 |----|----|-----------|
 |`amount`|`uint256`|The amount to withdraw|
 |`dstChainId`|`uint32`|The destination chain to recieve funds|
-|`allowedCallers`|`address[]`|The allowed callers for destination chain finalization|
 
 
 ### borrowOnExtension
 
+Initiates a withdraw operation
+
 
 ```solidity
-function borrowOnExtension(uint256 amount, uint32 dstChainId, address[] calldata allowedCallers) external override;
+function borrowOnExtension(uint256 amount, uint32 dstChainId) external payable override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`amount`|`uint256`|The amount to withdraw|
+|`dstChainId`|`uint32`|The destination chain to recieve funds|
+
+
+### _isAllowedFor
+
+
+```solidity
+function _isAllowedFor(address _sender, bytes32 role) private view returns (bool);
+```
+
+### _getBatchProofForwarderRole
+
+
+```solidity
+function _getBatchProofForwarderRole() private view returns (bytes32);
 ```
 
 ### _verifyProof
@@ -238,37 +333,38 @@ function borrowOnExtension(uint256 amount, uint32 dstChainId, address[] calldata
 function _verifyProof(bytes calldata journalData, bytes calldata seal) private;
 ```
 
-### _decodeJournal
-
-
-```solidity
-function _decodeJournal(bytes calldata journalData)
-    private
-    pure
-    returns (
-        address _sender,
-        address _user,
-        uint256 _accAmount,
-        uint32 _chainId,
-        uint32 _srcNonce,
-        address[] memory _allowedCallers
-    );
-```
-
-### _extractCallers
-
-
-```solidity
-function _extractCallers(bytes calldata journalData, uint256 allowedCallersOffset)
-    private
-    pure
-    returns (address[] memory allowedCallers);
-```
-
 ### _checkSender
 
 
 ```solidity
-function _checkSender(address sender, address user, address[] memory allowedCallers) private view;
+function _checkSender(address msgSender, address srcSender) private view;
+```
+
+### _liquidateExternal
+
+
+```solidity
+function _liquidateExternal(
+    bytes memory singleJournal,
+    address userToLiquidate,
+    uint256 liquidateAmount,
+    address collateral,
+    address receiver
+) internal;
+```
+
+### _mintExternal
+
+
+```solidity
+function _mintExternal(bytes memory singleJournal, uint256 mintAmount, uint256 minAmountOut, address receiver)
+    internal;
+```
+
+### _repayExternal
+
+
+```solidity
+function _repayExternal(bytes memory singleJournal, uint256 repayAmount, address receiver) internal;
 ```
 
