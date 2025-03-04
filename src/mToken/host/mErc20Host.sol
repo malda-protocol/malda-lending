@@ -110,7 +110,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
      * @param _status the new status
      */
     function updateAllowedChain(uint32 _chainId, bool _status) external {
-        if (msg.sender != admin && !rolesOperator.isAllowedFor(msg.sender, rolesOperator.CHAINS_MANAGER())) {
+        if (msg.sender != admin && !_isAllowedFor(msg.sender, rolesOperator.CHAINS_MANAGER())) {
             revert mErc20Host_CallerNotAllowed();
         }
         allowedChains[_chainId] = _status;
@@ -123,7 +123,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     function extractForRebalancing(uint256 amount) external {
         IOperatorDefender(operator).beforeRebalancing(address(this));
 
-        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mErc20Host_NotRebalancer();
+        if (!_isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mErc20Host_NotRebalancer();
         IERC20(underlying).safeTransfer(msg.sender, amount);
     }
 
@@ -167,7 +167,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         address receiver
     ) external override {
         // verify received data
-        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
+        if (!_isAllowedFor(msg.sender, _getBatchProofForwarderRole())) {
             _verifyProof(journalData, seal);
         }
 
@@ -195,7 +195,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         uint256[] calldata minAmountsOut,
         address receiver
     ) external override {
-        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
+        if (!_isAllowedFor(msg.sender, _getBatchProofForwarderRole())) {
             _verifyProof(journalData, seal);
         }
 
@@ -220,7 +220,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         uint256[] calldata repayAmount,
         address receiver
     ) external override {
-        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
+        if (!_isAllowedFor(msg.sender, _getBatchProofForwarderRole())) {
             _verifyProof(journalData, seal);
         }
 
@@ -268,6 +268,14 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     }
 
     // ----------- PRIVATE ------------
+    function _isAllowedFor(address _sender, bytes32 role) private view returns (bool) {
+        return rolesOperator.isAllowedFor(msg.sender, role);
+    }
+
+    function _getBatchProofForwarderRole() private view returns (bytes32) {
+        return rolesOperator.PROOF_BATCH_FORWARDER();
+    }
+
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private {
         require(journalData.length > 0, mErc20Host_JournalNotValid());
 
@@ -279,8 +287,8 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         if (msgSender != srcSender) {
             require(
                 allowedCallers[srcSender][msgSender] || msgSender == admin
-                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER())
-                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_BATCH_FORWARDER()),
+                    || _isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER())
+                    || _isAllowedFor(msgSender, _getBatchProofForwarderRole()),
                 mErc20Host_CallerNotAllowed()
             );
         }
