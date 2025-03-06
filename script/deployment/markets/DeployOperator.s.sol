@@ -26,25 +26,35 @@ contract DeployOperator is Script {
     {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        bytes32 salt = _getSalt("OperatorImplementation");
-        vm.startBroadcast(key);
-        address implementation = deployer.create(salt, abi.encodePacked(type(Operator).creationCode));
-        vm.stopBroadcast();
-        console.log("Operator implementation deployed at:", implementation);
+        bytes32 implSalt = _getSalt("OperatorImplementationV1.0");
+        address implementation = deployer.precompute(implSalt);
+        if (implementation.code.length > 0) {
+            console.log("Operator implementation already deployed at:", implementation);
+        } else {
+            vm.startBroadcast(key);
+            implementation = deployer.create(implSalt, abi.encodePacked(type(Operator).creationCode));
+            vm.stopBroadcast();
+            console.log("Operator implementation deployed at:", implementation);
+        }
 
         bytes memory initData = abi.encodeWithSelector(Operator.initialize.selector, roles, rewards, owner);
 
         // Deploy proxy
-        bytes32 proxySalt = _getSalt("OperatorProxy");
-        vm.startBroadcast(key);
-        address operatorAddress = deployer.create(
-            proxySalt,
-            abi.encodePacked(
-                type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, owner, initData)
-            )
-        );
-        vm.stopBroadcast();
-        console.log("Operator deployed at:", operatorAddress);
+        bytes32 proxySalt = _getSalt("OperatorProxyV1.0");
+        address operatorAddress = deployer.precompute(proxySalt);
+        if (operatorAddress.code.length > 0) {
+            console.log("Operator proxy already deployed at:", operatorAddress);
+        } else {
+            vm.startBroadcast(key);
+            operatorAddress = deployer.create(
+                proxySalt,
+                abi.encodePacked(
+                    type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, owner, initData)
+                )
+            );
+            vm.stopBroadcast();
+            console.log("Operator proxy deployed at:", operatorAddress);
+        }
 
         console.log("Setting oracle: ", oracle);
         vm.startBroadcast(key);

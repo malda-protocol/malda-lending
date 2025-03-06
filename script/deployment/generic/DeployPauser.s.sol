@@ -18,7 +18,7 @@ contract DeployPauser is Script {
     function run(Deployer deployer, address roles, address operator, address owner) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        bytes32 salt = getSalt("Pauser");
+        bytes32 salt = getSalt("PauserV1.0");
 
         console.log("Deploying Pauser");
 

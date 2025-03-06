@@ -17,7 +17,7 @@ import {Deployer} from "src/utils/Deployer.sol";
  */
 contract DeployLZBridge is Script {
     function run(address roles, Deployer deployer) public returns (address) {
-        bytes32 salt = getSalt("LZBridge");
+        bytes32 salt = getSalt("LZBridgeV1.0");
 
         vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
         address created = deployer.create(salt, abi.encodePacked(type(LZBridge).creationCode, abi.encode(roles)));

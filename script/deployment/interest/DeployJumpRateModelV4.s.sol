@@ -28,7 +28,7 @@ contract DeployJumpRateModelV4 is Script {
     function run(Deployer deployer, InterestData memory data, address owner) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        bytes32 salt = getSalt(string.concat(data.name, "JumpRateModelV4"));
+        bytes32 salt = getSalt(string.concat(data.name, "JumpRateModelV1.0"));
 
         console.log("Deploying JumpRateModelV4 for %s", data.name);
 

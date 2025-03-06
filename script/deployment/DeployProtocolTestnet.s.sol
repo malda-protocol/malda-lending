@@ -51,7 +51,7 @@ import {DeployLZBridge} from "script/deployment/rebalancer/DeployLZBridge.s.sol"
 
 // import {VerifyDeployment} from "./VerifyDeployment.s.sol";
 
-contract DeployProtocolRelease is DeployBaseRelease {
+contract DeployProtocolTestnet is DeployBaseRelease {
     using stdJson for string;
 
     error UnsupportedOracleType();
@@ -93,34 +93,13 @@ contract DeployProtocolRelease is DeployBaseRelease {
     DeployLZBridge deployLZBridge;
 
     function setUp() public override {
-        configPath = "deployment-config-release.json";
+        configPath = "deployment-config-testnet.json";
         super.setUp();
 
-        feeds.push(OracleFeed("mUSDC", 0xAADAa473C1bDF7317ec07c915680Af29DeBfdCb5, "USD", 6));
-        feeds.push(OracleFeed("mWETH", 0x58B375D4A5ddAa7df7C54FE5A6A4B7024747fBE3, "USD", 18));
-        feeds.push(OracleFeed("mUSDT", 0xefCA2bbe0EdD0E22b2e0d2F8248E99F4bEf4A7dB, "USD", 6));
-        feeds.push(OracleFeed("mDAI", 0x5133D67c38AFbdd02997c14Abd8d83676B4e309A, "USD", 18));
-        feeds.push(OracleFeed("mWBTC", 0x7A99092816C8BD5ec8ba229e3a6E6Da1E628E1F9, "USD", 8));
-        feeds.push(OracleFeed("mwstETH", 0x8eCE1AbA32716FdDe8D6482bfd88E9a0ee01f565, "USD", 18));
-        feeds.push(OracleFeed("mezETH", 0xD707bD88A6AAe8174C1447af4C746D55676C84BA, "mWETH_api3", 18));
-        feeds.push(OracleFeed("mweETH", 0xEAd770C0F71f55D0337B0C7524AC3c72103cc032, "USD", 18));
-        feeds.push(OracleFeed("mwrsETH", 0x6feCd2f4798D37fBe64BFDe1eBeCaE3B3fB1Ab9B, "mWETH_api3", 18));
-        feeds.push(OracleFeed("mWETH_api3", 0x14D8CA4d05cfd1EA4739AbAB06b28D8dC7C6d6cA, "USD", 18));
-
-        spokePoolAddresses[1] = 0x5c7BCd6E7De5423a257D81B442095A1a6ced35C5;
-        spokePoolAddresses[10] = 0x6f26Bf09B1C792e3228e5467807a900A503c0281;
-        spokePoolAddresses[8453] = 0x09aea4b2242abC8bb4BB78D537A67a245A7bEC64;
-        spokePoolAddresses[59144] = address(0);
-
-        connextAddresses[1] = 0x8898B472C54c31894e3B9bb83cEA802a5d0e63C6;
-        connextAddresses[10] = 0x8f7492DE823025b4CfaAB1D34c58963F2af5DEDA;
-        connextAddresses[8453] = 0xB8448C6f7f7887D36DcA487370778e419e9ebE3F;
-        connextAddresses[59144] = 0xa05eF29e9aC8C75c530c2795Fa6A800e188dE0a9;
-
-        everclearAddresses[1] = 0xa05A3380889115bf313f1Db9d5f335157Be4D816;
-        everclearAddresses[10] = 0xa05A3380889115bf313f1Db9d5f335157Be4D816;
-        everclearAddresses[8453] = 0xa05A3380889115bf313f1Db9d5f335157Be4D816;
-        everclearAddresses[59144] = 0xc24dC29774fD2c1c0c5FA31325Bb9cbC11D8b751;
+        feeds.push(OracleFeed("mUSDC", 0xc6e1FB449b08B26B2063c289DF9BBcb79B91c992, "USD", 6));
+        feeds.push(OracleFeed("mWETH", 0x2D6261dce927D5c46f7f393a897887F19F3fDf2A, "USD", 18));
+        feeds.push(OracleFeed("mUSDCMock", 0xdf0bD5072572A002ad0eeBAc58c4BCECA952A826, "USD", 6));
+        feeds.push(OracleFeed("mwstETHMock", 0xa371FA57A42d9c72380e2959ceDbB21aE07AD210, "USD", 18));
     }
 
     function run() public {
@@ -175,34 +154,10 @@ contract DeployProtocolRelease is DeployBaseRelease {
                 pauser = _deployExtensionChain(network, rolesContract, batchSubmitter);
             }
 
-            deployRebalancer = new DeployRebalancer();
-            deployAcrossBridge = new DeployAcrossBridge();
-            deployConnextBridge = new DeployConnextBridge();
-            deployEverclearBridge = new DeployEverclearBridge();
-            deployLZBridge = new DeployLZBridge();
-            _deployAndConfigRebalancerAndBridges(network, rolesContract);
 
             // Set image ID for all markets
             _setZkImageId(marketAddresses, batchSubmitter, configs[network].zkVerifier.imageId);
 
-            // Transfer ownerhip
-            console.log("Transfer ownership to", configs[network].ownership);
-            uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-            vm.startBroadcast(key);
-
-            console.log(" -- for Pauser");
-            IOwnable(pauser).transferOwnership(configs[network].ownership);
-            console.log(" -- for Roles");
-            IOwnable(rolesContract).transferOwnership(configs[network].ownership);
-            console.log(" -- for mTokenGateway addresses [count]", extensionMarketAddresses.length);
-            for (uint256 j; j < extensionMarketAddresses.length;) {
-                IOwnable(extensionMarketAddresses[j]).transferOwnership(configs[network].ownership);
-                unchecked {
-                    ++j;
-                }
-            }
-
-            vm.stopBroadcast();
             console.log("-------------------- DONE");
         }
     }
@@ -364,6 +319,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
     }
 
     function _deployRewardDistributor() internal returns (address) {
+        console.log("--- owner", owner);
         return deployReward.run(deployer, owner);
     }
 
@@ -411,7 +367,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
                 underlyingToken: market.underlying,
                 operator: operator,
                 interestModel: interestModel,
-                exchangeRateMantissa: uint256(1e18),
+                exchangeRateMantissa: uint256(2e16),
                 name: market.name,
                 symbol: market.symbol,
                 decimals: market.decimals,

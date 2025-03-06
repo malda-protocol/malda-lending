@@ -37,7 +37,7 @@ contract DeployMixedPriceOracleV3 is Script {
                 ++i;
             }
         }
-        bytes32 salt = getSalt("MixedPriceOracleV3");
+        bytes32 salt = getSalt("MixedPriceOracleV1.0");
         address created = deployer.precompute(salt);
         if (created.code.length > 0) {
             console.log("MixedPriceOracleV3 already deployed at: %s", created);

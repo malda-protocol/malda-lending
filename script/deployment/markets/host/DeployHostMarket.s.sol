@@ -35,7 +35,7 @@ contract DeployHostMarket is Script {
 
         // Deploy implementation
         bytes32 implSalt =
-            getSalt(string.concat("mTokenHost-implementation1", addressToString(marketData.underlyingToken)));
+            getSalt(string.concat("mTokenHost-implementationV1.0", addressToString(marketData.underlyingToken)));
 
         address implementation = deployer.precompute(implSalt);
 
@@ -68,7 +68,7 @@ contract DeployHostMarket is Script {
         );
 
         // Deploy proxy
-        bytes32 proxySalt = getSalt(marketData.name);
+        bytes32 proxySalt = getSalt(string.concat(marketData.name, "V1.0"));
         address proxy = deployer.precompute(proxySalt);
         if (proxy.code.length > 0) {
             console.log("HostProxy already exists at ", proxy);

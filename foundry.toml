@@ -23,6 +23,7 @@
     { access = "read", path = "./deployment-config.json" },
     { access = "read", path = "./deployment-config-updated.json" },
     { access = "read", path = "./deployment-config-release.json" },
+    { access = "read", path = "./deployment-config-testnet.json" },
     { access = "read", path = "./deployment-config.sepolia.json" },
     { access = "read", path = "./deployment-config.op.json" },
     { access = "read", path = "./deployment-config.linea.json" },

@@ -30,7 +30,6 @@ contract DeployBaseRelease is Script {
 
     function setUp() public virtual {
         key = vm.envUint("OWNER_PRIVATE_KEY");
-        configPath = "deployment-config-release.json";
         networks = vm.parseJsonKeys(vm.readFile(configPath), ".networks");
 
         // parse generic config

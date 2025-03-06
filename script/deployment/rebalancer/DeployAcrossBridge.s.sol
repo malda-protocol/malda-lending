@@ -17,7 +17,7 @@ import {Deployer} from "src/utils/Deployer.sol";
  */
 contract DeployAcrossBridge is Script {
     function run(address roles, address spoke, Deployer deployer) public returns (address) {
-        bytes32 salt = getSalt("AcrossBridge");
+        bytes32 salt = getSalt("AcrossBridgeV1.0");
 
         vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
         address created =

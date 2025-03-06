@@ -28,7 +28,7 @@ contract DeployExtensionMarket is Script {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         // Deploy implementation
-        bytes32 implSalt = getSalt(string.concat("mTokenGateway-implementation", addressToString(underlyingToken)));
+        bytes32 implSalt = getSalt(string.concat("mTokenGateway-implementationV1.0", addressToString(underlyingToken)));
 
         address implementation = deployer.precompute(implSalt);
 
@@ -52,7 +52,7 @@ contract DeployExtensionMarket is Script {
         );
 
         // Deploy proxy
-        bytes32 proxySalt = getSalt(name);
+        bytes32 proxySalt = getSalt(string.concat(name, "V1.0"));
         address proxy = deployer.precompute(proxySalt);
         // Check if proxy already exists
         if (proxy.code.length > 0) {

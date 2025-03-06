@@ -17,7 +17,7 @@ import {Deployer} from "src/utils/Deployer.sol";
  */
 contract DeployConnextBridge is Script {
     function run(address roles, address connext, Deployer deployer) public returns (address) {
-        bytes32 salt = getSalt("ConnextBridge");
+        bytes32 salt = getSalt("ConnextBridgeV1.0");
 
         vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
         address created =

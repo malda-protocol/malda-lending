@@ -19,7 +19,7 @@ contract DeployMockOracle is Script {
 
     function run(Deployer deployer) public returns (address) {
         bytes32 salt =
-            keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("MockOracleV3")));
+            keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("MockOracleV1.0")));
 
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         vm.startBroadcast(key);

@@ -16,7 +16,6 @@ contract DeployBase is Script {
 
     function setUp() public virtual {
         key = vm.envUint("OWNER_PRIVATE_KEY");
-        //configPath = "deployment-config.json";
         networks = vm.parseJsonKeys(vm.readFile(configPath), ".networks");
 
         for (uint256 i = 0; i < networks.length; i++) {

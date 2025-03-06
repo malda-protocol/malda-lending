@@ -269,7 +269,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
 
     // ----------- PRIVATE ------------
     function _isAllowedFor(address _sender, bytes32 role) private view returns (bool) {
-        return rolesOperator.isAllowedFor(msg.sender, role);
+        return rolesOperator.isAllowedFor(_sender, role);
     }
 
     function _getBatchProofForwarderRole() private view returns (bytes32) {

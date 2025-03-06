@@ -28,7 +28,7 @@ contract DeployChainlinkOracle is Script {
         uint256[] memory baseUnits = new uint256[](1);
         baseUnits[0] = 18;
 
-        bytes32 salt = getSalt("ChainlinkOracle");
+        bytes32 salt = getSalt("ChainlinkOracleV1.0");
         address created = deployer.precompute(salt);
         if (created.code.length > 0) {
             console.log(" ChainlinkOracle already deployed at: %s", created);
