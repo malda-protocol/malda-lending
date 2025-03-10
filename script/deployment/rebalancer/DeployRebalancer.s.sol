@@ -16,7 +16,7 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployRebalancer is Script {
-    function run(address roles, Deployer deployer) public returns (address) {
+    function run(address roles, address saveAddress, Deployer deployer) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
         bytes32 salt = getSalt("RebalancerV1.0");
 
@@ -24,7 +24,7 @@ contract DeployRebalancer is Script {
         // Deploy only if not already deployed
         if (created.code.length == 0) {
             vm.startBroadcast(key);
-            created = deployer.create(salt, abi.encodePacked(type(Rebalancer).creationCode, abi.encode(roles)));
+            created = deployer.create(salt, abi.encodePacked(type(Rebalancer).creationCode, abi.encode(roles, saveAddress)));
             vm.stopBroadcast();
             console.log("Rebalancer deployed at:", created);
         } else {
