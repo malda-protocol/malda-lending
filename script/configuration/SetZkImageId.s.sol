@@ -16,9 +16,9 @@ contract SetZkImageId is Script {
             return;
         }
 
-        //vm.startBroadcast(key);
-        //BatchSubmitter(batchSubmitter).setImageId(imageId);
-        //vm.stopBroadcast();
+        vm.startBroadcast(key);
+        BatchSubmitter(batchSubmitter).setImageId(imageId);
+        vm.stopBroadcast();
 
         console.log("ZK image ID set for BatchSubmitter %s", batchSubmitter);
 
