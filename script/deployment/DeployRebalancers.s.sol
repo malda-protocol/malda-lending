@@ -95,7 +95,7 @@ contract DeployRebalancers is Script {
 
     function _deployRebalancer(address roles, address deployer) private returns (address) {
         console.log("Deploying Rebalancer");
-        address result = deployRebalancer.run(roles, Deployer(payable(deployer)));
+        address result = deployRebalancer.run(roles, vm.envAddress("OWNER"), Deployer(payable(deployer)));
         console.log("Rebalancer deployed at:", result);
         return result;
     }

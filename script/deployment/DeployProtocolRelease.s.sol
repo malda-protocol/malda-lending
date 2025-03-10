@@ -218,7 +218,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
     function _deployAndConfigRebalancerAndBridges(string memory network, address rolesContract) internal {
         console.log(" --- Deploying rebalancer");
-        address rebalancer = deployRebalancer.run(rolesContract, deployer);
+        address rebalancer = deployRebalancer.run(rolesContract, owner, deployer);
         console.log(" --- Deployed rebalancer at ", rebalancer);
 
         if (spokePoolAddresses[configs[network].chainId] != address(0)) {
