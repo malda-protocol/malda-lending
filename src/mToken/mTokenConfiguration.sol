@@ -24,6 +24,15 @@ abstract contract mTokenConfiguration is mTokenStorage {
 
     // ----------- OWNER ------------
     /**
+     * @notice Sets a new same chain flow state
+     */
+    function setSameChainFlowState(bool _newState) external onlyAdmin {
+        if (sameChainFlowStateDisabled == _newState) return;
+        emit SameChainFlowStateUpdated(msg.sender, sameChainFlowStateDisabled, _newState);
+        sameChainFlowStateDisabled = _newState;
+    }
+
+    /**
      * @notice Sets a new Operator for the market
      * @dev Admin function to set a new operator
      */

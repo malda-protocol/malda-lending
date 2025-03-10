@@ -101,6 +101,11 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     uint256 public borrowRateMaxMantissa = 0.00004e16;
 
     /**
+     * @inheritdoc ImToken
+     */
+    bool public sameChainFlowStateDisabled;
+
+    /**
      * @notice Container for borrow balance information
      * @member principal Total balance (with accrued interest), after applying the most recent balance-changing action
      * @member interestIndex Global borrowIndex as of the most recent balance-changing action
@@ -151,6 +156,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     error mToken_BorrowCashNotAvailable();
     error mToken_ReserveCashNotAvailable();
     error mToken_RedeemTransferOutNotPossible();
+    error mToken_SameChainOperationsAreDisabled();
     error mToken_CollateralBlockTimestampNotValid();
 
     // ----------- ACCESS EVENTS ------------
@@ -252,6 +258,11 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
      * @notice Event emitted when the borrow max mantissa is updated
      */
     event NewBorrowRateMaxMantissa(uint256 oldVal, uint256 maxMantissa);
+
+    /**
+     * @notice Event emitted when same chain flow state is enabled or disabled
+     */
+    event SameChainFlowStateUpdated(address indexed sender, bool _oldState, bool _newState);
 
     // ----------- VIRTUAL ------------
     /**

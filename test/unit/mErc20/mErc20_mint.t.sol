@@ -6,6 +6,7 @@ import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
+import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
 import {WrapAndSupply} from "src/utils/WrapAndSupply.sol";
 
 // tests
@@ -44,7 +45,7 @@ contract mErc20_mint is mToken_Unit_Shared {
         mWeth.mint(amount, address(this), amount);
     }
 
-    function test_WhenSupplyCapIsGreaterXX(uint256 amount)
+    function test_WhenSupplyCapIsGreater(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWeth))
@@ -102,5 +103,28 @@ contract mErc20_mint is mToken_Unit_Shared {
         // it should increase total supply by amount
         assertGt(totalSupplyAfter, totalSupplyBefore);
         assertEq(totalSupplyAfter - SMALL, totalSupplyBefore);
+    }
+
+    function test_WhenSupplyCapIsGreater_ButSameChainIsDisabled(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenMarketIsListed(address(mWeth))
+    {
+        _getTokens(weth, address(this), amount);
+        weth.approve(address(mWeth), amount);
+
+        bool enteredBefore = operator.checkMembership(address(this), address(mWeth));
+        assertFalse(enteredBefore);
+
+        mWeth.mint(amount, address(this), amount);
+
+        bool enteredAfter = operator.checkMembership(address(this), address(mWeth));
+        assertTrue(enteredAfter);
+
+        // now disable same chain operations
+        mWeth.setSameChainFlowState(true); //disabled
+
+        vm.expectRevert(mTokenStorage.mToken_SameChainOperationsAreDisabled.selector);
+        mWeth.mint(amount, address(this), amount);
     }
 }
