@@ -47,5 +47,6 @@ contract mErc20Upgradable is mErc20, Initializable {
 
         // Set the proper admin now that initialization is done
         admin = admin_;
-    }
+    }  
+
 }

@@ -129,6 +129,11 @@ interface ImToken is ImTokenMinimal {
      */
     function totalReserves() external view returns (uint256);
 
+    /**
+     * @notice Returns true/false for same chain flow state disable status
+     */
+    function sameChainFlowStateDisabled() external view returns (bool);
+
     // ----------- ACTIONS ------------
     /**
      * @notice Transfers `amount` tokens to the `dst` address
