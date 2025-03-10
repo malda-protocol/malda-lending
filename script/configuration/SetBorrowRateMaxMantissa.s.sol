@@ -17,12 +17,8 @@ contract SetBorrowRateMaxMantissa is Script {
         }
 
         vm.startBroadcast(key);
-        (bool success,) = market.call{gas: 120000}(
-            abi.encodeWithSelector(mTokenConfiguration.setBorrowRateMaxMantissa.selector, borrowRateMaxMantissa)
-        );
+        mTokenConfiguration(market).setBorrowRateMaxMantissa(borrowRateMaxMantissa);
         vm.stopBroadcast();
-
-        require(success, "Failed to set borrow rate max mantissa");
 
         console.log("Set borrow rate max mantissa for market", market);
     }

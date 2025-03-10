@@ -97,14 +97,23 @@ contract DeployProtocolRelease is DeployBaseRelease {
         super.setUp();
 
         feeds.push(OracleFeed("mUSDC", 0xAADAa473C1bDF7317ec07c915680Af29DeBfdCb5, "USD", 6));
+        feeds.push(OracleFeed("USDC", 0xAADAa473C1bDF7317ec07c915680Af29DeBfdCb5, "USD", 6));
         feeds.push(OracleFeed("mWETH", 0x58B375D4A5ddAa7df7C54FE5A6A4B7024747fBE3, "USD", 18));
+        feeds.push(OracleFeed("WETH", 0x58B375D4A5ddAa7df7C54FE5A6A4B7024747fBE3, "USD", 18));
         feeds.push(OracleFeed("mUSDT", 0xefCA2bbe0EdD0E22b2e0d2F8248E99F4bEf4A7dB, "USD", 6));
+        feeds.push(OracleFeed("USDT", 0xefCA2bbe0EdD0E22b2e0d2F8248E99F4bEf4A7dB, "USD", 6));
         feeds.push(OracleFeed("mDAI", 0x5133D67c38AFbdd02997c14Abd8d83676B4e309A, "USD", 18));
+        feeds.push(OracleFeed("DAI", 0x5133D67c38AFbdd02997c14Abd8d83676B4e309A, "USD", 18));
         feeds.push(OracleFeed("mWBTC", 0x7A99092816C8BD5ec8ba229e3a6E6Da1E628E1F9, "USD", 8));
+        feeds.push(OracleFeed("WBTC", 0x7A99092816C8BD5ec8ba229e3a6E6Da1E628E1F9, "USD", 8));
         feeds.push(OracleFeed("mwstETH", 0x8eCE1AbA32716FdDe8D6482bfd88E9a0ee01f565, "USD", 18));
+        feeds.push(OracleFeed("wstETH", 0x8eCE1AbA32716FdDe8D6482bfd88E9a0ee01f565, "USD", 18));
         feeds.push(OracleFeed("mezETH", 0xD707bD88A6AAe8174C1447af4C746D55676C84BA, "mWETH_api3", 18));
+        feeds.push(OracleFeed("ezETH", 0xD707bD88A6AAe8174C1447af4C746D55676C84BA, "mWETH_api3", 18));
         feeds.push(OracleFeed("mweETH", 0xEAd770C0F71f55D0337B0C7524AC3c72103cc032, "USD", 18));
+        feeds.push(OracleFeed("weETH", 0xEAd770C0F71f55D0337B0C7524AC3c72103cc032, "USD", 18));
         feeds.push(OracleFeed("mwrsETH", 0x6feCd2f4798D37fBe64BFDe1eBeCaE3B3fB1Ab9B, "mWETH_api3", 18));
+        feeds.push(OracleFeed("mrsETH", 0x6feCd2f4798D37fBe64BFDe1eBeCaE3B3fB1Ab9B, "mWETH_api3", 18));
         feeds.push(OracleFeed("mWETH_api3", 0x14D8CA4d05cfd1EA4739AbAB06b28D8dC7C6d6cA, "USD", 18));
 
         spokePoolAddresses[1] = 0x5c7BCd6E7De5423a257D81B442095A1a6ced35C5;
@@ -411,7 +420,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
                 underlyingToken: market.underlying,
                 operator: operator,
                 interestModel: interestModel,
-                exchangeRateMantissa: uint256(1e18),
+                exchangeRateMantissa: uint256(2e16),
                 name: market.name,
                 symbol: market.symbol,
                 decimals: market.decimals,
@@ -445,14 +454,15 @@ contract DeployProtocolRelease is DeployBaseRelease {
         // Set collateral factor
         _setCollateralFactor(operator, market, collateralFactor);
 
-        // Set borrow rate max mantissa
-        _setBorrowRateMaxMantissa(market, borrowRateMaxMantissa);
-
         // Set borrow cap
         _setBorrowCap(operator, market, borrowCap);
 
         // Set supply cap
         _setSupplyCap(operator, market, supplyCap);
+
+        // Set borrow rate max mantissa
+        _setBorrowRateMaxMantissa(market, borrowRateMaxMantissa);
+
     }
 
     function _setRoles(address rolesContract, string memory network) internal {

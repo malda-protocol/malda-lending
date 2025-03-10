@@ -59,7 +59,9 @@ abstract contract mTokenConfiguration is mTokenStorage {
         borrowRateMaxMantissa = maxMantissa;
 
         // validate new mantissa
-        _accrueInterest();
+        if (totalSupply > 0) {
+            _accrueInterest();
+        }
 
         emit NewBorrowRateMaxMantissa(_oldVal, maxMantissa);
     }

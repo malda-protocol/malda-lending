@@ -96,10 +96,14 @@ contract DeployProtocolTestnet is DeployBaseRelease {
         configPath = "deployment-config-testnet.json";
         super.setUp();
 
-        feeds.push(OracleFeed("mUSDC", 0xc6e1FB449b08B26B2063c289DF9BBcb79B91c992, "USD", 6));
+        feeds.push(OracleFeed("mUSDC", 0xA5c24F2449891483f0923f0D9dC7694BDFe1bC86, "USD", 6));
+        feeds.push(OracleFeed("USDC", 0xA5c24F2449891483f0923f0D9dC7694BDFe1bC86, "USD", 6));
         feeds.push(OracleFeed("mWETH", 0x2D6261dce927D5c46f7f393a897887F19F3fDf2A, "USD", 18));
+        feeds.push(OracleFeed("WETH", 0x2D6261dce927D5c46f7f393a897887F19F3fDf2A, "USD", 18));
         feeds.push(OracleFeed("mUSDCMock", 0xdf0bD5072572A002ad0eeBAc58c4BCECA952A826, "USD", 6));
+        feeds.push(OracleFeed("USDC-M", 0xdf0bD5072572A002ad0eeBAc58c4BCECA952A826, "USD", 6));
         feeds.push(OracleFeed("mwstETHMock", 0xa371FA57A42d9c72380e2959ceDbB21aE07AD210, "USD", 18));
+        feeds.push(OracleFeed("wstETH-M", 0xa371FA57A42d9c72380e2959ceDbB21aE07AD210, "USD", 18));
     }
 
     function run() public {
@@ -401,14 +405,15 @@ contract DeployProtocolTestnet is DeployBaseRelease {
         // Set collateral factor
         _setCollateralFactor(operator, market, collateralFactor);
 
-        // Set borrow rate max mantissa
-        _setBorrowRateMaxMantissa(market, borrowRateMaxMantissa);
-
         // Set borrow cap
         _setBorrowCap(operator, market, borrowCap);
 
         // Set supply cap
         _setSupplyCap(operator, market, supplyCap);
+
+        // Set borrow rate max mantissa
+        _setBorrowRateMaxMantissa(market, borrowRateMaxMantissa);
+
     }
 
     function _setRoles(address rolesContract, string memory network) internal {

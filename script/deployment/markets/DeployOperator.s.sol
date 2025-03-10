@@ -20,13 +20,13 @@ import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transpa
  *     --broadcast
  */
 contract DeployOperator is Script {
-    function run(Deployer deployer, address oracle, address roles, address rewards, address owner)
+    function run(Deployer deployer, address oracle, address rewards, address roles, address owner)
         public
         returns (address)
     {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        bytes32 implSalt = _getSalt("OperatorImplementationV1.0");
+        bytes32 implSalt = _getSalt("OperatorImplementationV1.0.0");
         address implementation = deployer.precompute(implSalt);
         if (implementation.code.length > 0) {
             console.log("Operator implementation already deployed at:", implementation);
@@ -40,7 +40,7 @@ contract DeployOperator is Script {
         bytes memory initData = abi.encodeWithSelector(Operator.initialize.selector, roles, rewards, owner);
 
         // Deploy proxy
-        bytes32 proxySalt = _getSalt("OperatorProxyV1.0");
+        bytes32 proxySalt = _getSalt("OperatorProxyV1.0.0");
         address operatorAddress = deployer.precompute(proxySalt);
         if (operatorAddress.code.length > 0) {
             console.log("Operator proxy already deployed at:", operatorAddress);

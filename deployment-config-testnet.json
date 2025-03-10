@@ -19,13 +19,13 @@
       },
       "oracle": {
         "oracleType": "MixedPriceOracleV3",
-        "stalenessPeriod": 86400
+        "stalenessPeriod": 864000
       },
       "markets": [
         {
           "borrowCap": 1000000000000,
           "borrowRateMaxMantissa": 400000000000,
-          "collateralFactor": 0,
+          "collateralFactor": 800000000000000000,
           "decimals": 6,
           "interestModel": {
             "baseRate": 20000000000000000,
@@ -43,7 +43,7 @@
         {
           "borrowCap": 1000000000000000000000,
           "borrowRateMaxMantissa": 400000000000,
-          "collateralFactor": 0,
+          "collateralFactor": 800000000000000000,
           "decimals": 18,
           "interestModel": {
             "baseRate": 10000000000000000,
@@ -61,7 +61,7 @@
         {
           "borrowCap": 1000000000000,
           "borrowRateMaxMantissa": 400000000000,
-          "collateralFactor": 0,
+          "collateralFactor": 800000000000000000,
           "decimals": 6,
           "interestModel": {
             "baseRate": 20000000000000000,
@@ -79,7 +79,7 @@
         {
           "borrowCap": 1000000000000000000000,
           "borrowRateMaxMantissa": 400000000000,
-          "collateralFactor": 0,
+          "collateralFactor": 800000000000000000,
           "decimals": 18,
           "interestModel": {
             "baseRate": 10000000000000000,

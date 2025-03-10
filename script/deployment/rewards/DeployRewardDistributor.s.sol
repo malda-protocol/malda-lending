@@ -19,7 +19,7 @@ contract DeployRewardDistributor is Script {
     function run(Deployer deployer, address owner) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        bytes32 implSalt = getSalt("RewardDistributorV1.0");
+        bytes32 implSalt = getSalt("RewardDistributorV1.0.0");
         address implementation = deployer.precompute(implSalt);
         if (implementation.code.length > 0) {
             console.log("RewardDistributor implementation already deployed at: %s", implementation);
@@ -32,7 +32,7 @@ contract DeployRewardDistributor is Script {
 
         bytes memory initData = abi.encodeWithSelector(RewardDistributor.initialize.selector, owner);
         // Deploy proxy
-        bytes32 proxySalt = getSalt("RewardDistributorV1.0 Proxy");
+        bytes32 proxySalt = getSalt("RewardDistributorV1.0.0 Proxy");
         address proxy = deployer.precompute(proxySalt);
         if (proxy.code.length > 0) {
             console.log("RewardDistributor proxy already deployed at: %s", proxy);

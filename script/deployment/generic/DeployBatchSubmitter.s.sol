@@ -19,7 +19,7 @@ import {Deployer} from "src/utils/Deployer.sol";
 contract DeployBatchSubmitter is Script {
     function run(Deployer deployer, address roles, address zkVerifier, address owner) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-        bytes32 salt = getSalt("BatchSubmitterV1.0");
+        bytes32 salt = getSalt("BatchSubmitterV1.0.0");
 
         address created = deployer.precompute(salt);
         // Deploy only if not already deployed

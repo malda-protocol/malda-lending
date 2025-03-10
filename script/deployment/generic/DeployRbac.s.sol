@@ -16,7 +16,7 @@ import {Deployer} from "src/utils/Deployer.sol";
  */
 contract DeployRbac is Script {
     function run(Deployer _deployer, address owner) public returns (address) {
-        bytes32 salt = getSalt("RolesV1.0");
+        bytes32 salt = getSalt("RolesV1.0.0");
 
         console.log("Deploying Rbac");
 
