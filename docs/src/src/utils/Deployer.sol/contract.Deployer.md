@@ -1,5 +1,5 @@
 # Deployer
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\utils\Deployer.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\utils\Deployer.sol)
 
 
 ## State Variables
@@ -10,12 +10,26 @@ address public admin;
 ```
 
 
+### pendingAdmin
+
+```solidity
+address public pendingAdmin;
+```
+
+
 ## Functions
+### onlyAdmin
+
+
+```solidity
+modifier onlyAdmin();
+```
+
 ### constructor
 
 
 ```solidity
-constructor();
+constructor(address _admin);
 ```
 
 ### receive
@@ -25,11 +39,25 @@ constructor();
 receive() external payable;
 ```
 
+### setPendingAdmin
+
+
+```solidity
+function setPendingAdmin(address newAdmin) external onlyAdmin;
+```
+
 ### saveEth
 
 
 ```solidity
 function saveEth() external;
+```
+
+### setNewAdmin
+
+
+```solidity
+function setNewAdmin(address _addr) external;
 ```
 
 ### precompute
@@ -43,6 +71,39 @@ function precompute(bytes32 salt) external view returns (address);
 
 
 ```solidity
-function create(bytes32 salt, bytes memory code) external payable returns (address);
+function create(bytes32 salt, bytes memory code) external payable onlyAdmin returns (address);
+```
+
+### acceptAdmin
+
+
+```solidity
+function acceptAdmin() external;
+```
+
+## Events
+### AdminSet
+
+```solidity
+event AdminSet(address indexed _admin);
+```
+
+### PendingAdminSet
+
+```solidity
+event PendingAdminSet(address indexed _admin);
+```
+
+### AdminAccepted
+
+```solidity
+event AdminAccepted(address indexed _admin);
+```
+
+## Errors
+### NotAuthorized
+
+```solidity
+error NotAuthorized(address admin, address sender);
 ```
 

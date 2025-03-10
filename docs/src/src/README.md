@@ -8,6 +8,7 @@
 - [mToken](/src\mToken)
 - [oracles](/src\oracles)
 - [pauser](/src\pauser)
+- [rebalancer](/src\rebalancer)
 - [rewards](/src\rewards)
 - [utils](/src\utils)
 - [verifier](/src\verifier)

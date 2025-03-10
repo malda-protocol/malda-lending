@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 import {IRoles} from "src/interfaces/IRoles.sol";
@@ -18,7 +18,11 @@ contract BridgeMock {
         _;
     }
 
-    function sendMsg(uint32, address _token, bytes memory _message, bytes memory) external payable onlyRebalancer {
+    function sendMsg(uint256, address, uint32, address _token, bytes memory _message, bytes memory)
+        external
+        payable
+        onlyRebalancer
+    {
         uint256 amount = abi.decode(_message, (uint256));
         IERC20(_token).transferFrom(msg.sender, address(this), amount);
     }

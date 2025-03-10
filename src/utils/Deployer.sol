@@ -17,6 +17,10 @@ contract Deployer {
 
     error NotAuthorized(address admin, address sender);
 
+    event AdminSet(address indexed _admin);
+    event PendingAdminSet(address indexed _admin);
+    event AdminAccepted(address indexed _admin);
+
     modifier onlyAdmin() {
         require(msg.sender == admin, NotAuthorized(admin, msg.sender));
         _;
@@ -31,6 +35,8 @@ contract Deployer {
     // ----------- OWNER ------------
     function setPendingAdmin(address newAdmin) external onlyAdmin {
         pendingAdmin = newAdmin;
+
+        emit PendingAdminSet(newAdmin);
     }
 
     function saveEth() external {
@@ -43,6 +49,8 @@ contract Deployer {
     function setNewAdmin(address _addr) external {
         if (admin == msg.sender) {
             admin = _addr;
+
+            emit AdminSet(_addr);
         }
     }
 
@@ -63,5 +71,6 @@ contract Deployer {
         }
         admin = pendingAdmin;
         pendingAdmin = address(0);
+        emit AdminAccepted(admin);
     }
 }

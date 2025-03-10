@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 // interfaces
@@ -24,7 +24,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
-        mWethHost.mint(amount);
+        mWethHost.mint(amount, address(this), amount);
     }
 
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
@@ -33,7 +33,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
-        mWethHost.mint(amount);
+        mWethHost.mint(amount, address(this), amount);
     }
 
     function test_RevertGiven_WhenSupplyCapIsReached(uint256 amount)
@@ -46,7 +46,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         weth.approve(address(mWethHost), amount);
 
         vm.expectRevert(OperatorStorage.Operator_MarketSupplyReached.selector);
-        mWethHost.mint(amount);
+        mWethHost.mint(amount, address(this), amount);
         // it should revert with Operator_MarketSupplyReached
     }
 
@@ -61,8 +61,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         uint256 balanceWethBefore = weth.balanceOf(address(this));
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
-
-        mWethHost.mint(amount);
+        mWethHost.mint(amount, address(this), amount);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethHost.totalSupply();
@@ -83,7 +82,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
     function test_GivenAmountIs0() external whenMarketIsListed(address(mWethHost)) {
         uint256 amount = 0;
         vm.expectRevert(); //arithmetic underflow or overflow
-        mWethHost.mint(amount);
+        mWethHost.mint(amount, address(this), amount);
     }
 
     modifier whenMintExternalIsCalled() {
@@ -105,7 +104,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         amounts[0] = amount;
 
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.mintExternal("", "0x123", amounts, address(this));
+        mWethHost.mintExternal("", "0x123", amounts, amounts, address(this));
     }
 
     function test_RevertGiven_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
@@ -117,7 +116,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         amounts[0] = amount;
 
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.mintExternal("", "0x123", amounts, address(this));
+        mWethHost.mintExternal("", "0x123", amounts, amounts, address(this));
     }
 
     function test_GivenDecodedAmountIs0() external whenMintExternalIsCalled {
@@ -127,7 +126,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), 0);
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.mintExternal(journalData, "0x123", amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
     }
 
     function test_RevertWhen_SealVerificationFails(uint256 amount)
@@ -146,7 +145,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
-        mWethHost.mintExternal(journalData, "0x123", amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
     }
 
     function test_WhenSealVerificationWasOk(uint256 amount)
@@ -165,7 +164,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
-        mWethHost.mintExternal(journalData, "0x123", amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethHost.totalSupply();

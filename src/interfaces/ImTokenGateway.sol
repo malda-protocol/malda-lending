@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -23,6 +23,7 @@ interface ImTokenGateway {
      */
     event mTokenGateway_Supplied(
         address indexed from,
+        address indexed receiver,
         uint256 accAmountIn,
         uint256 accAmountOut,
         uint256 amount,
@@ -58,6 +59,12 @@ interface ImTokenGateway {
         uint32 srcChainId,
         uint32 dstChainId
     );
+
+    /**
+     * @notice Emitted when the gas fee is updated
+     */
+    event mTokenGateway_GasFeeUpdated(uint256 amount);
+    event mTokenGateway_PausedState(ImTokenOperationTypes.OperationType indexed _type, bool _status);
 
     // ----------- ERRORS -----------+
     /**
@@ -113,6 +120,11 @@ interface ImTokenGateway {
      */
     error mTokenGateway_LengthNotValid();
 
+    /**
+     * @notice Thrown when not enough gas fee was received
+     */
+    error mTokenGateway_NotEnoughGasFee();
+
     // ----------- VIEW -----------
     /**
      * @notice Roles manager
@@ -149,7 +161,7 @@ interface ImTokenGateway {
     /**
      * @notice Returns the proof data journal
      */
-    function getProofData(address user, uint32 dstId) external view returns (bytes memory);
+    function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
 
     // ----------- PUBLIC -----------
     /**
@@ -175,9 +187,10 @@ interface ImTokenGateway {
     /**
      * @notice Supply underlying to the contract
      * @param amount The supplied amount
+     * @param receiver The receiver address
      * @param lineaSelector The method selector to be called on Linea by our relayer. If empty, user has to submit it
      */
-    function supplyOnHost(uint256 amount, bytes4 lineaSelector) external;
+    function supplyOnHost(uint256 amount, address receiver, bytes4 lineaSelector) external payable;
 
     /**
      * @notice Extract tokens

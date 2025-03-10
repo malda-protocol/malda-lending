@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -59,7 +59,9 @@ abstract contract mTokenConfiguration is mTokenStorage {
         borrowRateMaxMantissa = maxMantissa;
 
         // validate new mantissa
-        _accrueInterest();
+        if (totalSupply > 0) {
+            _accrueInterest();
+        }
 
         emit NewBorrowRateMaxMantissa(_oldVal, maxMantissa);
     }
@@ -118,7 +120,7 @@ abstract contract mTokenConfiguration is mTokenStorage {
      * @dev Admin function to update the interest rate model
      * @param newInterestRateModel the new interest rate model to use
      */
-    function _setInterestRateModel(address newInterestRateModel) internal onlyAdmin {
+    function _setInterestRateModel(address newInterestRateModel) internal {
         // Ensure invoke newInterestRateModel.isInterestRateModel() returns true
         require(IInterestRateModel(newInterestRateModel).isInterestRateModel(), mToken_MarketMethodNotValid());
 

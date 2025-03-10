@@ -1,5 +1,5 @@
 # ImToken
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\interfaces\ImToken.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\interfaces\ImToken.sol)
 
 **Inherits:**
 [ImTokenMinimal](/src\interfaces\ImToken.sol\interface.ImTokenMinimal.md)
@@ -60,13 +60,13 @@ Fraction of interest currently set aside for reserves
 function reserveFactorMantissa() external view returns (uint256);
 ```
 
-### accrualBlockNumber
+### accrualBlockTimestamp
 
-Block number that interest was last accrued at
+Block timestamp that interest was last accrued at
 
 
 ```solidity
-function accrualBlockNumber() external view returns (uint256);
+function accrualBlockTimestamp() external view returns (uint256);
 ```
 
 ### borrowIndex

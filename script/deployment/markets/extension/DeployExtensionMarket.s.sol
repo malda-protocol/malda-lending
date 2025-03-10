@@ -1,10 +1,10 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 /**
  * forge script DeployExtensionMarket  \
@@ -17,41 +17,57 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
  *     --broadcast
  */
 contract DeployExtensionMarket is Script {
-    struct GatewayData {
-        address underlyingToken;
-        address roles;
-        address zkVerifier;
-    }
-
-    function run(Deployer deployer, GatewayData memory data) public returns (address) {
+    function run(
+        Deployer deployer,
+        address underlyingToken,
+        string calldata name,
+        address owner,
+        address zkVerifier,
+        address roles
+    ) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        address owner = vm.envAddress("OWNER");
-
         // Deploy implementation
-        bytes32 implSalt =
-            getSalt(string.concat("mTokenGatewayImplementation", string(abi.encodePacked(data.underlyingToken))));
+        bytes32 implSalt = getSalt(string.concat("mTokenGateway-implementationV1.0.0", addressToString(underlyingToken)));
 
-        vm.startBroadcast(key);
-        address implementation = deployer.create(implSalt, type(mTokenGateway).creationCode);
-        vm.stopBroadcast();
+        address implementation = deployer.precompute(implSalt);
 
-        console.log("Implementation deployed at:", implementation);
+        console.log("Deploying mTokenGateway implementation", name);
+        console.log("Deploying mTokenGateway implementation for token ", underlyingToken);
+
+        // Check if implementation already exists
+        if (implementation.code.length > 0) {
+            console.log("Implementation already exists at ", implementation);
+        } else {
+            vm.startBroadcast(key);
+            implementation = deployer.create(implSalt, type(mTokenGateway).creationCode);
+            vm.stopBroadcast();
+
+            console.log("Extension implementation deployed at:", implementation);
+        }
 
         // Prepare initialization data
         bytes memory initData = abi.encodeWithSelector(
-            mTokenGateway.initialize.selector, payable(owner), data.underlyingToken, data.roles, data.zkVerifier
+            mTokenGateway.initialize.selector, payable(owner), underlyingToken, roles, zkVerifier
         );
 
         // Deploy proxy
-        bytes32 proxySalt = getSalt(string.concat("mTokenGatewayProxy", string(abi.encodePacked(data.underlyingToken))));
-        vm.startBroadcast(key);
-        address proxy = deployer.create(
-            proxySalt, abi.encodePacked(type(ERC1967Proxy).creationCode, abi.encode(implementation, initData))
-        );
-        vm.stopBroadcast();
-
-        console.log("Proxy deployed at:", proxy);
+        bytes32 proxySalt = getSalt(string.concat(name, "V1.0.0"));
+        address proxy = deployer.precompute(proxySalt);
+        // Check if proxy already exists
+        if (proxy.code.length > 0) {
+            console.log("Extension Proxy already exists at ", proxy);
+        } else {
+            vm.startBroadcast(key);
+            proxy = deployer.create(
+                proxySalt,
+                abi.encodePacked(
+                    type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, owner, initData)
+                )
+            );
+            vm.stopBroadcast();
+            console.log("Extension Proxy deployed at:", proxy);
+        }
 
         return proxy;
     }
@@ -60,5 +76,19 @@ contract DeployExtensionMarket is Script {
         return keccak256(
             abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
         );
+    }
+
+    function addressToString(address _addr) internal pure returns (string memory) {
+        bytes32 value = bytes32(uint256(uint160(_addr)));
+        bytes memory alphabet = "0123456789abcdef";
+
+        bytes memory str = new bytes(42);
+        str[0] = "0";
+        str[1] = "x";
+        for (uint256 i = 0; i < 20; i++) {
+            str[2 + i * 2] = alphabet[uint8(value[i + 12] >> 4)];
+            str[3 + i * 2] = alphabet[uint8(value[i + 12] & 0x0f)];
+        }
+        return string(str);
     }
 }

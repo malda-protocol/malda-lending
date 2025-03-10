@@ -1,8 +1,8 @@
 # mToken
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\mToken\mToken.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\mToken\mToken.sol)
 
 **Inherits:**
-[mTokenConfiguration](/src\mToken\mTokenConfiguration.sol\abstract.mTokenConfiguration.md), [ReentrancyGuardTransient](/src\utils\ReentrancyGuardTransient.sol\abstract.ReentrancyGuardTransient.md)
+[mTokenConfiguration](/src\mToken\mTokenConfiguration.sol\abstract.mTokenConfiguration.md), ReentrancyGuard
 
 
 ## Functions
@@ -384,14 +384,18 @@ Sender supplies assets into the market and receives mTokens in exchange
 
 
 ```solidity
-function _mint(address user, uint256 mintAmount, bool doTransfer) internal nonReentrant;
+function _mint(address user, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer)
+    internal
+    nonReentrant;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`user`|`address`|The user address|
+|`receiver`|`address`||
 |`mintAmount`|`uint256`|The amount of the underlying asset to supply|
+|`minAmountOut`|`uint256`|The minimum amount to be received|
 |`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
@@ -403,7 +407,10 @@ Sender redeems mTokens in exchange for the underlying asset
 
 
 ```solidity
-function _redeem(address user, uint256 redeemTokens, bool doTransfer) internal nonReentrant;
+function _redeem(address user, uint256 redeemTokens, bool doTransfer)
+    internal
+    nonReentrant
+    returns (uint256 underlyingAmount);
 ```
 **Parameters**
 
@@ -422,7 +429,7 @@ Sender redeems mTokens in exchange for a specified amount of underlying asset
 
 
 ```solidity
-function _redeemUnderlying(address user, uint256 redeemAmount) internal nonReentrant;
+function _redeemUnderlying(address user, uint256 redeemAmount, bool doTransfer) internal nonReentrant;
 ```
 **Parameters**
 
@@ -430,6 +437,7 @@ function _redeemUnderlying(address user, uint256 redeemAmount) internal nonReent
 |----|----|-----------|
 |`user`|`address`|The user address|
 |`redeemAmount`|`uint256`|The amount of underlying to receive from redeeming mTokens|
+|`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
 ### _borrow
@@ -455,13 +463,13 @@ Sender repays their own borrow
 
 
 ```solidity
-function _repay(uint256 repayAmount, bool doTransfer) internal nonReentrant;
+function _repay(uint256 repayAmount, bool doTransfer) internal nonReentrant returns (uint256);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`repayAmount`|`uint256`|The amount to repay, or -1 for the full outstanding amount|
+|`repayAmount`|`uint256`|The amount to repay, or `type(uint256).max` for the full outstanding amount|
 |`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
@@ -471,14 +479,14 @@ Sender repays a borrow belonging to borrower
 
 
 ```solidity
-function _repayBehalf(address borrower, uint256 repayAmount, bool doTransfer) internal nonReentrant;
+function _repayBehalf(address borrower, uint256 repayAmount, bool doTransfer) internal nonReentrant returns (uint256);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`borrower`|`address`|the account with the debt being payed off|
-|`repayAmount`|`uint256`|The amount to repay, or -1 for the full outstanding amount|
+|`repayAmount`|`uint256`|The amount to repay, or `type(uint256).max` for the full outstanding amount|
 |`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
@@ -584,7 +592,7 @@ function __repay(address payer, address borrower, uint256 repayAmount, bool doTr
 |----|----|-----------|
 |`payer`|`address`|the account paying off the borrow|
 |`borrower`|`address`|the account with the debt being payed off|
-|`repayAmount`|`uint256`|the amount of underlying tokens being returned, or -1 for the full outstanding amount|
+|`repayAmount`|`uint256`|the amount of underlying tokens being returned, or `type(uint256).max` for the full outstanding amount|
 |`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
@@ -609,7 +617,9 @@ function __borrow(address payable borrower, uint256 borrowAmount, bool doTransfe
 
 
 ```solidity
-function __redeem(address payable redeemer, uint256 redeemTokensIn, uint256 redeemAmountIn, bool doTransfer) private;
+function __redeem(address payable redeemer, uint256 redeemTokensIn, uint256 redeemAmountIn, bool doTransfer)
+    private
+    returns (uint256 redeemAmount);
 ```
 
 ### __mint
@@ -620,14 +630,16 @@ User supplies assets into the market and receives mTokens in exchange
 
 
 ```solidity
-function __mint(address minter, uint256 mintAmount, bool doTransfer) private;
+function __mint(address minter, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer) private;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`minter`|`address`|The address of the account which is supplying the assets|
+|`receiver`|`address`|The address of the account which is receiving the assets|
 |`mintAmount`|`uint256`|The amount of the underlying asset to supply|
+|`minAmountOut`|`uint256`|The min amount to be received|
 |`doTransfer`|`bool`|If an actual transfer should be performed|
 
 

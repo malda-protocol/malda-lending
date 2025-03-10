@@ -1,8 +1,8 @@
 # RewardDistributor
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\rewards\RewardDistributor.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\rewards\RewardDistributor.sol)
 
 **Inherits:**
-[IRewardDistributor](/src\interfaces\IRewardDistributor.sol\interface.IRewardDistributor.md), [ExponentialNoError](/src\utils\ExponentialNoError.sol\abstract.ExponentialNoError.md), Initializable, OwnableUpgradeable
+[IRewardDistributor](/src\interfaces\IRewardDistributor.sol\interface.IRewardDistributor.md), [ExponentialNoError](/src\utils\ExponentialNoError.sol\abstract.ExponentialNoError.md), Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
 
 
 ## State Variables
@@ -66,20 +66,30 @@ mapping(address => bool) public isRewardToken;
 modifier onlyOperator();
 ```
 
+### constructor
+
+**Note:**
+oz-upgrades-unsafe-allow: constructor
+
+
+```solidity
+constructor();
+```
+
 ### claim
 
 
 ```solidity
-function claim(address[] memory holders) public override;
+function claim(address[] memory holders) public override nonReentrant;
 ```
 
-### getBlockNumber
+### getBlockTimestamp
 
-Get block number
+Get block timestamp
 
 
 ```solidity
-function getBlockNumber() public view override returns (uint32);
+function getBlockTimestamp() public view override returns (uint32);
 ```
 
 ### getRewardTokens
@@ -223,6 +233,18 @@ function _grantReward(address token, address user, uint256 amount) internal retu
 error RewardDistributor_OnlyOperator();
 ```
 
+### RewardDistributor_TransferFailed
+
+```solidity
+error RewardDistributor_TransferFailed();
+```
+
+### RewardDistributor_RewardNotValid
+
+```solidity
+error RewardDistributor_RewardNotValid();
+```
+
 ### RewardDistributor_AddressNotValid
 
 ```solidity
@@ -233,12 +255,6 @@ error RewardDistributor_AddressNotValid();
 
 ```solidity
 error RewardDistributor_AddressAlreadyRegistered();
-```
-
-### RewardDistributor_RewardNotValid
-
-```solidity
-error RewardDistributor_RewardNotValid();
 ```
 
 ### RewardDistributor_SupplySpeedArrayLengthMismatch

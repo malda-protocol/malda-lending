@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -36,14 +36,14 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         string memory symbol_,
         uint8 decimals_
     ) public onlyAdmin {
-        require(accrualBlockNumber == 0 && borrowIndex == 0, mToken_AlreadyInitialized());
+        require(accrualBlockTimestamp == 0 && borrowIndex == 0, mToken_AlreadyInitialized());
         require(initialExchangeRateMantissa_ > 0, mToken_ExchangeRateNotValid());
         // Set initial exchange rate
         initialExchangeRateMantissa = initialExchangeRateMantissa_;
 
         _setOperator(operator_);
 
-        accrualBlockNumber = _getBlockNumber();
+        accrualBlockTimestamp = _getBlockTimestamp();
         borrowIndex = mantissaOne;
 
         _setInterestRateModel(interestRateModel_);
@@ -211,6 +211,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
 
         // doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
         _doTransferOut(payable(msg.sender), reduceAmount);
+        totalUnderlying -= reduceAmount;
 
         emit ReservesReduced(admin, reduceAmount, totalReservesNew);
     }
@@ -244,13 +245,18 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @notice Sender supplies assets into the market and receives mTokens in exchange
      * @dev Accrues interest whether or not the operation succeeds, unless reverted
      * @param user The user address
+     * @param user The receiver address
      * @param mintAmount The amount of the underlying asset to supply
+     * @param minAmountOut The minimum amount to be received
      * @param doTransfer If an actual transfer should be performed
      */
-    function _mint(address user, uint256 mintAmount, bool doTransfer) internal nonReentrant {
+    function _mint(address user, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer)
+        internal
+        nonReentrant
+    {
         _accrueInterest();
         // emits the actual Mint event if successful and logs on errors, so we don't need to
-        __mint(user, mintAmount, doTransfer);
+        __mint(user, receiver, mintAmount, minAmountOut, doTransfer);
     }
 
     /**
@@ -260,10 +266,14 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param redeemTokens The number of mTokens to redeem into underlying
      * @param doTransfer If an actual transfer should be performed
      */
-    function _redeem(address user, uint256 redeemTokens, bool doTransfer) internal nonReentrant {
+    function _redeem(address user, uint256 redeemTokens, bool doTransfer)
+        internal
+        nonReentrant
+        returns (uint256 underlyingAmount)
+    {
         _accrueInterest();
         // emits redeem-specific logs on errors, so we don't need to
-        __redeem(payable(user), redeemTokens, 0, doTransfer);
+        underlyingAmount = __redeem(payable(user), redeemTokens, 0, doTransfer);
     }
 
     /**
@@ -293,25 +303,29 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
 
     /**
      * @notice Sender repays their own borrow
-     * @param repayAmount The amount to repay, or -1 for the full outstanding amount
+     * @param repayAmount The amount to repay, or `type(uint256).max` for the full outstanding amount
      * @param doTransfer If an actual transfer should be performed
      */
-    function _repay(uint256 repayAmount, bool doTransfer) internal nonReentrant {
+    function _repay(uint256 repayAmount, bool doTransfer) internal nonReentrant returns (uint256) {
         _accrueInterest();
         // emits repay-borrow-specific logs on errors, so we don't need to
-        __repay(msg.sender, msg.sender, repayAmount, doTransfer);
+        return __repay(msg.sender, msg.sender, repayAmount, doTransfer);
     }
 
     /**
      * @notice Sender repays a borrow belonging to borrower
      * @param borrower the account with the debt being payed off
-     * @param repayAmount The amount to repay, or -1 for the full outstanding amount
+     * @param repayAmount The amount to repay, or `type(uint256).max` for the full outstanding amount
      * @param doTransfer If an actual transfer should be performed
      */
-    function _repayBehalf(address borrower, uint256 repayAmount, bool doTransfer) internal nonReentrant {
+    function _repayBehalf(address borrower, uint256 repayAmount, bool doTransfer)
+        internal
+        nonReentrant
+        returns (uint256)
+    {
         _accrueInterest();
         // emits repay-borrow-specific logs on errors, so we don't need to
-        __repay(msg.sender, borrower, repayAmount, doTransfer);
+        return __repay(msg.sender, borrower, repayAmount, doTransfer);
     }
 
     /**
@@ -403,6 +417,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          */
 
         actualAddAmount = _doTransferIn(msg.sender, addAmount);
+        totalUnderlying += actualAddAmount;
 
         totalReservesNew = totalReserves + actualAddAmount;
 
@@ -436,7 +451,8 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         IOperatorDefender(operator).beforeMTokenLiquidate(address(this), mTokenCollateral, borrower, repayAmount);
 
         require(
-            ImToken(mTokenCollateral).accrualBlockNumber() == _getBlockNumber(), mToken_CollateralBlockNumberNotValid()
+            ImToken(mTokenCollateral).accrualBlockTimestamp() == _getBlockTimestamp(),
+            mToken_CollateralBlockTimestampNotValid()
         );
 
         /* Fail if repayBorrow fails */
@@ -467,7 +483,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @notice Borrows are repaid by another user (possibly the borrower).
      * @param payer the account paying off the borrow
      * @param borrower the account with the debt being payed off
-     * @param repayAmount the amount of underlying tokens being returned, or -1 for the full outstanding amount
+     * @param repayAmount the amount of underlying tokens being returned, or `type(uint256).max` for the full outstanding amount
      * @param doTransfer If an actual transfer should be performed
      */
 
@@ -492,6 +508,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          *   it returns the amount actually transferred, in case of a fee.
          */
         uint256 actualRepayAmount = doTransfer ? _doTransferIn(payer, repayAmountFinal) : repayAmountFinal;
+        totalUnderlying += actualRepayAmount;
 
         /*
          * We calculate the new borrower and total borrow balances, failing on underflow:
@@ -551,6 +568,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
             */
             _doTransferOut(borrower, borrowAmount);
         }
+        totalUnderlying -= borrowAmount;
 
         /* We emit a Borrow event */
         emit Borrow(borrower, borrowAmount, accountBorrowsNew, totalBorrowsNew);
@@ -558,6 +576,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
 
     function __redeem(address payable redeemer, uint256 redeemTokensIn, uint256 redeemAmountIn, bool doTransfer)
         private
+        returns (uint256 redeemAmount)
     {
         require(redeemTokensIn == 0 || redeemAmountIn == 0, mToken_InvalidInput());
 
@@ -565,7 +584,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         Exp memory exchangeRate = Exp({mantissa: _exchangeRateStored()});
 
         uint256 redeemTokens;
-        uint256 redeemAmount;
         /* If redeemTokensIn > 0: */
         if (redeemTokensIn > 0) {
             /*
@@ -609,6 +627,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          *  _doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
          */
         if (doTransfer) _doTransferOut(redeemer, redeemAmount);
+        totalUnderlying -= redeemAmount;
 
         /* We emit a Transfer event, and a Redeem event */
         emit Transfer(redeemer, address(this), redeemTokens);
@@ -618,11 +637,15 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @notice User supplies assets into the market and receives mTokens in exchange
      * @dev Assumes interest has already been accrued up to the current block
      * @param minter The address of the account which is supplying the assets
+     * @param receiver The address of the account which is receiving the assets
      * @param mintAmount The amount of the underlying asset to supply
+     * @param minAmountOut The min amount to be received
      * @param doTransfer If an actual transfer should be performed
      */
 
-    function __mint(address minter, uint256 mintAmount, bool doTransfer) private {
+    function __mint(address minter, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer)
+        private
+    {
         IOperatorDefender(operator).beforeMTokenMint(address(this), minter);
 
         Exp memory exchangeRate = Exp({mantissa: _exchangeRateStored()});
@@ -640,6 +663,8 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          *  of cash.
          */
         uint256 actualMintAmount = doTransfer ? _doTransferIn(minter, mintAmount) : mintAmount;
+        totalUnderlying += actualMintAmount;
+        require(actualMintAmount >= minAmountOut, mToken_MinAmountNotValid());
 
         /*
          * We get the current exchange rate and calculate the number of mTokens to be minted:
@@ -662,14 +687,20 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          * And write them into storage
          */
         totalSupply = totalSupply + mintTokens;
-        accountTokens[minter] = accountTokens[minter] + mintTokens;
+        accountTokens[receiver] = accountTokens[receiver] + mintTokens;
 
         /* We emit a Mint event, and a Transfer event */
-        emit Mint(minter, actualMintAmount, mintTokens);
-        emit Transfer(address(this), minter, mintTokens);
+        emit Mint(minter, receiver, actualMintAmount, mintTokens);
+        emit Transfer(address(this), receiver, mintTokens);
 
         /* We call the defense hook */
         IOperatorDefender(operator).afterMTokenMint(address(this));
+
+        // Activate market by default if not entered already
+        bool isEntered = IOperator(operator).checkMembership(minter, address(this));
+        if (!isEntered) {
+            IOperator(operator).enterMarketsWithSender(minter);
+        }
     }
 
     /**

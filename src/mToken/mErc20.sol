@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -76,16 +76,20 @@ contract mErc20 is mToken, ImErc20 {
      */
     function sweepToken(IERC20 token) external onlyAdmin {
         require(address(token) != underlying, mErc20_TokenNotValid());
+
+        uint256 underlyingBefore = IERC20(underlying).balanceOf(address(this));
         uint256 balance = token.balanceOf(address(this));
         token.safeTransfer(admin, balance);
+        uint256 underlyingAfter = IERC20(underlying).balanceOf(address(this));
+        require(underlyingBefore == underlyingAfter, mToken_TransferNotValid());
     }
 
     // ----------- MARKET PUBLIC ------------
     /**
      * @inheritdoc ImErc20
      */
-    function mint(uint256 mintAmount) external {
-        _mint(msg.sender, mintAmount, true);
+    function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external {
+        _mint(msg.sender, receiver, mintAmount, minAmountOut, true);
     }
 
     /**
@@ -112,15 +116,15 @@ contract mErc20 is mToken, ImErc20 {
     /**
      * @inheritdoc ImErc20
      */
-    function repay(uint256 repayAmount) external {
-        _repay(repayAmount, true);
+    function repay(uint256 repayAmount) external returns (uint256) {
+        return _repay(repayAmount, true);
     }
 
     /**
      * @inheritdoc ImErc20
      */
-    function repayBehalf(address borrower, uint256 repayAmount) external {
-        _repayBehalf(borrower, repayAmount, true);
+    function repayBehalf(address borrower, uint256 repayAmount) external returns (uint256) {
+        return _repayBehalf(borrower, repayAmount, true);
     }
 
     /**
@@ -144,7 +148,7 @@ contract mErc20 is mToken, ImErc20 {
      * @return The quantity of underlying tokens owned by this contract
      */
     function _getCashPrior() internal view virtual override returns (uint256) {
-        return IERC20(underlying).balanceOf(address(this));
+        return totalUnderlying;
     }
 
     /**

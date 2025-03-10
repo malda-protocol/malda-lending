@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -64,12 +64,17 @@ interface ImErc20Host {
     /**
      * @notice Emitted when a borrow operation is triggered for an extension chain
      */
-    event mErc20Host_BorrowOnExternsionChain(address indexed sender, uint32 dstChainId, uint256 amount);
+    event mErc20Host_BorrowOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount);
 
     /**
      * @notice Emitted when a withdraw operation is triggered for an extension chain
      */
     event mErc20Host_WithdrawOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount);
+
+    /**
+     * @notice Emitted when gas fees are updated for a dst chain
+     */
+    event mErc20Host_GasFeeUpdated(uint32 indexed dstChainId, uint256 amount);
 
     // ----------- ERRORS -----------
     /**
@@ -122,6 +127,11 @@ interface ImErc20Host {
      */
     error mErc20Host_LengthMismatch();
 
+    /**
+     * @notice Thrown when not enough gas fee was received
+     */
+    error mErc20Host_NotEnoughGasFee();
+
     // ----------- VIEW -----------
     /**
      * @notice Returns if a caller is allowed for sender
@@ -131,7 +141,7 @@ interface ImErc20Host {
     /**
      * @notice Returns the proof data journal
      */
-    function getProofData(address user, uint32 dstId) external view returns (bytes memory);
+    function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
 
     // ----------- PUBLIC -----------
     /**
@@ -170,12 +180,14 @@ interface ImErc20Host {
      * @param journalData The journal data for minting (array of encoded journals)
      * @param seal The Zk proof seal
      * @param mintAmount Array of amounts to mint
+     * @param minAmountsOut Array of min amounts accepted
      * @param receiver The tokens receiver
      */
     function mintExternal(
         bytes calldata journalData,
         bytes calldata seal,
         uint256[] calldata mintAmount,
+        uint256[] calldata minAmountsOut,
         address receiver
     ) external;
 
@@ -198,12 +210,12 @@ interface ImErc20Host {
      * @param amount The amount to withdraw
      * @param dstChainId The destination chain to recieve funds
      */
-    function withdrawOnExtension(uint256 amount, uint32 dstChainId) external;
+    function withdrawOnExtension(uint256 amount, uint32 dstChainId) external payable;
 
     /**
      * @notice Initiates a withdraw operation
      * @param amount The amount to withdraw
      * @param dstChainId The destination chain to recieve funds
      */
-    function borrowOnExtension(uint256 amount, uint32 dstChainId) external;
+    function borrowOnExtension(uint256 amount, uint32 dstChainId) external payable;
 }

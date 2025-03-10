@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 // interfaces
@@ -39,6 +39,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
     function test_RevertGiven_OracleReturnsEmptyPrice(uint256 amount)
         external
         whenPriceIs(ZERO_VALUE)
+        whenUnderlyingPriceIs(ZERO_VALUE)
         whenMarketIsListed(address(mWethHost))
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         inRange(amount, SMALL, LARGE)
@@ -115,13 +116,10 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         _borrowPrerequisites(address(mWethHost), amount * 2);
 
         // before state
-        bool memberBefore = operator.checkMembership(address(this), address(mWethHost));
         uint256 balanceUnderlyingBefore = weth.balanceOf(address(this));
         uint256 balanceUnderlyingMTokenBefore = weth.balanceOf(address(mWethHost));
         uint256 supplyUnderlyingBefore = weth.totalSupply();
         uint256 totalBorrowsBefore = mWethHost.totalBorrows();
-
-        assertFalse(memberBefore);
 
         // borrow; should fail
         vm.expectRevert(OperatorStorage.Operator_InsufficientLiquidity.selector);
@@ -233,6 +231,7 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         uint256 balanceUnderlyingBefore = weth.balanceOf(address(this));
         uint256 totalBorrowsBefore = mWethHost.totalBorrows();
 
+        mWethHost.updateAllowedChain(1, true);
         mWethHost.borrowOnExtension(amount, 1);
 
         {

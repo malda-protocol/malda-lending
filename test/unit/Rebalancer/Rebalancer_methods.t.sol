@@ -1,10 +1,21 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 import {IRebalancer, IRebalanceMarket} from "src/interfaces/IRebalancer.sol";
 import {Rebalancer_Unit_Shared} from "../shared/Rebalancer_Unit_Shared.t.sol";
 
+import "forge-std/console.sol";
+
 contract Rebalancer_methods is Rebalancer_Unit_Shared {
+    function setUp() public override {
+        super.setUp();
+
+        roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), true);
+        rebalancer.setMaxTransferSize(0, address(weth), type(uint256).max);
+        rebalancer.setMaxTransferSize(1, address(weth), type(uint256).max);
+        roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), false);
+    }
+
     modifier givenSenderDoesNotHaveGUARDIAN_BRIDGERole() {
         //does nothing; for readability only
         _;
@@ -85,6 +96,7 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
     {
         // it should revert with Rebalancer_RequestNotValid
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
+        rebalancer.setWhitelistedDestination(0, true);
         roles.allowFor(address(this), roles.REBALANCER_EOA(), true);
         IRebalancer.Msg memory _msg =
             IRebalancer.Msg({dstChainId: 0, token: address(usdc), message: "", bridgeData: ""});
@@ -115,8 +127,11 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
         givenSendMsgIsCalledWithRightParameters
         givenSenderHasRoleGUARDIAN_BRIDGE
         inRange(amount, SMALL, LARGE)
+        whenMarketIsListed(address(mWethHost))
     {
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
+        rebalancer.setWhitelistedDestination(0, true);
+
         IRebalancer.Msg memory _msg =
             IRebalancer.Msg({dstChainId: 0, token: address(weth), message: abi.encode(amount), bridgeData: ""});
         _getTokens(weth, address(mWethHost), amount);
@@ -124,5 +139,20 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
         uint256 bridgeBalance = weth.balanceOf(address(bridgeMock));
         assertEq(bridgeBalance, amount);
         // it should extract and rebalance
+    }
+
+    function test_WhenMarketHasEnoughTokensButTransferSizeIsNotMet(uint256 amount)
+        external
+        givenSendMsgIsCalledWithRightParameters
+        givenSenderHasRoleGUARDIAN_BRIDGE
+        inRange(amount, SMALL, LARGE)
+    {
+        rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
+        rebalancer.setMaxTransferSize(0, address(weth), amount - 1);
+        IRebalancer.Msg memory _msg =
+            IRebalancer.Msg({dstChainId: 0, token: address(weth), message: abi.encode(amount), bridgeData: ""});
+        _getTokens(weth, address(mWethHost), amount);
+        vm.expectRevert();
+        rebalancer.sendMsg(address(bridgeMock), address(mWethHost), amount, _msg);
     }
 }

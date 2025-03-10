@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -25,26 +25,6 @@ interface IRoles {
      * @notice Returns GUARDIAN_PAUSE role
      */
     function GUARDIAN_PAUSE() external view returns (bytes32);
-
-    /**
-     * @notice Returns GUARDIAN_TRANSFER role
-     */
-    function GUARDIAN_TRANSFER() external view returns (bytes32);
-
-    /**
-     * @notice Returns GUARDIAN_SEIZE role
-     */
-    function GUARDIAN_SEIZE() external view returns (bytes32);
-
-    /**
-     * @notice Returns GUARDIAN_MINT role
-     */
-    function GUARDIAN_MINT() external view returns (bytes32);
-
-    /**
-     * @notice Returns GUARDIAN_BORROW role
-     */
-    function GUARDIAN_BORROW() external view returns (bytes32);
 
     /**
      * @notice Returns GUARDIAN_BRIDGE role
@@ -85,6 +65,11 @@ interface IRoles {
      * @notice Returns CHAINS_MANAGER role
      */
     function CHAINS_MANAGER() external view returns (bytes32);
+
+    /**
+     * @notice Returns GUARDIAN_ORACLE role
+     */
+    function GUARDIAN_ORACLE() external view returns (bytes32);
 
     /**
      * @notice Returns allowance status for a contract and a role

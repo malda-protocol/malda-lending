@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -10,12 +10,19 @@ pragma solidity =0.8.28;
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 
 import {ImToken} from "src/interfaces/ImToken.sol";
 import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
 import {IRewardDistributor, IRewardDistributorData} from "src/interfaces/IRewardDistributor.sol";
 
-contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializable, OwnableUpgradeable {
+contract RewardDistributor is
+    IRewardDistributor,
+    ExponentialNoError,
+    Initializable,
+    OwnableUpgradeable,
+    ReentrancyGuardUpgradeable
+{
     // ----------- STORAGE ------------
     uint224 public constant REWARD_INITIAL_INDEX = 1e36;
 
@@ -44,9 +51,10 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     mapping(address => bool) public isRewardToken;
 
     error RewardDistributor_OnlyOperator();
+    error RewardDistributor_TransferFailed();
+    error RewardDistributor_RewardNotValid();
     error RewardDistributor_AddressNotValid();
     error RewardDistributor_AddressAlreadyRegistered();
-    error RewardDistributor_RewardNotValid();
     error RewardDistributor_SupplySpeedArrayLengthMismatch();
     error RewardDistributor_BorrowSpeedArrayLengthMismatch();
 
@@ -56,8 +64,13 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
         _;
     }
 
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
     // ----------- PUBLIC ------------
-    function claim(address[] memory holders) public override {
+    function claim(address[] memory holders) public override nonReentrant {
         for (uint256 i = 0; i < rewardTokens.length;) {
             _claim(rewardTokens[i], holders);
 
@@ -70,9 +83,9 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     /**
      * @inheritdoc IRewardDistributor
      */
-    function getBlockNumber() public view override returns (uint32) {
+    function getBlockTimestamp() public view override returns (uint32) {
         // needs to have a string error message
-        return safe32(block.timestamp, "block number exceeds 32 bits");
+        return safe32(block.timestamp, "block timestamp exceeds 32 bits");
     }
 
     /**
@@ -89,6 +102,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
 
     function setOperator(address _operator) external onlyOwner {
         require(_operator != address(0), RewardDistributor_AddressNotValid());
+        emit OperatorSet(operator, _operator);
         operator = _operator;
     }
 
@@ -98,6 +112,8 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
 
         rewardTokens.push(rewardToken_);
         isRewardToken[rewardToken_] = true;
+
+        emit WhitelistedToken(rewardToken_);
     }
 
     function updateRewardSpeeds(
@@ -132,6 +148,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
         for (uint256 i = 0; i < rewardTokens.length;) {
             _notifySupplyIndex(rewardTokens[i], mToken);
 
+            emit SupplyIndexNotified(rewardTokens[i], mToken);
             unchecked {
                 ++i;
             }
@@ -145,6 +162,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
         for (uint256 i = 0; i < rewardTokens.length;) {
             _notifyBorrowIndex(rewardTokens[i], mToken);
 
+            emit BorrowIndexNotified(rewardTokens[i], mToken);
             unchecked {
                 ++i;
             }
@@ -189,6 +207,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
             }
 
             _notifySupplyIndex(rewardToken, mToken);
+            emit SupplyIndexNotified(rewardToken, mToken);
             marketState.supplySpeed = supplySpeed;
             emit SupplySpeedUpdated(rewardToken, mToken, supplySpeed);
         }
@@ -199,6 +218,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
             }
 
             _notifyBorrowIndex(rewardToken, mToken);
+            emit BorrowIndexNotified(rewardToken, mToken);
             marketState.borrowSpeed = borrowSpeed;
             emit BorrowSpeedUpdated(rewardToken, mToken, borrowSpeed);
         }
@@ -207,11 +227,11 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     function _notifySupplyIndex(address rewardToken, address mToken) private {
         IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
 
-        uint32 blockNumber = getBlockNumber();
+        uint32 blockTimestamp = getBlockTimestamp();
 
-        if (blockNumber > marketState.supplyBlock) {
+        if (blockTimestamp > marketState.supplyBlock) {
             if (marketState.supplySpeed > 0) {
-                uint256 deltaBlocks = blockNumber - marketState.supplyBlock;
+                uint256 deltaBlocks = blockTimestamp - marketState.supplyBlock;
                 uint256 supplyTokens = ImToken(mToken).totalSupply();
                 uint256 accrued = mul_(deltaBlocks, marketState.supplySpeed);
                 Double memory ratio = supplyTokens > 0 ? fraction(accrued, supplyTokens) : Double({mantissa: 0});
@@ -221,7 +241,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
                 );
             }
 
-            marketState.supplyBlock = blockNumber;
+            marketState.supplyBlock = blockTimestamp;
         }
     }
 
@@ -230,11 +250,11 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
 
         IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
 
-        uint32 blockNumber = getBlockNumber();
+        uint32 blockTimestamp = getBlockTimestamp();
 
-        if (blockNumber > marketState.borrowBlock) {
+        if (blockTimestamp > marketState.borrowBlock) {
             if (marketState.borrowSpeed > 0) {
-                uint256 deltaBlocks = blockNumber - marketState.borrowBlock;
+                uint256 deltaBlocks = blockTimestamp - marketState.borrowBlock;
                 uint256 borrowAmount = div_(ImToken(mToken).totalBorrows(), marketBorrowIndex);
                 uint256 accrued = mul_(deltaBlocks, marketState.borrowSpeed);
                 Double memory ratio = borrowAmount > 0 ? fraction(accrued, borrowAmount) : Double({mantissa: 0});
@@ -244,7 +264,7 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
                 );
             }
 
-            marketState.borrowBlock = blockNumber;
+            marketState.borrowBlock = blockTimestamp;
         }
     }
 
@@ -322,7 +342,8 @@ contract RewardDistributor is IRewardDistributor, ExponentialNoError, Initializa
     function _grantReward(address token, address user, uint256 amount) internal returns (uint256) {
         uint256 remaining = ImToken(token).balanceOf(address(this));
         if (amount > 0 && amount <= remaining) {
-            ImToken(token).transfer(user, amount);
+            bool status = ImToken(token).transfer(user, amount);
+            require(status, RewardDistributor_TransferFailed());
 
             emit RewardGranted(token, user, amount);
 

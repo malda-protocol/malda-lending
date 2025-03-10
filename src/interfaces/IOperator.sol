@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -27,6 +27,12 @@ interface IOperatorData {
 }
 
 interface IOperatorDefender {
+    /**
+     * @notice Checks if the account should be allowed to rebalance tokens
+     * @param mToken The market to verify the transfer against
+     */
+    function beforeRebalancing(address mToken) external;
+
     /**
      * @notice Checks if the account should be allowed to transfer tokens in the given market
      * @param mToken The market to verify the transfer against
@@ -132,6 +138,11 @@ interface IOperator {
     function liquidationIncentiveMantissa() external view returns (uint256);
 
     /**
+     * @notice Returns true/false
+     */
+    function isMarketListed(address market) external view returns (bool);
+
+    /**
      * @notice Returns the assets an account has entered
      * @param _user The address of the account to pull assets for
      * @return mTokens A dynamic list with the assets the account has entered
@@ -223,6 +234,12 @@ interface IOperator {
      * @param _mTokens The list of addresses of the mToken markets to be enabled
      */
     function enterMarkets(address[] calldata _mTokens) external;
+
+    /**
+     * @notice Add asset (msg.sender) to be included in account liquidity calculation
+     * @param _account The account to add for
+     */
+    function enterMarketsWithSender(address _account) external;
 
     /**
      * @notice Removes asset from sender's account liquidity calculation

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -20,6 +20,8 @@ import {Helpers} from "./utils/Helpers.sol";
 
 import {ERC20Mock} from "./mocks/ERC20Mock.sol";
 import {OracleMock} from "./mocks/OracleMock.sol";
+
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 abstract contract Base_Unit_Test is Events, Helpers, Types {
     // ----------- USERS ------------
@@ -51,10 +53,17 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
         roles = new Roles(address(this));
         vm.label(address(roles), "Roles");
 
-        rewards = new RewardDistributor();
+        RewardDistributor rewardsImpl = new RewardDistributor();
+        bytes memory rewardsInitData = abi.encodeWithSelector(RewardDistributor.initialize.selector, address(this));
+        ERC1967Proxy rewardsProxy = new ERC1967Proxy(address(rewardsImpl), rewardsInitData);
+        rewards = RewardDistributor(address(rewardsProxy));
         vm.label(address(rewards), "RewardDistributor");
 
-        operator = new Operator(address(roles), address(rewards), address(this));
+        Operator oprImp = new Operator();
+        bytes memory operatorInitData =
+            abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(rewards), address(this));
+        ERC1967Proxy operatorProxy = new ERC1967Proxy(address(oprImp), operatorInitData);
+        operator = Operator(address(operatorProxy));
         vm.label(address(operator), "Operator");
 
         interestModel = new JumpRateModelV4(
@@ -62,11 +71,10 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
         );
         vm.label(address(interestModel), "InterestModel");
 
-        oracleOperator = new OracleMock();
+        oracleOperator = new OracleMock(address(this));
         vm.label(address(oracleOperator), "oracleOperator");
 
         // **** SETUP ****
-        rewards.initialize(address(this));
         rewards.setOperator(address(operator));
         operator.setPriceOracle(address(oracleOperator));
     }

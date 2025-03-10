@@ -1,10 +1,13 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 import {Operator} from "src/Operator/Operator.sol";
-import {Unit} from "src/Operator/Unit.sol";
+import {Deployer} from "src/utils/Deployer.sol";
+import {Script, console} from "forge-std/Script.sol";
+
+import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 /**
  * forge script script/deployment/markets/DeployOperator.s.sol:DeployOperator  \
@@ -17,54 +20,52 @@ import {Unit} from "src/Operator/Unit.sol";
  *     --broadcast
  */
 contract DeployOperator is Script {
-    function run(Deployer deployer, address oracle, address rewardDistributor, address rolesContract)
+    function run(Deployer deployer, address oracle, address rewards, address roles, address owner)
         public
         returns (address)
     {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        address owner = vm.envAddress("OWNER");
+        bytes32 implSalt = _getSalt("OperatorImplementationV1.0.0");
+        address implementation = deployer.precompute(implSalt);
+        if (implementation.code.length > 0) {
+            console.log("Operator implementation already deployed at:", implementation);
+        } else {
+            vm.startBroadcast(key);
+            implementation = deployer.create(implSalt, abi.encodePacked(type(Operator).creationCode));
+            vm.stopBroadcast();
+            console.log("Operator implementation deployed at:", implementation);
+        }
 
-        // Deploy implementation (Operator)
-        bytes32 implSalt = getSalt("OperatorImplementation");
+        bytes memory initData = abi.encodeWithSelector(Operator.initialize.selector, roles, rewards, owner);
+
+        // Deploy proxy
+        bytes32 proxySalt = _getSalt("OperatorProxyV1.0.0");
+        address operatorAddress = deployer.precompute(proxySalt);
+        if (operatorAddress.code.length > 0) {
+            console.log("Operator proxy already deployed at:", operatorAddress);
+        } else {
+            vm.startBroadcast(key);
+            operatorAddress = deployer.create(
+                proxySalt,
+                abi.encodePacked(
+                    type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, owner, initData)
+                )
+            );
+            vm.stopBroadcast();
+            console.log("Operator proxy deployed at:", operatorAddress);
+        }
+
+        console.log("Setting oracle: ", oracle);
         vm.startBroadcast(key);
-        address implementation = deployer.create(
-            implSalt, abi.encodePacked(type(Operator).creationCode, abi.encode(rolesContract, rewardDistributor, owner))
-        );
+        Operator(operatorAddress).setPriceOracle(oracle);
         vm.stopBroadcast();
-        console.log("Operator implementation deployed at:", implementation);
+        console.log("Oracle has been set");
 
-        // Deploy proxy (Unit)
-        bytes32 proxySalt = getSalt("OperatorProxy");
-        vm.startBroadcast(key);
-        address proxy = deployer.create(proxySalt, abi.encodePacked(type(Unit).creationCode, abi.encode(owner)));
-        vm.stopBroadcast();
-        console.log("Operator proxy (Unit) deployed at:", proxy);
-
-        // Set up the implementation in the proxy
-        vm.startBroadcast(key);
-        Unit(payable(proxy)).setPendingImplementation(implementation);
-        vm.stopBroadcast();
-        vm.startBroadcast(key);
-        Operator(implementation).become(proxy);
-        vm.stopBroadcast();
-
-        vm.startBroadcast(key);
-        Operator(proxy).setPriceOracle(oracle);
-        vm.stopBroadcast();
-        console.log("Price oracle set to:", oracle);
-
-        vm.startBroadcast(key);
-        Operator(proxy).setRewardDistributor(rewardDistributor);
-        vm.stopBroadcast();
-        console.log("Reward distributor set to:", rewardDistributor);
-
-        console.log("Operator deployed at: %s", proxy);
-
-        return proxy;
+        return operatorAddress;
     }
 
-    function getSalt(string memory name) internal view returns (bytes32) {
+    function _getSalt(string memory name) internal view returns (bytes32) {
         return keccak256(
             abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
         );

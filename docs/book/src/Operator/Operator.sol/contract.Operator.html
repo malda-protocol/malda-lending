@@ -31,6 +31,8 @@
         <!-- Custom theme stylesheets -->
         <link rel="stylesheet" href="../../../book.css">
 
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
         <!-- Provide site root to javascript -->
         <script>
@@ -127,7 +129,7 @@
                         <a href="../../../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
-                        <a href="https://github.com/https://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@malda-protocol/malda-lending" title="Git repository" aria-label="Git repository">
+                        <a href="https://github.com/malda-protocol/malda-lending" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
 
@@ -157,42 +159,32 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="operator"><a class="header" href="#operator">Operator</a></h1>
-<p><a href="https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src%5COperator%5COperator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src%5COperator%5COperator.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-<a href="/src%5COperator%5COperatorStorage.sol%5Cabstract.OperatorStorage.html">OperatorStorage</a>, <a href="/src%5Cinterfaces%5CImToken.sol%5Cinterface.ImTokenOperationTypes.html">ImTokenOperationTypes</a></p>
+<a href="/src%5COperator%5COperatorStorage.sol%5Cabstract.OperatorStorage.html">OperatorStorage</a>, <a href="/src%5Cinterfaces%5CImToken.sol%5Cinterface.ImTokenOperationTypes.html">ImTokenOperationTypes</a>, OwnableUpgradeable</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<pre><code class="language-solidity">constructor(address _rolesOperator, address _rewardDistributor, address _admin);
+<p><strong>Note:</strong>
+oz-upgrades-unsafe-allow: constructor</p>
+<pre><code class="language-solidity">constructor();
+</code></pre>
+<h3 id="initialize"><a class="header" href="#initialize">initialize</a></h3>
+<pre><code class="language-solidity">function initialize(address _rolesOperator, address _rewardDistributor, address _admin) public initializer;
 </code></pre>
 <h3 id="setrolesoperator"><a class="header" href="#setrolesoperator">setRolesOperator</a></h3>
 <p>Sets a new Operator for the market</p>
 <p><em>Admin function to set a new operator</em></p>
-<pre><code class="language-solidity">function setRolesOperator(address _roles) external onlyAdmin;
-</code></pre>
-<h3 id="setpendingadmin"><a class="header" href="#setpendingadmin">setPendingAdmin</a></h3>
-<p>Begins transfer of admin rights. The newPendingAdmin must call <code>_acceptAdmin</code> to finalize the transfer.</p>
-<p><em>Admin function to begin change of admin. The newPendingAdmin must call <code>_acceptAdmin</code> to finalize the transfer.</em></p>
-<pre><code class="language-solidity">function setPendingAdmin(address newPendingAdmin) external onlyAdmin;
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>newPendingAdmin</code></td><td><code>address</code></td><td>New pending admin.</td></tr>
-</tbody></table>
-</div>
-<h3 id="acceptadmin"><a class="header" href="#acceptadmin">acceptAdmin</a></h3>
-<p>Accepts transfer of admin rights. msg.sender must be pendingAdmin</p>
-<p><em>Admin function for pending admin to accept role and update admin</em></p>
-<pre><code class="language-solidity">function acceptAdmin() external;
+<pre><code class="language-solidity">function setRolesOperator(address _roles) external onlyOwner;
 </code></pre>
 <h3 id="setpriceoracle"><a class="header" href="#setpriceoracle">setPriceOracle</a></h3>
 <p>Sets a new price oracle</p>
 <p><em>Admin function to set a new price oracle</em></p>
-<pre><code class="language-solidity">function setPriceOracle(address newOracle) external onlyAdmin;
+<pre><code class="language-solidity">function setPriceOracle(address newOracle) external onlyOwner;
 </code></pre>
 <h3 id="setclosefactor"><a class="header" href="#setclosefactor">setCloseFactor</a></h3>
 <p>Sets the closeFactor used when liquidating borrows</p>
 <p><em>Admin function to set closeFactor</em></p>
-<pre><code class="language-solidity">function setCloseFactor(uint256 newCloseFactorMantissa) external onlyAdmin;
+<pre><code class="language-solidity">function setCloseFactor(uint256 newCloseFactorMantissa) external onlyOwner;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -202,7 +194,7 @@
 <h3 id="setcollateralfactor"><a class="header" href="#setcollateralfactor">setCollateralFactor</a></h3>
 <p>Sets the collateralFactor for a market</p>
 <p><em>Admin function to set per-market collateralFactor</em></p>
-<pre><code class="language-solidity">function setCollateralFactor(address mToken, uint256 newCollateralFactorMantissa) external onlyAdmin;
+<pre><code class="language-solidity">function setCollateralFactor(address mToken, uint256 newCollateralFactorMantissa) external onlyOwner;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -213,7 +205,7 @@
 <h3 id="setliquidationincentive"><a class="header" href="#setliquidationincentive">setLiquidationIncentive</a></h3>
 <p>Sets liquidationIncentive</p>
 <p><em>Admin function to set liquidationIncentive</em></p>
-<pre><code class="language-solidity">function setLiquidationIncentive(uint256 newLiquidationIncentiveMantissa) external onlyAdmin;
+<pre><code class="language-solidity">function setLiquidationIncentive(uint256 newLiquidationIncentiveMantissa) external onlyOwner;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -223,7 +215,7 @@
 <h3 id="supportmarket"><a class="header" href="#supportmarket">supportMarket</a></h3>
 <p>Add the market to the markets mapping and set it as listed</p>
 <p><em>Admin function to set isListed and add support for the market</em></p>
-<pre><code class="language-solidity">function supportMarket(address mToken) external onlyAdmin;
+<pre><code class="language-solidity">function supportMarket(address mToken) external onlyOwner;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -263,20 +255,11 @@
 </div>
 <h3 id="setrewarddistributor"><a class="header" href="#setrewarddistributor">setRewardDistributor</a></h3>
 <p>Admin function to change the Reward Distributor</p>
-<pre><code class="language-solidity">function setRewardDistributor(address newRewardDistributor) external onlyAdmin;
+<pre><code class="language-solidity">function setRewardDistributor(address newRewardDistributor) external onlyOwner;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>newRewardDistributor</code></td><td><code>address</code></td><td>The address of the new Reward Distributor</td></tr>
-</tbody></table>
-</div>
-<h3 id="become"><a class="header" href="#become">become</a></h3>
-<p>Accepts IUnit implementation</p>
-<pre><code class="language-solidity">function become(address _unit) external;
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_unit</code></td><td><code>address</code></td><td>the new unit implementation</td></tr>
 </tbody></table>
 </div>
 <h3 id="isoperator"><a class="header" href="#isoperator">isOperator</a></h3>
@@ -336,6 +319,10 @@
 <tr><td><code>mToken</code></td><td><code>address</code></td><td>The market to check if deprecated</td></tr>
 </tbody></table>
 </div>
+<h3 id="ismarketlisted"><a class="header" href="#ismarketlisted">isMarketListed</a></h3>
+<p>Returns true/false</p>
+<pre><code class="language-solidity">function isMarketListed(address mToken) external view override returns (bool);
+</code></pre>
 <h3 id="getaccountliquidity"><a class="header" href="#getaccountliquidity">getAccountLiquidity</a></h3>
 <p>Determine the current account liquidity wrt collateral requirements</p>
 <pre><code class="language-solidity">function getAccountLiquidity(address account) public view returns (uint256, uint256);
@@ -398,6 +385,15 @@
 <tr><td><code>_mTokens</code></td><td><code>address[]</code></td><td>The list of addresses of the mToken markets to be enabled</td></tr>
 </tbody></table>
 </div>
+<h3 id="entermarketswithsender"><a class="header" href="#entermarketswithsender">enterMarketsWithSender</a></h3>
+<p>Add asset (msg.sender) to be included in account liquidity calculation</p>
+<pre><code class="language-solidity">function enterMarketsWithSender(address _account) external override;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_account</code></td><td><code>address</code></td><td>The account to add for</td></tr>
+</tbody></table>
+</div>
 <h3 id="exitmarket"><a class="header" href="#exitmarket">exitMarket</a></h3>
 <p>Removes asset from sender's account liquidity calculation</p>
 <p><em>Sender must not have an outstanding borrow balance in the asset,
@@ -440,6 +436,15 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <tr><td><code>mTokens</code></td><td><code>address[]</code></td><td>The list of markets to claim MALDA in</td></tr>
 <tr><td><code>borrowers</code></td><td><code>bool</code></td><td>Whether or not to claim MALDA earned by borrowing</td></tr>
 <tr><td><code>suppliers</code></td><td><code>bool</code></td><td>Whether or not to claim MALDA earned by supplying</td></tr>
+</tbody></table>
+</div>
+<h3 id="beforerebalancing"><a class="header" href="#beforerebalancing">beforeRebalancing</a></h3>
+<p>Checks if the account should be allowed to rebalance tokens</p>
+<pre><code class="language-solidity">function beforeRebalancing(address mToken) external view override;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>The market to verify the transfer against</td></tr>
 </tbody></table>
 </div>
 <h3 id="beforemtokentransfer"><a class="header" href="#beforemtokentransfer">beforeMTokenTransfer</a></h3>
@@ -548,27 +553,27 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
     uint256 borrowAmount
 ) private view returns (uint256, uint256);
 </code></pre>
-<h3 id="_updatemeldasupplyindex"><a class="header" href="#_updatemeldasupplyindex">_updateMeldaSupplyIndex</a></h3>
+<h3 id="_updatemaldasupplyindex"><a class="header" href="#_updatemaldasupplyindex">_updateMaldaSupplyIndex</a></h3>
 <p>Notify reward distributor for supply index update</p>
-<pre><code class="language-solidity">function _updateMeldaSupplyIndex(address mToken) private;
+<pre><code class="language-solidity">function _updateMaldaSupplyIndex(address mToken) private;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>mToken</code></td><td><code>address</code></td><td>The market whose supply index to update</td></tr>
 </tbody></table>
 </div>
-<h3 id="_updatemeldaborrowindex"><a class="header" href="#_updatemeldaborrowindex">_updateMeldaBorrowIndex</a></h3>
+<h3 id="_updatemaldaborrowindex"><a class="header" href="#_updatemaldaborrowindex">_updateMaldaBorrowIndex</a></h3>
 <p>Notify reward distributor for borrow index update</p>
-<pre><code class="language-solidity">function _updateMeldaBorrowIndex(address mToken) private;
+<pre><code class="language-solidity">function _updateMaldaBorrowIndex(address mToken) private;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>mToken</code></td><td><code>address</code></td><td>The market whose borrow index to update</td></tr>
 </tbody></table>
 </div>
-<h3 id="_distributesuppliermelda"><a class="header" href="#_distributesuppliermelda">_distributeSupplierMelda</a></h3>
+<h3 id="_distributesuppliermalda"><a class="header" href="#_distributesuppliermalda">_distributeSupplierMalda</a></h3>
 <p>Notify reward distributor for supplier update</p>
-<pre><code class="language-solidity">function _distributeSupplierMelda(address mToken, address supplier) private;
+<pre><code class="language-solidity">function _distributeSupplierMalda(address mToken, address supplier) private;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -576,10 +581,10 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <tr><td><code>supplier</code></td><td><code>address</code></td><td>The address of the supplier to distribute MALDA to</td></tr>
 </tbody></table>
 </div>
-<h3 id="_distributeborrowermelda"><a class="header" href="#_distributeborrowermelda">_distributeBorrowerMelda</a></h3>
+<h3 id="_distributeborrowermalda"><a class="header" href="#_distributeborrowermalda">_distributeBorrowerMalda</a></h3>
 <p>Notify reward distributor for borrower update</p>
 <p><em>Borrowers will not begin to accrue until after the first interaction with the protocol.</em></p>
-<pre><code class="language-solidity">function _distributeBorrowerMelda(address mToken, address borrower) private;
+<pre><code class="language-solidity">function _distributeBorrowerMalda(address mToken, address borrower) private;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>

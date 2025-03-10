@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 import {IPauser} from "src/interfaces/IPauser.sol";
@@ -57,11 +57,16 @@ abstract contract Rebalancer_Unit_Shared is Base_Unit_Test {
         mWethExtension = mTokenGateway(address(gatewayProxy));
         vm.label(address(mWethExtension), "mWethExtension");
 
-        rebalancer = new Rebalancer(address(roles));
+        rebalancer = new Rebalancer(address(roles), address(this));
         vm.label(address(rebalancer), "Rebalancer");
         roles.allowFor(address(rebalancer), roles.REBALANCER(), true);
 
         bridgeMock = new BridgeMock(address(roles));
         vm.label(address(bridgeMock), "BridgeMock");
+    }
+
+    modifier whenMarketIsListed(address mToken) {
+        operator.supportMarket(mToken);
+        _;
     }
 }

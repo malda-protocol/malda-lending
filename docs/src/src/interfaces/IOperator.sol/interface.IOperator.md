@@ -1,5 +1,5 @@
 # IOperator
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\interfaces\IOperator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\interfaces\IOperator.sol)
 
 
 ## Functions
@@ -62,6 +62,15 @@ Multiplier representing the discount on collateral that a liquidator receives
 
 ```solidity
 function liquidationIncentiveMantissa() external view returns (uint256);
+```
+
+### isMarketListed
+
+Returns true/false
+
+
+```solidity
+function isMarketListed(address market) external view returns (bool);
 ```
 
 ### getAssetsIn
@@ -264,6 +273,21 @@ function enterMarkets(address[] calldata _mTokens) external;
 |Name|Type|Description|
 |----|----|-----------|
 |`_mTokens`|`address[]`|The list of addresses of the mToken markets to be enabled|
+
+
+### enterMarketsWithSender
+
+Add asset (msg.sender) to be included in account liquidity calculation
+
+
+```solidity
+function enterMarketsWithSender(address _account) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_account`|`address`|The account to add for|
 
 
 ### exitMarket

@@ -1,5 +1,5 @@
 # mTokenConfiguration
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\mToken\mTokenConfiguration.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\mToken\mTokenConfiguration.sol)
 
 **Inherits:**
 [mTokenStorage](/src\mToken\mTokenStorage.sol\abstract.mTokenStorage.md)
@@ -52,6 +52,13 @@ function setInterestRateModel(address newInterestRateModel) external onlyAdmin;
 |`newInterestRateModel`|`address`|the new interest rate model to use|
 
 
+### setBorrowRateMaxMantissa
+
+
+```solidity
+function setBorrowRateMaxMantissa(uint256 maxMantissa) external onlyAdmin;
+```
+
 ### setReserveFactor
 
 accrues interest and sets a new reserve factor for the protocol using _setReserveFactorFresh
@@ -99,7 +106,7 @@ updates the interest rate model (*requires fresh interest accrual)
 
 
 ```solidity
-function _setInterestRateModel(address newInterestRateModel) internal onlyAdmin;
+function _setInterestRateModel(address newInterestRateModel) internal;
 ```
 **Parameters**
 

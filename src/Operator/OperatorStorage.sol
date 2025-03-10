@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -18,16 +18,6 @@ import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
 
 abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNoError {
     // ----------- STORAGE ------------
-    /**
-     * @notice Administrator for this contract
-     */
-    address public admin;
-
-    /**
-     * @notice Pending administrator for this contract
-     */
-    address public pendingAdmin;
-
     /**
      * @inheritdoc IOperator
      */
@@ -131,7 +121,6 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     error Operator_InvalidRewardDistributor();
     error Operator_OracleUnderlyingFetchError();
     error Operator_Deactivate_MarketBalanceOwed();
-    error Operator_Deactivate_SnapshotFetchingFailed();
 
     // ----------- EVENTS ------------
     /**
@@ -183,23 +172,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     event NewPriceOracle(address indexed oldPriceOracle, address indexed newPriceOracle);
 
     /**
-     * @notice Emitted when pendingAdmin is changed
-     */
-    event NewPendingAdmin(address indexed oldPendingAdmin, address indexed newPendingAdmin);
-
-    /**
-     * @notice Emitted when pendingAdmin is accepted, which means admin is updated
-     */
-    event NewAdmin(address indexed oldAdmin, address indexed newAdmin);
-
-    /**
      * @notice Event emitted when rolesOperator is changed
      */
     event NewRolesOperator(address indexed oldRoles, address indexed newRoles);
-
-    // ----------- MODIFIERS ------------
-    modifier onlyAdmin() {
-        require(msg.sender == admin, Operator_OnlyAdmin());
-        _;
-    }
 }

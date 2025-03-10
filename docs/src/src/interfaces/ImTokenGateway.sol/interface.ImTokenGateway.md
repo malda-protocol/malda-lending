@@ -1,5 +1,5 @@
 # ImTokenGateway
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\interfaces\ImTokenGateway.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\interfaces\ImTokenGateway.sol)
 
 
 ## Functions
@@ -10,15 +10,6 @@ Roles manager
 
 ```solidity
 function rolesOperator() external view returns (IRoles);
-```
-
-### logsOperator
-
-Logs manager
-
-
-```solidity
-function logsOperator() external view returns (ImTokenLogs);
 ```
 
 ### underlying
@@ -51,15 +42,6 @@ function isPaused(ImTokenOperationTypes.OperationType _type) external view retur
 |`_type`|`ImTokenOperationTypes.OperationType`|the operation type|
 
 
-### nonce
-
-Returns nonce
-
-
-```solidity
-function nonce() external view returns (uint32);
-```
-
 ### accAmountIn
 
 Returns accumulated amount in per user
@@ -78,6 +60,39 @@ Returns accumulated amount out per user
 function accAmountOut(address user) external view returns (uint256);
 ```
 
+### isCallerAllowed
+
+Returns if a caller is allowed for sender
+
+
+```solidity
+function isCallerAllowed(address sender, address caller) external view returns (bool);
+```
+
+### getProofData
+
+Returns the proof data journal
+
+
+```solidity
+function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
+```
+
+### extractForRebalancing
+
+Extract amount to be used for rebalancing operation
+
+
+```solidity
+function extractForRebalancing(uint256 amount) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`amount`|`uint256`|The amount to rebalance|
+
+
 ### setPaused
 
 Set pause for a specific operation
@@ -94,38 +109,37 @@ function setPaused(ImTokenOperationTypes.OperationType _type, bool state) extern
 |`state`|`bool`|The pause operation status|
 
 
+### updateAllowedCallerStatus
+
+Set caller status for `msg.sender`
+
+
+```solidity
+function updateAllowedCallerStatus(address caller, bool status) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`caller`|`address`|The caller address|
+|`status`|`bool`|The status to set for `caller`|
+
+
 ### supplyOnHost
 
-Supply underlying to the contractr
+Supply underlying to the contract
 
 
 ```solidity
-function supplyOnHost(uint256 amount, address user, address[] calldata allowedCallers) external;
+function supplyOnHost(uint256 amount, address receiver, bytes4 lineaSelector) external payable;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`amount`|`uint256`|The supplied amount|
-|`user`|`address`|The user to supply for|
-|`allowedCallers`|`address[]`|The allowed callers for host chain interactions|
-
-
-### outOnHost
-
-Supply underlying to the contractr
-
-
-```solidity
-function outOnHost(uint256 amount, address user, address[] calldata allowedCallers) external;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|The supplied amount|
-|`user`|`address`|The user to supply for|
-|`allowedCallers`|`address[]`|The allowed callers for host chain interactions|
+|`receiver`|`address`|The receiver address|
+|`lineaSelector`|`bytes4`|The method selector to be called on Linea by our relayer. If empty, user has to submit it|
 
 
 ### outHere
@@ -134,7 +148,8 @@ Extract tokens
 
 
 ```solidity
-function outHere(bytes calldata journalData, bytes calldata seal, uint256 amount) external;
+function outHere(bytes calldata journalData, bytes calldata seal, uint256[] memory amounts, address receiver)
+    external;
 ```
 **Parameters**
 
@@ -142,10 +157,19 @@ function outHere(bytes calldata journalData, bytes calldata seal, uint256 amount
 |----|----|-----------|
 |`journalData`|`bytes`|The supplied journal|
 |`seal`|`bytes`|The seal address|
-|`amount`|`uint256`|The amount to use|
+|`amounts`|`uint256[]`|The amounts to withdraw for each journal|
+|`receiver`|`address`|The receiver address|
 
 
 ## Events
+### AllowedCallerUpdated
+Emitted when a user updates allowed callers
+
+
+```solidity
+event AllowedCallerUpdated(address indexed sender, address indexed caller, bool status);
+```
+
 ### mTokenGateway_Supplied
 Emitted when a supply operation is initiated
 
@@ -153,30 +177,13 @@ Emitted when a supply operation is initiated
 ```solidity
 event mTokenGateway_Supplied(
     address indexed from,
-    address indexed user,
-    uint256 amount,
-    int32 srcNonce,
-    int32 dstNonce,
+    address indexed receiver,
     uint256 accAmountIn,
-    uint32 srcChainId,
-    uint32 dstChainId
-);
-```
-
-### mTokenGateway_OutOnHost
-Emitted when a supply operation is initiated
-
-
-```solidity
-event mTokenGateway_OutOnHost(
-    address indexed from,
-    address indexed user,
+    uint256 accAmountOut,
     uint256 amount,
-    int32 srcNonce,
-    int32 dstNonce,
-    uint256 accAmountIn,
     uint32 srcChainId,
-    uint32 dstChainId
+    uint32 dstChainId,
+    bytes4 lineaMethodSelector
 );
 ```
 
@@ -188,17 +195,55 @@ Emitted when an extract was finalized
 event mTokenGateway_Extracted(
     address indexed msgSender,
     address indexed srcSender,
-    address indexed srcUser,
-    uint256 amount,
-    int32 srcNonce,
-    int32 dstNonce,
+    address indexed receiver,
+    uint256 accAmountIn,
     uint256 accAmountOut,
+    uint256 amount,
     uint32 srcChainId,
     uint32 dstChainId
 );
 ```
 
+### mTokenGateway_Skipped
+Emitted when a proof was skipped
+
+
+```solidity
+event mTokenGateway_Skipped(
+    address indexed msgSender,
+    address indexed srcSender,
+    address indexed receiver,
+    uint256 accAmountIn,
+    uint256 accAmountOut,
+    uint256 amount,
+    uint32 srcChainId,
+    uint32 dstChainId
+);
+```
+
+### mTokenGateway_GasFeeUpdated
+Emitted when the gas fee is updated
+
+
+```solidity
+event mTokenGateway_GasFeeUpdated(uint256 amount);
+```
+
+### mTokenGateway_PausedState
+
+```solidity
+event mTokenGateway_PausedState(ImTokenOperationTypes.OperationType indexed _type, bool _status);
+```
+
 ## Errors
+### mTokenGateway_ChainNotValid
+Thrown when the chain id is not LINEA
+
+
+```solidity
+error mTokenGateway_ChainNotValid();
+```
+
 ### mTokenGateway_AddressNotValid
 Thrown when the address is not valid
 
@@ -261,5 +306,29 @@ Thrown when market is paused for operation type
 
 ```solidity
 error mTokenGateway_Paused(ImTokenOperationTypes.OperationType _type);
+```
+
+### mTokenGateway_NotRebalancer
+Thrown when caller is not rebalancer
+
+
+```solidity
+error mTokenGateway_NotRebalancer();
+```
+
+### mTokenGateway_LengthNotValid
+Thrown when length is not valid
+
+
+```solidity
+error mTokenGateway_LengthNotValid();
+```
+
+### mTokenGateway_NotEnoughGasFee
+Thrown when not enough gas fee was received
+
+
+```solidity
+error mTokenGateway_NotEnoughGasFee();
 ```
 
