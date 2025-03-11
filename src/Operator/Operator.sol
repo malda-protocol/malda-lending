@@ -137,6 +137,41 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         allMarkets.push(mToken);
 
         emit MarketListed(mToken);
+    }   
+
+    /**
+     * @notice Sets outflow volume limit
+     * @param amount The new limit
+     */    
+    function setOutflowTimeLimitInUSD(uint256 amount) external onlyOwner {
+        emit OutflowLimitUpdated(msg.sender, limitPerTimePeriod, amount);
+        limitPerTimePeriod = amount;
+    }
+
+    /**
+     * @notice Verifies outflow volule limit
+     * @param amount The new limit
+     */    
+    function checkOutflowVolumeLimit(uint256 amount) external {
+        require(ImToken(msg.sender).isMToken(), Operator_WrongMarket());
+        require(markets[msg.sender].isListed, Operator_MarketNotListed());
+
+        // skip this check in case limit is disabled ( = 0)
+        if (limitPerTimePeriod > 0) {
+
+            // check if we need to reset it
+            if (block.timestamp > lastOutflowResetTimestamp + OUTFLOW_RESET_TIME_WINDOW) {
+                cumulativeOutflowVolume = 0;
+                lastOutflowResetTimestamp = block.timestamp;
+            }
+
+            // convert received amount to USD
+            uint256 amountInUSD = _convertMarketAmountToUSDValue(amount, msg.sender);
+
+            // check new cumulative limits
+            if (cumulativeOutflowVolume + amountInUSD > limitPerTimePeriod) revert Operator_OutflowVolumeReached();
+            cumulativeOutflowVolume += amountInUSD;
+        }
     }
 
     /**
@@ -431,6 +466,21 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     {
         _claim(holders, mTokens, borrowers, suppliers);
     }
+    
+    /**
+     * @notice Returns USD value for all markets
+    */
+    function getUSDValueForAllMarkets() external view returns (uint256) {
+        uint256 sum;
+        for (uint256 i; i < allMarkets.length;) {
+            ImToken _market = ImToken(allMarkets[i]);
+            uint256 totalMarketVolume = _market.totalUnderlying();
+            sum += _convertMarketAmountToUSDValue(totalMarketVolume, address(_market));
+            unchecked {  ++i; }
+        }
+        return sum;
+    }
+
 
     /**
      * @inheritdoc IOperatorDefender
@@ -584,6 +634,16 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     }
 
     // ----------- PRIVATE ------------
+    function _convertMarketAmountToUSDValue(uint256 amount, address mToken) private view returns (uint256) {
+        address _asset = ImToken(mToken).underlying();
+        uint256 oraclePriceMantissa = IOracleOperator(oracleOperator).getUnderlyingPrice(_asset);
+        require(oraclePriceMantissa != 0, Operator_OracleUnderlyingFetchError());
+
+        Exp memory oraclePrice = Exp({mantissa: oraclePriceMantissa});
+        uint256 amountInUSD = mul_(amount, oraclePrice);
+        return amountInUSD;
+    }
+
     function _activateMarket(address _mToken, address borrower) private {
         IOperatorData.Market storage marketToJoin = markets[_mToken];
         require(marketToJoin.isListed, Operator_MarketNotListed());

@@ -101,6 +101,13 @@ interface IOperatorDefender {
      */
     function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator, address borrower)
         external;
+
+    /**
+     * @notice Checks if new used amount is within the limits of the outflow volume limit
+     * @dev Sender must be a listed market
+     * @param amount New amount
+     */
+    function checkOutflowVolumeLimit(uint256 amount) external;
 }
 
 interface IOperator {
@@ -109,6 +116,21 @@ interface IOperator {
      * @notice Should return true
      */
     function isOperator() external view returns (bool);
+
+    /**
+     * @notice Should return outflow limit 
+     */
+    function limitPerTimePeriod() external view returns (uint256); 
+
+    /**
+     * @notice Should return outflow volume 
+     */
+    function cumulativeOutflowVolume() external view returns (uint256); 
+
+    /**
+     * @notice Should return last reset time for outflow check
+     */
+    function lastOutflowResetTimestamp() external view returns (uint256); 
 
     /**
      * @notice Returns if operation is paused
@@ -199,6 +221,11 @@ interface IOperator {
         uint256 redeemTokens,
         uint256 borrowAmount
     ) external view returns (uint256, uint256);
+
+    /**
+     * @notice Returns USD value for all markets
+     */
+    function getUSDValueForAllMarkets() external view returns (uint256);
 
     /**
      * @notice Calculate number of tokens of collateral asset to seize given an underlying amount

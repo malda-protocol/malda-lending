@@ -70,6 +70,24 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     address public rewardDistributor;
 
     /**
+     * @inheritdoc IOperator
+     */
+    uint256 public limitPerTimePeriod; 
+
+    /**
+     * @inheritdoc IOperator
+     */
+    uint256 public cumulativeOutflowVolume; 
+
+    /**
+     * @inheritdoc IOperator
+     */
+    uint256 public lastOutflowResetTimestamp; 
+
+
+
+
+    /**
      * @dev Local vars for avoiding stack-depth limits in calculating account liquidity.
      *  Note that `mTokenBalance` is the number of mTokens the account owns in the market,
      *  whereas `borrowBalance` is the amount of underlying that the account has borrowed.
@@ -97,6 +115,9 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
 
     // No collateralFactorMantissa may exceed this value
     uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18; // 0.9
+    
+    // Outflow time window
+    uint256 internal constant OUTFLOW_RESET_TIME_WINDOW = 1 hours;
 
     // ----------- ERRORS ------------
     error Operator_Paused();
@@ -114,6 +135,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     error Operator_MarketSupplyReached();
     error Operator_RepayAmountNotValid();
     error Operator_MarketAlreadyListed();
+    error Operator_OutflowVolumeReached();
     error Operator_InvalidRolesOperator();
     error Operator_InsufficientLiquidity();
     error Operator_MarketBorrowCapReached();
@@ -175,4 +197,9 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
      * @notice Event emitted when rolesOperator is changed
      */
     event NewRolesOperator(address indexed oldRoles, address indexed newRoles);
+
+    /**
+     * @notice Event emitted when outflow limit is updated
+     */
+    event OutflowLimitUpdated(address indexed sender, uint256 oldLimit, uint256 newLimit);
 }

@@ -19,6 +19,11 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
     bytes4 internal constant MINT_SELECTOR = ImErc20Host.mintExternal.selector;
     bytes4 internal constant REPAY_SELECTOR = ImErc20Host.repayExternal.selector;
 
+    modifier whenMarketIsListed(address mToken) {
+        operator.supportMarket(mToken);
+        _;
+    }
+
     function setUp() public virtual override {
         super.setUp();
 
