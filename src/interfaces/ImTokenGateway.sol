@@ -65,6 +65,7 @@ interface ImTokenGateway {
      */
     event mTokenGateway_GasFeeUpdated(uint256 amount);
     event mTokenGateway_PausedState(ImTokenOperationTypes.OperationType indexed _type, bool _status);
+    event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
 
     // ----------- ERRORS -----------+
     /**

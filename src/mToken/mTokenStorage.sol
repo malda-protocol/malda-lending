@@ -264,6 +264,11 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
      */
     event SameChainFlowStateUpdated(address indexed sender, bool _oldState, bool _newState);
 
+    /**
+     * @notice Event emitted when same chain flow state is enabled or disabled
+     */
+    event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+
     // ----------- VIRTUAL ------------
     /**
      * @inheritdoc ImToken
