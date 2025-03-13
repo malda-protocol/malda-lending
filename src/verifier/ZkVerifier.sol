@@ -11,6 +11,8 @@ pragma solidity =0.8.28;
 // interfaces
 import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {IRoles} from "src/interfaces/IRoles.sol";
+import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
 
 // contracts
 import {Steel} from "risc0/steel/Steel.sol";
@@ -24,6 +26,7 @@ abstract contract ZkVerifier is Initializable {
     error ZkVerifier_ImageNotValid();
     error ZkVerifier_InputNotValid();
     error ZkVerifier_VerifierNotSet();
+    error ZkVerifier_L1InclusionRequired();
 
     event ImageSet(bytes32 _imageId);
     event VerifierSet(address indexed oldVerifier, address indexed newVerifier);

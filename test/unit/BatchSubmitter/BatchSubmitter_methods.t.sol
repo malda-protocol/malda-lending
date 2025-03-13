@@ -40,8 +40,14 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         selectors[0] = OUT_HERE_SELECTOR;
         selectors[1] = OUT_HERE_SELECTOR;
 
-        bytes memory encodedJournals =
-            _createBatchJournals(senders, markets, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
+        bytes memory encodedJournals = _createBatchJournals(
+            senders, 
+            markets, 
+            amounts, 
+            TEST_SOURCE_CHAIN_ID, 
+            uint32(block.chainid),
+            true // Set L1inclusion to true for tests
+        );
         journals = abi.decode(encodedJournals, (bytes[]));
 
         // Initialize new state variables
@@ -106,7 +112,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         receivers[0] = address(this);
 
         bytes memory encodedJournals =
-            _createBatchJournals(new address[](1), mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
+            _createBatchJournals(new address[](1), mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
         journals = abi.decode(encodedJournals, (bytes[]));
 
         initHashes = new bytes32[](1);
@@ -144,7 +150,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         receivers[0] = address(this);
 
         bytes memory encodedJournals =
-            _createBatchJournals(receivers, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
+            _createBatchJournals(receivers, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
         journals = abi.decode(encodedJournals, (bytes[]));
 
         initHashes = new bytes32[](1);
@@ -193,7 +199,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         markets[0] = address(0); // Invalid market address
 
         bytes memory encodedJournals =
-            _createBatchJournals(senders, markets, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
+            _createBatchJournals(senders, markets, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
         journals = abi.decode(encodedJournals, (bytes[]));
 
         initHashes = new bytes32[](1);
@@ -234,7 +240,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         senders[0] = address(this);
 
         bytes memory encodedJournals =
-            _createBatchJournals(senders, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
+            _createBatchJournals(senders, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
         journals = abi.decode(encodedJournals, (bytes[]));
 
         initHashes = new bytes32[](1);
@@ -281,7 +287,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         markets[0] = address(0); // Invalid market address
 
         bytes memory encodedJournals =
-            _createBatchJournals(senders, markets, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
+            _createBatchJournals(senders, markets, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
         journals = abi.decode(encodedJournals, (bytes[]));
 
         initHashes = new bytes32[](1);
@@ -320,7 +326,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         markets[0] = address(0); // Invalid market address
 
         bytes memory encodedJournals =
-            _createBatchJournals(senders, markets, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid));
+            _createBatchJournals(senders, markets, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
         journals = abi.decode(encodedJournals, (bytes[]));
 
         initHashes = new bytes32[](1);

@@ -279,7 +279,17 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private {
         require(journalData.length > 0, mErc20Host_JournalNotValid());
 
-        // verify it using the ZkVerifier contract
+        (, , , , , , bool L1Inclusion) = mTokenProofDecoderLib.decodeJournal(journalData);
+
+        bool isSequencer = _isAllowedFor(msg.sender, rolesOperator.PROOF_FORWARDER()) || 
+                          _isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER());
+
+        if (!isSequencer) {
+            if (!L1Inclusion) {
+                revert mErc20Host_L1InclusionRequired();
+            }
+        }
+
         _verifyInput(journalData, seal);
     }
 
@@ -301,7 +311,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         address collateral,
         address receiver
     ) internal {
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
         // temporary overwrite; will be removed in future implementations
@@ -334,7 +344,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     function _mintExternal(bytes memory singleJournal, uint256 mintAmount, uint256 minAmountOut, address receiver)
         internal
     {
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
+        (address _sender, address _market, uint256 _accAmountIn, , uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
         // temporary overwrite; will be removed in future implementations
@@ -361,7 +371,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     }
 
     function _repayExternal(bytes memory singleJournal, uint256 repayAmount, address receiver) internal {
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
         // temporary overwrite; will be removed in future implementations

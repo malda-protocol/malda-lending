@@ -9,6 +9,7 @@ import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
+import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
 
 import {Base_Unit_Test} from "../../Base_Unit_Test.t.sol";
 
@@ -22,6 +23,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
     mErc20Host public mDaiHost;
     mErc20Immutable public mWeth;
     mTokenGateway public mWethExtension;
+    BatchSubmitter public batchSubmitter;
 
     Risc0VerifierMock public verifierMock;
 
@@ -100,6 +102,10 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         mWethExtension = mTokenGateway(address(wethGatewayProxy));
         vm.label(address(mWethExtension), "mWethExtension");
 
+        batchSubmitter = new BatchSubmitter(address(roles), address(verifierMock), address(this));
+        vm.label(address(batchSubmitter), "BatchSubmitter");
+        roles.allowFor(address(batchSubmitter), roles.PROOF_BATCH_FORWARDER(), true);
+
         mDaiHost.setImageId("0x123");
         mWethHost.setImageId("0x123");
         mWethExtension.setImageId("0x123");
@@ -119,9 +125,10 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         // | 40     | 32      | uint256 accAmountIn    |
         // | 72     | 32      | uint256 accAmountOut   |
         // | 104    | 4       | uint32 chainId         |
-        // | 108    | 4       | uint32 dstChainId         |
+        // | 108    | 4       | uint32 dstChainId      |
+        // | 112    | 1       | bool L1inclusion       |
         bytes memory journal =
-            abi.encodePacked(sender, market, accAmount, accAmount, uint32(block.chainid), uint32(block.chainid));
+            abi.encodePacked(sender, market, accAmount, accAmount, uint32(block.chainid), uint32(block.chainid), true);
         bytes[] memory journals = new bytes[](1);
         journals[0] = journal;
         return abi.encode(journals);

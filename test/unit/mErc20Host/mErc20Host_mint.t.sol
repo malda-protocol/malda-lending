@@ -125,6 +125,8 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), 0);
 
+        vm.prank(address(batchSubmitter));
+
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
         mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
     }
@@ -163,6 +165,8 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         amounts[0] = amount;
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
+
+        vm.prank(address(batchSubmitter));
 
         mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
 

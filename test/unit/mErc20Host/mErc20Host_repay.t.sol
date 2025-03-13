@@ -231,6 +231,8 @@ contract mErc20Host_repay is mToken_Unit_Shared {
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), 0);
 
+        vm.prank(address(batchSubmitter));
+
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
         mWethHost.repayExternal(journalData, "0x123", amounts, address(this));
     }
@@ -279,6 +281,8 @@ contract mErc20Host_repay is mToken_Unit_Shared {
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
+        vm.prank(address(batchSubmitter));
+
         mWethHost.repayExternal(journalData, "0x123", amounts, address(this));
 
         // after state
@@ -326,6 +330,8 @@ contract mErc20Host_repay is mToken_Unit_Shared {
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
+        vm.prank(address(batchSubmitter));
+        
         mWethHost.repayExternal(journalData, "0x123", amounts, address(this));
 
         // after state

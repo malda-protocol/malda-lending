@@ -132,6 +132,11 @@ interface ImErc20Host {
      */
     error mErc20Host_NotEnoughGasFee();
 
+    /**
+     * @notice Thrown when L1 inclusion is required
+     */
+    error mErc20Host_L1InclusionRequired();
+
     // ----------- VIEW -----------
     /**
      * @notice Returns if a caller is allowed for sender
