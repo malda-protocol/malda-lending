@@ -133,6 +133,11 @@ interface IOperator {
     function lastOutflowResetTimestamp() external view returns (uint256); 
 
     /**
+     * @notice Should return the outflow volume time window
+     */
+    function outflowResetTimeWindow() external view returns (uint256);
+
+    /**
      * @notice Returns if operation is paused
      * @param mToken The mToken to check
      * @param _type the operation type
@@ -226,6 +231,7 @@ interface IOperator {
      * @notice Returns USD value for all markets
      */
     function getUSDValueForAllMarkets() external view returns (uint256);
+
 
     /**
      * @notice Calculate number of tokens of collateral asset to seize given an underlying amount

@@ -83,7 +83,12 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
      * @inheritdoc IOperator
      */
     uint256 public lastOutflowResetTimestamp; 
-
+    
+    // Outflow time window
+    /**
+     * @inheritdoc IOperator
+     */
+    uint256 public outflowResetTimeWindow;
 
 
 
@@ -115,9 +120,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
 
     // No collateralFactorMantissa may exceed this value
     uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18; // 0.9
-    
-    // Outflow time window
-    uint256 internal constant OUTFLOW_RESET_TIME_WINDOW = 1 hours;
+
 
     // ----------- ERRORS ------------
     error Operator_Paused();
@@ -202,4 +205,9 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
      * @notice Event emitted when outflow limit is updated
      */
     event OutflowLimitUpdated(address indexed sender, uint256 oldLimit, uint256 newLimit);
+     
+     /**
+     * @notice Event emitted when outflow reset time window is updated
+     */
+    event OutflowTimeWindowUpdated(uint256 oldWindow, uint256 newWindow);
 }

@@ -32,6 +32,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         __Ownable_init(_admin);
         rolesOperator = IRoles(_rolesOperator);
         rewardDistributor = _rewardDistributor;
+        outflowResetTimeWindow = 1 hours;
     }
 
     // ----------- OWNER ------------
@@ -140,6 +141,15 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     }   
 
     /**
+     * @notice Sets outflow volume time window
+     * @param newTimeWindow The new reset time window
+     */  
+    function setOutflowVolumeTimeWindow(uint256 newTimeWindow) external onlyOwner {
+        emit OutflowTimeWindowUpdated(outflowResetTimeWindow, newTimeWindow);
+        outflowResetTimeWindow = newTimeWindow;
+    }
+
+    /**
      * @notice Sets outflow volume limit
      * @param amount The new limit
      */    
@@ -160,7 +170,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         if (limitPerTimePeriod > 0) {
 
             // check if we need to reset it
-            if (block.timestamp > lastOutflowResetTimestamp + OUTFLOW_RESET_TIME_WINDOW) {
+            if (block.timestamp > lastOutflowResetTimestamp + outflowResetTimeWindow) {
                 cumulativeOutflowVolume = 0;
                 lastOutflowResetTimestamp = block.timestamp;
             }
