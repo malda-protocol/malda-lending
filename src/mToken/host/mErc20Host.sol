@@ -279,14 +279,19 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private {
         require(journalData.length > 0, mErc20Host_JournalNotValid());
 
-        (, , , , , , bool L1Inclusion) = mTokenProofDecoderLib.decodeJournal(journalData);
+        // Decode the dynamic array of journals.
+        bytes[] memory journals = abi.decode(journalData, (bytes[]));
 
+        // Check the L1Inclusion flag for each journal.
         bool isSequencer = _isAllowedFor(msg.sender, rolesOperator.PROOF_FORWARDER()) || 
-                          _isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER());
+                        _isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER());
 
         if (!isSequencer) {
-            if (!L1Inclusion) {
-                revert mErc20Host_L1InclusionRequired();
+            for (uint256 i = 0; i < journals.length; i++) {
+                (, , , , , , bool L1Inclusion) = mTokenProofDecoderLib.decodeJournal(journals[i]);
+                if (!L1Inclusion) {
+                    revert mErc20Host_L1InclusionRequired();
+                }
             }
         }
 

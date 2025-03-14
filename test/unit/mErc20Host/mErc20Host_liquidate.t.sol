@@ -33,7 +33,6 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         address[] memory collaterals = new address[](1);
         collaterals[0] = address(mWethHost);
 
-        vm.prank(address(batchSubmitter));
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
         mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
     }
@@ -86,7 +85,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), 0);
 
-        vm.prank(address(batchSubmitter));
+        (address(batchSubmitter));
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
         mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
@@ -131,8 +130,6 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         collaterals[0] = address(mWethHost);
 
         bytes memory journalData = _createAccumulatedAmountJournal(alice, address(mWethHost), amount);
-
-        vm.prank(address(batchSubmitter));
 
         vm.expectRevert(ImErc20Host.mErc20Host_CallerNotAllowed.selector);
         mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
