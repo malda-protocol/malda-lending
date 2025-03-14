@@ -289,7 +289,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         emit FlashMint(msg.sender, amount);
 
         // Invoke callback
-        bytes4 callbackSuccess = IFlashMintCallback(msg.sender).onFlashMint(
+        bytes4 callbackSuccess = Migrator(msg.sender).onFlashMint(
             address(token),
             amount,
             data

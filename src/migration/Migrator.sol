@@ -3,8 +3,9 @@ pragma solidity ^0.8.10;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Comptroller} from "mendi/Comptroller.sol";
-import {CToken} from "mendi/CErc20.sol";
+import {Comptroller} from "@mendi/Comptroller.sol";
+import {CErc20} from "@mendi/CErc20.sol";
+import {CToken} from "@mendi/CToken.sol";
 import {Operator} from "src/Operator/Operator.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 
@@ -48,8 +49,7 @@ contract Migrator {
      * @notice Collects all user positions from Mendi
      */
     function _collectMendiPositions(MigrationParams memory params) 
-        private 
-        view 
+        private  
         returns (Position[] memory) 
     {
         Comptroller mendi = Comptroller(params.mendiComptroller);
@@ -65,7 +65,7 @@ contract Migrator {
             if (collateralAmount > 0 || borrowAmount > 0) {
                 address maldaMarket = _getMaldaMarket(
                     params.maldaOperator,
-                    mendiMarket.underlying()
+                    CErc20(address(mendiMarket)).underlying()
                 );
                 require(maldaMarket != address(0), "Malda market not found");
 
@@ -116,12 +116,12 @@ contract Migrator {
             
             // Repay borrows
             if (position.borrowAmount > 0) {
-                IERC20(CToken(position.mendiMarket).underlying()).safeApprove(
+                IERC20(CErc20(position.mendiMarket).underlying()).approve(
                     position.mendiMarket, 
                     position.borrowAmount
                 );
                 require(
-                    CToken(position.mendiMarket).repayBorrow(position.borrowAmount) == 0,
+                    CErc20(position.mendiMarket).repayBorrow(position.borrowAmount) == 0,
                     "Mendi repay failed"
                 );
             }
@@ -129,7 +129,7 @@ contract Migrator {
             // Withdraw collaterals
             if (position.collateralAmount > 0) {
                 require(
-                    CToken(position.mendiMarket).redeemUnderlying(position.collateralAmount) == 0,
+                    CErc20(position.mendiMarket).redeemUnderlying(position.collateralAmount) == 0,
                     "Mendi withdraw failed"
                 );
             }
@@ -139,8 +139,8 @@ contract Migrator {
         for (uint256 i = 0; i < positions.length; i++) {
             Position memory position = positions[i];
             if (position.collateralAmount > 0) {
-                IERC20 underlying = IERC20(CToken(position.mendiMarket).underlying());
-                underlying.safeApprove(position.maldaMarket, position.collateralAmount);
+                IERC20 underlying = IERC20(CErc20(position.mendiMarket).underlying());
+                underlying.approve(position.maldaMarket, position.collateralAmount);
                 mErc20Host(position.maldaMarket).mint(position.collateralAmount);
 
                 // Enter market
@@ -151,7 +151,7 @@ contract Migrator {
         }
 
         // Approve flash mint repayment
-        IERC20(token).safeApprove(msg.sender, amount);
+        IERC20(token).approve(msg.sender, amount);
 
         return CALLBACK_SUCCESS;
     }
