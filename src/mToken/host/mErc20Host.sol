@@ -28,9 +28,8 @@ import {Migrator} from "src/migration/Migrator.sol";
 contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperationTypes {
     using SafeERC20 for IERC20;
 
-    // Add flash mint events
-    event FlashMint(address indexed receiver, uint256 amount);
-    event FlashMintRepaid(address indexed receiver, uint256 amount);
+    // Add migration events
+    event mErc20Host_MintMigration(address indexed receiver, uint256 amount);
 
     // Add flash mint callback success constant
     bytes4 private constant FLASH_MINT_CALLBACK_SUCCESS = 

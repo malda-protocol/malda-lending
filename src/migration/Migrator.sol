@@ -62,7 +62,7 @@ contract Migrator {
             Position memory position = positions[i];
             if (position.borrowAmount > 0) {
                 IERC20 underlying = IERC20(CErc20(position.mendiMarket).underlying());
-                underlying.safeApprove(position.mendiMarket, position.borrowAmount);
+                underlying.approve(position.mendiMarket, position.borrowAmount);
                 require(
                     CErc20(position.mendiMarket).repayBorrow(position.borrowAmount) == 0,
                     "Mendi repay failed"
