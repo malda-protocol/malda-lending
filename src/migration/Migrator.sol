@@ -24,8 +24,6 @@ contract Migrator {
         uint256 borrowAmount;
     }
 
-    bytes4 private constant CALLBACK_SUCCESS = bytes4(keccak256("onFlashMint(address,uint256,bytes)"));
-
     /**
      * @notice Migrates all positions from Mendi to Malda
      * @param params Migration parameters containing protocol addresses
@@ -35,12 +33,56 @@ contract Migrator {
         Position[] memory positions = _collectMendiPositions(params);
         require(positions.length > 0, "No Mendi positions");
 
-        // 2. Flash mint all necessary Malda tokens
+        // 2. Mint mTokens in all v2 markets
+        for (uint256 i = 0; i < positions.length; i++) {
+            Position memory position = positions[i];
+            if (position.collateralAmount > 0) {
+                mErc20Host(position.maldaMarket).mintMigration(
+                    position.collateralAmount,
+                    msg.sender
+                );
+
+                // Enter market
+                address[] memory marketsToEnter = new address[](1);
+                marketsToEnter[0] = position.maldaMarket;
+                Operator(params.maldaOperator).enterMarkets(marketsToEnter);
+            }
+        }
+
+        // 3. Borrow from all necessary v2 markets
         for (uint256 i = 0; i < positions.length; i++) {
             Position memory position = positions[i];
             if (position.borrowAmount > 0) {
-                bytes memory data = abi.encode(params, positions, msg.sender);
-                mErc20Host(position.maldaMarket).flashMint(position.borrowAmount, data);
+                mErc20Host(position.maldaMarket).borrow(position.borrowAmount);
+            }
+        }
+
+        // 4. Repay all debts in v1 markets
+        for (uint256 i = 0; i < positions.length; i++) {
+            Position memory position = positions[i];
+            if (position.borrowAmount > 0) {
+                IERC20 underlying = IERC20(CErc20(position.mendiMarket).underlying());
+                underlying.safeApprove(position.mendiMarket, position.borrowAmount);
+                require(
+                    CErc20(position.mendiMarket).repayBorrow(position.borrowAmount) == 0,
+                    "Mendi repay failed"
+                );
+            }
+        }
+
+        // 5. Withdraw and transfer all collateral from v1 to v2
+        for (uint256 i = 0; i < positions.length; i++) {
+            Position memory position = positions[i];
+            if (position.collateralAmount > 0) {
+                // Withdraw from v1
+                require(
+                    CErc20(position.mendiMarket).redeemUnderlying(position.collateralAmount) == 0,
+                    "Mendi withdraw failed"
+                );
+
+                // Transfer to v2
+                IERC20 underlying = IERC20(CErc20(position.mendiMarket).underlying());
+                underlying.safeTransfer(position.maldaMarket, position.collateralAmount);
             }
         }
     }
@@ -83,77 +125,6 @@ contract Migrator {
             mstore(positions, positionCount)
         }
         return positions;
-    }
-
-    /**
-     * @notice Flash mint callback
-     * @param token Token being flash minted
-     * @param amount Amount being flash minted
-     * @param data Encoded migration parameters
-     */
-    function onFlashMint(
-        address token,
-        uint256 amount,
-        bytes calldata data
-    ) external returns (bytes4) {
-        (
-            MigrationParams memory params,
-            Position[] memory positions,
-            address user
-        ) = abi.decode(data, (MigrationParams, Position[], address));
-
-        // 3. Borrow from Malda for each position
-        for (uint256 i = 0; i < positions.length; i++) {
-            Position memory position = positions[i];
-            if (position.borrowAmount > 0) {
-                mErc20Host(position.maldaMarket).borrow(position.borrowAmount);
-            }
-        }
-
-        // 4. Repay all loans on Mendi and free collaterals
-        for (uint256 i = 0; i < positions.length; i++) {
-            Position memory position = positions[i];
-            
-            // Repay borrows
-            if (position.borrowAmount > 0) {
-                IERC20(CErc20(position.mendiMarket).underlying()).approve(
-                    position.mendiMarket, 
-                    position.borrowAmount
-                );
-                require(
-                    CErc20(position.mendiMarket).repayBorrow(position.borrowAmount) == 0,
-                    "Mendi repay failed"
-                );
-            }
-
-            // Withdraw collaterals
-            if (position.collateralAmount > 0) {
-                require(
-                    CErc20(position.mendiMarket).redeemUnderlying(position.collateralAmount) == 0,
-                    "Mendi withdraw failed"
-                );
-            }
-        }
-
-        // 5. Supply collaterals to Malda
-        for (uint256 i = 0; i < positions.length; i++) {
-            Position memory position = positions[i];
-            if (position.collateralAmount > 0) {
-                IERC20 underlying = IERC20(CErc20(position.mendiMarket).underlying());
-                underlying.approve(position.maldaMarket, position.collateralAmount);
-                mErc20Host(position.maldaMarket).mint(position.collateralAmount);
-
-                // Enter market
-                address[] memory marketsToEnter = new address[](1);
-                marketsToEnter[0] = position.maldaMarket;
-                Operator(params.maldaOperator).enterMarkets(marketsToEnter);
-            }
-        }
-
-        // Approve flash mint repayment
-        IERC20(token).approve(msg.sender, amount);
-
-        return CALLBACK_SUCCESS;
     }
 
     /**

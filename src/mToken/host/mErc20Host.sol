@@ -274,35 +274,14 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     }
 
     /**
-     * @notice Allows flash minting of tokens for migration
-     * @param amount The amount of tokens to flash mint
-     * @param data Arbitrary data to pass to the callback
+     * @notice Mints mTokens during migration without requiring underlying transfer
+     * @param amount The amount of underlying to be accounted for
+     * @param receiver The address that will receive the mTokens
      */
-    function flashMint(uint256 amount, bytes calldata data) external onlyMigrator {
+    function mintMigration(uint256 amount, address receiver) external onlyMigrator {
         require(amount > 0, mErc20Host_AmountNotValid());
-        
-        // Get the underlying token
-        IERC20 token = IERC20(underlying);
-        
-        // Transfer tokens to the caller
-        token.safeTransfer(msg.sender, amount);
-        emit FlashMint(msg.sender, amount);
-
-        // Invoke callback
-        bytes4 callbackSuccess = Migrator(msg.sender).onFlashMint(
-            address(token),
-            amount,
-            data
-        );
-        require(callbackSuccess == FLASH_MINT_CALLBACK_SUCCESS, mErc20Host_CallerNotAllowed());
-
-        // Get tokens back
-        uint256 balanceBefore = token.balanceOf(address(this));
-        token.safeTransferFrom(msg.sender, address(this), amount);
-        uint256 balanceAfter = token.balanceOf(address(this));
-        
-        require(balanceAfter == balanceBefore + amount, mErc20Host_AmountNotValid());
-        emit FlashMintRepaid(msg.sender, amount);
+        _mint(receiver, amount, false);
+        emit mErc20Host_MintMigration(receiver, amount);
     }
 
     // ----------- PRIVATE ------------
