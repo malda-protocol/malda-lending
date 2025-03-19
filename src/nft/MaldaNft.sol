@@ -10,6 +10,7 @@ pragma solidity =0.8.28;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import {ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 
@@ -28,6 +29,7 @@ contract MaldaNft is ERC721Enumerable, Ownable {
     error MaldaNft_InvalidMerkleProof();
     error MaldaNft_TokenAlreadyMinted();
     error MaldaNft_TokenAlreadyClaimed();
+    error MaldaNft_TokenNotTransferable();
 
 
     constructor(string memory name, string memory symbol, string memory baseURI, address owner) ERC721(name, symbol) Ownable(owner) {
@@ -81,6 +83,19 @@ contract MaldaNft is ERC721Enumerable, Ownable {
         minted[tokenId] = true;
         _safeMint(msg.sender, tokenId);
         emit TokensClaimed(msg.sender, tokenId);
+    }
+
+     /// @dev non-transferable
+    function transferFrom(address, address, uint256) public override(ERC721,IERC721) {
+        revert MaldaNft_TokenNotTransferable();
+    }
+
+    /// @dev non-transferable
+    function safeTransferFrom(address, address, uint256, bytes memory)
+        public
+        override(ERC721,IERC721)
+    {
+        revert MaldaNft_TokenNotTransferable();
     }
 
     // ----------- PRIVATE ------------

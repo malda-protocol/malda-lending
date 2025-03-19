@@ -91,6 +91,20 @@ contract MaldaNftTest is Test {
         maldaNft.mint(address(this), tokenIds[0]);
     }
 
+    function test_CannotTransfer() public {
+        vm.prank(users[0]);
+        maldaNft.claim(tokenIds[0], merkleProof1);
+        assertEq(maldaNft.ownerOf(tokenIds[0]), users[0]);
+
+        uint256 supply = maldaNft.totalSupply();
+        assertEq(supply, 1);
+
+        vm.startPrank(users[0]);
+        vm.expectRevert(MaldaNft.MaldaNft_TokenNotTransferable.selector);
+        maldaNft.transferFrom(users[0], address(this), tokenIds[0]);
+        vm.stopPrank();
+    }
+
 
      /// @dev read the merkle root and proof from js generated tree
     function _generateMerkleTree(address _user)
