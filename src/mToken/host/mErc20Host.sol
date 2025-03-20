@@ -193,6 +193,8 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
             _verifyProof(journalData, seal);
         }
 
+        _checkOutflow(_computeTotalOutflowAmount(mintAmount));
+
         bytes[] memory journals = abi.decode(journalData, (bytes[]));
         uint256 length = journals.length;
         require(length == mintAmount.length, mErc20Host_LengthMismatch());
@@ -218,6 +220,8 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
             _verifyProof(journalData, seal);
         }
 
+        _checkOutflow(_computeTotalOutflowAmount(repayAmount));
+
         bytes[] memory journals = abi.decode(journalData, (bytes[]));
         uint256 length = journals.length;
         require(length == repayAmount.length, mErc20Host_LengthMismatch());
@@ -239,6 +243,8 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         require(msg.value >= gasFees[dstChainId], mErc20Host_NotEnoughGasFee());
         require(allowedChains[dstChainId], mErc20Host_ChainNotValid());
 
+        _checkOutflow(amount);
+
         // actions
         uint256 underlyingAmount = _redeem(msg.sender, amount, false);
         accAmountOutPerChain[dstChainId][msg.sender] += underlyingAmount;
@@ -254,6 +260,8 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         require(msg.value >= gasFees[dstChainId], mErc20Host_NotEnoughGasFee());
         require(allowedChains[dstChainId], mErc20Host_ChainNotValid());
 
+        _checkOutflow(amount);
+
         // actions
         accAmountOutPerChain[dstChainId][msg.sender] += amount;
         _borrow(msg.sender, amount, false);
@@ -262,6 +270,20 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     }
 
     // ----------- PRIVATE ------------
+    function _computeTotalOutflowAmount(uint256[] calldata amounts) private pure returns (uint256) {
+        uint256 sum;
+        uint256 length = amounts.length;
+        for (uint256 i; i< length;) {
+            sum += amounts[i];
+            unchecked { ++i; }
+        }
+        return sum;
+    }
+
+    function _checkOutflow(uint256 amount) private {
+        IOperatorDefender(operator).checkOutflowVolumeLimit(amount);
+    }
+
     function _isAllowedFor(address _sender, bytes32 role) private view returns (bool) {
         return rolesOperator.isAllowedFor(_sender, role);
     }
