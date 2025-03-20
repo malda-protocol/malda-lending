@@ -28,7 +28,8 @@
     { access = "read", path = "./deployment-config.op.json" },
     { access = "read", path = "./deployment-config.linea.json" },
     { access = "read", path = "./deployment-rebalancer-config.json" },
-  ]
+    { access = "read-write", path = "./test/" }
+]
 
 [rpc_endpoints]
 #mainnet
