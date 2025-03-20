@@ -7,6 +7,7 @@ import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
 import {Risc0VerifierMock} from "../../mocks/Risc0VerifierMock.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 
 abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
     mTokenGateway public mWethExtension;
@@ -15,6 +16,7 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
     Risc0VerifierMock public verifierMock;
     mErc20Host public mWethHost;
     mErc20Host public mUsdcHost;
+    ZkVerifier public zkVerifier;
 
     uint32 internal constant TEST_SOURCE_CHAIN_ID = 59144; // Linea chain ID for tests
 
@@ -24,6 +26,9 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
         verifierMock = new Risc0VerifierMock();
         vm.label(address(verifierMock), "verifierMock");
 
+        zkVerifier = new ZkVerifier(address(this), "0x123", address(verifierMock));
+        vm.label(address(zkVerifier), "ZkVerifier contract");
+
         mTokenGateway gatewayImpl = new mTokenGateway();
 
         // Deploy mToken gateways
@@ -32,7 +37,7 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
             payable(address(this)),
             address(weth),
             address(roles),
-            address(verifierMock)
+            address(zkVerifier)
         );
         ERC1967Proxy mWethGatewayProxy = new ERC1967Proxy(address(gatewayImpl), mWethGatewayInitData);
         mWethExtension = mTokenGateway(address(mWethGatewayProxy));
@@ -43,7 +48,7 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
             payable(address(this)),
             address(usdc),
             address(roles),
-            address(verifierMock)
+            address(zkVerifier)
         );
         ERC1967Proxy mUsdcGatewayProxy = new ERC1967Proxy(address(gatewayImpl), mUsdcGatewayInitData);
         mUsdcExtension = mTokenGateway(address(mUsdcGatewayProxy));
@@ -61,7 +66,7 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
             "mWETH",
             18,
             payable(address(this)),
-            address(verifierMock),
+            address(zkVerifier),
             address(roles)
         );
         ERC1967Proxy mWethHostProxy = new ERC1967Proxy(address(mErc20HostImpl), mWethHostInitData);
@@ -78,7 +83,7 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
             "mUSDC",
             6,
             payable(address(this)),
-            address(verifierMock),
+            address(zkVerifier),
             address(roles)
         );
         ERC1967Proxy mUsdcHostProxy = new ERC1967Proxy(address(mErc20HostImpl), mUsdcHostInitData);
@@ -86,7 +91,7 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
         vm.label(address(mUsdcHost), "mUsdcHost");
 
         // Deploy batch submitter
-        batchSubmitter = new BatchSubmitter(address(roles), address(verifierMock), address(this));
+        batchSubmitter = new BatchSubmitter(address(roles), address(zkVerifier), address(this));
         vm.label(address(batchSubmitter), "BatchSubmitter");
 
         // Give BatchSubmitter the PROOF_BATCH_FORWARDER role
