@@ -18,6 +18,7 @@ import {DeployConfig, Market, Role, InterestConfig, OracleConfig} from "../deplo
 import {DeployBase} from "../deployers/DeployBase.sol";
 import {DeployDeployer} from "../deployers/DeployDeployer.s.sol";
 import {DeployRbac} from "./generic/DeployRbac.s.sol";
+import {DeployZkVerifier} from "./generic/DeployZkVerifier.s.sol";
 import {DeployPauser} from "./generic/DeployPauser.s.sol";
 import {DeployOperator} from "./markets/DeployOperator.s.sol";
 import {DeployHostMarket} from "./markets/host/DeployHostMarket.s.sol";
@@ -35,7 +36,6 @@ import {SetBorrowRateMaxMantissa} from "../configuration/SetBorrowRateMaxMantiss
 import {SetBorrowCap} from "../configuration/SetBorrowCap.s.sol";
 import {SetSupplyCap} from "../configuration/SetSupplyCap.s.sol";
 import {UpdateAllowedChains} from "../configuration/UpdateAllowedChains.s.sol";
-import {SetZkImageId} from "../configuration/SetZkImageId.s.sol";
 
 // import {VerifyDeployment} from "./VerifyDeployment.s.sol";
 
@@ -72,7 +72,7 @@ contract DeployProtocol is DeployBase {
     SetBorrowCap setBorrowCap;
     SetSupplyCap setSupplyCap;
     UpdateAllowedChains updateAllowedChains;
-    SetZkImageId setZkImageId;
+    DeployZkVerifier deployZkVerifier;
 
     function setUp() public override {
         configPath = "deployment-config.json";
@@ -94,13 +94,14 @@ contract DeployProtocol is DeployBase {
             deployDeployer = new DeployDeployer();
             deployRbac = new DeployRbac();
             deployBatchSubmitter = new DeployBatchSubmitter();
+            deployZkVerifier = new DeployZkVerifier();
             setRole = new SetRole();
-            setZkImageId = new SetZkImageId();
 
             owner = configs[network].deployer.owner;
             deployer = Deployer(payable(_deployDeployer(network)));
             address rolesContract = _deployRoles(owner);
-            address batchSubmitter = _deployBatchSubmitter(rolesContract, configs[network].zkVerifier.verifierAddress);
+            address zkVerifier = _deployZkVerifier(owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId);
+            _deployBatchSubmitter(rolesContract, zkVerifier);
 
             if (configs[network].isHost) {
                 deployInterest = new DeployJumpRateModelV4();
@@ -118,15 +119,13 @@ contract DeployProtocol is DeployBase {
                 updateAllowedChains = new UpdateAllowedChains();
 
                 console.log("Deploying host chain");
-                _deployHostChain(network, rolesContract, batchSubmitter);
+                _deployHostChain(network, rolesContract, zkVerifier);
             } else {
                 deployExt = new DeployExtensionMarket();
                 console.log("Deploying extension chain");
-                _deployExtensionChain(network, rolesContract, batchSubmitter);
+                _deployExtensionChain(network, rolesContract, zkVerifier);
             }
 
-            // Set image ID for all markets
-            _setZkImageId(marketAddresses, batchSubmitter, configs[network].zkVerifier.imageId);
         }
 
         // VerifyDeployment verifier = new VerifyDeployment();
@@ -135,7 +134,7 @@ contract DeployProtocol is DeployBase {
         // console.log("\n=== Deployment verification completed successfully ===");
     }
 
-    function _deployHostChain(string memory network, address rolesContract, address) internal {
+    function _deployHostChain(string memory network, address rolesContract, address _zkVerifier) internal {
         address rewardDistributor = _deployRewardDistributor();
         address oracle = _deployOracle(configs[network].oracle, rolesContract);
         address operator = _deployOperator(oracle, rewardDistributor, rolesContract);
@@ -148,16 +147,16 @@ contract DeployProtocol is DeployBase {
 
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i = 0; i < marketsLength; i++) {
-            _deployAndConfigureMarket(true, configs[network].markets[i], operator, rolesContract, network);
+            _deployAndConfigureMarket(true, configs[network].markets[i], operator, rolesContract, network, _zkVerifier);
         }
     }
 
-    function _deployExtensionChain(string memory network, address rolesContract, address) internal {
+    function _deployExtensionChain(string memory network, address rolesContract, address _zkVerifier) internal {
         _setRoles(rolesContract, network);
 
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i = 0; i < marketsLength; i++) {
-            _deployAndConfigureMarket(false, configs[network].markets[i], address(0), rolesContract, network);
+            _deployAndConfigureMarket(false, configs[network].markets[i], address(0), rolesContract, network, _zkVerifier);
         }
 
         // Set image ID for all markets
@@ -168,7 +167,8 @@ contract DeployProtocol is DeployBase {
         Market memory market,
         address operator,
         address rolesContract,
-        string memory network
+        string memory network,
+        address _zkVerifier
     ) internal {
         address interestModel;
 
@@ -180,7 +180,7 @@ contract DeployProtocol is DeployBase {
         // Deploy proxy for market
         if (isHost) {
             marketAddress = _deployHostMarket(
-                deployer, market, operator, interestModel, configs[network].zkVerifier.verifierAddress, rolesContract
+                deployer, market, operator, interestModel, _zkVerifier, rolesContract
             );
 
             marketAddresses.push(marketAddress);
@@ -191,7 +191,7 @@ contract DeployProtocol is DeployBase {
             );
         } else {
             marketAddress =
-                _deployExtensionMarket(deployer, market, configs[network].zkVerifier.verifierAddress, rolesContract);
+                _deployExtensionMarket(deployer, market, _zkVerifier, rolesContract);
 
             console.log("Proxy admin address:");
             console.logBytes32(
@@ -223,6 +223,10 @@ contract DeployProtocol is DeployBase {
 
     function _deployRoles(address _owner) internal returns (address) {
         return deployRbac.run(deployer, _owner);
+    }
+
+    function _deployZkVerifier(address _owner, address _risc0Verifier, bytes32 _imageId) internal returns (address) {
+        return deployZkVerifier.run(deployer, _owner, _risc0Verifier, _imageId);
     }
 
     function _deployBatchSubmitter(address rolesContract, address zkVerifier) internal returns (address) {
@@ -362,9 +366,5 @@ contract DeployProtocol is DeployBase {
 
     function _setOperatorInRewardDistributor(address operator, address rewardDistributor) internal {
         setOperatorInRewardDistributor.run(operator, rewardDistributor);
-    }
-
-    function _setZkImageId(address[] memory _marketAddresses, address batchSubmitter, bytes32 imageId) internal {
-        setZkImageId.run(_marketAddresses, batchSubmitter, imageId);
     }
 }
