@@ -10,6 +10,7 @@ import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
 import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
+import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 
 import {Base_Unit_Test} from "../../Base_Unit_Test.t.sol";
 
@@ -24,6 +25,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
     mErc20Immutable public mWeth;
     mTokenGateway public mWethExtension;
     BatchSubmitter public batchSubmitter;
+    ZkVerifier public zkVerifier;
 
     Risc0VerifierMock public verifierMock;
 
@@ -39,6 +41,9 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         verifierMock = new Risc0VerifierMock();
         vm.label(address(verifierMock), "verifierMock");
 
+        zkVerifier = new ZkVerifier(address(this), "0x123", address(verifierMock));
+        vm.label(address(zkVerifier), "ZkVerifier contract");
+
         // Deploy mWethHost implementation and proxy
         mErc20Host implementation = new mErc20Host();
         bytes memory initData = abi.encodeWithSelector(
@@ -51,7 +56,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             "mWeth",
             18,
             payable(address(this)),
-            address(verifierMock),
+            address(zkVerifier),
             address(roles)
         );
         ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), initData);
@@ -69,7 +74,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             "mDai",
             18,
             payable(address(this)),
-            address(verifierMock),
+            address(zkVerifier),
             address(roles)
         );
         ERC1967Proxy proxyDai = new ERC1967Proxy(address(implementation), initDataDai);
@@ -96,7 +101,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
             payable(address(this)),
             address(weth),
             address(roles),
-            address(verifierMock)
+            address(zkVerifier)
         );
         ERC1967Proxy wethGatewayProxy = new ERC1967Proxy(address(gatewayImpl), wethGatewayInitData);
         mWethExtension = mTokenGateway(address(wethGatewayProxy));
@@ -105,10 +110,6 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         batchSubmitter = new BatchSubmitter(address(roles), address(verifierMock), address(this));
         vm.label(address(batchSubmitter), "BatchSubmitter");
         roles.allowFor(address(batchSubmitter), roles.PROOF_BATCH_FORWARDER(), true);
-
-        mDaiHost.setImageId("0x123");
-        mWethHost.setImageId("0x123");
-        mWethExtension.setImageId("0x123");
     }
     // ----------- HELPERS ------------
 

@@ -4,22 +4,26 @@ pragma solidity =0.8.28;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {IRoles} from "src/interfaces/IRoles.sol";
-import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
+import {IZkVerifier} from "src/verifier/ZkVerifier.sol";
 
-contract BatchSubmitter is ZkVerifier, Ownable {
+contract BatchSubmitter is Ownable {
     error BatchSubmitter_CallerNotAllowed();
     error BatchSubmitter_JournalNotValid();
     error BatchSubmitter_InvalidSelector();
+    error BatchSubmitter_AddressNotValid();
 
     event BatchProcessFailed(bytes32 initHash, bytes reason);
     event BatchProcessSuccess(bytes32 initHash);
+    event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
 
     /**
      * @notice The roles contract for access control
      */
     IRoles public immutable rolesOperator;
+
+    IZkVerifier public verifier;
 
     /**
      * receiver Funds receiver/performed on
@@ -50,24 +54,18 @@ contract BatchSubmitter is ZkVerifier, Ownable {
 
     constructor(address _roles, address zkVerifier_, address _owner) Ownable(_owner) {
         rolesOperator = IRoles(_roles);
-        ZkVerifier.initialize(zkVerifier_);
+        verifier = IZkVerifier(zkVerifier_);
     }
 
     // ----------- OWNER ------------
     /**
-     * @notice Sets the _risc0Verifier address
-     * @param _risc0Verifier the new IRiscZeroVerifier address
+     * @notice Updates IZkVerifier address
+     * @param _zkVerifier the verifier address
      */
-    function setVerifier(address _risc0Verifier) external onlyOwner {
-        _setVerifier(_risc0Verifier);
-    }
-
-    /**
-     * @notice Sets the image id
-     * @param _imageId the new image id
-     */
-    function setImageId(bytes32 _imageId) external onlyOwner {
-        _setImageId(_imageId);
+    function updateZkVerifier(address _zkVerifier) external onlyOwner {
+        require(_zkVerifier != address(0), BatchSubmitter_AddressNotValid());
+        emit ZkVerifierUpdated(address(verifier), _zkVerifier);
+        verifier = IZkVerifier(_zkVerifier);
     }
 
     // ----------- PUBLIC ------------
@@ -131,11 +129,11 @@ contract BatchSubmitter is ZkVerifier, Ownable {
      * @param journalData The journal data to verify
      * @param seal The seal data for verification
      */
-    function _verifyProof(bytes calldata journalData, bytes calldata seal) private {
+    function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
         if (journalData.length == 0) {
             revert BatchSubmitter_JournalNotValid();
         }
 
-        _verifyInput(journalData, seal);
+        verifier.verifyInput(journalData, seal);
     }
 }

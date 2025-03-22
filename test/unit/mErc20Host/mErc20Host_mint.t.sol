@@ -6,6 +6,7 @@ import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
+import {Operator} from "src/Operator/Operator.sol";
 import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
 
 // tests
@@ -119,7 +120,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         mWethHost.mintExternal("", "0x123", amounts, amounts, address(this));
     }
 
-    function test_GivenDecodedAmountIs0() external whenMintExternalIsCalled {
+    function test_GivenDecodedAmountIs0() external whenMintExternalIsCalled whenMarketIsListed(address(mWethHost)) {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 0;
 
@@ -180,5 +181,133 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         assertEq(balanceWethBefore, balanceWethAfter);
 
         assertEq(totalSupplyAfter - amount, totalSupplyBefore);
+    }
+
+    function test_WhenSealVerificationWasOk_And_OverflowLimitIsInPlace(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenMintExternalIsCalled
+        givenDecodedAmountIsValid
+        whenMarketIsListed(address(mWethHost))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+    {
+        uint256 totalSupplyBefore = mWethHost.totalSupply();
+        uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = amount;
+
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount * 20);
+
+        Operator(operator).setOutflowTimeLimitInUSD(amount + 1);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+
+        vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+
+        vm.warp(block.timestamp + 2 hours);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+
+        vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        vm.warp(block.timestamp + 1);
+        vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+
+        vm.warp(block.timestamp + 2 hours);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+
+        uint256 totalSupplyAfter = mWethHost.totalSupply();
+        uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
+
+        // it should increse balanceOf account
+        assertGt(balanceOfAfter, balanceOfBefore);
+
+        // it should increase total supply by amount
+        assertGt(totalSupplyAfter, totalSupplyBefore);
+    }
+
+    function test_WhenSealVerificationWasOk_And_OverflowLimitNotExceeded(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenMintExternalIsCalled
+        givenDecodedAmountIsValid
+        whenMarketIsListed(address(mWethHost))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+    {
+        uint256 totalSupplyBefore = mWethHost.totalSupply();
+        uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = amount;
+
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount * 10);
+
+        Operator(operator).setOutflowTimeLimitInUSD(amount * 50);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        
+        uint256 totalSupplyAfter = mWethHost.totalSupply();
+        uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
+        assertGt(balanceOfAfter, balanceOfBefore);
+        assertEq(totalSupplyAfter, totalSupplyBefore + 2 * amount);
+    }
+
+    function test_WhenSealVerificationWasOk_And_AmountIsZero()
+        external
+        whenMintExternalIsCalled
+        givenDecodedAmountIsValid
+        whenMarketIsListed(address(mWethHost))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+    {
+        uint256 totalSupplyBefore = mWethHost.totalSupply();
+        uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 0;
+
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), 0);
+
+        Operator(operator).setOutflowTimeLimitInUSD(100);
+        
+        vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+
+        uint256 totalSupplyAfter = mWethHost.totalSupply();
+        uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
+
+        assertEq(balanceOfAfter, balanceOfBefore);
+        assertEq(totalSupplyAfter, totalSupplyBefore);
+    }
+
+    function test_WhenSealVerificationWasOk_And_OutflowLimitIsAdjusted(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenMintExternalIsCalled
+        givenDecodedAmountIsValid
+        whenMarketIsListed(address(mWethHost))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+    {
+        uint256 totalSupplyBefore = mWethHost.totalSupply();
+        uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = amount;
+
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount * 20);
+
+        Operator(operator).setOutflowTimeLimitInUSD(amount * 2 - 1);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+
+        vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+
+        Operator(operator).setOutflowTimeLimitInUSD(amount * 50);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+
+        uint256 totalSupplyAfter = mWethHost.totalSupply();
+        uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
+        assertGt(balanceOfAfter, balanceOfBefore);
+        assertGt(totalSupplyAfter, totalSupplyBefore);
     }
 }

@@ -19,9 +19,9 @@ import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
 
-import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
+import {IZkVerifier} from "src/verifier/ZkVerifier.sol";
 
-contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImTokenOperationTypes {
+contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTypes {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE -----------
@@ -29,6 +29,8 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
      * @inheritdoc ImTokenGateway
      */
     IRoles public rolesOperator;
+
+    IZkVerifier public verifier;
 
     mapping(OperationType => bool) public paused;
 
@@ -59,8 +61,7 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
         underlying = _underlying;
         rolesOperator = IRoles(_roles);
 
-        // Initialize the ZkVerifier
-        ZkVerifier.initialize(zkVerifier_);
+        verifier = IZkVerifier(zkVerifier_);
     }
 
     modifier notPaused(OperationType _type) {
@@ -110,22 +111,6 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     }
 
     /**
-     * @notice Sets the _risc0Verifier address
-     * @param _risc0Verifier the new IRiscZeroVerifier address
-     */
-    function setVerifier(address _risc0Verifier) external onlyOwner {
-        _setVerifier(_risc0Verifier);
-    }
-
-    /**
-     * @notice Sets the image id
-     * @param _imageId the new image id
-     */
-    function setImageId(bytes32 _imageId) external onlyOwner {
-        _setImageId(_imageId);
-    }
-
-    /**
      * @inheritdoc ImTokenGateway
      */
     function extractForRebalancing(uint256 amount) external notPaused(OperationType.Rebalancing) {
@@ -149,6 +134,16 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     function withdrawGasFees(address payable receiver) external onlyOwner {
         uint256 balance = address(this).balance;
         receiver.transfer(balance);
+    }
+
+    /**
+     * @notice Updates IZkVerifier address
+     * @param _zkVerifier the verifier address
+     */
+    function updateZkVerifier(address _zkVerifier) external onlyOwner {
+        require(_zkVerifier != address(0), mTokenGateway_AddressNotValid());
+        emit ZkVerifierUpdated(address(verifier), _zkVerifier);
+        verifier = IZkVerifier(_zkVerifier);
     }
 
     // ----------- PUBLIC ------------
@@ -250,11 +245,11 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     }
 
     // ----------- PRIVATE ------------
-    function _verifyProof(bytes calldata journalData, bytes calldata seal) private {
+    function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
         require(journalData.length > 0, mTokenGateway_JournalNotValid());
 
         // verify it using the ZkVerifier contract
-        _verifyInput(journalData, seal);
+        verifier.verifyInput(journalData, seal);
     }
 
     function _checkSender(address msgSender, address srcSender) private view {
