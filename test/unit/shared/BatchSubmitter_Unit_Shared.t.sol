@@ -113,6 +113,7 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
      * @param amounts Array of amounts
      * @param srcChainId Source chain ID
      * @param dstChainId Destination chain ID
+     * @param L1inclusion Whether L1 inclusion is required
      * @return bytes Encoded array of journals
      */
     function _createBatchJournals(
@@ -120,7 +121,8 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
         address[] memory markets,
         uint256[] memory amounts,
         uint32 srcChainId,
-        uint32 dstChainId
+        uint32 dstChainId,
+        bool L1inclusion
     ) internal pure returns (bytes memory) {
         require(
             senders.length == markets.length && markets.length == amounts.length,
@@ -130,7 +132,7 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
         bytes[] memory journals = new bytes[](senders.length);
 
         for (uint256 i = 0; i < senders.length;) {
-            journals[i] = abi.encodePacked(senders[i], markets[i], amounts[i], amounts[i], srcChainId, dstChainId);
+            journals[i] = abi.encodePacked(senders[i], markets[i], amounts[i], amounts[i], srcChainId, dstChainId, L1inclusion);
 
             unchecked {
                 ++i;

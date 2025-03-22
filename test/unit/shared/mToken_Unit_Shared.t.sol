@@ -9,6 +9,7 @@ import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
+import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 
 import {Base_Unit_Test} from "../../Base_Unit_Test.t.sol";
@@ -16,13 +17,14 @@ import {Base_Unit_Test} from "../../Base_Unit_Test.t.sol";
 import {ERC20Mock} from "../../mocks/ERC20Mock.sol";
 import {Risc0VerifierMock} from "../../mocks/Risc0VerifierMock.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-
+import {console} from "forge-std/console.sol";
 abstract contract mToken_Unit_Shared is Base_Unit_Test {
     // ----------- STORAGE ------------
     mErc20Host public mWethHost;
     mErc20Host public mDaiHost;
     mErc20Immutable public mWeth;
     mTokenGateway public mWethExtension;
+    BatchSubmitter public batchSubmitter;
     ZkVerifier public zkVerifier;
 
     Risc0VerifierMock public verifierMock;
@@ -104,6 +106,10 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         ERC1967Proxy wethGatewayProxy = new ERC1967Proxy(address(gatewayImpl), wethGatewayInitData);
         mWethExtension = mTokenGateway(address(wethGatewayProxy));
         vm.label(address(mWethExtension), "mWethExtension");
+
+        batchSubmitter = new BatchSubmitter(address(roles), address(verifierMock), address(this));
+        vm.label(address(batchSubmitter), "BatchSubmitter");
+        roles.allowFor(address(batchSubmitter), roles.PROOF_BATCH_FORWARDER(), true);
     }
     // ----------- HELPERS ------------
 
@@ -120,9 +126,10 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         // | 40     | 32      | uint256 accAmountIn    |
         // | 72     | 32      | uint256 accAmountOut   |
         // | 104    | 4       | uint32 chainId         |
-        // | 108    | 4       | uint32 dstChainId         |
+        // | 108    | 4       | uint32 dstChainId      |
+        // | 112    | 1       | bool L1inclusion       |
         bytes memory journal =
-            abi.encodePacked(sender, market, accAmount, accAmount, uint32(block.chainid), uint32(block.chainid));
+            abi.encodePacked(sender, market, accAmount, accAmount, uint32(block.chainid), uint32(block.chainid), true);
         bytes[] memory journals = new bytes[](1);
         journals[0] = journal;
         return abi.encode(journals);

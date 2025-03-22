@@ -28,6 +28,7 @@ contract ZkVerifier is Ownable {
     error ZkVerifier_ImageNotValid();
     error ZkVerifier_InputNotValid();
     error ZkVerifier_VerifierNotSet();
+    error ZkVerifier_L1InclusionRequired();
 
     event ImageSet(bytes32 _imageId);
     event VerifierSet(address indexed oldVerifier, address indexed newVerifier);

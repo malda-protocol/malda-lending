@@ -211,7 +211,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     }
 
     function _outHere(bytes memory journalData, uint256 amount, address receiver) internal {
-        (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId) =
+        (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(journalData);
 
         // temporary overwrite; will be removed in future implementations

@@ -11,7 +11,6 @@ import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
 
 // tests
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
-
 contract mErc20Host_liquidate is mToken_Unit_Shared {
     function setUp() public virtual override {
         super.setUp();
@@ -85,6 +84,8 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         collaterals[0] = address(mWethHost);
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), 0);
+
+        (address(batchSubmitter));
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
         mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));

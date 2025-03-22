@@ -295,6 +295,22 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
         require(journalData.length > 0, mErc20Host_JournalNotValid());
 
+        // Decode the dynamic array of journals.
+        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+
+        // Check the L1Inclusion flag for each journal.
+        bool isSequencer = _isAllowedFor(msg.sender, rolesOperator.PROOF_FORWARDER()) || 
+                        _isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER());
+
+        if (!isSequencer) {
+            for (uint256 i = 0; i < journals.length; i++) {
+                (, , , , , , bool L1Inclusion) = mTokenProofDecoderLib.decodeJournal(journals[i]);
+                if (!L1Inclusion) {
+                    revert mErc20Host_L1InclusionRequired();
+                }
+            }
+        }
+
         // verify it using the IZkVerifier contract
         verifier.verifyInput(journalData, seal);
     }
@@ -317,7 +333,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         address collateral,
         address receiver
     ) internal {
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
         // temporary overwrite; will be removed in future implementations
@@ -350,7 +366,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     function _mintExternal(bytes memory singleJournal, uint256 mintAmount, uint256 minAmountOut, address receiver)
         internal
     {
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
+        (address _sender, address _market, uint256 _accAmountIn, , uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
         // temporary overwrite; will be removed in future implementations
@@ -377,7 +393,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     }
 
     function _repayExternal(bytes memory singleJournal, uint256 repayAmount, address receiver) internal {
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
         // temporary overwrite; will be removed in future implementations
