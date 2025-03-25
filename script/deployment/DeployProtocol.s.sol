@@ -1,34 +1,42 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {DeployBase} from "../deployers/DeployBase.sol";
 import {Deployer} from "src/utils/Deployer.sol";
-import {DeployConfig, Market, Role, InterestConfig} from "../deployers/Types.sol";
+import {Operator} from "src/Operator/Operator.sol";
+import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
+import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
+import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
+import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
+import {Roles} from "src/Roles.sol";
+import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
+import {mTokenConfiguration} from "src/mToken/mTokenConfiguration.sol";
 
+import {DeployConfig, Market, Role, InterestConfig, OracleConfig} from "../deployers/Types.sol";
+
+import {DeployBase} from "../deployers/DeployBase.sol";
+import {DeployDeployer} from "../deployers/DeployDeployer.s.sol";
 import {DeployRbac} from "./generic/DeployRbac.s.sol";
+import {DeployZkVerifier} from "./generic/DeployZkVerifier.s.sol";
 import {DeployPauser} from "./generic/DeployPauser.s.sol";
 import {DeployOperator} from "./markets/DeployOperator.s.sol";
 import {DeployHostMarket} from "./markets/host/DeployHostMarket.s.sol";
 import {DeployExtensionMarket} from "./markets/extension/DeployExtensionMarket.s.sol";
 import {DeployJumpRateModelV4} from "./interest/DeployJumpRateModelV4.s.sol";
 import {DeployRewardDistributor} from "./rewards/DeployRewardDistributor.s.sol";
-import {OracleConfig} from "../deployers/Types.sol";
-import {Operator} from "src/Operator/Operator.sol";
-import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
 import {DeployBatchSubmitter} from "./generic/DeployBatchSubmitter.s.sol";
-import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
-import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
-import {Roles} from "src/Roles.sol";
-import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {DeployMixedPriceOracleV3} from "./oracles/DeployMixedPriceOracleV3.s.sol";
-import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
-import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import {StorageSlot} from "@openzeppelin/contracts/utils/StorageSlot.sol";
-import {mTokenConfiguration} from "src/mToken/mTokenConfiguration.sol";
+
+import {SetOperatorInRewardDistributor} from "../configuration/SetOperatorInRewardDistributor.s.sol";
+import {SetRole} from "../configuration/SetRole.s.sol";
+import {SetCollateralFactor} from "../configuration/SetCollateralFactor.s.sol";
+import {SupportMarket} from "../configuration/SupportMarket.s.sol";
+import {SetBorrowRateMaxMantissa} from "../configuration/SetBorrowRateMaxMantissa.s.sol";
+import {SetBorrowCap} from "../configuration/SetBorrowCap.s.sol";
+import {SetSupplyCap} from "../configuration/SetSupplyCap.s.sol";
+import {UpdateAllowedChains} from "../configuration/UpdateAllowedChains.s.sol";
+
 // import {VerifyDeployment} from "./VerifyDeployment.s.sol";
 
 contract DeployProtocol is DeployBase {
@@ -37,12 +45,16 @@ contract DeployProtocol is DeployBase {
     error UnsupportedOracleType();
 
     address marketAddress;
-    address interestModel;
+    address[] marketAddresses;
+    address owner;
 
     // Track deployed implementations
     address public mTokenHostImplementation;
     address public mTokenGatewayImplementation;
 
+    Deployer deployer;
+
+    DeployDeployer deployDeployer;
     DeployRbac deployRbac;
     DeployBatchSubmitter deployBatchSubmitter;
     DeployJumpRateModelV4 deployInterest;
@@ -52,8 +64,18 @@ contract DeployProtocol is DeployBase {
     DeployRewardDistributor deployReward;
     DeployHostMarket deployHost;
     DeployExtensionMarket deployExt;
+    SetOperatorInRewardDistributor setOperatorInRewardDistributor;
+    SetRole setRole;
+    SupportMarket supportMarket;
+    SetCollateralFactor setCollateralFactor;
+    SetBorrowRateMaxMantissa setBorrowRateMaxMantissa;
+    SetBorrowCap setBorrowCap;
+    SetSupplyCap setSupplyCap;
+    UpdateAllowedChains updateAllowedChains;
+    DeployZkVerifier deployZkVerifier;
 
     function setUp() public override {
+        configPath = "deployment-config.json";
         super.setUp();
     }
 
@@ -69,14 +91,17 @@ contract DeployProtocol is DeployBase {
             // Create fork for this network
             forks[network] = vm.createSelectFork(network);
 
-            _deployCreate3Deployer(network);
-
+            deployDeployer = new DeployDeployer();
             deployRbac = new DeployRbac();
             deployBatchSubmitter = new DeployBatchSubmitter();
+            deployZkVerifier = new DeployZkVerifier();
+            setRole = new SetRole();
 
-            address rolesContract = _deployRoles();
-            address batchSubmitter =
-                _deployBatchSubmitter(deployer, rolesContract, configs[network].zkVerifier.verifierAddress);
+            owner = configs[network].deployer.owner;
+            deployer = Deployer(payable(_deployDeployer(network)));
+            address rolesContract = _deployRoles(owner);
+            address zkVerifier = _deployZkVerifier(owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId);
+            _deployBatchSubmitter(rolesContract, zkVerifier);
 
             if (configs[network].isHost) {
                 deployInterest = new DeployJumpRateModelV4();
@@ -85,23 +110,31 @@ contract DeployProtocol is DeployBase {
                 deployOracle = new DeployMixedPriceOracleV3();
                 deployReward = new DeployRewardDistributor();
                 deployHost = new DeployHostMarket();
+                setOperatorInRewardDistributor = new SetOperatorInRewardDistributor();
+                supportMarket = new SupportMarket();
+                setCollateralFactor = new SetCollateralFactor();
+                setBorrowRateMaxMantissa = new SetBorrowRateMaxMantissa();
+                setBorrowCap = new SetBorrowCap();
+                setSupplyCap = new SetSupplyCap();
+                updateAllowedChains = new UpdateAllowedChains();
 
-                console.log("Deploying host chain configuration");
-                _deployHostChain(network, rolesContract, batchSubmitter);
+                console.log("Deploying host chain");
+                _deployHostChain(network, rolesContract, zkVerifier);
             } else {
                 deployExt = new DeployExtensionMarket();
-                console.log("Deploying extension chain configuration");
-                _deployExtensionChain(network, rolesContract, batchSubmitter);
+                console.log("Deploying extension chain");
+                _deployExtensionChain(network, rolesContract, zkVerifier);
             }
+
         }
 
         // VerifyDeployment verifier = new VerifyDeployment();
         // verifier.run();
-        
+
         // console.log("\n=== Deployment verification completed successfully ===");
     }
 
-    function _deployHostChain(string memory network, address rolesContract, address batchSubmitter) internal {
+    function _deployHostChain(string memory network, address rolesContract, address _zkVerifier) internal {
         address rewardDistributor = _deployRewardDistributor();
         address oracle = _deployOracle(configs[network].oracle, rolesContract);
         address operator = _deployOperator(oracle, rewardDistributor, rolesContract);
@@ -110,61 +143,23 @@ contract DeployProtocol is DeployBase {
         _setOperatorInRewardDistributor(operator, rewardDistributor);
 
         // Setup roles and chain connections
-        _setupRoles(rolesContract, network);
-
-        // Deploy and configure markets
-        mTokenHostImplementation = _deployMTokenHostImplementation();
-        uint256 marketsLength = configs[network].markets.length;
-        for (uint256 i = 0; i < marketsLength; i++) {
-            _deployAndConfigureMarket(
-                true,
-                configs[network].markets[i],
-                operator,
-                rolesContract,
-                mTokenHostImplementation,
-                network,
-                batchSubmitter
-            );
-        }
-    }
-
-    function _deployExtensionChain(string memory network, address rolesContract, address batchSubmitter) internal {
-        mTokenGatewayImplementation = _deployMTokenGatewayImplementation();
+        _setRoles(rolesContract, network);
 
         uint256 marketsLength = configs[network].markets.length;
         for (uint256 i = 0; i < marketsLength; i++) {
-            _deployAndConfigureMarket(
-                false,
-                configs[network].markets[i],
-                address(0),
-                rolesContract,
-                mTokenGatewayImplementation,
-                network,
-                batchSubmitter
-            );
+            _deployAndConfigureMarket(true, configs[network].markets[i], operator, rolesContract, network, _zkVerifier);
+        }
+    }
+
+    function _deployExtensionChain(string memory network, address rolesContract, address _zkVerifier) internal {
+        _setRoles(rolesContract, network);
+
+        uint256 marketsLength = configs[network].markets.length;
+        for (uint256 i = 0; i < marketsLength; i++) {
+            _deployAndConfigureMarket(false, configs[network].markets[i], address(0), rolesContract, network, _zkVerifier);
         }
 
-        _setupRoles(rolesContract, network);
-    }
-
-    function _deployMTokenHostImplementation() internal returns (address) {
-        bytes32 salt = getSalt("mTokenHost-implementation");
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        address impl = deployer.create(salt, abi.encodePacked(type(mErc20Host).creationCode));
-        vm.stopBroadcast();
-        console.log("Host implementation deployed at:", impl);
-        return impl;
-    }
-
-    function _deployMTokenGatewayImplementation() internal returns (address) {
-        uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-
-        bytes32 salt = getSalt("mTokenGateway-implementation");
-        vm.startBroadcast(key);
-        address impl = deployer.create(salt, type(mTokenGateway).creationCode);
-        vm.stopBroadcast();
-
-        return impl;
+        // Set image ID for all markets
     }
 
     function _deployAndConfigureMarket(
@@ -172,81 +167,33 @@ contract DeployProtocol is DeployBase {
         Market memory market,
         address operator,
         address rolesContract,
-        address marketImplementation,
         string memory network,
-        address batchSubmitter
+        address _zkVerifier
     ) internal {
+        address interestModel;
+
         // Deploy interest model only for host chain
         if (isHost) {
-            console.log("Deploying interest model");
             interestModel = _deployInterestModel(market.interestModel);
         }
 
         // Deploy proxy for market
         if (isHost) {
-            // Prepare initialization data
-            bytes memory initData = abi.encodeWithSelector(
-                mErc20Host.initialize.selector,
-                market.underlying,
-                operator,
-                interestModel,
-                uint256(1e18), // exchangeRateMantissa
-                market.name,
-                market.symbol,
-                market.decimals,
-                payable(configs[network].deployer.owner),
-                configs[network].zkVerifier.verifierAddress,
-                rolesContract
+            marketAddress = _deployHostMarket(
+                deployer, market, operator, interestModel, _zkVerifier, rolesContract
             );
-            console.log("Host implementation address:", marketImplementation);
 
-            // Deploy proxy
-            {
-                bytes32 proxySalt = getSalt(market.name);
-                console.log("Deploying market");
-                vm.startBroadcast(key);
-                marketAddress = deployer.create(
-                    proxySalt,
-                    abi.encodePacked(
-                        type(TransparentUpgradeableProxy).creationCode,
-                        abi.encode(marketImplementation, configs[network].deployer.owner, initData)
-                    )
-                );
-                vm.stopBroadcast();
-                console.log("Market deployed at:", marketAddress);
-                console.logBytes32(
-                    vm.load(marketAddress, bytes32(0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103))
-                );
-            }
+            marketAddresses.push(marketAddress);
+
+            console.log("Proxy admin address:");
+            console.logBytes32(
+                vm.load(marketAddress, bytes32(0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103))
+            );
         } else {
-            console.log("Deploying gateway");
-            // Prepare initialization data
-            bytes memory initData = abi.encodeWithSelector(
-                mTokenGateway.initialize.selector,
-                payable(configs[network].deployer.owner),
-                market.underlying,
-                rolesContract,
-                configs[network].zkVerifier.verifierAddress
-            );
-            console.log("Deploying proxy");
+            marketAddress =
+                _deployExtensionMarket(deployer, market, _zkVerifier, rolesContract);
 
-            console.log("Extension implementation address:", marketImplementation);
-            // Deploy proxy
-            {
-                bytes32 proxySalt = getSalt(market.name);
-                vm.startBroadcast(key);
-
-                marketAddress = deployer.create(
-                    proxySalt,
-                    abi.encodePacked(
-                        type(TransparentUpgradeableProxy).creationCode,
-                        abi.encode(marketImplementation, configs[network].deployer.owner, initData)
-                    )
-                );
-                vm.stopBroadcast();
-            }
-
-            console.log("Market deployed at:", marketAddress);
+            console.log("Proxy admin address:");
             console.logBytes32(
                 vm.load(marketAddress, bytes32(0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103))
             );
@@ -254,7 +201,7 @@ contract DeployProtocol is DeployBase {
 
         // Configure market if host chain
         if (isHost) {
-            console.log("Configuring market");
+            console.log("Configuring market", marketAddress);
             _configureMarket(
                 operator,
                 marketAddress,
@@ -265,38 +212,29 @@ contract DeployProtocol is DeployBase {
             );
             console.log("Market configured");
 
-            console.log("Setting up chain connections");
             // Setup allowed chains on host market
-            _setupChainConnections(marketAddress, network);
-            console.log("Chain connections set up");
+            _updateAllowedChains(marketAddress, network);
         }
-
-        // Setup ZK verification image ID
-        console.log("Setting up ZK image ID");
-        _setupZkImageId(marketAddress, batchSubmitter, configs[network].zkVerifier.imageId, isHost);
-        console.log("ZK image ID set up");
     }
 
-    function _deployRoles() internal returns (address) {
-        console.log("Deploying roles");
-        address returnedRoles = deployRbac.run(deployer);
-
-        console.log("Roles deployed at:", returnedRoles);
-        return returnedRoles;
+    function _deployDeployer(string memory network) internal returns (address) {
+        return deployDeployer.run(configs[network].chainId, owner, configs[network].deployer.salt);
     }
 
-    function _deployBatchSubmitter(Deployer deployer, address rolesContract, address zkVerifier)
-        internal
-        returns (address)
-    {
-        console.log("Deploying batch submitter");
-        address returnedBatchSubmitter = deployBatchSubmitter.run(deployer, rolesContract, zkVerifier);
-        console.log("Batch submitter deployed at:", returnedBatchSubmitter);
-        return returnedBatchSubmitter;
+    function _deployRoles(address _owner) internal returns (address) {
+        return deployRbac.run(deployer, _owner);
+    }
+
+    function _deployZkVerifier(address _owner, address _risc0Verifier, bytes32 _imageId) internal returns (address) {
+        return deployZkVerifier.run(deployer, _owner, _risc0Verifier, _imageId);
+    }
+
+    function _deployBatchSubmitter(address rolesContract, address zkVerifier) internal returns (address) {
+        return deployBatchSubmitter.run(deployer, rolesContract, zkVerifier, owner);
     }
 
     function _deployRewardDistributor() internal returns (address) {
-        return deployReward.run(deployer);
+        return deployReward.run(deployer, owner);
     }
 
     function _deployOracle(OracleConfig memory oracleConfig, address rolesContract) internal returns (address) {
@@ -309,11 +247,11 @@ contract DeployProtocol is DeployBase {
         internal
         returns (address)
     {
-        return deployOperator.run(deployer, oracle, rewardDistributor, rolesContract);
+        return deployOperator.run(deployer, oracle, rewardDistributor, rolesContract, owner);
     }
 
     function _deployPauser(address rolesContract, address operator) internal {
-        deployPauser.run(deployer, rolesContract, operator);
+        deployPauser.run(deployer, rolesContract, operator, owner);
     }
 
     function _deployInterestModel(InterestConfig memory modelConfig) internal returns (address) {
@@ -326,8 +264,41 @@ contract DeployProtocol is DeployBase {
                 baseRatePerYear: modelConfig.baseRate,
                 multiplierPerYear: modelConfig.multiplier,
                 jumpMultiplierPerYear: modelConfig.jumpMultiplier
+            }),
+            owner
+        );
+    }
+
+    function _deployHostMarket(
+        Deployer _deployer,
+        Market memory market,
+        address operator,
+        address interestModel,
+        address zkVerifier,
+        address rolesContract
+    ) internal returns (address) {
+        return deployHost.run(
+            _deployer,
+            DeployHostMarket.MarketData({
+                underlyingToken: market.underlying,
+                operator: operator,
+                interestModel: interestModel,
+                exchangeRateMantissa: uint256(1e18),
+                name: market.name,
+                symbol: market.symbol,
+                decimals: market.decimals,
+                owner: owner,
+                zkVerifier: zkVerifier,
+                roles: rolesContract
             })
         );
+    }
+
+    function _deployExtensionMarket(Deployer _deployer, Market memory market, address zkVerifier, address rolesContract)
+        internal
+        returns (address)
+    {
+        return deployExt.run(_deployer, market.underlying, market.name, owner, zkVerifier, rolesContract);
     }
 
     function _configureMarket(
@@ -338,90 +309,62 @@ contract DeployProtocol is DeployBase {
         uint256 supplyCap,
         uint256 borrowRateMaxMantissa
     ) internal {
-
         // Support market
-        console.log("Supporting market");
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        Operator(operator).supportMarket(market);
-        vm.stopBroadcast();
-        console.log("Market supported");
+        _supportMarket(operator, market);
 
         // Set collateral factor
-        console.log("Setting collateral factor");
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        Operator(operator).setCollateralFactor(market, collateralFactor);
-        vm.stopBroadcast();
-        console.log("Collateral factor set");
+        _setCollateralFactor(operator, market, collateralFactor);
 
         // Set borrow rate max mantissa
-        console.log("Setting borrow rate max mantissa");
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        (bool success, ) = market.call{gas: 120000}(abi.encodeWithSelector(mTokenConfiguration.setBorrowRateMaxMantissa.selector, borrowRateMaxMantissa));
-        require(success, "Failed to set borrow rate max mantissa");
-        vm.stopBroadcast();
-        console.log("Borrow rate max mantissa set");
-
-        // Set caps
-        address[] memory marketAddrs = new address[](1);
-        uint256[] memory caps = new uint256[](1);
-        marketAddrs[0] = market;
+        _setBorrowRateMaxMantissa(market, borrowRateMaxMantissa);
 
         // Set borrow cap
-        caps[0] = borrowCap;
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        Operator(operator).setMarketBorrowCaps(marketAddrs, caps);
-        vm.stopBroadcast();
+        _setBorrowCap(operator, market, borrowCap);
 
         // Set supply cap
-        caps[0] = supplyCap;
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        Operator(operator).setMarketSupplyCaps(marketAddrs, caps);
-        vm.stopBroadcast();
+        _setSupplyCap(operator, market, supplyCap);
     }
 
-    function _setupRoles(address rolesContract, string memory network) internal {
+    function _setRoles(address rolesContract, string memory network) internal {
         uint256 rolesLength = configs[network].roles.length;
         for (uint256 i = 0; i < rolesLength; i++) {
             Role memory role = configs[network].roles[i];
             for (uint256 j = 0; j < role.accounts.length; j++) {
-                vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-                Roles(rolesContract).allowFor(role.accounts[j], keccak256(abi.encodePacked(role.roleName)), true);
-                vm.stopBroadcast();
-                console.log("Allowed %s for %s", role.accounts[j], role.roleName);
+                setRole.run(rolesContract, role.accounts[j], keccak256(abi.encodePacked(role.roleName)), true);
             }
         }
     }
 
-    function _setupChainConnections(address market, string memory network) internal {
+    function _supportMarket(address operator, address market) internal {
+        supportMarket.run(operator, market);
+    }
+
+    function _setCollateralFactor(address operator, address market, uint256 collateralFactor) internal {
+        setCollateralFactor.run(operator, market, collateralFactor);
+    }
+
+    function _setBorrowRateMaxMantissa(address market, uint256 borrowRateMaxMantissa) internal {
+        setBorrowRateMaxMantissa.run(market, borrowRateMaxMantissa);
+    }
+
+    function _setBorrowCap(address operator, address market, uint256 borrowCap) internal {
+        setBorrowCap.run(operator, market, borrowCap);
+    }
+
+    function _setSupplyCap(address operator, address market, uint256 supplyCap) internal {
+        setSupplyCap.run(operator, market, supplyCap);
+    }
+
+    function _updateAllowedChains(address market, string memory network) internal {
         // Allow chains in host market
         for (uint256 i = 0; i < configs[network].allowedChains.length; i++) {
-            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+            vm.startBroadcast(key);
             mErc20Host(market).updateAllowedChain(configs[network].allowedChains[i], true);
             vm.stopBroadcast();
         }
     }
 
     function _setOperatorInRewardDistributor(address operator, address rewardDistributor) internal {
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        RewardDistributor(rewardDistributor).setOperator(operator);
-        vm.stopBroadcast();
-    }
-
-    function _setupZkImageId(address market, address batchSubmitter, bytes32 imageId, bool isHost) internal {
-        // Set image ID for batch submitter
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        BatchSubmitter(batchSubmitter).setImageId(imageId);
-        vm.stopBroadcast();
-
-        // Set image ID for market
-        if (isHost) {
-            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-            mErc20Host(market).setImageId(imageId);
-            vm.stopBroadcast();
-        } else {
-            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-            mTokenGateway(market).setImageId(imageId);
-            vm.stopBroadcast();
-        }
+        setOperatorInRewardDistributor.run(operator, rewardDistributor);
     }
 }

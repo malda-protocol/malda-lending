@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 import {IPauser} from "src/interfaces/IPauser.sol";
@@ -9,10 +9,12 @@ import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {Risc0VerifierMock} from "../../mocks/Risc0VerifierMock.sol";
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 
 abstract contract Pauser_Unit_Shared is Base_Unit_Test {
     mErc20Host public mWethHost;
     mTokenGateway public mWethExtension;
+    ZkVerifier public zkVerifier;
 
     Risc0VerifierMock public verifierMock;
 
@@ -23,6 +25,9 @@ abstract contract Pauser_Unit_Shared is Base_Unit_Test {
 
         verifierMock = new Risc0VerifierMock();
         vm.label(address(verifierMock), "verifierMock");
+
+        zkVerifier = new ZkVerifier(address(this), "0x123", address(verifierMock));
+        vm.label(address(zkVerifier), "ZkVerifier contract");
 
         // Deploy mWethHost implementation and proxy
         mErc20Host implementation = new mErc20Host();
@@ -36,7 +41,7 @@ abstract contract Pauser_Unit_Shared is Base_Unit_Test {
             "mWeth",
             18,
             payable(address(this)),
-            address(verifierMock),
+            address(zkVerifier),
             address(roles)
         );
         ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), initData);
@@ -50,7 +55,7 @@ abstract contract Pauser_Unit_Shared is Base_Unit_Test {
             payable(address(this)),
             address(weth),
             address(roles),
-            address(verifierMock)
+            address(zkVerifier)
         );
         ERC1967Proxy gatewayProxy = new ERC1967Proxy(address(gatewayImpl), gatewayInitData);
         mWethExtension = mTokenGateway(address(gatewayProxy));

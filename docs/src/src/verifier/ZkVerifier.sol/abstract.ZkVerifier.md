@@ -1,5 +1,8 @@
 # ZkVerifier
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\verifier\ZkVerifier.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\verifier\ZkVerifier.sol)
+
+**Inherits:**
+Initializable
 
 
 ## State Variables
@@ -17,21 +20,7 @@ bytes32 public imageId;
 ```
 
 
-### _verifierInitialized
-
-```solidity
-bool private _verifierInitialized;
-```
-
-
 ## Functions
-### initializer
-
-
-```solidity
-modifier initializer();
-```
-
 ### initialize
 
 Initializes a new ZkVerifier contract
@@ -141,11 +130,5 @@ error ZkVerifier_InputNotValid();
 
 ```solidity
 error ZkVerifier_VerifierNotSet();
-```
-
-### ZkVerifier_AlreadyInitialized
-
-```solidity
-error ZkVerifier_AlreadyInitialized();
 ```
 

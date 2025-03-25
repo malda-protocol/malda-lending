@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -27,6 +27,12 @@ interface IOperatorData {
 }
 
 interface IOperatorDefender {
+    /**
+     * @notice Checks if the account should be allowed to rebalance tokens
+     * @param mToken The market to verify the transfer against
+     */
+    function beforeRebalancing(address mToken) external;
+
     /**
      * @notice Checks if the account should be allowed to transfer tokens in the given market
      * @param mToken The market to verify the transfer against
@@ -95,6 +101,13 @@ interface IOperatorDefender {
      */
     function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator, address borrower)
         external;
+
+    /**
+     * @notice Checks if new used amount is within the limits of the outflow volume limit
+     * @dev Sender must be a listed market
+     * @param amount New amount
+     */
+    function checkOutflowVolumeLimit(uint256 amount) external;
 }
 
 interface IOperator {
@@ -103,6 +116,26 @@ interface IOperator {
      * @notice Should return true
      */
     function isOperator() external view returns (bool);
+
+    /**
+     * @notice Should return outflow limit 
+     */
+    function limitPerTimePeriod() external view returns (uint256); 
+
+    /**
+     * @notice Should return outflow volume 
+     */
+    function cumulativeOutflowVolume() external view returns (uint256); 
+
+    /**
+     * @notice Should return last reset time for outflow check
+     */
+    function lastOutflowResetTimestamp() external view returns (uint256); 
+
+    /**
+     * @notice Should return the outflow volume time window
+     */
+    function outflowResetTimeWindow() external view returns (uint256);
 
     /**
      * @notice Returns if operation is paused
@@ -130,6 +163,11 @@ interface IOperator {
      * @notice Multiplier representing the discount on collateral that a liquidator receives
      */
     function liquidationIncentiveMantissa() external view returns (uint256);
+
+    /**
+     * @notice Returns true/false
+     */
+    function isMarketListed(address market) external view returns (bool);
 
     /**
      * @notice Returns the assets an account has entered
@@ -190,6 +228,12 @@ interface IOperator {
     ) external view returns (uint256, uint256);
 
     /**
+     * @notice Returns USD value for all markets
+     */
+    function getUSDValueForAllMarkets() external view returns (uint256);
+
+
+    /**
      * @notice Calculate number of tokens of collateral asset to seize given an underlying amount
      * @dev Used in liquidation (called in mTokenBorrowed.liquidate)
      * @param mTokenBorrowed The address of the borrowed mToken
@@ -223,6 +267,12 @@ interface IOperator {
      * @param _mTokens The list of addresses of the mToken markets to be enabled
      */
     function enterMarkets(address[] calldata _mTokens) external;
+
+    /**
+     * @notice Add asset (msg.sender) to be included in account liquidity calculation
+     * @param _account The account to add for
+     */
+    function enterMarketsWithSender(address _account) external;
 
     /**
      * @notice Removes asset from sender's account liquidity calculation

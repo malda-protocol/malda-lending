@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -14,22 +14,21 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // contracts
-import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
+import {IZkVerifier} from "src/verifier/ZkVerifier.sol";
 import {mErc20Upgradable} from "src/mToken/mErc20Upgradable.sol";
 
 import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
 
-import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
-import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {IRoles} from "src/interfaces/IRoles.sol";
+import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
+import {IOperatorDefender} from "src/interfaces/IOperator.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 import {Migrator} from "src/migration/Migrator.sol";
 
-contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperationTypes {
-    using SafeERC20 for IERC20;
 
-    // Add migration events
-    event mErc20Host_MintMigration(address indexed receiver, uint256 amount);
+contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
+    using SafeERC20 for IERC20;
 
     // Add flash mint callback success constant
     bytes4 private constant FLASH_MINT_CALLBACK_SUCCESS = 
@@ -49,6 +48,8 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     mapping(uint32 => mapping(address => uint256)) public accAmountOutPerChain;
     mapping(address => mapping(address => bool)) public allowedCallers;
     mapping(uint32 => bool) public allowedChains;
+    mapping(uint32 => uint256) public gasFees;
+    IZkVerifier public verifier;
 
     /**
      * @notice Initializes the new money market
@@ -60,7 +61,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
      * @param symbol_ ERC-20 symbol of this token
      * @param decimals_ ERC-20 decimal precision of this token
      * @param admin_ Address of the administrator of this token
-     * @param zkVerifier_ The IRiscZeroVerifier address
+     * @param zkVerifier_ The IZkVerifier address
      */
     function initialize(
         address underlying_,
@@ -79,8 +80,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
             underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_, admin_
         );
 
-        // Initialize the ZkVerifier
-        ZkVerifier.initialize(zkVerifier_);
+        verifier = IZkVerifier(zkVerifier_);
 
         rolesOperator = IRoles(roles_);
 
@@ -99,41 +99,18 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     /**
      * @inheritdoc ImErc20Host
      */
-    function getProofData(address user, uint32 dstId) external view returns (bytes memory) {
-        return mTokenProofDecoderLib.encodeJournal(
-            user,
-            address(this),
-            accAmountInPerChain[dstId][user],
-            accAmountOutPerChain[dstId][user],
-            uint32(block.chainid),
-            dstId
-        );
+    function getProofData(address user, uint32 dstId) external view returns (uint256, uint256) {
+        return (accAmountInPerChain[dstId][user], accAmountOutPerChain[dstId][user]);
     }
 
     // ----------- OWNER ------------
-    /**
-     * @notice Sets the _risc0Verifier address
-     * @param _risc0Verifier the new IRiscZeroVerifier address
-     */
-    function setVerifier(address _risc0Verifier) external onlyAdmin {
-        _setVerifier(_risc0Verifier);
-    }
-
-    /**
-     * @notice Sets the image id
-     * @param _imageId the new image id
-     */
-    function setImageId(bytes32 _imageId) external onlyAdmin {
-        _setImageId(_imageId);
-    }
-
     /**
      * @notice Updates an allowed chain status
      * @param _chainId the chain id
      * @param _status the new status
      */
     function updateAllowedChain(uint32 _chainId, bool _status) external {
-        if (msg.sender != admin && !rolesOperator.isAllowedFor(msg.sender, rolesOperator.CHAINS_MANAGER())) {
+        if (msg.sender != admin && !_isAllowedFor(msg.sender, rolesOperator.CHAINS_MANAGER())) {
             revert mErc20Host_CallerNotAllowed();
         }
         allowedChains[_chainId] = _status;
@@ -144,7 +121,9 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
      * @inheritdoc ImErc20Host
      */
     function extractForRebalancing(uint256 amount) external {
-        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mErc20Host_NotRebalancer();
+        IOperatorDefender(operator).beforeRebalancing(address(this));
+
+        if (!_isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mErc20Host_NotRebalancer();
         IERC20(underlying).safeTransfer(msg.sender, amount);
     }
 
@@ -155,6 +134,35 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     function setMigrator(address _migrator) external onlyAdmin {
         require(_migrator != address(0), mErc20Host_AddressNotValid());
         migrator = _migrator;
+    }
+
+    /**
+     * @notice Sets the gas fee
+     * @param dstChainId the destination chain id
+     * @param amount the gas fee amount
+     */
+    function setGasFee(uint32 dstChainId, uint256 amount) external onlyAdmin {
+        gasFees[dstChainId] = amount;
+        emit mErc20Host_GasFeeUpdated(dstChainId, amount);
+    }
+
+    /**
+     * @notice Withdraw gas received so far
+     * @param receiver the receiver address
+     */
+    function withdrawGasFees(address payable receiver) external onlyAdmin {
+        uint256 balance = address(this).balance;
+        receiver.transfer(balance);
+    }
+
+    /**
+     * @notice Updates IZkVerifier address
+     * @param _zkVerifier the verifier address
+     */
+    function updateZkVerifier(address _zkVerifier) external onlyAdmin {
+        require(_zkVerifier != address(0), mErc20Host_AddressNotValid());
+        emit ZkVerifierUpdated(address(verifier), _zkVerifier);
+        verifier = IZkVerifier(_zkVerifier);
     }
 
     // ----------- PUBLIC ------------
@@ -178,7 +186,7 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         address receiver
     ) external override {
         // verify received data
-        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
+        if (!_isAllowedFor(msg.sender, _getBatchProofForwarderRole())) {
             _verifyProof(journalData, seal);
         }
 
@@ -203,18 +211,21 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         bytes calldata journalData,
         bytes calldata seal,
         uint256[] calldata mintAmount,
+        uint256[] calldata minAmountsOut,
         address receiver
     ) external override {
-        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
+        if (!_isAllowedFor(msg.sender, _getBatchProofForwarderRole())) {
             _verifyProof(journalData, seal);
         }
+
+        _checkOutflow(_computeTotalOutflowAmount(mintAmount));
 
         bytes[] memory journals = abi.decode(journalData, (bytes[]));
         uint256 length = journals.length;
         require(length == mintAmount.length, mErc20Host_LengthMismatch());
 
         for (uint256 i; i < length;) {
-            _mintExternal(journals[i], mintAmount[i], receiver);
+            _mintExternal(journals[i], mintAmount[i], minAmountsOut[i], receiver);
             unchecked {
                 ++i;
             }
@@ -230,9 +241,11 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         uint256[] calldata repayAmount,
         address receiver
     ) external override {
-        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
+        if (!_isAllowedFor(msg.sender, _getBatchProofForwarderRole())) {
             _verifyProof(journalData, seal);
         }
+
+        _checkOutflow(_computeTotalOutflowAmount(repayAmount));
 
         bytes[] memory journals = abi.decode(journalData, (bytes[]));
         uint256 length = journals.length;
@@ -248,13 +261,18 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
 
     /**
      * @inheritdoc ImErc20Host
+     * @dev amount represents the number of mTokens to redeem
      */
-    function withdrawOnExtension(uint256 amount, uint32 dstChainId) external override {
+    function withdrawOnExtension(uint256 amount, uint32 dstChainId) external payable override {
         require(amount > 0, mErc20Host_AmountNotValid());
+        require(msg.value >= gasFees[dstChainId], mErc20Host_NotEnoughGasFee());
+        require(allowedChains[dstChainId], mErc20Host_ChainNotValid());
+
+        _checkOutflow(amount);
 
         // actions
-        accAmountOutPerChain[dstChainId][msg.sender] += amount;
-        _redeemUnderlying(msg.sender, amount, false);
+        uint256 underlyingAmount = _redeem(msg.sender, amount, false);
+        accAmountOutPerChain[dstChainId][msg.sender] += underlyingAmount;
 
         emit mErc20Host_WithdrawOnExtensionChain(msg.sender, dstChainId, amount);
     }
@@ -262,41 +280,90 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
     /**
      * @inheritdoc ImErc20Host
      */
-    function borrowOnExtension(uint256 amount, uint32 dstChainId) external override {
+    function borrowOnExtension(uint256 amount, uint32 dstChainId) external payable override {
         require(amount > 0, mErc20Host_AmountNotValid());
+        require(msg.value >= gasFees[dstChainId], mErc20Host_NotEnoughGasFee());
+        require(allowedChains[dstChainId], mErc20Host_ChainNotValid());
+
+        _checkOutflow(amount);
 
         // actions
         accAmountOutPerChain[dstChainId][msg.sender] += amount;
         _borrow(msg.sender, amount, false);
 
-        emit mErc20Host_BorrowOnExternsionChain(msg.sender, dstChainId, amount);
+        emit mErc20Host_BorrowOnExtensionChain(msg.sender, dstChainId, amount);
     }
 
     /**
-     * @notice Mints mTokens during migration without requiring underlying transfer
-     * @param amount The amount of underlying to be accounted for
-     * @param receiver The address that will receive the mTokens
+     * @inheritdoc ImErc20Host
      */
-    function mintMigration(uint256 amount, address receiver) external onlyMigrator {
+    function mintMigration(uint256 amount, uint256 minAmount, address receiver) external onlyMigrator {
         require(amount > 0, mErc20Host_AmountNotValid());
-        _mint(receiver, amount, false);
+        _mint(receiver, receiver, amount, minAmount, false);
         emit mErc20Host_MintMigration(receiver, amount);
     }
 
+    /**
+     * @inheritdoc ImErc20Host
+     */
+    function borrowMigration(uint256 amount, address borrower, address receiver) external onlyMigrator {
+        require(amount > 0, mErc20Host_AmountNotValid());
+        _borrowWithReceiver(borrower, receiver, amount);
+        emit mErc20Host_BorrowMigration(borrower, amount);
+    }
+
     // ----------- PRIVATE ------------
-    function _verifyProof(bytes calldata journalData, bytes calldata seal) private {
+    function _computeTotalOutflowAmount(uint256[] calldata amounts) private pure returns (uint256) {
+        uint256 sum;
+        uint256 length = amounts.length;
+        for (uint256 i; i< length;) {
+            sum += amounts[i];
+            unchecked { ++i; }
+        }
+        return sum;
+    }
+
+    function _checkOutflow(uint256 amount) private {
+        IOperatorDefender(operator).checkOutflowVolumeLimit(amount);
+    }
+
+    function _isAllowedFor(address _sender, bytes32 role) private view returns (bool) {
+        return rolesOperator.isAllowedFor(_sender, role);
+    }
+
+    function _getBatchProofForwarderRole() private view returns (bytes32) {
+        return rolesOperator.PROOF_BATCH_FORWARDER();
+    }
+
+    function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
         require(journalData.length > 0, mErc20Host_JournalNotValid());
 
-        // verify it using the ZkVerifier contract
-        _verifyInput(journalData, seal);
+        // Decode the dynamic array of journals.
+        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+
+        // Check the L1Inclusion flag for each journal.
+        bool isSequencer = _isAllowedFor(msg.sender, rolesOperator.PROOF_FORWARDER()) || 
+                        _isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER());
+
+        if (!isSequencer) {
+            for (uint256 i = 0; i < journals.length; i++) {
+                (, , , , , , bool L1Inclusion) = mTokenProofDecoderLib.decodeJournal(journals[i]);
+                if (!L1Inclusion) {
+                    revert mErc20Host_L1InclusionRequired();
+                }
+            }
+        }
+
+        // verify it using the IZkVerifier contract
+        verifier.verifyInput(journalData, seal);
     }
 
     function _checkSender(address msgSender, address srcSender) private view {
         if (msgSender != srcSender) {
             require(
                 allowedCallers[srcSender][msgSender] || msgSender == admin
-                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER())
-                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_BATCH_FORWARDER()),
+                    || _isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER())
+                    || _isAllowedFor(msgSender, _getBatchProofForwarderRole()),
                 mErc20Host_CallerNotAllowed()
             );
         }
@@ -309,9 +376,10 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         address collateral,
         address receiver
     ) internal {
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
+        // temporary overwrite; will be removed in future implementations
         receiver = _sender;
 
         // base checks
@@ -338,10 +406,13 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
         );
     }
 
-    function _mintExternal(bytes memory singleJournal, uint256 mintAmount, address receiver) internal {
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
+    function _mintExternal(bytes memory singleJournal, uint256 mintAmount, uint256 minAmountOut, address receiver)
+        internal
+    {
+        (address _sender, address _market, uint256 _accAmountIn, , uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
+        // temporary overwrite; will be removed in future implementations
         receiver = _sender;
 
         // base checks
@@ -359,15 +430,16 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
 
         // actions
         accAmountInPerChain[_chainId][_sender] += mintAmount;
-        _mint(receiver, mintAmount, false);
+        _mint(receiver, receiver, mintAmount, minAmountOut, false);
 
         emit mErc20Host_MintExternal(msg.sender, _sender, receiver, _chainId, mintAmount);
     }
 
     function _repayExternal(bytes memory singleJournal, uint256 repayAmount, address receiver) internal {
-        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId) =
+        (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
+        // temporary overwrite; will be removed in future implementations
         receiver = _sender;
 
         // base checks
@@ -376,17 +448,21 @@ contract mErc20Host is mErc20Upgradable, ZkVerifier, ImErc20Host, ImTokenOperati
             require(_dstChainId == uint32(block.chainid), mErc20Host_DstChainNotValid());
             require(_market == address(this), mErc20Host_AddressNotValid());
             require(allowedChains[_chainId], mErc20Host_ChainNotValid());
+            require(repayAmount > 0, mErc20Host_AmountNotValid());
         }
+
+        uint256 actualRepayAmount = _repayBehalf(receiver, repayAmount, false);
+
         // operation checks
         {
-            require(repayAmount > 0, mErc20Host_AmountNotValid());
-            require(repayAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig());
+            require(
+                actualRepayAmount <= _accAmountIn - accAmountInPerChain[_chainId][_sender], mErc20Host_AmountTooBig()
+            );
         }
 
         // actions
-        accAmountInPerChain[_chainId][_sender] += repayAmount;
-        _repayBehalf(receiver, repayAmount, false);
+        accAmountInPerChain[_chainId][_sender] += actualRepayAmount;
 
-        emit mErc20Host_RepayExternal(msg.sender, _sender, receiver, _chainId, repayAmount);
+        emit mErc20Host_RepayExternal(msg.sender, _sender, receiver, _chainId, actualRepayAmount);
     }
 }

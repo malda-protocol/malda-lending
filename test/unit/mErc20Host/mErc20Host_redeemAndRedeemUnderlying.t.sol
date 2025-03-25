@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 // interfaces
@@ -95,6 +95,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
         inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWethHost))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
         _redeem(amount, false);
     }
@@ -105,6 +106,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
         inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWethHost))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
         _redeem(amount, true);
     }
@@ -179,6 +181,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         whenWithdrawOnExtensionIsCalled
         givenDecodedLiquidityIsValid
         whenMarketIsListed(address(mWethHost))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
         _borrowPrerequisites(address(mWethHost), amount);
 
@@ -188,6 +191,7 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
+        mWethHost.updateAllowedChain(1, true);
         mWethHost.withdrawOnExtension(amount, 1);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));

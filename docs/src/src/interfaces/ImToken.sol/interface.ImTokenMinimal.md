@@ -1,5 +1,5 @@
 # ImTokenMinimal
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\interfaces\ImToken.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\interfaces\ImToken.sol)
 
 
 ## Functions
@@ -39,6 +39,15 @@ Returns the value of tokens in existence.
 function totalSupply() external view returns (uint256);
 ```
 
+### totalUnderlying
+
+Returns the amount of underlying tokens
+
+
+```solidity
+function totalUnderlying() external view returns (uint256);
+```
+
 ### balanceOf
 
 Returns the value of tokens owned by `account`.
@@ -61,5 +70,14 @@ function balanceOf(address account) external view returns (uint256);
 
 ```solidity
 function isMToken() external view returns (bool);
+```
+
+### underlying
+
+*Returns the underlying address*
+
+
+```solidity
+function underlying() external view returns (address);
 ```
 

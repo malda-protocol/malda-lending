@@ -10,12 +10,16 @@ pragma solidity =0.8.28;
 
 // interfaces
 import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
-import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 // contracts
 import {Steel} from "risc0/steel/Steel.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-abstract contract ZkVerifier is Initializable {
+interface IZkVerifier {
+    function verifyInput(bytes calldata journalEntry, bytes calldata seal) external view;
+}
+
+contract ZkVerifier is Ownable {
     // ----------- STORAGE ------------
     IRiscZeroVerifier public verifier;
 
@@ -24,27 +28,24 @@ abstract contract ZkVerifier is Initializable {
     error ZkVerifier_ImageNotValid();
     error ZkVerifier_InputNotValid();
     error ZkVerifier_VerifierNotSet();
+    error ZkVerifier_L1InclusionRequired();
 
     event ImageSet(bytes32 _imageId);
     event VerifierSet(address indexed oldVerifier, address indexed newVerifier);
 
-    // ----------- PUBLIC ------------
-    /**
-     * @notice Initializes a new ZkVerifier contract
-     * @param _verifier IRiscZeroVerifier contract implementation
-     */
-    function initialize(address _verifier) public initializer {
+    constructor(address _owner, bytes32 _imageId, address _verifier) Ownable(_owner) {
         require(_verifier != address(0), ZkVerifier_InputNotValid());
         verifier = IRiscZeroVerifier(_verifier);
+        imageId = _imageId;
     }
 
-    // ----------- INTERNAL ------------
+    // ----------- OWNER ------------
     /**
      * @notice Sets the _risc0Verifier address
      * @dev Admin check is needed on the external method
      * @param _risc0Verifier the new IRiscZeroVerifier address
      */
-    function _setVerifier(address _risc0Verifier) internal {
+    function setVerifier(address _risc0Verifier) external onlyOwner {
         require(_risc0Verifier != address(0), ZkVerifier_InputNotValid());
         emit VerifierSet(address(verifier), _risc0Verifier);
         verifier = IRiscZeroVerifier(_risc0Verifier);
@@ -55,24 +56,26 @@ abstract contract ZkVerifier is Initializable {
      * @dev Admin check is needed on the external method
      * @param _imageId the new image id
      */
-    function _setImageId(bytes32 _imageId) internal {
+    function setImageId(bytes32 _imageId) external onlyOwner {
         require(_imageId != bytes32(0), ZkVerifier_ImageNotValid());
         emit ImageSet(_imageId);
         imageId = _imageId;
     }
 
+    // ----------- VIEW ------------
     /**
      * @notice Verifies an input
      * @param journalEntry the risc0 journal entry
      * @param seal the risc0 seal
      */
-    function _verifyInput(bytes calldata journalEntry, bytes calldata seal) internal virtual {
+    function verifyInput(bytes calldata journalEntry, bytes calldata seal) external view {
         // generic checks
         _checkAddresses();
 
         // verify input
         __verify(journalEntry, seal);
     }
+
 
     // ----------- PRIVATE ------------
     function _checkAddresses() private view {

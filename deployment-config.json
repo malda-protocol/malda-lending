@@ -55,11 +55,15 @@
       ],
       "roles": [
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "CHAINS_MANAGER"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "PAUSE_MANAGER"
         },
         {
@@ -71,41 +75,56 @@
         },
         {
           "accounts": [
-            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00",
-            "0x2693946791da99dA78Ac441abA6D5Ce2Bccd96D3"
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
           ],
           "roleName": "PROOF_BATCH_FORWARDER"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_RESERVE"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_PAUSE"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_BORROW_CAP"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_SUPPLY_CAP"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_ORACLE"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_BRIDGE"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "REBALANCER_EOA"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "REBALANCER"
         }
       ],
@@ -113,7 +132,10 @@
         "imageId": "0xd1333b14cc29a5d8828e9f5842a44c881efbabec67faf033633816939bde3c08",
         "verifierAddress": "0x27983ee173aD10E171D17C9c5C14d5baFE997609"
       },
-      "allowedChains": [11155420, 11155111]
+      "allowedChains": [
+        11155420,
+        11155111
+      ]
     },
     "op_sepolia": {
       "chainId": 11155420,
@@ -164,11 +186,15 @@
       ],
       "roles": [
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "CHAINS_MANAGER"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "PAUSE_MANAGER"
         },
         {
@@ -186,35 +212,51 @@
           "roleName": "PROOF_BATCH_FORWARDER"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_RESERVE"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_PAUSE"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_BORROW_CAP"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_SUPPLY_CAP"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_ORACLE"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_BRIDGE"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "REBALANCER_EOA"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "REBALANCER"
         }
       ],
@@ -272,11 +314,15 @@
       ],
       "roles": [
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "CHAINS_MANAGER"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "PAUSE_MANAGER"
         },
         {
@@ -294,35 +340,51 @@
           "roleName": "PROOF_BATCH_FORWARDER"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_RESERVE"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_PAUSE"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_BORROW_CAP"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_SUPPLY_CAP"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_ORACLE"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "GUARDIAN_BRIDGE"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "REBALANCER_EOA"
         },
         {
-          "accounts": ["0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"],
+          "accounts": [
+            "0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00"
+          ],
           "roleName": "REBALANCER"
         }
       ],
@@ -332,4 +394,4 @@
       }
     }
   }
-} 
+}

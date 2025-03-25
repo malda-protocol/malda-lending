@@ -1,8 +1,23 @@
 # IOperatorDefender
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\interfaces\IOperator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\interfaces\IOperator.sol)
 
 
 ## Functions
+### beforeRebalancing
+
+Checks if the account should be allowed to rebalance tokens
+
+
+```solidity
+function beforeRebalancing(address mToken) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market to verify the transfer against|
+
+
 ### beforeMTokenTransfer
 
 Checks if the account should be allowed to transfer tokens in the given market

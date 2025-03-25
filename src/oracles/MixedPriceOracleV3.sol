@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 import {IRoles} from "src/interfaces/IRoles.sol";
@@ -11,6 +11,7 @@ contract MixedPriceOracleV3 is IOracleOperator {
 
     // ----------- STORAGE ------------
     mapping(string => IDefaultAdapter.PriceConfig) public configs;
+    mapping(string => uint256) public stalenessPerSymbol;
     IRoles public immutable roles;
 
     error MixedPriceOracle_Unauthorized();
@@ -20,6 +21,7 @@ contract MixedPriceOracleV3 is IOracleOperator {
     error MixedPriceOracle_InvalidConfig();
 
     event ConfigSet(string symbol, IDefaultAdapter.PriceConfig config);
+    event StalenessUpdated(string symbol, uint256 val);
 
     constructor(
         string[] memory symbols_,
@@ -34,8 +36,16 @@ contract MixedPriceOracleV3 is IOracleOperator {
         STALENESS_PERIOD = stalenessPeriod_;
     }
 
+    function setStaleness(string memory symbol, uint256 val) external {
+        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_ORACLE())) {
+            revert MixedPriceOracle_Unauthorized();
+        }
+        stalenessPerSymbol[symbol] = val;
+        emit StalenessUpdated(symbol, val);
+    }
+
     function setConfig(string memory symbol, IDefaultAdapter.PriceConfig memory config) external {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) {
+        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_ORACLE())) {
             revert MixedPriceOracle_Unauthorized();
         }
         if (config.defaultFeed == address(0)) {
@@ -52,7 +62,8 @@ contract MixedPriceOracleV3 is IOracleOperator {
 
     // price is extended for comptroller usage based on decimals of exchangeRate
     function getUnderlyingPrice(address mToken) external view override returns (uint256) {
-        string memory symbol = ImTokenMinimal(mToken).symbol();
+        // ImTokenMinimal cast is needed for `.symbol()` call. No need to import a different interface
+        string memory symbol = ImTokenMinimal(ImTokenMinimal(mToken).underlying()).symbol();
         IDefaultAdapter.PriceConfig memory config = configs[symbol];
         uint256 priceUsd = _getPriceUSD(symbol);
         return priceUsd * 10 ** (18 - config.underlyingDecimals);
@@ -60,7 +71,7 @@ contract MixedPriceOracleV3 is IOracleOperator {
 
     function _getPriceUSD(string memory symbol) internal view returns (uint256) {
         IDefaultAdapter.PriceConfig memory config = configs[symbol];
-        (uint256 feedPrice, uint256 feedDecimals) = _getLatestPrice(config);
+        (uint256 feedPrice, uint256 feedDecimals) = _getLatestPrice(symbol, config);
         uint256 price = feedPrice * 10 ** (18 - feedDecimals);
 
         if (keccak256(abi.encodePacked(config.toSymbol)) != keccak256(abi.encodePacked("USD"))) {
@@ -70,7 +81,11 @@ contract MixedPriceOracleV3 is IOracleOperator {
         return price;
     }
 
-    function _getLatestPrice(IDefaultAdapter.PriceConfig memory config) internal view returns (uint256, uint256) {
+    function _getLatestPrice(string memory symbol, IDefaultAdapter.PriceConfig memory config)
+        internal
+        view
+        returns (uint256, uint256)
+    {
         if (config.defaultFeed == address(0)) revert("missing priceFeed");
 
         IDefaultAdapter feed = IDefaultAdapter(config.defaultFeed);
@@ -81,11 +96,16 @@ contract MixedPriceOracleV3 is IOracleOperator {
         require(roundId > 0, MixedPriceOracle_InvalidRound());
 
         // Check for staleness
-        require(block.timestamp - updatedAt < STALENESS_PERIOD, MixedPriceOracle_StalePrice());
+        require(block.timestamp - updatedAt < _getStaleness(symbol), MixedPriceOracle_StalePrice());
 
         uint256 decimals = feed.decimals();
         uint256 uPrice = uint256(price);
 
         return (uPrice, decimals);
+    }
+
+    function _getStaleness(string memory symbol) internal view returns (uint256) {
+        uint256 _registered = stalenessPerSymbol[symbol];
+        return _registered > 0 ? _registered : STALENESS_PERIOD;
     }
 }

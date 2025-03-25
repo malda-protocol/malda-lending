@@ -1,5 +1,5 @@
 # IPauser
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\interfaces\IPauser.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\interfaces\IPauser.sol)
 
 **Inherits:**
 [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
@@ -102,6 +102,12 @@ error Pauser_AddressNotValid();
 error Pauser_AlreadyRegistered();
 ```
 
+### Pauser_ContractNotEnabled
+
+```solidity
+error Pauser_ContractNotEnabled();
+```
+
 ## Structs
 ### PausableContract
 
@@ -117,6 +123,7 @@ struct PausableContract {
 
 ```solidity
 enum PausableType {
+    NonPausable,
     Host,
     Extension
 }

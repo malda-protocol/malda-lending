@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -10,7 +10,6 @@ pragma solidity =0.8.28;
 
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
-import {IUnit, IUnitAccess} from "src/interfaces/IUnit.sol";
 import {IOracleOperator} from "src/interfaces/IOracleOperator.sol";
 import {IRewardDistributor} from "src/interfaces/IRewardDistributor.sol";
 import {ImToken, ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
@@ -18,15 +17,22 @@ import {IOperatorData, IOperator, IOperatorDefender} from "src/interfaces/IOpera
 
 // contracts
 import {OperatorStorage} from "./OperatorStorage.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract Operator is OperatorStorage, ImTokenOperationTypes {
-    constructor(address _rolesOperator, address _rewardDistributor, address _admin) {
+contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable {
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(address _rolesOperator, address _rewardDistributor, address _admin) public initializer {
         require(_rolesOperator != address(0), Operator_InvalidRolesOperator());
         require(_rewardDistributor != address(0), Operator_InvalidRewardDistributor());
         require(_admin != address(0), Operator_InvalidInput());
-        admin = _admin;
+        __Ownable_init(_admin);
         rolesOperator = IRoles(_rolesOperator);
         rewardDistributor = _rewardDistributor;
+        outflowResetTimeWindow = 1 hours;
     }
 
     // ----------- OWNER ------------
@@ -34,7 +40,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      * @notice Sets a new Operator for the market
      * @dev Admin function to set a new operator
      */
-    function setRolesOperator(address _roles) external onlyAdmin {
+    function setRolesOperator(address _roles) external onlyOwner {
         require(_roles != address(0), Operator_InvalidInput());
 
         emit NewRolesOperator(address(rolesOperator), _roles);
@@ -43,42 +49,11 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
     }
 
     /**
-     * @notice Begins transfer of admin rights. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.
-     * @dev Admin function to begin change of admin. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.
-     * @param newPendingAdmin New pending admin.
-     */
-    function setPendingAdmin(address newPendingAdmin) external onlyAdmin {
-        emit NewPendingAdmin(pendingAdmin, newPendingAdmin);
-        pendingAdmin = newPendingAdmin;
-    }
-
-    /**
-     * @notice Accepts transfer of admin rights. msg.sender must be pendingAdmin
-     * @dev Admin function for pending admin to accept role and update admin
-     */
-    function acceptAdmin() external {
-        // Check caller is pendingAdmin and pendingAdmin ≠ address(0)
-        require(msg.sender == pendingAdmin && pendingAdmin != address(0), Operator_OnlyAdmin());
-
-        // Save current values for inclusion in log
-        address oldAdmin = admin;
-        address oldPendingAdmin = pendingAdmin;
-
-        // Store admin with value pendingAdmin
-        admin = pendingAdmin;
-
-        // Clear the pending value
-        pendingAdmin = address(0);
-
-        emit NewAdmin(oldAdmin, admin);
-        emit NewPendingAdmin(oldPendingAdmin, pendingAdmin);
-    }
-    /**
      * @notice Sets a new price oracle
      * @dev Admin function to set a new price oracle
      */
-
-    function setPriceOracle(address newOracle) external onlyAdmin {
+    function setPriceOracle(address newOracle) external onlyOwner {
+        require(newOracle != address(0), Operator_InvalidInput());
         emit NewPriceOracle(oracleOperator, newOracle);
         oracleOperator = newOracle;
     }
@@ -88,7 +63,11 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      * @dev Admin function to set closeFactor
      * @param newCloseFactorMantissa New close factor, scaled by 1e18
      */
-    function setCloseFactor(uint256 newCloseFactorMantissa) external onlyAdmin {
+    function setCloseFactor(uint256 newCloseFactorMantissa) external onlyOwner {
+        require(
+            newCloseFactorMantissa >= CLOSE_FACTOR_MIN_MANTISSA && newCloseFactorMantissa <= CLOSE_FACTOR_MAX_MANTISSA,
+            Operator_InvalidInput()
+        );
         emit NewCloseFactor(closeFactorMantissa, newCloseFactorMantissa);
         closeFactorMantissa = newCloseFactorMantissa;
     }
@@ -99,7 +78,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      * @param mToken The market to set the factor on
      * @param newCollateralFactorMantissa The new collateral factor, scaled by 1e18
      */
-    function setCollateralFactor(address mToken, uint256 newCollateralFactorMantissa) external onlyAdmin {
+    function setCollateralFactor(address mToken, uint256 newCollateralFactorMantissa) external onlyOwner {
         // Verify market is listed
         IOperatorData.Market storage market = markets[address(mToken)];
         require(market.isListed, Operator_MarketNotListed());
@@ -107,7 +86,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         Exp memory newCollateralFactorExp = Exp({mantissa: newCollateralFactorMantissa});
 
         // Check collateral factor <= 0.9
-        Exp memory highLimit = Exp({mantissa: CLOSE_FACTOR_MAX_MANTISSA});
+        Exp memory highLimit = Exp({mantissa: COLLATERAL_FACTOR_MAX_MANTISSA});
         require(!lessThanExp(highLimit, newCollateralFactorExp), Operator_InvalidCollateralFactor());
 
         if (newCollateralFactorMantissa != 0 && IOracleOperator(oracleOperator).getUnderlyingPrice(mToken) == 0) {
@@ -126,7 +105,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      * @dev Admin function to set liquidationIncentive
      * @param newLiquidationIncentiveMantissa New liquidationIncentive scaled by 1e18
      */
-    function setLiquidationIncentive(uint256 newLiquidationIncentiveMantissa) external onlyAdmin {
+    function setLiquidationIncentive(uint256 newLiquidationIncentiveMantissa) external onlyOwner {
         // Emit event with old incentive, new incentive
         emit NewLiquidationIncentive(liquidationIncentiveMantissa, newLiquidationIncentiveMantissa);
 
@@ -139,7 +118,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      * @dev Admin function to set isListed and add support for the market
      * @param mToken The address of the market (token) to list
      */
-    function supportMarket(address mToken) external onlyAdmin {
+    function supportMarket(address mToken) external onlyOwner {
         require(!markets[address(mToken)].isListed, Operator_MarketAlreadyListed());
         require(ImToken(mToken).isMToken(), Operator_WrongMarket());
 
@@ -159,6 +138,50 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         allMarkets.push(mToken);
 
         emit MarketListed(mToken);
+    }   
+
+    /**
+     * @notice Sets outflow volume time window
+     * @param newTimeWindow The new reset time window
+     */  
+    function setOutflowVolumeTimeWindow(uint256 newTimeWindow) external onlyOwner {
+        emit OutflowTimeWindowUpdated(outflowResetTimeWindow, newTimeWindow);
+        outflowResetTimeWindow = newTimeWindow;
+    }
+
+    /**
+     * @notice Sets outflow volume limit
+     * @param amount The new limit
+     */    
+    function setOutflowTimeLimitInUSD(uint256 amount) external onlyOwner {
+        emit OutflowLimitUpdated(msg.sender, limitPerTimePeriod, amount);
+        limitPerTimePeriod = amount;
+    }
+
+    /**
+     * @notice Verifies outflow volule limit
+     * @param amount The new limit
+     */    
+    function checkOutflowVolumeLimit(uint256 amount) external {
+        require(ImToken(msg.sender).isMToken(), Operator_WrongMarket());
+        require(markets[msg.sender].isListed, Operator_MarketNotListed());
+
+        // skip this check in case limit is disabled ( = 0)
+        if (limitPerTimePeriod > 0) {
+
+            // check if we need to reset it
+            if (block.timestamp > lastOutflowResetTimestamp + outflowResetTimeWindow) {
+                cumulativeOutflowVolume = 0;
+                lastOutflowResetTimestamp = block.timestamp;
+            }
+
+            // convert received amount to USD
+            uint256 amountInUSD = _convertMarketAmountToUSDValue(amount, msg.sender);
+
+            // check new cumulative limits
+            if (cumulativeOutflowVolume + amountInUSD > limitPerTimePeriod) revert Operator_OutflowVolumeReached();
+            cumulativeOutflowVolume += amountInUSD;
+        }
     }
 
     /**
@@ -168,7 +191,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      */
     function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newBorrowCaps) external {
         require(
-            msg.sender == admin || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_BORROW_CAP()),
+            msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_BORROW_CAP()),
             Operator_OnlyAdminOrRole()
         );
 
@@ -194,13 +217,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      */
     function setMarketSupplyCaps(address[] calldata mTokens, uint256[] calldata newSupplyCaps) external {
         require(
-            msg.sender == admin || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_SUPPLY_CAP()),
+            msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_SUPPLY_CAP()),
             Operator_OnlyAdminOrRole()
         );
 
         uint256 numMarkets = mTokens.length;
-        uint256 numBorrowCaps = newSupplyCaps.length;
-        require(numMarkets != 0 && numMarkets == numBorrowCaps, Operator_InvalidInput());
+        uint256 numSupplyCaps = newSupplyCaps.length;
+        require(numMarkets != 0 && numMarkets == numSupplyCaps, Operator_InvalidInput());
 
         for (uint256 i; i < numMarkets;) {
             supplyCaps[mTokens[i]] = newSupplyCaps[i];
@@ -218,12 +241,12 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
     function setPaused(address mToken, ImTokenOperationTypes.OperationType _type, bool state) external {
         if (state) {
             require(
-                msg.sender == admin || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_PAUSE()),
+                msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_PAUSE()),
                 Operator_OnlyAdminOrRole()
             );
         } else {
             // only admin can unpause
-            require(msg.sender == admin, Operator_OnlyAdmin());
+            require(msg.sender == owner(), Operator_OnlyAdmin());
         }
 
         _paused[mToken][_type] = state;
@@ -234,21 +257,12 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      * @notice Admin function to change the Reward Distributor
      * @param newRewardDistributor The address of the new Reward Distributor
      */
-    function setRewardDistributor(address newRewardDistributor) external onlyAdmin {
+    function setRewardDistributor(address newRewardDistributor) external onlyOwner {
         // Emit NewRewardDistributor(OldRewardDistributor, NewRewardDistributor)
         emit NewRewardDistributor(rewardDistributor, newRewardDistributor);
 
         // Store rewardDistributor with value newRewardDistributor
         rewardDistributor = newRewardDistributor;
-    }
-
-    /**
-     * @notice Accepts IUnit implementation
-     * @param _unit the new unit implementation
-     */
-    function become(address _unit) external {
-        require(msg.sender == IUnitAccess(_unit).admin(), Operator_OnlyAdmin());
-        IUnit(_unit).acceptImplementation();
     }
 
     // ----------- VIEW ------------
@@ -297,6 +311,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
      */
     function isDeprecated(address mToken) external view override returns (bool) {
         return _isDeprecated(mToken);
+    }
+
+    /**
+     * @inheritdoc IOperator
+     */
+    function isMarketListed(address mToken) external view override returns (bool) {
+        return markets[mToken].isListed;
     }
 
     /**
@@ -363,6 +384,16 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
                 ++i;
             }
         }
+    }
+
+    /**
+     * @inheritdoc IOperator
+     */
+    function enterMarketsWithSender(address _account) external override {
+        //sender needs to be a listed market
+        IOperatorData.Market storage market = markets[msg.sender];
+        require(market.isListed, Operator_MarketNotListed());
+        _activateMarket(msg.sender, _account);
     }
 
     /**
@@ -444,6 +475,28 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
         override
     {
         _claim(holders, mTokens, borrowers, suppliers);
+    }
+    
+    /**
+     * @notice Returns USD value for all markets
+    */
+    function getUSDValueForAllMarkets() external view returns (uint256) {
+        uint256 sum;
+        for (uint256 i; i < allMarkets.length;) {
+            ImToken _market = ImToken(allMarkets[i]);
+            uint256 totalMarketVolume = _market.totalUnderlying();
+            sum += _convertMarketAmountToUSDValue(totalMarketVolume, address(_market));
+            unchecked {  ++i; }
+        }
+        return sum;
+    }
+
+
+    /**
+     * @inheritdoc IOperatorDefender
+     */
+    function beforeRebalancing(address mToken) external view override {
+        require(!_paused[mToken][OperationType.Rebalancing], Operator_Paused());
     }
 
     /**
@@ -561,7 +614,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
             require(borrowBalance >= repayAmount, Operator_RepayAmountNotValid());
         } else {
             (, uint256 shortfall) = _getHypotheticalAccountLiquidity(borrower, address(0), 0, 0);
-            require(shortfall == 0, Operator_InsufficientLiquidity());
+            require(shortfall > 0, Operator_InsufficientLiquidity());
 
             /* The liquidator may not repay more than what is allowed by the closeFactor */
             uint256 maxClose = mul_ScalarTruncate(Exp({mantissa: closeFactorMantissa}), borrowBalance);
@@ -591,6 +644,16 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
     }
 
     // ----------- PRIVATE ------------
+    function _convertMarketAmountToUSDValue(uint256 amount, address mToken) private view returns (uint256) {
+        address _asset = ImToken(mToken).underlying();
+        uint256 oraclePriceMantissa = IOracleOperator(oracleOperator).getUnderlyingPrice(_asset);
+        require(oraclePriceMantissa != 0, Operator_OracleUnderlyingFetchError());
+
+        Exp memory oraclePrice = Exp({mantissa: oraclePriceMantissa});
+        uint256 amountInUSD = mul_(amount, oraclePrice);
+        return amountInUSD;
+    }
+
     function _activateMarket(address _mToken, address borrower) private {
         IOperatorData.Market storage marketToJoin = markets[_mToken];
         require(marketToJoin.isListed, Operator_MarketNotListed());
@@ -644,6 +707,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes {
 
             // sumCollateral += tokensToDenom * mTokenBalance
             vars.sumCollateral = mul_ScalarTruncateAddUInt(vars.tokensToDenom, vars.mTokenBalance, vars.sumCollateral);
+            
 
             // sumBorrowPlusEffects += oraclePrice * borrowBalance
             vars.sumBorrowPlusEffects =

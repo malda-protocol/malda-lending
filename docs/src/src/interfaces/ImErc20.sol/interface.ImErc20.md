@@ -1,5 +1,5 @@
 # ImErc20
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\interfaces\ImErc20.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\interfaces\ImErc20.sol)
 
 
 ## Functions
@@ -11,13 +11,15 @@ Sender supplies assets into the market and receives mTokens in exchange
 
 
 ```solidity
-function mint(uint256 mintAmount) external;
+function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`mintAmount`|`uint256`|The amount of the underlying asset to supply|
+|`receiver`|`address`|The mTokens receiver|
+|`minAmountOut`|`uint256`|The min amounts to be received|
 
 
 ### redeem
@@ -75,13 +77,13 @@ Sender repays their own borrow
 
 
 ```solidity
-function repay(uint256 repayAmount) external;
+function repay(uint256 repayAmount) external returns (uint256);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`repayAmount`|`uint256`|The amount to repay, or -1 for the full outstanding amount|
+|`repayAmount`|`uint256`|The amount to repay, or type(uint256).max for the full outstanding amount|
 
 
 ### repayBehalf
@@ -90,14 +92,14 @@ Sender repays a borrow belonging to borrower
 
 
 ```solidity
-function repayBehalf(address borrower, uint256 repayAmount) external;
+function repayBehalf(address borrower, uint256 repayAmount) external returns (uint256);
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`borrower`|`address`|the account with the debt being payed off|
-|`repayAmount`|`uint256`|The amount to repay, or -1 for the full outstanding amount|
+|`repayAmount`|`uint256`|The amount to repay, or type(uint256).max for the full outstanding amount|
 
 
 ### liquidate

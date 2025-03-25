@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -29,7 +29,6 @@ contract Pauser is Ownable, IPauser {
 
     constructor(address _roles, address _operator, address _owner) Ownable(_owner) {
         require(_roles != address(0), Pauser_AddressNotValid());
-        require(_operator != address(0), Pauser_AddressNotValid());
         roles = IRoles(_roles);
         operator = IOperator(_operator);
     }
@@ -105,6 +104,8 @@ contract Pauser is Ownable, IPauser {
         _pauseMarketOperation(_market, OperationType.Seize);
         _pauseMarketOperation(_market, OperationType.Repay);
         _pauseMarketOperation(_market, OperationType.Redeem);
+        _pauseMarketOperation(_market, OperationType.Liquidate);
+        _pauseMarketOperation(_market, OperationType.Rebalancing);
         emit MarketPaused(_market);
     }
 

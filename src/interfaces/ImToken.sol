@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -22,7 +22,8 @@ interface ImTokenOperationTypes {
         Borrow,
         Repay,
         Redeem,
-        Liquidate
+        Liquidate,
+        Rebalancing
     }
 }
 
@@ -53,6 +54,11 @@ interface ImTokenMinimal {
      * @notice Returns the value of tokens in existence.
      */
     function totalSupply() external view returns (uint256);
+
+    /**
+     * @notice Returns the amount of underlying tokens
+     */
+    function totalUnderlying() external view returns (uint256);
 
     /**
      * @notice Returns the value of tokens owned by `account`.
@@ -104,9 +110,9 @@ interface ImToken is ImTokenMinimal {
     function reserveFactorMantissa() external view returns (uint256);
 
     /**
-     * @notice Block number that interest was last accrued at
+     * @notice Block timestamp that interest was last accrued at
      */
-    function accrualBlockNumber() external view returns (uint256);
+    function accrualBlockTimestamp() external view returns (uint256);
 
     /**
      * @notice Accumulator of the total earned interest rate since the opening of the market
@@ -122,6 +128,11 @@ interface ImToken is ImTokenMinimal {
      * @notice Total amount of reserves of the underlying held in this market
      */
     function totalReserves() external view returns (uint256);
+
+    /**
+     * @notice Returns true/false for same chain flow state disable status
+     */
+    function sameChainFlowStateDisabled() external view returns (bool);
 
     // ----------- ACTIONS ------------
     /**

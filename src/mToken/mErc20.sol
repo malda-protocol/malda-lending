@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -60,6 +60,11 @@ contract mErc20 is mToken, ImErc20 {
         ImTokenMinimal(underlying).totalSupply();
     }
 
+    modifier checkSameChainAllowed() {
+        if (sameChainFlowStateDisabled) revert mToken_SameChainOperationsAreDisabled();
+        _;
+    } 
+
     // ----------- OWNER ------------
     /**
      * @notice Admin call to delegate the votes of the MALDA-like underlying
@@ -76,57 +81,61 @@ contract mErc20 is mToken, ImErc20 {
      */
     function sweepToken(IERC20 token) external onlyAdmin {
         require(address(token) != underlying, mErc20_TokenNotValid());
+
+        uint256 underlyingBefore = IERC20(underlying).balanceOf(address(this));
         uint256 balance = token.balanceOf(address(this));
         token.safeTransfer(admin, balance);
+        uint256 underlyingAfter = IERC20(underlying).balanceOf(address(this));
+        require(underlyingBefore == underlyingAfter, mToken_TransferNotValid());
     }
 
     // ----------- MARKET PUBLIC ------------
     /**
      * @inheritdoc ImErc20
      */
-    function mint(uint256 mintAmount) external {
-        _mint(msg.sender, mintAmount, true);
+    function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external checkSameChainAllowed {
+        _mint(msg.sender, receiver, mintAmount, minAmountOut, true);
     }
 
     /**
      * @inheritdoc ImErc20
      */
-    function redeem(uint256 redeemTokens) external {
+    function redeem(uint256 redeemTokens) external checkSameChainAllowed {
         _redeem(msg.sender, redeemTokens, true);
     }
 
     /**
      * @inheritdoc ImErc20
      */
-    function redeemUnderlying(uint256 redeemAmount) external {
+    function redeemUnderlying(uint256 redeemAmount) external checkSameChainAllowed {
         _redeemUnderlying(msg.sender, redeemAmount, true);
     }
 
     /**
      * @inheritdoc ImErc20
      */
-    function borrow(uint256 borrowAmount) external {
+    function borrow(uint256 borrowAmount) external checkSameChainAllowed {
         _borrow(msg.sender, borrowAmount, true);
     }
 
     /**
      * @inheritdoc ImErc20
      */
-    function repay(uint256 repayAmount) external {
-        _repay(repayAmount, true);
+    function repay(uint256 repayAmount) external checkSameChainAllowed returns (uint256) {
+        return _repay(repayAmount, true);
     }
 
     /**
      * @inheritdoc ImErc20
      */
-    function repayBehalf(address borrower, uint256 repayAmount) external {
-        _repayBehalf(borrower, repayAmount, true);
+    function repayBehalf(address borrower, uint256 repayAmount) external checkSameChainAllowed returns (uint256) {
+        return _repayBehalf(borrower, repayAmount, true);
     }
 
     /**
      * @inheritdoc ImErc20
      */
-    function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral) external {
+    function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral) external checkSameChainAllowed {
         _liquidate(msg.sender, borrower, repayAmount, mTokenCollateral, true);
     }
 
@@ -144,7 +153,7 @@ contract mErc20 is mToken, ImErc20 {
      * @return The quantity of underlying tokens owned by this contract
      */
     function _getCashPrior() internal view virtual override returns (uint256) {
-        return IERC20(underlying).balanceOf(address(this));
+        return totalUnderlying;
     }
 
     /**

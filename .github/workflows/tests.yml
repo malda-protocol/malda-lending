@@ -35,7 +35,7 @@ jobs:
         run: forge install
 
       - name: Check contract sizes
-        run: forge build --sizes --skip "script"
+        run: forge build
         id: build
 
       - name: Run Solidity tests

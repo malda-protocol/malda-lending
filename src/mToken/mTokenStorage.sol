@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -68,7 +68,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     /**
      * @inheritdoc ImToken
      */
-    uint256 public accrualBlockNumber;
+    uint256 public accrualBlockTimestamp;
 
     /**
      * @inheritdoc ImToken
@@ -91,9 +91,19 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     uint256 public totalSupply;
 
     /**
-     * @notice Maximum borrow rate that can ever be applied (.0005% / block)
+     * @inheritdoc ImTokenMinimal
+     */
+    uint256 public totalUnderlying;
+
+    /**
+     * @notice Maximum borrow rate that can ever be applied
      */
     uint256 public borrowRateMaxMantissa = 0.00004e16;
+
+    /**
+     * @inheritdoc ImToken
+     */
+    bool public sameChainFlowStateDisabled;
 
     /**
      * @notice Container for borrow balance information
@@ -135,10 +145,10 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     error mToken_InvalidInput();
     error mToken_OnlyAdminOrRole();
     error mToken_TransferNotValid();
+    error mToken_MinAmountNotValid();
     error mToken_BorrowRateTooHigh();
     error mToken_AlreadyInitialized();
     error mToken_ReserveFactorTooHigh();
-    error mToken_BlockNumberNotValid();
     error mToken_ExchangeRateNotValid();
     error mToken_MarketMethodNotValid();
     error mToken_LiquidateSeizeTooMuch();
@@ -146,7 +156,8 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     error mToken_BorrowCashNotAvailable();
     error mToken_ReserveCashNotAvailable();
     error mToken_RedeemTransferOutNotPossible();
-    error mToken_CollateralBlockNumberNotValid();
+    error mToken_SameChainOperationsAreDisabled();
+    error mToken_CollateralBlockTimestampNotValid();
 
     // ----------- ACCESS EVENTS ------------
     /**
@@ -189,7 +200,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     /**
      * @notice Event emitted when tokens are minted
      */
-    event Mint(address indexed minter, uint256 mintAmount, uint256 mintTokens);
+    event Mint(address indexed minter, address indexed receiver, uint256 mintAmount, uint256 mintTokens);
 
     /**
      * @notice Event emitted when tokens are redeemed
@@ -248,6 +259,16 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
      */
     event NewBorrowRateMaxMantissa(uint256 oldVal, uint256 maxMantissa);
 
+    /**
+     * @notice Event emitted when same chain flow state is enabled or disabled
+     */
+    event SameChainFlowStateUpdated(address indexed sender, bool _oldState, bool _newState);
+
+    /**
+     * @notice Event emitted when same chain flow state is enabled or disabled
+     */
+    event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+
     // ----------- VIRTUAL ------------
     /**
      * @inheritdoc ImToken
@@ -257,10 +278,10 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     }
 
     /**
-     * @dev Function to simply retrieve block number
+     * @dev Function to simply retrieve block timestamp
      *  This exists mainly for inheriting test contracts to stub this result.
      */
-    function _getBlockNumber() internal view virtual returns (uint256) {
+    function _getBlockTimestamp() internal view virtual returns (uint256) {
         return block.timestamp;
     }
 
@@ -314,12 +335,12 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
 
     // ----------- NON-VIRTUAL ------------
     function _accrueInterest() internal {
-        /* Remember the initial block number */
-        uint256 currentBlockNumber = _getBlockNumber();
-        uint256 accrualBlockNumberPrior = accrualBlockNumber;
+        /* Remember the initial block timestamp */
+        uint256 currentBlockTimestamp = _getBlockTimestamp();
+        uint256 accrualBlockTimestampPrior = accrualBlockTimestamp;
 
         /* Short-circuit accumulating 0 interest */
-        if (accrualBlockNumberPrior == currentBlockNumber) return;
+        if (accrualBlockTimestampPrior == currentBlockTimestamp) return;
 
         /* Read the previous values out of storage */
         uint256 cashPrior = _getCashPrior();
@@ -333,7 +354,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
         require(borrowRateMantissa <= borrowRateMaxMantissa, mToken_BorrowRateTooHigh());
 
         /* Calculate the number of blocks elapsed since the last accrual */
-        uint256 blockDelta = currentBlockNumber - accrualBlockNumberPrior;
+        uint256 blockDelta = currentBlockTimestamp - accrualBlockTimestampPrior;
 
         /*
          * Calculate the interest accumulated into borrows and reserves and the new index:
@@ -356,7 +377,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
         // (No safe failures beyond this point)
 
         /* We write the previously calculated values into storage */
-        accrualBlockNumber = currentBlockNumber;
+        accrualBlockTimestamp = currentBlockTimestamp;
         borrowIndex = borrowIndexNew;
         totalBorrows = totalBorrowsNew;
         totalReserves = totalReservesNew;

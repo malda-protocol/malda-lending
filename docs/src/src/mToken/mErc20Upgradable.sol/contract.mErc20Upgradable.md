@@ -1,11 +1,21 @@
 # mErc20Upgradable
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\mToken\mErc20Upgradable.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\mToken\mErc20Upgradable.sol)
 
 **Inherits:**
 [mErc20](/src\mToken\mErc20.sol\contract.mErc20.md), Initializable
 
 
 ## Functions
+### constructor
+
+**Note:**
+oz-upgrades-unsafe-allow: constructor
+
+
+```solidity
+constructor();
+```
+
 ### proxyInitialize
 
 Initialize the new money market
@@ -21,7 +31,7 @@ function proxyInitialize(
     string memory symbol_,
     uint8 decimals_,
     address payable admin_
-) external initializer;
+) public;
 ```
 **Parameters**
 

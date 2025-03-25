@@ -1,0 +1,24 @@
+{
+    "networks": {
+        "op_sepolia": {
+            "chainId": 11155420,
+            "deployer": "0x7DE862D3f944b5BCbE30C43aa5434eE964a31a8C",
+            "roles": "0xaF15224767C030FF851a5f2AF8355230b2203F46",
+            "bridges": {
+                "everclear": {
+                    "spoke": "0x3650432cB5331e6dc95be8C1d8168b7c37f677e2"
+                }
+            }
+        },
+        "sepolia": {
+            "chainId": 11155111,
+            "deployer": "0x7DE862D3f944b5BCbE30C43aa5434eE964a31a8C",
+            "roles": "0xaF15224767C030FF851a5f2AF8355230b2203F46",
+            "bridges": {
+                "everclear": {
+                    "spoke": "0xf9A4d8cED1b8c53B39429BB9a8A391b74E85aE5C"
+                }
+            }
+        }
+    }
+}

@@ -1,8 +1,8 @@
 # mTokenGateway
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\mToken\extension\mTokenGateway.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\mToken\extension\mTokenGateway.sol)
 
 **Inherits:**
-Ownable, ERC20, [ZkVerifier](/src\verifier\ZkVerifier.sol\abstract.ZkVerifier.md), [ImTokenGateway](/src\interfaces\ImTokenGateway.sol\interface.ImTokenGateway.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
+OwnableUpgradeable, [ZkVerifier](/src\verifier\ZkVerifier.sol\abstract.ZkVerifier.md), [ImTokenGateway](/src\interfaces\ImTokenGateway.sol\interface.ImTokenGateway.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
 
 
 ## State Variables
@@ -12,15 +12,6 @@ Roles manager
 
 ```solidity
 IRoles public rolesOperator;
-```
-
-
-### logsOperator
-Logs manager
-
-
-```solidity
-ImTokenLogs public logsOperator;
 ```
 
 
@@ -40,20 +31,6 @@ address public underlying;
 ```
 
 
-### _underlyingDecimals
-
-```solidity
-uint8 private _underlyingDecimals;
-```
-
-
-### nonce
-
-```solidity
-uint32 public nonce;
-```
-
-
 ### accAmountIn
 
 ```solidity
@@ -68,10 +45,10 @@ mapping(address => uint256) public accAmountOut;
 ```
 
 
-### DEFAULT_NONCE
+### allowedCallers
 
 ```solidity
-int32 private constant DEFAULT_NONCE = -1;
+mapping(address => mapping(address => bool)) public allowedCallers;
 ```
 
 
@@ -82,17 +59,33 @@ uint32 private constant LINEA_CHAIN_ID = 59144;
 ```
 
 
-## Functions
-### constructor
+### gasFee
+*gas fee for `supplyOnHost`*
 
 
 ```solidity
-constructor(address payable _owner, address _underlying, address _roles, address zkVerifier_, address _logs)
-    Ownable(_owner)
-    ERC20(
-        string.concat("pending_", IERC20Metadata(_underlying).name()),
-        string.concat("p_", IERC20Metadata(_underlying).symbol())
-    );
+uint256 public gasFee;
+```
+
+
+## Functions
+### constructor
+
+**Note:**
+oz-upgrades-unsafe-allow: constructor
+
+
+```solidity
+constructor();
+```
+
+### initialize
+
+
+```solidity
+function initialize(address payable _owner, address _underlying, address _roles, address zkVerifier_)
+    external
+    initializer;
 ```
 
 ### notPaused
@@ -100,15 +93,6 @@ constructor(address payable _owner, address _underlying, address _roles, address
 
 ```solidity
 modifier notPaused(OperationType _type);
-```
-
-### decimals
-
-return the decimals value
-
-
-```solidity
-function decimals() public view override returns (uint8);
 ```
 
 ### isPaused
@@ -125,6 +109,24 @@ function isPaused(OperationType _type) external view returns (bool);
 |----|----|-----------|
 |`_type`|`OperationType`|the operation type|
 
+
+### isCallerAllowed
+
+Returns if a caller is allowed for sender
+
+
+```solidity
+function isCallerAllowed(address sender, address caller) external view returns (bool);
+```
+
+### getProofData
+
+Returns the proof data journal
+
+
+```solidity
+function getProofData(address user, uint32) external view returns (uint256, uint256);
+```
 
 ### setPaused
 
@@ -172,14 +174,76 @@ function setImageId(bytes32 _imageId) external onlyOwner;
 |`_imageId`|`bytes32`|the new image id|
 
 
-### supplyOnHost
+### extractForRebalancing
 
-Supply underlying to the contractr
+Extract amount to be used for rebalancing operation
 
 
 ```solidity
-function supplyOnHost(uint256 amount, address user, address[] calldata allowedCallers)
+function extractForRebalancing(uint256 amount) external notPaused(OperationType.Rebalancing);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`amount`|`uint256`|The amount to rebalance|
+
+
+### setGasFee
+
+Sets the gas fee
+
+
+```solidity
+function setGasFee(uint256 amount) external onlyOwner;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`amount`|`uint256`|the new gas fee|
+
+
+### withdrawGasFees
+
+Withdraw gas received so far
+
+
+```solidity
+function withdrawGasFees(address payable receiver) external onlyOwner;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`receiver`|`address payable`|the receiver address|
+
+
+### updateAllowedCallerStatus
+
+Set caller status for `msg.sender`
+
+
+```solidity
+function updateAllowedCallerStatus(address caller, bool status) external override;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`caller`|`address`|The caller address|
+|`status`|`bool`|The status to set for `caller`|
+
+
+### supplyOnHost
+
+Supply underlying to the contract
+
+
+```solidity
+function supplyOnHost(uint256 amount, address receiver, bytes4 lineaSelector)
     external
+    payable
     override
     notPaused(OperationType.AmountIn);
 ```
@@ -188,28 +252,8 @@ function supplyOnHost(uint256 amount, address user, address[] calldata allowedCa
 |Name|Type|Description|
 |----|----|-----------|
 |`amount`|`uint256`|The supplied amount|
-|`user`|`address`|The user to supply for|
-|`allowedCallers`|`address[]`|The allowed callers for host chain interactions|
-
-
-### outOnHost
-
-Supply underlying to the contractr
-
-
-```solidity
-function outOnHost(uint256 amount, address user, address[] calldata allowedCallers)
-    external
-    override
-    notPaused(OperationType.AmountOut);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|The supplied amount|
-|`user`|`address`|The user to supply for|
-|`allowedCallers`|`address[]`|The allowed callers for host chain interactions|
+|`receiver`|`address`|The receiver address|
+|`lineaSelector`|`bytes4`|The method selector to be called on Linea by our relayer. If empty, user has to submit it|
 
 
 ### outHere
@@ -218,9 +262,8 @@ Extract tokens
 
 
 ```solidity
-function outHere(bytes calldata journalData, bytes calldata seal, uint256 amount)
+function outHere(bytes calldata journalData, bytes calldata seal, uint256[] calldata amounts, address receiver)
     external
-    override
     notPaused(OperationType.AmountOutHere);
 ```
 **Parameters**
@@ -229,25 +272,15 @@ function outHere(bytes calldata journalData, bytes calldata seal, uint256 amount
 |----|----|-----------|
 |`journalData`|`bytes`|The supplied journal|
 |`seal`|`bytes`|The seal address|
-|`amount`|`uint256`|The amount to use|
+|`amounts`|`uint256[]`|The amounts to withdraw for each journal|
+|`receiver`|`address`|The receiver address|
 
 
-### transfer
-
-*Non-transferable*
-
-
-```solidity
-function transfer(address, uint256) public pure override returns (bool);
-```
-
-### transferFrom
-
-*Non-transferable*
+### _outHere
 
 
 ```solidity
-function transferFrom(address, address, uint256) public pure override returns (bool);
+function _outHere(bytes memory journalData, uint256 amount, address receiver) internal;
 ```
 
 ### _verifyProof
@@ -257,20 +290,10 @@ function transferFrom(address, address, uint256) public pure override returns (b
 function _verifyProof(bytes calldata journalData, bytes calldata seal) private;
 ```
 
-### _extractCallers
-
-
-```solidity
-function _extractCallers(bytes calldata journalData, uint256 allowedCallersOffset)
-    private
-    pure
-    returns (address[] memory allowedCallers);
-```
-
 ### _checkSender
 
 
 ```solidity
-function _checkSender(address sender, address user, address[] memory allowedCallers) private view;
+function _checkSender(address msgSender, address srcSender) private view;
 ```
 

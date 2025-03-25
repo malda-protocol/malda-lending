@@ -1,5 +1,5 @@
 # IRewardDistributor
-[Git Source](https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src\interfaces\IRewardDistributor.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\interfaces\IRewardDistributor.sol)
 
 
 ## Functions
@@ -36,13 +36,13 @@ Added reward tokens
 function getRewardTokens() external view returns (address[] memory);
 ```
 
-### getBlockNumber
+### getBlockTimestamp
 
-Get block number
+Get block timestamp
 
 
 ```solidity
-function getBlockNumber() external view returns (uint32);
+function getBlockTimestamp() external view returns (uint32);
 ```
 
 ### notifySupplyIndex
@@ -119,5 +119,29 @@ event SupplySpeedUpdated(address indexed rewardToken, address indexed mToken, ui
 
 ```solidity
 event BorrowSpeedUpdated(address indexed rewardToken, address indexed mToken, uint256 borrowSpeed);
+```
+
+### OperatorSet
+
+```solidity
+event OperatorSet(address indexed oldOperator, address indexed newOperator);
+```
+
+### WhitelistedToken
+
+```solidity
+event WhitelistedToken(address indexed token);
+```
+
+### SupplyIndexNotified
+
+```solidity
+event SupplyIndexNotified(address indexed rewardToken, address indexed mToken);
+```
+
+### BorrowIndexNotified
+
+```solidity
+event BorrowIndexNotified(address indexed rewardToken, address indexed mToken);
 ```
 

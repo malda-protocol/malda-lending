@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -19,9 +19,9 @@ import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
 
-import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
+import {IZkVerifier} from "src/verifier/ZkVerifier.sol";
 
-contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImTokenOperationTypes {
+contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTypes {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE -----------
@@ -29,6 +29,8 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
      * @inheritdoc ImTokenGateway
      */
     IRoles public rolesOperator;
+
+    IZkVerifier public verifier;
 
     mapping(OperationType => bool) public paused;
 
@@ -43,6 +45,9 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
 
     uint32 private constant LINEA_CHAIN_ID = 59144;
 
+    ///@dev gas fee for `supplyOnHost`
+    uint256 public gasFee;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -56,8 +61,7 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
         underlying = _underlying;
         rolesOperator = IRoles(_roles);
 
-        // Initialize the ZkVerifier
-        ZkVerifier.initialize(zkVerifier_);
+        verifier = IZkVerifier(zkVerifier_);
     }
 
     modifier notPaused(OperationType _type) {
@@ -83,10 +87,8 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     /**
      * @inheritdoc ImTokenGateway
      */
-    function getProofData(address user, uint32 dstId) external view returns (bytes memory) {
-        return mTokenProofDecoderLib.encodeJournal(
-            user, address(this), accAmountIn[user], accAmountOut[user], uint32(block.chainid), LINEA_CHAIN_ID
-        );
+    function getProofData(address user, uint32) external view returns (uint256, uint256) {
+        return (accAmountIn[user], accAmountOut[user]);
     }
 
     // ----------- OWNER ------------
@@ -103,31 +105,45 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
         } else {
             require(msg.sender == owner(), mTokenGateway_CallerNotAllowed());
         }
+
+        emit mTokenGateway_PausedState(_type, state);
         paused[_type] = state;
-    }
-
-    /**
-     * @notice Sets the _risc0Verifier address
-     * @param _risc0Verifier the new IRiscZeroVerifier address
-     */
-    function setVerifier(address _risc0Verifier) external onlyOwner {
-        _setVerifier(_risc0Verifier);
-    }
-
-    /**
-     * @notice Sets the image id
-     * @param _imageId the new image id
-     */
-    function setImageId(bytes32 _imageId) external onlyOwner {
-        _setImageId(_imageId);
     }
 
     /**
      * @inheritdoc ImTokenGateway
      */
-    function extractForRebalancing(uint256 amount) external {
+    function extractForRebalancing(uint256 amount) external notPaused(OperationType.Rebalancing) {
         if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mTokenGateway_NotRebalancer();
         IERC20(underlying).safeTransfer(msg.sender, amount);
+    }
+
+    /**
+     * @notice Sets the gas fee
+     * @param amount the new gas fee
+     */
+    function setGasFee(uint256 amount) external onlyOwner {
+        gasFee = amount;
+        emit mTokenGateway_GasFeeUpdated(amount);
+    }
+
+    /**
+     * @notice Withdraw gas received so far
+     * @param receiver the receiver address
+     */
+    function withdrawGasFees(address payable receiver) external onlyOwner {
+        uint256 balance = address(this).balance;
+        receiver.transfer(balance);
+    }
+
+    /**
+     * @notice Updates IZkVerifier address
+     * @param _zkVerifier the verifier address
+     */
+    function updateZkVerifier(address _zkVerifier) external onlyOwner {
+        require(_zkVerifier != address(0), mTokenGateway_AddressNotValid());
+        emit ZkVerifierUpdated(address(verifier), _zkVerifier);
+        verifier = IZkVerifier(_zkVerifier);
     }
 
     // ----------- PUBLIC ------------
@@ -142,19 +158,26 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     /**
      * @inheritdoc ImTokenGateway
      */
-    function supplyOnHost(uint256 amount, bytes4 lineaSelector) external override notPaused(OperationType.AmountIn) {
+    function supplyOnHost(uint256 amount, address receiver, bytes4 lineaSelector)
+        external
+        payable
+        override
+        notPaused(OperationType.AmountIn)
+    {
         // checks
         require(amount > 0, mTokenGateway_AmountNotValid());
+        require(msg.value >= gasFee, mTokenGateway_NotEnoughGasFee());
 
         IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
 
         // effects
-        accAmountIn[msg.sender] += amount;
+        accAmountIn[receiver] += amount;
 
         emit mTokenGateway_Supplied(
             msg.sender,
-            accAmountIn[msg.sender],
-            accAmountOut[msg.sender],
+            receiver,
+            accAmountIn[receiver],
+            accAmountOut[receiver],
             amount,
             uint32(block.chainid),
             LINEA_CHAIN_ID,
@@ -188,9 +211,10 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     }
 
     function _outHere(bytes memory journalData, uint256 amount, address receiver) internal {
-        (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId) =
+        (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(journalData);
 
+        // temporary overwrite; will be removed in future implementations
         receiver = _sender;
 
         // checks
@@ -221,11 +245,11 @@ contract mTokenGateway is OwnableUpgradeable, ZkVerifier, ImTokenGateway, ImToke
     }
 
     // ----------- PRIVATE ------------
-    function _verifyProof(bytes calldata journalData, bytes calldata seal) private {
+    function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
         require(journalData.length > 0, mTokenGateway_JournalNotValid());
 
         // verify it using the ZkVerifier contract
-        _verifyInput(journalData, seal);
+        verifier.verifyInput(journalData, seal);
     }
 
     function _checkSender(address msgSender, address srcSender) private view {

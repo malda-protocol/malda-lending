@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 import {Roles} from "src/Roles.sol";
@@ -15,16 +15,21 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployRbac is Script {
-    function run(Deployer _deployer) public returns (address) {
-        bytes32 salt = keccak256(abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes("Roles-v1")));
+    function run(Deployer _deployer, address owner) public returns (address) {
+        bytes32 salt = getSalt("RolesV1.0.0");
 
-        address owner = vm.envAddress("OWNER");
+        console.log("Deploying Rbac");
 
-        vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        address created = _deployer.create(salt, abi.encodePacked(type(Roles).creationCode, abi.encode(owner)));
-        vm.stopBroadcast();
-
-        console.log("Roles(Rbac) deployed at: %s", created);
+        address created = _deployer.precompute(salt);
+        // Deploy only if not already deployed
+        if (created.code.length == 0) {
+            vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
+            created = _deployer.create(salt, abi.encodePacked(type(Roles).creationCode, abi.encode(owner)));
+            vm.stopBroadcast();
+            console.log("Roles(Rbac) deployed at: %s", created);
+        } else {
+            console.log("Using existing RBAC at: %s", created);
+        }
 
         return created;
     }

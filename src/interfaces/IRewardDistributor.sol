@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -14,13 +14,13 @@ interface IRewardDistributorData {
         uint256 supplySpeed;
         /// @notice The supply index for each market
         uint224 supplyIndex;
-        /// @notice The last block number that Reward accrued for supply
+        /// @notice The last block timestamp that Reward accrued for supply
         uint32 supplyBlock;
         /// @notice The borrow speed for each market
         uint256 borrowSpeed;
         /// @notice The borrow index for each market
         uint224 borrowIndex;
-        /// @notice The last block number that Reward accrued for borrow
+        /// @notice The last block timestamp that Reward accrued for borrow
         uint32 borrowBlock;
     }
 
@@ -43,6 +43,14 @@ interface IRewardDistributor {
 
     event BorrowSpeedUpdated(address indexed rewardToken, address indexed mToken, uint256 borrowSpeed);
 
+    event OperatorSet(address indexed oldOperator, address indexed newOperator);
+
+    event WhitelistedToken(address indexed token);
+
+    event SupplyIndexNotified(address indexed rewardToken, address indexed mToken);
+
+    event BorrowIndexNotified(address indexed rewardToken, address indexed mToken);
+
     /**
      * @notice The operator that rewards are distributed to
      */
@@ -60,9 +68,9 @@ interface IRewardDistributor {
     function getRewardTokens() external view returns (address[] memory);
 
     /**
-     * @notice Get block number
+     * @notice Get block timestamp
      */
-    function getBlockNumber() external view returns (uint32);
+    function getBlockTimestamp() external view returns (uint32);
 
     /**
      * @notice Notifies supply index

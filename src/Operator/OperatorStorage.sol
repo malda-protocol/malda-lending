@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
 /*
@@ -18,16 +18,6 @@ import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
 
 abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNoError {
     // ----------- STORAGE ------------
-    /**
-     * @notice Administrator for this contract
-     */
-    address public admin;
-
-    /**
-     * @notice Pending administrator for this contract
-     */
-    address public pendingAdmin;
-
     /**
      * @inheritdoc IOperator
      */
@@ -80,6 +70,29 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     address public rewardDistributor;
 
     /**
+     * @inheritdoc IOperator
+     */
+    uint256 public limitPerTimePeriod; 
+
+    /**
+     * @inheritdoc IOperator
+     */
+    uint256 public cumulativeOutflowVolume; 
+
+    /**
+     * @inheritdoc IOperator
+     */
+    uint256 public lastOutflowResetTimestamp; 
+    
+    // Outflow time window
+    /**
+     * @inheritdoc IOperator
+     */
+    uint256 public outflowResetTimeWindow;
+
+
+
+    /**
      * @dev Local vars for avoiding stack-depth limits in calculating account liquidity.
      *  Note that `mTokenBalance` is the number of mTokens the account owns in the market,
      *  whereas `borrowBalance` is the amount of underlying that the account has borrowed.
@@ -108,6 +121,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     // No collateralFactorMantissa may exceed this value
     uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18; // 0.9
 
+
     // ----------- ERRORS ------------
     error Operator_Paused();
     error Operator_Mismatch();
@@ -124,6 +138,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     error Operator_MarketSupplyReached();
     error Operator_RepayAmountNotValid();
     error Operator_MarketAlreadyListed();
+    error Operator_OutflowVolumeReached();
     error Operator_InvalidRolesOperator();
     error Operator_InsufficientLiquidity();
     error Operator_MarketBorrowCapReached();
@@ -131,7 +146,6 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     error Operator_InvalidRewardDistributor();
     error Operator_OracleUnderlyingFetchError();
     error Operator_Deactivate_MarketBalanceOwed();
-    error Operator_Deactivate_SnapshotFetchingFailed();
 
     // ----------- EVENTS ------------
     /**
@@ -183,23 +197,17 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     event NewPriceOracle(address indexed oldPriceOracle, address indexed newPriceOracle);
 
     /**
-     * @notice Emitted when pendingAdmin is changed
-     */
-    event NewPendingAdmin(address indexed oldPendingAdmin, address indexed newPendingAdmin);
-
-    /**
-     * @notice Emitted when pendingAdmin is accepted, which means admin is updated
-     */
-    event NewAdmin(address indexed oldAdmin, address indexed newAdmin);
-
-    /**
      * @notice Event emitted when rolesOperator is changed
      */
     event NewRolesOperator(address indexed oldRoles, address indexed newRoles);
 
-    // ----------- MODIFIERS ------------
-    modifier onlyAdmin() {
-        require(msg.sender == admin, Operator_OnlyAdmin());
-        _;
-    }
+    /**
+     * @notice Event emitted when outflow limit is updated
+     */
+    event OutflowLimitUpdated(address indexed sender, uint256 oldLimit, uint256 newLimit);
+     
+     /**
+     * @notice Event emitted when outflow reset time window is updated
+     */
+    event OutflowTimeWindowUpdated(uint256 oldWindow, uint256 newWindow);
 }

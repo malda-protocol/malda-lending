@@ -31,6 +31,8 @@
         <!-- Custom theme stylesheets -->
         <link rel="stylesheet" href="../../../book.css">
 
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
         <!-- Provide site root to javascript -->
         <script>
@@ -127,7 +129,7 @@
                         <a href="../../../print.html" title="Print this book" aria-label="Print this book">
                             <i id="print-button" class="fa fa-print"></i>
                         </a>
-                        <a href="https://github.com/https://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@malda-protocol/malda-lending" title="Git repository" aria-label="Git repository">
+                        <a href="https://github.com/malda-protocol/malda-lending" title="Git repository" aria-label="Git repository">
                             <i id="git-repository-button" class="fa fa-github"></i>
                         </a>
 
@@ -157,7 +159,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="ioperator"><a class="header" href="#ioperator">IOperator</a></h1>
-<p><a href="https://github.com/https://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@malda-protocol/malda-lending/blob/3408a5de0b7e9a81798e0551731f955e891c66df/src%5Cinterfaces%5CIOperator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src%5Cinterfaces%5CIOperator.sol">Git Source</a></p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="isoperator"><a class="header" href="#isoperator">isOperator</a></h3>
 <p>Should return true</p>
@@ -188,6 +190,10 @@
 <h3 id="liquidationincentivemantissa"><a class="header" href="#liquidationincentivemantissa">liquidationIncentiveMantissa</a></h3>
 <p>Multiplier representing the discount on collateral that a liquidator receives</p>
 <pre><code class="language-solidity">function liquidationIncentiveMantissa() external view returns (uint256);
+</code></pre>
+<h3 id="ismarketlisted"><a class="header" href="#ismarketlisted">isMarketListed</a></h3>
+<p>Returns true/false</p>
+<pre><code class="language-solidity">function isMarketListed(address market) external view returns (bool);
 </code></pre>
 <h3 id="getassetsin"><a class="header" href="#getassetsin">getAssetsIn</a></h3>
 <p>Returns the assets an account has entered</p>
@@ -315,6 +321,15 @@
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>_mTokens</code></td><td><code>address[]</code></td><td>The list of addresses of the mToken markets to be enabled</td></tr>
+</tbody></table>
+</div>
+<h3 id="entermarketswithsender"><a class="header" href="#entermarketswithsender">enterMarketsWithSender</a></h3>
+<p>Add asset (msg.sender) to be included in account liquidity calculation</p>
+<pre><code class="language-solidity">function enterMarketsWithSender(address _account) external;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_account</code></td><td><code>address</code></td><td>The account to add for</td></tr>
 </tbody></table>
 </div>
 <h3 id="exitmarket"><a class="header" href="#exitmarket">exitMarket</a></h3>
