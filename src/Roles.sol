@@ -24,6 +24,7 @@ contract Roles is Ownable, IRoles {
     bytes32 public constant CHAINS_MANAGER = keccak256("CHAINS_MANAGER");
     bytes32 public constant PROOF_FORWARDER = keccak256("PROOF_FORWARDER");
     bytes32 public constant PROOF_BATCH_FORWARDER = keccak256("PROOF_BATCH_FORWARDER");
+    bytes32 public constant SEQUENCER = keccak256("SEQUENCER");
     bytes32 public constant GUARDIAN_BRIDGE = keccak256("GUARDIAN_BRIDGE");
     bytes32 public constant GUARDIAN_ORACLE = keccak256("GUARDIAN_ORACLE");
     bytes32 public constant GUARDIAN_RESERVE = keccak256("GUARDIAN_RESERVE");

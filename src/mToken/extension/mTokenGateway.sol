@@ -133,7 +133,10 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
      * @notice Withdraw gas received so far
      * @param receiver the receiver address
      */
-    function withdrawGasFees(address payable receiver) external onlyOwner {
+    function withdrawGasFees(address payable receiver) external {
+        if (msg.sender != owner() && !_isAllowedFor(msg.sender, _getSequencerRole())) {
+            revert mTokenGateway_CallerNotAllowed();
+        }
         uint256 balance = address(this).balance;
         receiver.transfer(balance);
     }
@@ -280,6 +283,10 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
                 mTokenGateway_CallerNotAllowed()
             );
         }
+    }
+
+    function _getSequencerRole() private view returns (bytes32) {
+        return rolesOperator.SEQUENCER();
     }
 
     function _getBatchProofForwarderRole() private view returns (bytes32) {
