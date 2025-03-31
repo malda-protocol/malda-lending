@@ -14,6 +14,7 @@ import {IOracleOperator} from "src/interfaces/IOracleOperator.sol";
 import {IRewardDistributor} from "src/interfaces/IRewardDistributor.sol";
 import {ImToken, ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {IOperatorData, IOperator, IOperatorDefender} from "src/interfaces/IOperator.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 // contracts
 import {OperatorStorage} from "./OperatorStorage.sol";
@@ -33,6 +34,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         rolesOperator = IRoles(_rolesOperator);
         rewardDistributor = _rewardDistributor;
         outflowResetTimeWindow = 1 hours;
+        lastOutflowResetTimestamp = block.timestamp;
+        limitPerTimePeriod = 0;
     }
 
     // ----------- OWNER ------------
@@ -151,6 +154,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
 
     /**
      * @notice Sets outflow volume limit
+     * @dev when 0, it means there's no limit
      * @param amount The new limit
      */    
     function setOutflowTimeLimitInUSD(uint256 amount) external onlyOwner {
@@ -484,6 +488,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         uint256 sum;
         for (uint256 i; i < allMarkets.length;) {
             ImToken _market = ImToken(allMarkets[i]);
+            if (!markets[address(_market)].isListed) { continue;}
             uint256 totalMarketVolume = _market.totalUnderlying();
             sum += _convertMarketAmountToUSDValue(totalMarketVolume, address(_market));
             unchecked {  ++i; }
@@ -651,6 +656,15 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
 
         Exp memory oraclePrice = Exp({mantissa: oraclePriceMantissa});
         uint256 amountInUSD = mul_(amount, oraclePrice);
+
+        uint256 assetDecimals = IERC20Metadata(_asset).decimals();
+        if (assetDecimals < 18) {
+            amountInUSD = amountInUSD / (10 ** (18-assetDecimals));
+        } else if (assetDecimals > 18) {
+            // probably will never be the case; risk of overflow is very small
+            amountInUSD = amountInUSD * (10 ** (assetDecimals - 18));
+        }
+
         return amountInUSD;
     }
 

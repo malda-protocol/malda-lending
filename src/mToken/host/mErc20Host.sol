@@ -63,6 +63,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         proxyInitialize(
             underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_, admin_
         );
+        require(zkVerifier_ != address(0), mErc20Host_AddressNotValid());
 
         verifier = IZkVerifier(zkVerifier_);
 
@@ -288,6 +289,10 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         return rolesOperator.isAllowedFor(_sender, role);
     }
 
+    function _getProofForwarderRole() private view returns (bytes32) {
+        return rolesOperator.PROOF_FORWARDER();
+    }
+
     function _getBatchProofForwarderRole() private view returns (bytes32) {
         return rolesOperator.PROOF_BATCH_FORWARDER();
     }
@@ -299,8 +304,8 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         bytes[] memory journals = abi.decode(journalData, (bytes[]));
 
         // Check the L1Inclusion flag for each journal.
-        bool isSequencer = _isAllowedFor(msg.sender, rolesOperator.PROOF_FORWARDER()) || 
-                        _isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER());
+        bool isSequencer = _isAllowedFor(msg.sender, _getProofForwarderRole()) || 
+                        _isAllowedFor(msg.sender, _getBatchProofForwarderRole());
 
         if (!isSequencer) {
             for (uint256 i = 0; i < journals.length; i++) {
@@ -319,7 +324,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         if (msgSender != srcSender) {
             require(
                 allowedCallers[srcSender][msgSender] || msgSender == admin
-                    || _isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER())
+                    || _isAllowedFor(msgSender, _getProofForwarderRole())
                     || _isAllowedFor(msgSender, _getBatchProofForwarderRole()),
                 mErc20Host_CallerNotAllowed()
             );

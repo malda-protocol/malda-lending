@@ -58,6 +58,8 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         initializer
     {
         __Ownable_init(_owner);
+        require(zkVerifier_ != address(0), mTokenGateway_AddressNotValid());
+
         underlying = _underlying;
         rolesOperator = IRoles(_roles);
 
@@ -248,6 +250,23 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
         require(journalData.length > 0, mTokenGateway_JournalNotValid());
 
+
+        // Decode the dynamic array of journals.
+        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+
+        // Check the L1Inclusion flag for each journal.
+        bool isSequencer = _isAllowedFor(msg.sender, _getProofForwarderRole()) || 
+                        _isAllowedFor(msg.sender, _getBatchProofForwarderRole());
+
+        if (!isSequencer) {
+            for (uint256 i = 0; i < journals.length; i++) {
+                (, , , , , , bool L1Inclusion) = mTokenProofDecoderLib.decodeJournal(journals[i]);
+                if (!L1Inclusion) {
+                    revert mTokenGateway_L1InclusionRequired();
+                }
+            }
+        }
+
         // verify it using the ZkVerifier contract
         verifier.verifyInput(journalData, seal);
     }
@@ -256,10 +275,22 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         if (msgSender != srcSender) {
             require(
                 allowedCallers[srcSender][msgSender] || msgSender == owner()
-                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER())
-                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_BATCH_FORWARDER()),
+                    || _isAllowedFor(msgSender, _getProofForwarderRole())
+                    || _isAllowedFor(msgSender, _getBatchProofForwarderRole()),
                 mTokenGateway_CallerNotAllowed()
             );
         }
+    }
+
+    function _getBatchProofForwarderRole() private view returns (bytes32) {
+        return rolesOperator.PROOF_BATCH_FORWARDER();
+    }
+
+    function _getProofForwarderRole() private view returns (bytes32) {
+        return rolesOperator.PROOF_FORWARDER();
+    }
+
+    function _isAllowedFor(address _sender, bytes32 role) private view returns (bool) {
+        return rolesOperator.isAllowedFor(_sender, role);
     }
 }
