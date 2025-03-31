@@ -61,7 +61,8 @@ contract Rebalancer is IRebalancer {
 
         uint256 amount = address(this).balance;
         // no need to check return value
-        saveAddress.call{value: amount}("");
+        (bool success, ) = saveAddress.call{value: amount}("");
+        require(success, Rebalancer_RequestNotValid());
         emit EthSaved(amount);
     }
 
