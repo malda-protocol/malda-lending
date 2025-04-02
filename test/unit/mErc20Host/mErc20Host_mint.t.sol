@@ -189,7 +189,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         whenMintExternalIsCalled
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE36)
     {
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
@@ -199,7 +199,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount * 20);
 
-        Operator(operator).setOutflowTimeLimitInUSD(amount + 1);
+        Operator(operator).setOutflowTimeLimitInUSD(amount/1e10 + 1);
         mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
 
         vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
@@ -286,7 +286,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         whenMintExternalIsCalled
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
-        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE36)
     {
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
@@ -296,13 +296,13 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount * 20);
 
-        Operator(operator).setOutflowTimeLimitInUSD(amount * 2 - 1);
+        Operator(operator).setOutflowTimeLimitInUSD(amount/1e10 * 2 - 1);
         mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
 
         vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
         mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
 
-        Operator(operator).setOutflowTimeLimitInUSD(amount * 50);
+        Operator(operator).setOutflowTimeLimitInUSD(amount/1e10 * 50);
         mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
 
         uint256 totalSupplyAfter = mWethHost.totalSupply();

@@ -488,7 +488,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         uint256 sum;
         for (uint256 i; i < allMarkets.length;) {
             ImToken _market = ImToken(allMarkets[i]);
-            if (!markets[address(_market)].isListed) { continue;}
+            if (_isDeprecated(address(_market))) { continue;}
             uint256 totalMarketVolume = _market.totalUnderlying();
             sum += _convertMarketAmountToUSDValue(totalMarketVolume, address(_market));
             unchecked {  ++i; }
@@ -656,17 +656,26 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
 
         Exp memory oraclePrice = Exp({mantissa: oraclePriceMantissa});
         uint256 amountInUSD = mul_(amount, oraclePrice);
-
+        
         uint256 assetDecimals = IERC20Metadata(_asset).decimals();
         if (assetDecimals < 18) {
-            amountInUSD = amountInUSD / (10 ** (18-assetDecimals));
+            amountInUSD = amountInUSD / (10 ** (36-assetDecimals));
+            if (assetDecimals < 8) {
+                amountInUSD = amountInUSD * (10 ** (8 - assetDecimals));
+            } else if (assetDecimals > 8) {
+                amountInUSD = amountInUSD / (10 ** (assetDecimals - 8));
+            }
         } else if (assetDecimals > 18) {
-            // probably will never be the case; risk of overflow is very small
-            amountInUSD = amountInUSD * (10 ** (assetDecimals - 18));
+            // probably will never be the case for tokens with decimals > 18
+            amountInUSD = amountInUSD * 1e8 / (10 ** (36 - assetDecimals));
+        } else {
+            amountInUSD = amountInUSD *1e8 / 1e36;
         }
 
         return amountInUSD;
     }
+
+    
 
     function _activateMarket(address _mToken, address borrower) private {
         IOperatorData.Market storage marketToJoin = markets[_mToken];
