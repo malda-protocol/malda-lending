@@ -252,7 +252,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         uint256 underlyingAmount = _redeem(msg.sender, amount, false);
         accAmountOutPerChain[dstChainId][msg.sender] += underlyingAmount;
 
-        emit mErc20Host_WithdrawOnExtensionChain(msg.sender, dstChainId, amount);
+        emit mErc20Host_WithdrawOnExtensionChain(msg.sender, dstChainId, underlyingAmount);
     }
 
     /**
