@@ -14,8 +14,8 @@ contract BatchSubmitter is Ownable {
     error BatchSubmitter_InvalidSelector();
     error BatchSubmitter_AddressNotValid();
 
-    event BatchProcessFailed(bytes32 initHash, bytes reason);
-    event BatchProcessSuccess(bytes32 initHash);
+    event BatchProcessFailed(bytes32 initHash, address receiver, address mToken, uint256 amount, uint256 minAmountOut, bytes4 selector, bytes reason);
+    event BatchProcessSuccess(bytes32 initHash, address receiver, address mToken, uint256 amount, uint256 minAmountOut, bytes4 selector);
     event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
 
     /**
@@ -98,21 +98,21 @@ contract BatchSubmitter is Ownable {
                 try ImErc20Host(data.mTokens[i]).mintExternal(
                     encodedJournal, "", singleAmount, singleMinAmounts, data.receivers[i]
                 ) {
-                    emit BatchProcessSuccess(data.initHashes[i]);
+                    emit BatchProcessSuccess(data.initHashes[i], data.receivers[i], data.mTokens[i], data.amounts[i], data.minAmountsOut[i], selector);
                 } catch (bytes memory reason) {
-                    emit BatchProcessFailed(data.initHashes[i], reason);
+                    emit BatchProcessFailed(data.initHashes[i], data.receivers[i], data.mTokens[i], data.amounts[i], data.minAmountsOut[i], selector, reason);
                 }
             } else if (selector == REPAY_SELECTOR) {
                 try ImErc20Host(data.mTokens[i]).repayExternal(encodedJournal, "", singleAmount, data.receivers[i]) {
-                    emit BatchProcessSuccess(data.initHashes[i]);
+                    emit BatchProcessSuccess(data.initHashes[i], data.receivers[i], data.mTokens[i], data.amounts[i], data.minAmountsOut[i], selector);
                 } catch (bytes memory reason) {
-                    emit BatchProcessFailed(data.initHashes[i], reason);
+                    emit BatchProcessFailed(data.initHashes[i], data.receivers[i], data.mTokens[i], data.amounts[i], data.minAmountsOut[i], selector, reason);
                 }
             } else if (selector == OUT_HERE_SELECTOR) {
                 try ImTokenGateway(data.mTokens[i]).outHere(encodedJournal, "", singleAmount, data.receivers[i]) {
-                    emit BatchProcessSuccess(data.initHashes[i]);
+                    emit BatchProcessSuccess(data.initHashes[i], data.receivers[i], data.mTokens[i], data.amounts[i], data.minAmountsOut[i], selector);
                 } catch (bytes memory reason) {
-                    emit BatchProcessFailed(data.initHashes[i], reason);
+                    emit BatchProcessFailed(data.initHashes[i], data.receivers[i], data.mTokens[i], data.amounts[i], data.minAmountsOut[i], selector, reason);
                 }
             } else {
                 revert BatchSubmitter_InvalidSelector();
