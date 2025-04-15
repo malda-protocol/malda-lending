@@ -10,6 +10,8 @@ import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IER
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
+import {Base_Unit_Test} from "test/Base_Unit_Test.t.sol";
+import {Operator} from "src/Operator/Operator.sol";
 
 contract MockChainlinkOracle {
     uint256 public decimals;
@@ -40,6 +42,10 @@ contract DummyToken {
         symbol = _symbol;
         decimals = _decimals;
     }
+
+    function underlying() external view returns(address) {
+        return address(this);
+    }
 }
 
 contract DummyMToken {
@@ -50,7 +56,7 @@ contract DummyMToken {
 }
 
 
-contract MixedPriceOracleV3_Test is Test {
+contract MixedPriceOracleV3_Test is Operator, Test {
     MixedPriceOracleV3 mixedPriceOracle;
 
     DummyToken BTC;
@@ -74,8 +80,7 @@ contract MixedPriceOracleV3_Test is Test {
     uint256 largeTokenDecimals = 30;
     
 
-    uint256 feedDecimals = 10;
-
+    uint256 feedDecimals = 8; //chainlink returns answers in 8 decimals
     function newUSDOracle(uint256 usdPerToken) public returns (MockChainlinkOracle) {
         uint256 decimals = feedDecimals;
         uint256 price = 10**decimals * usdPerToken;
@@ -133,6 +138,8 @@ contract MixedPriceOracleV3_Test is Test {
         uint256 stalenessPeriod = 100;
 
         mixedPriceOracle = new MixedPriceOracleV3(symbols, configs, roles, stalenessPeriod);
+        // Set the oracleOperator to our mocked oracle
+        oracleOperator = address(mixedPriceOracle);
     }
 
     function test_getPriceUSD() public {
@@ -147,34 +154,8 @@ contract MixedPriceOracleV3_Test is Test {
         assertEq(ethPrice, 10**(36 - ethDecimals) * usdPerEth);
         assertEq(usdcPrice, 10**(36 - usdcDecimals) * usdPerUsdc);
 
-        assertEq(usdPerBitcoin *1e8, _convertMarketAmountToUSDValue(10**bitcoinDecimals, address(mBTC)), "A");
-        assertEq(usdPerEth *1e8, _convertMarketAmountToUSDValue(10**ethDecimals, address(mETH)), "B");
-        assertEq(usdPerUsdc *1e8, _convertMarketAmountToUSDValue(10**usdcDecimals, address(mUSDC)), "C");
-    }
-
-    // returns price in 1e8 decimals
-    function _convertMarketAmountToUSDValue(uint256 amount, address mToken) private view returns (uint256) {
-        address _asset = ImToken(mToken).underlying();
-        uint256 oraclePriceMantissa = mixedPriceOracle.getUnderlyingPrice(mToken);
-        require(oraclePriceMantissa != 0);
-
-        uint256 amountInUSD = amount * oraclePriceMantissa;
-        uint256 assetDecimals = IERC20Metadata(_asset).decimals();
-
-        if (assetDecimals < 18) {
-            amountInUSD = amountInUSD / (10 ** (36-assetDecimals));
-            if (assetDecimals < 8) {
-                amountInUSD = amountInUSD * (10 ** (8 - assetDecimals));
-            } else if (assetDecimals > 8) {
-                amountInUSD = amountInUSD / (10 ** (assetDecimals - 8));
-            }
-        } else if (assetDecimals > 18) {
-            // probably will never be the case for tokens with decimals > 18
-            amountInUSD = amountInUSD * 1e8 / (10 ** (36 - assetDecimals));
-        } else {
-            amountInUSD = amountInUSD *1e8 / 1e36;
-        }
-
-        return amountInUSD;
+        assertEq(usdPerBitcoin *1e8, _convertMarketAmountToUSDValue(1e8, address(mBTC)), "A");
+        assertEq(usdPerEth *1e8, _convertMarketAmountToUSDValue(1e18, address(mETH)), "B");
+        assertEq(usdPerUsdc *1e8, _convertMarketAmountToUSDValue(1e6, address(mUSDC)), "C");
     }
 }

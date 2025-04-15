@@ -52,10 +52,10 @@ contract BatchSubmitter is Ownable {
     bytes4 internal constant REPAY_SELECTOR = ImErc20Host.repayExternal.selector;
     bytes4 internal constant OUT_HERE_SELECTOR = ImTokenGateway.outHere.selector;
 
-    constructor(address _roles, address zkVerifier_, address _owner) Ownable(_owner) {
+    constructor(address _roles, address _zkVerifier, address _owner) Ownable(_owner) {
         require(_zkVerifier != address(0), BatchSubmitter_AddressNotValid());
         rolesOperator = IRoles(_roles);
-        verifier = IZkVerifier(zkVerifier_);
+        verifier = IZkVerifier(_zkVerifier);
     }
 
     // ----------- OWNER ------------

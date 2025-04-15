@@ -649,14 +649,14 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     }
 
     // ----------- PRIVATE ------------
-    function _convertMarketAmountToUSDValue(uint256 amount, address mToken) private view returns (uint256) {
+    function _convertMarketAmountToUSDValue(uint256 amount, address mToken) internal view returns (uint256) {
         address _asset = ImToken(mToken).underlying();
         uint256 oraclePriceMantissa = IOracleOperator(oracleOperator).getUnderlyingPrice(_asset);
         require(oraclePriceMantissa != 0, Operator_OracleUnderlyingFetchError());
 
         Exp memory oraclePrice = Exp({mantissa: oraclePriceMantissa});
-        uint256 amountInUSD = mul_(amount, oraclePrice);
-        
+        uint256 amountInUSD = amount * oraclePriceMantissa;
+
         uint256 assetDecimals = IERC20Metadata(_asset).decimals();
         if (assetDecimals < 18) {
             amountInUSD = amountInUSD / (10 ** (36-assetDecimals));
