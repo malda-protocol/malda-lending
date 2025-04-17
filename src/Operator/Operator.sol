@@ -14,7 +14,6 @@ import {IOracleOperator} from "src/interfaces/IOracleOperator.sol";
 import {IRewardDistributor} from "src/interfaces/IRewardDistributor.sol";
 import {ImToken, ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {IOperatorData, IOperator, IOperatorDefender} from "src/interfaces/IOperator.sol";
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 // contracts
 import {OperatorStorage} from "./OperatorStorage.sol";
@@ -651,28 +650,11 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     // ----------- PRIVATE ------------
     function _convertMarketAmountToUSDValue(uint256 amount, address mToken) internal view returns (uint256) {
         address _asset = ImToken(mToken).underlying();
-        uint256 oraclePriceMantissa = IOracleOperator(oracleOperator).getUnderlyingPrice(_asset);
+        uint256 oraclePriceMantissa = IOracleOperator(oracleOperator).getUnderlyingPrice(mToken);
         require(oraclePriceMantissa != 0, Operator_OracleUnderlyingFetchError());
 
         Exp memory oraclePrice = Exp({mantissa: oraclePriceMantissa});
-        uint256 amountInUSD = amount * oraclePriceMantissa;
-
-        uint256 assetDecimals = IERC20Metadata(_asset).decimals();
-        if (assetDecimals < 18) {
-            amountInUSD = amountInUSD / (10 ** (36-assetDecimals));
-            if (assetDecimals < 8) {
-                amountInUSD = amountInUSD * (10 ** (8 - assetDecimals));
-            } else if (assetDecimals > 8) {
-                amountInUSD = amountInUSD / (10 ** (assetDecimals - 8));
-            }
-        } else if (assetDecimals > 18) {
-            // probably will never be the case for tokens with decimals > 18
-            amountInUSD = amountInUSD * 1e8 / (10 ** (36 - assetDecimals));
-        } else {
-            amountInUSD = amountInUSD *1e8 / 1e36;
-        }
-
-        return amountInUSD;
+        return mul_(amount, oraclePrice) / 1e10;
     }
 
     

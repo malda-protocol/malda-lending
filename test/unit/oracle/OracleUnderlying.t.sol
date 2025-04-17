@@ -42,10 +42,6 @@ contract DummyToken {
         symbol = _symbol;
         decimals = _decimals;
     }
-
-    function underlying() external view returns(address) {
-        return address(this);
-    }
 }
 
 contract DummyMToken {
@@ -142,7 +138,7 @@ contract MixedPriceOracleV3_Test is Operator, Test {
         oracleOperator = address(mixedPriceOracle);
     }
 
-    function test_getPriceUSD() public {
+    function test_getPriceUSD() public view {
         uint256 btcPrice = mixedPriceOracle.getUnderlyingPrice(address(mBTC));
         uint256 ethPrice = mixedPriceOracle.getUnderlyingPrice(address(mETH));
         uint256 usdcPrice = mixedPriceOracle.getUnderlyingPrice(address(mUSDC));
