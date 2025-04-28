@@ -16,20 +16,22 @@ import {Events} from "../utils/Events.sol";
 import {Helpers} from "../utils/Helpers.sol";
 
 abstract contract Base_Integration_Test is Events, Helpers, Types {
+    address public alice;
+
+
     // ----------- FORKS ------------
-    uint256 public mainnetFork;
-    uint256 public arbitrumFork;
-    string public mainnetUrl = vm.envString("ETHEREUM_RPC_URL");
-    string public arbitrumUrl = vm.envString("ARBITRUM_RPC_URL");
+    uint256 public lineaFork;
+    string public lineaUrl = vm.envString("LINEA_RPC_URL");
 
     // ----------- MALDA ------------
     Roles public roles;
 
     function setUp() public virtual {
-        mainnetFork = vm.createSelectFork(mainnetUrl);
-        arbitrumFork = vm.createSelectFork(arbitrumUrl);
+        lineaFork = vm.createSelectFork(lineaUrl);
 
         roles = new Roles(address(this));
         vm.label(address(roles), "Roles");
+
+        alice = _spawnAccount(ALICE_KEY, "Alice");
     }
 }
