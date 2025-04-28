@@ -131,7 +131,10 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
      * @notice Withdraw gas received so far
      * @param receiver the receiver address
      */
-    function withdrawGasFees(address payable receiver) external onlyOwner {
+    function withdrawGasFees(address payable receiver) external {
+        if (msg.sender != owner() && !_isAllowedFor(msg.sender, _getSequencerRole())) {
+            revert mTokenGateway_CallerNotAllowed();
+        }
         uint256 balance = address(this).balance;
         receiver.transfer(balance);
     }
@@ -256,10 +259,26 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         if (msgSender != srcSender) {
             require(
                 allowedCallers[srcSender][msgSender] || msgSender == owner()
-                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER())
-                    || rolesOperator.isAllowedFor(msgSender, rolesOperator.PROOF_BATCH_FORWARDER()),
+                    || _isAllowedFor(msgSender, _getProofForwarderRole())
+                    || _isAllowedFor(msgSender, _getBatchProofForwarderRole()),
                 mTokenGateway_CallerNotAllowed()
             );
         }
+    }
+
+    function _getSequencerRole() private view returns (bytes32) {
+        return rolesOperator.SEQUENCER();
+    }
+
+    function _getBatchProofForwarderRole() private view returns (bytes32) {
+        return rolesOperator.PROOF_BATCH_FORWARDER();
+    }
+
+    function _getProofForwarderRole() private view returns (bytes32) {
+        return rolesOperator.PROOF_FORWARDER();
+    }
+
+    function _isAllowedFor(address _sender, bytes32 role) private view returns (bool) {
+        return rolesOperator.isAllowedFor(_sender, role);
     }
 }
