@@ -162,6 +162,14 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     }
 
     /**
+     * @notice Resets outflow volume
+     */  
+    function resetOutflowVolume() external onlyOwner {
+        cumulativeOutflowVolume = 0;
+        emit OutflowVolumeReset();
+    }
+
+    /**
      * @notice Verifies outflow volule limit
      * @param amount The new limit
      */    
