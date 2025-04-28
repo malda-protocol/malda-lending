@@ -150,7 +150,10 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
      * @notice Withdraw gas received so far
      * @param receiver the receiver address
      */
-    function withdrawGasFees(address payable receiver) external onlyAdmin {
+    function withdrawGasFees(address payable receiver) external {
+        if (msg.sender != admin && !_isAllowedFor(msg.sender, _getSequencerRole())) {
+            revert mErc20Host_CallerNotAllowed();
+        }
         uint256 balance = address(this).balance;
         receiver.transfer(balance);
     }
@@ -333,6 +336,10 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
 
     function _getBatchProofForwarderRole() private view returns (bytes32) {
         return rolesOperator.PROOF_BATCH_FORWARDER();
+    }
+
+    function _getSequencerRole() private view returns (bytes32) {
+        return rolesOperator.SEQUENCER();
     }
 
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {

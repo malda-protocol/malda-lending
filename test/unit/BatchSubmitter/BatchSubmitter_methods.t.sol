@@ -212,7 +212,13 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         vm.expectEmit(true, true, true, true);
         emit BatchSubmitter.BatchProcessFailed(
-            initHashes[0], abi.encodePacked(ImTokenGateway.mTokenGateway_AddressNotValid.selector)
+            initHashes[0],
+            receivers[0],
+            mTokens[0],
+            amounts[0],
+            amounts[0],
+            selectors[0],
+            abi.encodePacked(ImTokenGateway.mTokenGateway_AddressNotValid.selector)
         );
 
         batchSubmitter.batchProcess(
@@ -300,7 +306,13 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         vm.expectEmit(true, true, true, true);
         emit BatchSubmitter.BatchProcessFailed(
-            initHashes[0], abi.encodePacked(ImErc20Host.mErc20Host_AddressNotValid.selector)
+            initHashes[0],
+            receivers[0],
+            mTokens[0],
+            amounts[0],
+            amounts[0],
+            selectors[0],
+            abi.encodePacked(ImErc20Host.mErc20Host_AddressNotValid.selector)
         );
 
         batchSubmitter.batchProcess(
@@ -339,7 +351,13 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         vm.expectEmit(true, true, true, true);
         emit BatchSubmitter.BatchProcessFailed(
-            initHashes[0], abi.encodePacked(ImErc20Host.mErc20Host_AddressNotValid.selector)
+            initHashes[0],
+            receivers[0],
+            mTokens[0],
+            amounts[0],
+            amounts[0],
+            selectors[0],
+            abi.encodePacked(ImErc20Host.mErc20Host_AddressNotValid.selector)
         );
 
         batchSubmitter.batchProcess(
