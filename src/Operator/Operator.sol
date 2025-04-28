@@ -712,6 +712,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
 
             // sumCollateral += tokensToDenom * mTokenBalance
             vars.sumCollateral = mul_ScalarTruncateAddUInt(vars.tokensToDenom, vars.mTokenBalance, vars.sumCollateral);
+            
 
             // sumBorrowPlusEffects += oraclePrice * borrowBalance
             vars.sumBorrowPlusEffects =
