@@ -126,6 +126,11 @@ interface ImTokenGateway {
      */
     error mTokenGateway_NotEnoughGasFee();
 
+    /**
+     * @notice Thrown when L1 inclusion is required
+     */
+    error mTokenGateway_L1InclusionRequired();
+
     // ----------- VIEW -----------
     /**
      * @notice Roles manager

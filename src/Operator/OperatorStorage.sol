@@ -206,8 +206,14 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
      */
     event OutflowLimitUpdated(address indexed sender, uint256 oldLimit, uint256 newLimit);
      
-     /**
+    /**
      * @notice Event emitted when outflow reset time window is updated
      */
     event OutflowTimeWindowUpdated(uint256 oldWindow, uint256 newWindow);
+
+    /**
+     * @notice Event emitted when outflow volume has been reset
+     */
+    event OutflowVolumeReset();
+
 }

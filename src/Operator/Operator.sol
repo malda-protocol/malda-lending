@@ -33,6 +33,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         rolesOperator = IRoles(_rolesOperator);
         rewardDistributor = _rewardDistributor;
         outflowResetTimeWindow = 1 hours;
+        lastOutflowResetTimestamp = block.timestamp;
+        limitPerTimePeriod = 0;
     }
 
     // ----------- OWNER ------------
@@ -151,11 +153,20 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
 
     /**
      * @notice Sets outflow volume limit
+     * @dev when 0, it means there's no limit
      * @param amount The new limit
      */    
     function setOutflowTimeLimitInUSD(uint256 amount) external onlyOwner {
         emit OutflowLimitUpdated(msg.sender, limitPerTimePeriod, amount);
         limitPerTimePeriod = amount;
+    }
+
+    /**
+     * @notice Resets outflow volume
+     */  
+    function resetOutflowVolume() external onlyOwner {
+        cumulativeOutflowVolume = 0;
+        emit OutflowVolumeReset();
     }
 
     /**
@@ -484,6 +495,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         uint256 sum;
         for (uint256 i; i < allMarkets.length;) {
             ImToken _market = ImToken(allMarkets[i]);
+            if (_isDeprecated(address(_market))) { continue;}
             uint256 totalMarketVolume = _market.totalUnderlying();
             sum += _convertMarketAmountToUSDValue(totalMarketVolume, address(_market));
             unchecked {  ++i; }
@@ -644,15 +656,16 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     }
 
     // ----------- PRIVATE ------------
-    function _convertMarketAmountToUSDValue(uint256 amount, address mToken) private view returns (uint256) {
+    function _convertMarketAmountToUSDValue(uint256 amount, address mToken) internal view returns (uint256) {
         address _asset = ImToken(mToken).underlying();
-        uint256 oraclePriceMantissa = IOracleOperator(oracleOperator).getUnderlyingPrice(_asset);
+        uint256 oraclePriceMantissa = IOracleOperator(oracleOperator).getUnderlyingPrice(mToken);
         require(oraclePriceMantissa != 0, Operator_OracleUnderlyingFetchError());
 
         Exp memory oraclePrice = Exp({mantissa: oraclePriceMantissa});
-        uint256 amountInUSD = mul_(amount, oraclePrice);
-        return amountInUSD;
+        return mul_(amount, oraclePrice) / 1e10;
     }
+
+    
 
     function _activateMarket(address _mToken, address borrower) private {
         IOperatorData.Market storage marketToJoin = markets[_mToken];
@@ -707,6 +720,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
 
             // sumCollateral += tokensToDenom * mTokenBalance
             vars.sumCollateral = mul_ScalarTruncateAddUInt(vars.tokensToDenom, vars.mTokenBalance, vars.sumCollateral);
+            
 
             // sumBorrowPlusEffects += oraclePrice * borrowBalance
             vars.sumBorrowPlusEffects =
