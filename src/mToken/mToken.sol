@@ -675,7 +675,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          */
         uint256 actualMintAmount = doTransfer ? _doTransferIn(minter, mintAmount) : mintAmount;
         totalUnderlying += actualMintAmount;
-        require(actualMintAmount >= minAmountOut, mToken_MinAmountNotValid());
 
         /*
          * We get the current exchange rate and calculate the number of mTokens to be minted:
@@ -683,6 +682,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          */
 
         uint256 mintTokens = div_(actualMintAmount, exchangeRate);
+        require(mintTokens >= minAmountOut, mToken_MinAmountNotValid());
 
         // avoid exchangeRate manipulation
         if (totalSupply == 0) {
