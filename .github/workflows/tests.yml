@@ -1,5 +1,8 @@
 name: Run Foundry Forge Tests
 
+env:
+  LINEA_RPC_URL: ${{ secrets.LINEA_RPC_URL }}
+  
 on:
   push:
     branches:
