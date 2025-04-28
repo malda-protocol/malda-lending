@@ -24,8 +24,24 @@ import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {IOperatorDefender} from "src/interfaces/IOperator.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
+import {Migrator} from "src/migration/Migrator.sol";
+
+
 contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     using SafeERC20 for IERC20;
+
+    // Add flash mint callback success constant
+    bytes4 private constant FLASH_MINT_CALLBACK_SUCCESS = 
+        bytes4(keccak256("onFlashMint(address,uint256,bytes)"));
+
+    // Add migrator address
+    address public migrator;
+
+    // Add modifier for migrator only
+    modifier onlyMigrator() {
+        require(msg.sender == migrator, mErc20Host_CallerNotAllowed());
+        _;
+    }
 
     // ----------- STORAGE ------------
     mapping(uint32 => mapping(address => uint256)) public accAmountInPerChain;
@@ -63,6 +79,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         proxyInitialize(
             underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_, admin_
         );
+        require(zkVerifier_ != address(0), mErc20Host_AddressNotValid());
 
         verifier = IZkVerifier(zkVerifier_);
 
@@ -109,6 +126,15 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
 
         if (!_isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mErc20Host_NotRebalancer();
         IERC20(underlying).safeTransfer(msg.sender, amount);
+    }
+
+    /**
+     * @notice Sets the migrator address
+     * @param _migrator The new migrator address
+     */
+    function setMigrator(address _migrator) external onlyAdmin {
+        require(_migrator != address(0), mErc20Host_AddressNotValid());
+        migrator = _migrator;
     }
 
     /**
@@ -272,6 +298,24 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         emit mErc20Host_BorrowOnExtensionChain(msg.sender, dstChainId, amount);
     }
 
+    /**
+     * @inheritdoc ImErc20Host
+     */
+    function mintMigration(uint256 amount, uint256 minAmount, address receiver) external onlyMigrator {
+        require(amount > 0, mErc20Host_AmountNotValid());
+        _mint(receiver, receiver, amount, minAmount, false);
+        emit mErc20Host_MintMigration(receiver, amount);
+    }
+
+    /**
+     * @inheritdoc ImErc20Host
+     */
+    function borrowMigration(uint256 amount, address borrower, address receiver) external onlyMigrator {
+        require(amount > 0, mErc20Host_AmountNotValid());
+        _borrowWithReceiver(borrower, receiver, amount);
+        emit mErc20Host_BorrowMigration(borrower, amount);
+    }
+
     // ----------- PRIVATE ------------
     function _computeTotalOutflowAmount(uint256[] calldata amounts) private pure returns (uint256) {
         uint256 sum;
@@ -291,6 +335,10 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         return rolesOperator.isAllowedFor(_sender, role);
     }
 
+    function _getProofForwarderRole() private view returns (bytes32) {
+        return rolesOperator.PROOF_FORWARDER();
+    }
+
     function _getBatchProofForwarderRole() private view returns (bytes32) {
         return rolesOperator.PROOF_BATCH_FORWARDER();
     }
@@ -306,8 +354,8 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         bytes[] memory journals = abi.decode(journalData, (bytes[]));
 
         // Check the L1Inclusion flag for each journal.
-        bool isSequencer = _isAllowedFor(msg.sender, rolesOperator.PROOF_FORWARDER()) || 
-                        _isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER());
+        bool isSequencer = _isAllowedFor(msg.sender, _getProofForwarderRole()) || 
+                        _isAllowedFor(msg.sender, _getBatchProofForwarderRole());
 
         if (!isSequencer) {
             for (uint256 i = 0; i < journals.length; i++) {
@@ -326,7 +374,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         if (msgSender != srcSender) {
             require(
                 allowedCallers[srcSender][msgSender] || msgSender == admin
-                    || _isAllowedFor(msgSender, rolesOperator.PROOF_FORWARDER())
+                    || _isAllowedFor(msgSender, _getProofForwarderRole())
                     || _isAllowedFor(msgSender, _getBatchProofForwarderRole()),
                 mErc20Host_CallerNotAllowed()
             );

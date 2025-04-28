@@ -76,6 +76,9 @@ interface ImErc20Host {
      */
     event mErc20Host_GasFeeUpdated(uint32 indexed dstChainId, uint256 amount);
 
+    event mErc20Host_MintMigration(address indexed receiver, uint256 amount);
+    event mErc20Host_BorrowMigration(address indexed borrower, uint256 amount);
+
     // ----------- ERRORS -----------
     /**
      * @notice Thrown when the chain id is not LINEA
@@ -149,6 +152,21 @@ interface ImErc20Host {
     function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
 
     // ----------- PUBLIC -----------
+    /**
+     * @notice Mints mTokens during migration without requiring underlying transfer
+     * @param amount The amount of underlying to be accounted for
+     * @param minAmount The min amount of underlying to be accounted for
+     * @param receiver The address that will receive the mTokens
+     */
+    function mintMigration(uint256 amount, uint256 minAmount, address receiver) external;
+
+    /**
+     * @notice Borrows from market for a specific borrower and not `msg.sender`
+     * @param amount The amount of underlying to be accounted for
+     * @param borrower The address that borrow is executed for
+     */
+    function borrowMigration(uint256 amount, address borrower, address receiver) external;
+
     /**
      * @notice Extract amount to be used for rebalancing operation
      * @param amount The amount to rebalance

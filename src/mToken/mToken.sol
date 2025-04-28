@@ -298,7 +298,18 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     function _borrow(address user, uint256 borrowAmount, bool doTransfer) internal nonReentrant {
         _accrueInterest();
         // emits borrow-specific logs on errors, so we don't need to
-        __borrow(payable(user), borrowAmount, doTransfer);
+        __borrow(payable(user), payable(user), borrowAmount, doTransfer);
+    }
+
+        /**
+     * @notice Sender borrows assets from the protocol to their own address
+     * @param user The user address
+     * @param receiver The underlying receiver address
+     * @param borrowAmount The amount of the underlying asset to borrow
+     */
+    function _borrowWithReceiver(address user, address receiver, uint256 borrowAmount) internal nonReentrant {
+        _accrueInterest();
+        __borrow(payable(user), payable(receiver), borrowAmount, true);
     }
 
     /**
@@ -533,7 +544,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @notice Users borrow assets from the protocol to their own address
      * @param borrowAmount The amount of the underlying asset to borrow
      */
-    function __borrow(address payable borrower, uint256 borrowAmount, bool doTransfer) private {
+    function __borrow(address payable borrower, address payable receiver, uint256 borrowAmount, bool doTransfer) private {
         IOperatorDefender(operator).beforeMTokenBorrow(address(this), borrower, borrowAmount);
 
         require(_getCashPrior() >= borrowAmount, mToken_BorrowCashNotAvailable());
@@ -566,7 +577,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
             *  On success, the mToken borrowAmount less of cash.
             *  _doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
             */
-            _doTransferOut(borrower, borrowAmount);
+            _doTransferOut(receiver, borrowAmount);
         }
         totalUnderlying -= borrowAmount;
 
@@ -664,7 +675,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          */
         uint256 actualMintAmount = doTransfer ? _doTransferIn(minter, mintAmount) : mintAmount;
         totalUnderlying += actualMintAmount;
-        require(actualMintAmount >= minAmountOut, mToken_MinAmountNotValid());
 
         /*
          * We get the current exchange rate and calculate the number of mTokens to be minted:
@@ -672,6 +682,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          */
 
         uint256 mintTokens = div_(actualMintAmount, exchangeRate);
+        require(mintTokens >= minAmountOut, mToken_MinAmountNotValid());
 
         // avoid exchangeRate manipulation
         if (totalSupply == 0) {

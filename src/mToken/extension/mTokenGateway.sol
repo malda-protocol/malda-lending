@@ -58,6 +58,8 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         initializer
     {
         __Ownable_init(_owner);
+        require(zkVerifier_ != address(0), mTokenGateway_AddressNotValid());
+
         underlying = _underlying;
         rolesOperator = IRoles(_roles);
 
@@ -250,6 +252,23 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     // ----------- PRIVATE ------------
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
         require(journalData.length > 0, mTokenGateway_JournalNotValid());
+
+
+        // Decode the dynamic array of journals.
+        bytes[] memory journals = abi.decode(journalData, (bytes[]));
+
+        // Check the L1Inclusion flag for each journal.
+        bool isSequencer = _isAllowedFor(msg.sender, _getProofForwarderRole()) || 
+                        _isAllowedFor(msg.sender, _getBatchProofForwarderRole());
+
+        if (!isSequencer) {
+            for (uint256 i = 0; i < journals.length; i++) {
+                (, , , , , , bool L1Inclusion) = mTokenProofDecoderLib.decodeJournal(journals[i]);
+                if (!L1Inclusion) {
+                    revert mTokenGateway_L1InclusionRequired();
+                }
+            }
+        }
 
         // verify it using the ZkVerifier contract
         verifier.verifyInput(journalData, seal);

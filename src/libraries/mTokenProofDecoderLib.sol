@@ -14,6 +14,8 @@ library mTokenProofDecoderLib {
     uint256 public constant ENTRY_SIZE = 113; // 112 + 1 for L1inclusion
 
     error mTokenProofDecoderLib_ChainNotFound();
+    error mTokenProofDecoderLib_InvalidLength();
+    error mTokenProofDecoderLib_InvalidInclusion();
 
     function decodeJournal(bytes memory journalData)
         internal
@@ -28,6 +30,8 @@ library mTokenProofDecoderLib {
             bool L1inclusion
         )
     {
+        require (journalData.length == ENTRY_SIZE, mTokenProofDecoderLib_InvalidLength());
+
         // decode action data
         // | Offset | Length | Data Type               |
         // |--------|---------|----------------------- |
@@ -44,7 +48,10 @@ library mTokenProofDecoderLib {
         accAmountOut = BytesLib.toUint256(BytesLib.slice(journalData, 72, 32), 0);
         chainId = BytesLib.toUint32(BytesLib.slice(journalData, 104, 4), 0);
         dstChainId = BytesLib.toUint32(BytesLib.slice(journalData, 108, 4), 0);
-        L1inclusion = BytesLib.toUint8(BytesLib.slice(journalData, 112, 1), 0) == 1;
+
+        uint8 rawL1inclusion = BytesLib.toUint8(BytesLib.slice(journalData, 112, 1), 0);
+        require(rawL1inclusion == 0 || rawL1inclusion == 1, mTokenProofDecoderLib_InvalidInclusion());
+        L1inclusion = rawL1inclusion == 1;
     }
 
     function encodeJournal(
