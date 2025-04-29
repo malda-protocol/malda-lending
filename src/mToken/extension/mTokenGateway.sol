@@ -42,6 +42,8 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     mapping(address => uint256) public accAmountIn;
     mapping(address => uint256) public accAmountOut;
     mapping(address => mapping(address => bool)) public allowedCallers;
+    mapping(address => bool) public userWhitelisted;
+    bool public whitelistEnabled;
 
     uint32 private constant LINEA_CHAIN_ID = 59144;
 
@@ -71,6 +73,13 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         _;
     }
 
+    modifier onlyAllowedUser(address user) {
+        if (whitelistEnabled) {
+            require(userWhitelisted[user], mTokenGateway_UserNotWhitelisted());
+        }
+        _;
+    }
+
     // ----------- VIEW ------------
     /**
      * @inheritdoc ImTokenGateway
@@ -94,6 +103,31 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     }
 
     // ----------- OWNER ------------
+    /**
+     * @notice Sets user whitelist status
+     * @param user The user address
+     * @param state The new staate
+     */
+    function setWhitelistedUser(address user, bool state) external onlyOwner {
+        userWhitelisted[user] = state;
+        emit mTokenGateway_UserWhitelisted(user, state);
+    }
+
+    /**
+     * @notice Enable user whitelist
+     */
+    function enableWhitelist() external onlyOwner {
+        whitelistEnabled = true;
+        emit mTokenGateway_WhitelistEnabled();
+    }
+
+    /**
+     * @notice Disable user whitelist
+     */
+    function disableWhitelist() external onlyOwner {
+        whitelistEnabled = false;
+        emit mTokenGateway_WhitelistDisabled();
+    }
 
     /**
      * @inheritdoc ImTokenGateway
@@ -168,6 +202,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         payable
         override
         notPaused(OperationType.AmountIn)
+        onlyAllowedUser(msg.sender)
     {
         // checks
         require(amount > 0, mTokenGateway_AmountNotValid());

@@ -37,7 +37,41 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         limitPerTimePeriod = 0;
     }
 
+    modifier onlyAllowedUser(address user) {
+        if (whitelistEnabled) {
+            require(userWhitelisted[user], Operator_UserNotWhitelisted());
+        }
+        _;
+    }
+
+
     // ----------- OWNER ------------
+    /**
+     * @notice Sets user whitelist status
+     * @param user The user address
+     * @param state The new staate
+     */
+    function setWhitelistedUser(address user, bool state) external onlyOwner {
+        userWhitelisted[user] = state;
+        emit UserWhitelisted(user, state);
+    }
+
+    /**
+     * @notice Enable user whitelist
+     */
+    function enableWhitelist() external onlyOwner {
+        whitelistEnabled = true;
+        emit WhitelistEnabled();
+    }
+
+    /**
+     * @notice Disable user whitelist
+     */
+    function disableWhitelist() external onlyOwner {
+        whitelistEnabled = false;
+        emit WhitelistDisabled();
+    }
+
     /**
      * @notice Sets a new Operator for the market
      * @dev Admin function to set a new operator
@@ -385,7 +419,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     /**
      * @inheritdoc IOperator
      */
-    function enterMarkets(address[] calldata _mTokens) external override {
+    function enterMarkets(address[] calldata _mTokens) external override onlyAllowedUser(msg.sender) {
         uint256 len = _mTokens.length;
         for (uint256 i = 0; i < len;) {
             address __mToken = _mTokens[i];
@@ -400,7 +434,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     /**
      * @inheritdoc IOperator
      */
-    function enterMarketsWithSender(address _account) external override {
+    function enterMarketsWithSender(address _account) external override onlyAllowedUser(_account) {
         //sender needs to be a listed market
         IOperatorData.Market storage market = markets[msg.sender];
         require(market.isListed, Operator_MarketNotListed());
@@ -503,6 +537,15 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         return sum;
     }
 
+    /**
+     * @inheritdoc IOperatorDefender
+     */
+    function beforeWithdrawOnExtension(address user) external view onlyAllowedUser(user){}
+
+    /**
+     * @inheritdoc IOperatorDefender
+     */
+    function beforeBorrowOnExtension(address user) external view onlyAllowedUser(user){}
 
     /**
      * @inheritdoc IOperatorDefender
@@ -529,7 +572,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenMint(address mToken, address minter) external override {
+    function beforeMTokenMint(address mToken, address minter) external override onlyAllowedUser(minter) {
         require(!_paused[mToken][OperationType.Mint], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
         // Keep the flywheel moving
@@ -554,7 +597,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
      * @inheritdoc IOperatorDefender
      */
 
-    function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external override {
+    function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external override onlyAllowedUser(redeemer) {
         _beforeRedeem(mToken, redeemer, redeemTokens);
 
         // Keep the flywheel moving
@@ -565,7 +608,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external override {
+    function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external override onlyAllowedUser(borrower) {
         require(!_paused[mToken][OperationType.Borrow], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
@@ -598,7 +641,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenRepay(address mToken, address borrower) external {
+    function beforeMTokenRepay(address mToken, address borrower) external onlyAllowedUser(borrower) {
         require(!_paused[mToken][OperationType.Repay], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
@@ -615,7 +658,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         address mTokenCollateral,
         address borrower,
         uint256 repayAmount
-    ) external view override {
+    ) external view override onlyAllowedUser(borrower) {
         require(!_paused[mTokenBorrowed][OperationType.Liquidate], Operator_Paused());
         require(markets[mTokenBorrowed].isListed, Operator_MarketNotListed());
         require(markets[mTokenCollateral].isListed, Operator_MarketNotListed());

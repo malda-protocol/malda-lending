@@ -74,6 +74,47 @@ contract mTokenGateway_supplyOnHost is mToken_Unit_Shared {
         assertGt(accAmountInAfter, accAmountInBefore);
     }
 
+    function test_GivenUserHasEnoughBalance_ButWhitelistEnabled(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenAmountGreaterThan0
+    {
+        _getTokens(weth, address(this), amount);
+
+        uint256 balanceWethBefore = weth.balanceOf(address(this));
+        uint256 accAmountInBefore = mWethExtension.accAmountIn(address(this));
+
+        weth.approve(address(mWethExtension), amount);
+
+        mWethExtension.enableWhitelist();
+
+        vm.expectRevert(ImTokenGateway.mTokenGateway_UserNotWhitelisted.selector);
+        mWethExtension.supplyOnHost(
+            amount, address(this), mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector
+        );
+
+        mWethExtension.setWhitelistedUser(address(this), false);
+        vm.expectRevert(ImTokenGateway.mTokenGateway_UserNotWhitelisted.selector);
+        mWethExtension.supplyOnHost(
+            amount, address(this), mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector
+        );
+
+        mWethExtension.setWhitelistedUser(address(this), true);
+        mWethExtension.supplyOnHost(
+            amount, address(this), mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector
+        );
+
+        uint256 balanceWethAfter = weth.balanceOf(address(this));
+        uint256 accAmountInAfter = mWethExtension.accAmountIn(address(this));
+
+        // it should decrease the caller underlying balance
+        assertEq(balanceWethAfter + amount, balanceWethBefore);
+
+        // it should increase accAmount
+        assertGt(accAmountInAfter, accAmountInBefore);
+    }
+
+
     function test_WrapAndSupply() external {
         WrapAndSupply wrapAndSupply = new WrapAndSupply(address(weth));
         vm.label(address(wrapAndSupply), "WrapAndSupply Helper");

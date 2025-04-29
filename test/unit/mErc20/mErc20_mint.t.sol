@@ -127,4 +127,49 @@ contract mErc20_mint is mToken_Unit_Shared {
         vm.expectRevert(mTokenStorage.mToken_SameChainOperationsAreDisabled.selector);
         mWeth.mint(amount, address(this), amount);
     }
+
+    
+    function test_WhenSupplyCapIsGreater_ButWhitelistEnabled(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenMarketIsListed(address(mWeth))
+    {
+        _getTokens(weth, address(this), amount);
+        weth.approve(address(mWeth), amount);
+
+        uint256 balanceWethBefore = weth.balanceOf(address(this));
+        uint256 totalSupplyBefore = mWeth.totalSupply();
+        uint256 balanceOfBefore = mWeth.balanceOf(address(this));
+        bool enteredBefore = operator.checkMembership(address(this), address(mWeth));
+        assertFalse(enteredBefore);
+
+        operator.enableWhitelist();
+
+        vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
+        mWeth.mint(amount, address(this), amount);
+
+        operator.setWhitelistedUser(address(this), false);
+        vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
+        mWeth.mint(amount, address(this), amount);
+
+        operator.setWhitelistedUser(address(this), true);
+        mWeth.mint(amount, address(this), amount);  
+
+        uint256 balanceWethAfter = weth.balanceOf(address(this));
+        uint256 totalSupplyAfter = mWeth.totalSupply();
+        uint256 balanceOfAfter = mWeth.balanceOf(address(this));
+        bool enteredAfter = operator.checkMembership(address(this), address(mWeth));
+        assertTrue(enteredAfter);
+
+        // it should increse balanceOf account
+        assertGt(balanceOfAfter, balanceOfBefore);
+
+        // it should increase total supply by amount
+        assertGt(totalSupplyAfter, totalSupplyBefore);
+
+        // it should transfer underlying from user
+        assertGt(balanceWethBefore, balanceWethAfter);
+
+        assertEq(totalSupplyAfter - amount, totalSupplyBefore);
+    }
 }
