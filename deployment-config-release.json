@@ -30,9 +30,9 @@
           "interestModel": {
             "baseRate": 0,
             "blocksPerYear": 31536000,
-            "jumpMultiplier": 43283866057,
+            "jumpMultiplier": 11092659363,
             "kink": 800000000000000000,
-            "multiplier": 1981861998,
+            "multiplier": 1902587485,
             "name": "mUSDC Interest Model"
           },
           "name": "mUSDC",
@@ -48,9 +48,9 @@
           "interestModel": {
             "baseRate": 634195839,
             "blocksPerYear": 31536000,
-            "jumpMultiplier": 39637239979,
+            "jumpMultiplier": 2537211589,
             "kink": 800000000000000000,
-            "multiplier": 8918378995,
+            "multiplier": 856118368,
             "name": "mWETH Interest Model"
           },
           "name": "mWETH",
@@ -66,9 +66,9 @@
           "interestModel": {
             "baseRate": 0,
             "blocksPerYear": 31536000,
-            "jumpMultiplier": 43283866057,
+            "jumpMultiplier": 11092659363,
             "kink": 800000000000000000,
-            "multiplier": 1981861998,
+            "multiplier": 1902587485,
             "name": "mUSDT Interest Model"
           },
           "name": "mUSDT",
@@ -84,9 +84,9 @@
           "interestModel": {
             "baseRate": 0,
             "blocksPerYear": 31536000,
-            "jumpMultiplier": 43283866057,
+            "jumpMultiplier": 11092659363,
             "kink": 800000000000000000,
-            "multiplier": 1981861998,
+            "multiplier": 1902587485,
             "name": "mDAI Interest Model"
           },
           "name": "mDAI",
@@ -102,9 +102,9 @@
           "interestModel": {
             "baseRate": 792744799,
             "blocksPerYear": 31536000,
-            "jumpMultiplier": 158548959918,
+            "jumpMultiplier": 95111963546,
             "kink": 800000000000000000,
-            "multiplier": 8918378995,
+            "multiplier": 1268391657,
             "name": "mWBTC Interest Model"
           },
           "name": "mWBTC",
@@ -120,9 +120,9 @@
           "interestModel": {
             "baseRate": 792744799,
             "blocksPerYear": 31536000,
-            "jumpMultiplier": 158548959918,
+            "jumpMultiplier": 26953011055,
             "kink": 800000000000000000,
-            "multiplier": 8918378995,
+            "multiplier": 507413996,
             "name": "mwstETH Interest Model"
           },
           "name": "mwstETH",
@@ -138,9 +138,9 @@
           "interestModel": {
             "baseRate": 792744799,
             "blocksPerYear": 31536000,
-            "jumpMultiplier": 158548959918,
+            "jumpMultiplier": 26953011055,
             "kink": 800000000000000000,
-            "multiplier": 8918378995,
+            "multiplier": 507413996,
             "name": "mezETH Interest Model"
           },
           "name": "mezETH",
@@ -156,9 +156,9 @@
           "interestModel": {
             "baseRate": 792744799,
             "blocksPerYear": 31536000,
-            "jumpMultiplier": 158548959918,
+            "jumpMultiplier": 95111963546,
             "kink": 800000000000000000,
-            "multiplier": 8918378995,
+            "multiplier": 2219638722,
             "name": "mweETH Interest Model"
           },
           "name": "mweETH",
@@ -174,9 +174,9 @@
           "interestModel": {
             "baseRate": 634195839,
             "blocksPerYear": 31536000,
-            "jumpMultiplier": 39637239979,
+            "jumpMultiplier": 26953011055,
             "kink": 800000000000000000,
-            "multiplier": 8918378995,
+            "multiplier": 507413996,
             "name": "mwrsETH Interest Model"
           },
           "name": "mwrsETH",
