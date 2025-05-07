@@ -66,6 +66,9 @@ interface ImTokenGateway {
     event mTokenGateway_GasFeeUpdated(uint256 amount);
     event mTokenGateway_PausedState(ImTokenOperationTypes.OperationType indexed _type, bool _status);
     event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+    event mTokenGateway_UserWhitelisted(address indexed user, bool status);
+    event mTokenGateway_WhitelistEnabled();
+    event mTokenGateway_WhitelistDisabled();
 
     // ----------- ERRORS -----------+
     /**
@@ -130,6 +133,12 @@ interface ImTokenGateway {
      * @notice Thrown when L1 inclusion is required
      */
     error mTokenGateway_L1InclusionRequired();
+
+    /**
+     * @notice Thrown when user is not whitelisted
+     */
+    error mTokenGateway_UserNotWhitelisted();
+
 
     // ----------- VIEW -----------
     /**

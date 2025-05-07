@@ -90,7 +90,12 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
      */
     uint256 public outflowResetTimeWindow;
 
+    /**
+     * @inheritdoc IOperator
+     */
+    mapping(address => bool) public userWhitelisted;
 
+    bool public whitelistEnabled;
 
     /**
      * @dev Local vars for avoiding stack-depth limits in calculating account liquidity.
@@ -135,6 +140,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     error Operator_MarketNotListed();
     error Operator_PriceFetchFailed();
     error Operator_SenderMustBeToken();
+    error Operator_UserNotWhitelisted();
     error Operator_MarketSupplyReached();
     error Operator_RepayAmountNotValid();
     error Operator_MarketAlreadyListed();
@@ -148,6 +154,13 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     error Operator_Deactivate_MarketBalanceOwed();
 
     // ----------- EVENTS ------------
+    /**
+     * @notice Emitted when user whitelist status is changed
+     */
+    event UserWhitelisted(address indexed user, bool state);
+    event WhitelistEnabled();
+    event WhitelistDisabled();
+
     /**
      * @notice Emitted when pause status is changed
      */

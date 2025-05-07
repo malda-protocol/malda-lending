@@ -310,4 +310,48 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         assertGt(balanceOfAfter, balanceOfBefore);
         assertGt(totalSupplyAfter, totalSupplyBefore);
     }
+
+    function test_WhenSealVerificationWasOk_ButWhitelistEnabled(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenMintExternalIsCalled
+        givenDecodedAmountIsValid
+        whenMarketIsListed(address(mWethHost))
+    {
+        uint256 balanceWethBefore = weth.balanceOf(address(this));
+        uint256 totalSupplyBefore = mWethHost.totalSupply();
+        uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
+
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = amount;
+
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
+
+        operator.enableWhitelist();
+
+        vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+
+        operator.setWhitelistedUser(address(this), false);
+        vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+
+        operator.setWhitelistedUser(address(this), true);
+        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+
+        uint256 balanceWethAfter = weth.balanceOf(address(this));
+        uint256 totalSupplyAfter = mWethHost.totalSupply();
+        uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
+
+        // it should increse balanceOf account
+        assertGt(balanceOfAfter, balanceOfBefore);
+
+        // it should increase total supply by amount
+        assertGt(totalSupplyAfter, totalSupplyBefore);
+
+        // it should transfer underlying from user
+        assertEq(balanceWethBefore, balanceWethAfter);
+
+        assertEq(totalSupplyAfter - amount, totalSupplyBefore);
+    }
 }
