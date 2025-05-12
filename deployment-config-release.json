@@ -182,7 +182,7 @@
         },
         {
           "accounts": [
-            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+            "0x5641B4889177419E8f79de939967E9277C127cDe"
           ],
           "roleName": "PROOF_FORWARDER"
         },
@@ -230,7 +230,7 @@
         }
       ],
       "zkVerifier": {
-        "imageId": "0xd1333b14cc29a5d8828e9f5842a44c881efbabec67faf033633816939bde3c08",
+        "imageId": "0xd6d8248d1e786f29a2523024755fec278834380b35606307682d1411b65adba6",
         "verifierAddress": "0x8EaB2D97Dfce405A1692a21b3ff3A172d593D319"
       },
       "allowedChains": [
@@ -390,7 +390,7 @@
         },
         {
           "accounts": [
-            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+            "0x5641B4889177419E8f79de939967E9277C127cDe"
           ],
           "roleName": "PROOF_FORWARDER"
         },
@@ -438,7 +438,7 @@
         }
       ],
       "zkVerifier": {
-        "imageId": "0xd1333b14cc29a5d8828e9f5842a44c881efbabec67faf033633816939bde3c08",
+        "imageId": "0xd6d8248d1e786f29a2523024755fec278834380b35606307682d1411b65adba6",
         "verifierAddress": "0x8EaB2D97Dfce405A1692a21b3ff3A172d593D319"
       }
     },
@@ -593,7 +593,7 @@
         },
         {
           "accounts": [
-            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+            "0x5641B4889177419E8f79de939967E9277C127cDe"
           ],
           "roleName": "PROOF_FORWARDER"
         },
@@ -641,7 +641,7 @@
         }
       ],
       "zkVerifier": {
-        "imageId": "0xd1333b14cc29a5d8828e9f5842a44c881efbabec67faf033633816939bde3c08",
+        "imageId": "0xd6d8248d1e786f29a2523024755fec278834380b35606307682d1411b65adba6",
         "verifierAddress": "0x0b144E07A0826182B6b59788c34b32Bfa86Fb711"
       }
     }

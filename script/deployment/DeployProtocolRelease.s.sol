@@ -76,6 +76,8 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
     mapping(string=>MarketRelease) public fullConfigs;
 
+    address public batchSubmitter;
+
     Deployer deployer;
 
     DeployDeployer deployDeployer;
@@ -110,25 +112,22 @@ contract DeployProtocolRelease is DeployBaseRelease {
         configPath = "deployment-config-release.json";
         super.setUp();
 
-        feeds.push(OracleFeed("mUSDC", 0xAADAa473C1bDF7317ec07c915680Af29DeBfdCb5, "USD", 6));
-        feeds.push(OracleFeed("USDC", 0xAADAa473C1bDF7317ec07c915680Af29DeBfdCb5, "USD", 6));
-        feeds.push(OracleFeed("mWETH", 0x58B375D4A5ddAa7df7C54FE5A6A4B7024747fBE3, "USD", 18));
-        feeds.push(OracleFeed("WETH", 0x58B375D4A5ddAa7df7C54FE5A6A4B7024747fBE3, "USD", 18));
-        feeds.push(OracleFeed("mUSDT", 0xefCA2bbe0EdD0E22b2e0d2F8248E99F4bEf4A7dB, "USD", 6));
-        feeds.push(OracleFeed("USDT", 0xefCA2bbe0EdD0E22b2e0d2F8248E99F4bEf4A7dB, "USD", 6));
-        feeds.push(OracleFeed("mDAI", 0x5133D67c38AFbdd02997c14Abd8d83676B4e309A, "USD", 18));
-        feeds.push(OracleFeed("DAI", 0x5133D67c38AFbdd02997c14Abd8d83676B4e309A, "USD", 18));
-        feeds.push(OracleFeed("mWBTC", 0x7A99092816C8BD5ec8ba229e3a6E6Da1E628E1F9, "USD", 8));
-        feeds.push(OracleFeed("WBTC", 0x7A99092816C8BD5ec8ba229e3a6E6Da1E628E1F9, "USD", 8));
-        feeds.push(OracleFeed("mwstETH", 0x8eCE1AbA32716FdDe8D6482bfd88E9a0ee01f565, "USD", 18));
-        feeds.push(OracleFeed("wstETH", 0x8eCE1AbA32716FdDe8D6482bfd88E9a0ee01f565, "USD", 18));
-        feeds.push(OracleFeed("mezETH", 0x93Aa62C43a5cceb33682a267356117C4edbdc9b9, "mWETH_api3", 18));
-        feeds.push(OracleFeed("ezETH", 0x93Aa62C43a5cceb33682a267356117C4edbdc9b9, "mWETH_api3", 18));
-        feeds.push(OracleFeed("mweETH", 0xEAd770C0F71f55D0337B0C7524AC3c72103cc032, "USD", 18));
-        feeds.push(OracleFeed("weETH", 0xEAd770C0F71f55D0337B0C7524AC3c72103cc032, "USD", 18));
-        feeds.push(OracleFeed("mwrsETH", 0x0787b4fe7f532B4E0f495c24b26c4675053cEdEf, "mWETH_api3", 18));
-        feeds.push(OracleFeed("wrsETH", 0x0787b4fe7f532B4E0f495c24b26c4675053cEdEf, "mWETH_api3", 18));
-        feeds.push(OracleFeed("mWETH_api3", 0x5b0cf2b36a65a6BB085D501B971e4c102B9Cd473, "USD", 18));
+        feeds.push(OracleFeed("mUSDC", 0x874b4573B30629F696653EE101528C7426FFFb6b, "USD", 6));
+        feeds.push(OracleFeed("USDC", 0x874b4573B30629F696653EE101528C7426FFFb6b, "USD", 6));
+        feeds.push(OracleFeed("mWETH", 0x2284eC83978Fe21A0E667298d9110bbeaED5E9B4, "USD", 18));
+        feeds.push(OracleFeed("WETH", 0x2284eC83978Fe21A0E667298d9110bbeaED5E9B4, "USD", 18));
+        feeds.push(OracleFeed("mUSDT", 0x0c547EC8B69F50d023D52391b8cB82020c46b848, "USD", 6));
+        feeds.push(OracleFeed("USDT", 0x0c547EC8B69F50d023D52391b8cB82020c46b848, "USD", 6));
+        feeds.push(OracleFeed("mWBTC", 0xa34Aa6654A7E45fB000F130453Ba967Fd57851C1, "USD", 8));
+        feeds.push(OracleFeed("WBTC", 0xa34Aa6654A7E45fB000F130453Ba967Fd57851C1, "USD", 8));
+        feeds.push(OracleFeed("mwstETH", 0x043F8c576154E19E05cD53b21Baab86deC75c728, "USD", 18));
+        feeds.push(OracleFeed("wstETH", 0x043F8c576154E19E05cD53b21Baab86deC75c728, "USD", 18));
+        feeds.push(OracleFeed("mezETH", 0x01600fE800B9a1c3638F24c1408F2d177133074C, "USD", 18));
+        feeds.push(OracleFeed("ezETH", 0x01600fE800B9a1c3638F24c1408F2d177133074C, "USD", 18));
+        feeds.push(OracleFeed("mweETH", 0x6Bd45e0f0adaAE6481f2B4F3b867911BF5f8321b, "USD", 18));
+        feeds.push(OracleFeed("weETH", 0x6Bd45e0f0adaAE6481f2B4F3b867911BF5f8321b, "USD", 18));
+        feeds.push(OracleFeed("mwrsETH", 0xB7b25D8e8490a138c854426e7000C7E114C2DebF, "USD", 18));
+        feeds.push(OracleFeed("wrsETH", 0xB7b25D8e8490a138c854426e7000C7E114C2DebF, "USD", 18));
 
         // borrow caps
         borrowCaps["mUSDC"] = 0;
@@ -389,7 +388,9 @@ contract DeployProtocolRelease is DeployBaseRelease {
             deployer = Deployer(payable(_deployDeployer(network)));
             address rolesContract = _deployRoles(owner);
             address zkVerifier = _deployZkVerifier(owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId);
-            _deployBatchSubmitter(rolesContract, zkVerifier);
+            
+            batchSubmitter = _deployBatchSubmitter(rolesContract, zkVerifier);
+            setRole.run(rolesContract, 0x5641B4889177419E8f79de939967E9277C127cDe, keccak256(abi.encodePacked("PROOF_BATCH_FORWARDER")), true);
 
             address timelock = _deployTimelock(owner);
 
