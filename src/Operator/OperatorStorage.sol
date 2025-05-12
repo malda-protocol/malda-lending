@@ -36,7 +36,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     /**
      * @inheritdoc IOperator
      */
-    uint256 public liquidationIncentiveMantissa;
+    mapping(address => uint256) public liquidationIncentiveMantissa;
 
     /**
      * @notice Per-account mapping of "assets you are in", capped by maxAssets
@@ -124,7 +124,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     uint256 internal constant CLOSE_FACTOR_MAX_MANTISSA = 0.9e18; // 0.9
 
     // No collateralFactorMantissa may exceed this value
-    uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18; // 0.9
+    uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18; // 0.95
 
 
     // ----------- ERRORS ------------
@@ -203,7 +203,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     /**
      * @notice Emitted when liquidation incentive is changed by admin
      */
-    event NewLiquidationIncentive(uint256 oldLiquidationIncentiveMantissa, uint256 newLiquidationIncentiveMantissa);
+    event NewLiquidationIncentive(address market, uint256 oldLiquidationIncentiveMantissa, uint256 newLiquidationIncentiveMantissa);
     /**
      * @notice Emitted when price oracle is changed
      */

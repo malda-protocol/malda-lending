@@ -172,7 +172,7 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         collaterals[0] = address(mWethHost);
 
         operator.setCloseFactor(0.086e18);
-        operator.setLiquidationIncentive(1e17);
+        operator.setLiquidationIncentive(address(mWethHost), 1e17);
 
         _resetContext(bob);
         mWethHost.updateAllowedCallerStatus(alice, true);
