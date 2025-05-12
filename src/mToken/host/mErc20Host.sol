@@ -26,7 +26,6 @@ import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 import {Migrator} from "src/migration/Migrator.sol";
 
-
 contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     using SafeERC20 for IERC20;
 

@@ -52,6 +52,7 @@ contract mErc20 is mToken, ImErc20 {
         string memory symbol_,
         uint8 decimals_
     ) public {
+
         // mToken initialize does the bulk of the work
         super.initialize(operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_);
 

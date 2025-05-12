@@ -123,6 +123,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
 
         // Check collateral factor <= 0.9
         Exp memory highLimit = Exp({mantissa: COLLATERAL_FACTOR_MAX_MANTISSA});
+
         require(!lessThanExp(highLimit, newCollateralFactorExp), Operator_InvalidCollateralFactor());
 
         if (newCollateralFactorMantissa != 0 && IOracleOperator(oracleOperator).getUnderlyingPrice(mToken) == 0) {
@@ -141,12 +142,12 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
      * @dev Admin function to set liquidationIncentive
      * @param newLiquidationIncentiveMantissa New liquidationIncentive scaled by 1e18
      */
-    function setLiquidationIncentive(uint256 newLiquidationIncentiveMantissa) external onlyOwner {
+    function setLiquidationIncentive(address market, uint256 newLiquidationIncentiveMantissa) external onlyOwner {
         // Emit event with old incentive, new incentive
-        emit NewLiquidationIncentive(liquidationIncentiveMantissa, newLiquidationIncentiveMantissa);
+        emit NewLiquidationIncentive(market, liquidationIncentiveMantissa[market], newLiquidationIncentiveMantissa);
 
         // Set liquidation incentive to new incentive
-        liquidationIncentiveMantissa = newLiquidationIncentiveMantissa;
+        liquidationIncentiveMantissa[market] = newLiquidationIncentiveMantissa;
     }
 
     /**
@@ -408,7 +409,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         Exp memory numerator;
         Exp memory denominator;
         Exp memory ratio;
-        numerator = mul_(Exp({mantissa: liquidationIncentiveMantissa}), Exp({mantissa: priceBorrowedMantissa}));
+        numerator = mul_(Exp({mantissa: liquidationIncentiveMantissa[mTokenCollateral]}), Exp({mantissa: priceBorrowedMantissa}));
         denominator = mul_(Exp({mantissa: priceCollateralMantissa}), Exp({mantissa: exchangeRateMantissa}));
         ratio = div_(numerator, denominator);
 
@@ -700,7 +701,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
 
     // ----------- PRIVATE ------------
     function _convertMarketAmountToUSDValue(uint256 amount, address mToken) internal view returns (uint256) {
-        address _asset = ImToken(mToken).underlying();
         uint256 oraclePriceMantissa = IOracleOperator(oracleOperator).getUnderlyingPrice(mToken);
         require(oraclePriceMantissa != 0, Operator_OracleUnderlyingFetchError());
 

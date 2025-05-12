@@ -50,6 +50,8 @@ struct MarketRelease {
     uint256 supplyCap;
     string symbol;
     address underlying;
+    uint256 reserveFactor;
+    uint256 liquidationBonus;
 }
 
 struct OracleConfigRelease {

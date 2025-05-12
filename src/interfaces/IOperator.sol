@@ -179,7 +179,7 @@ interface IOperator {
     /**
      * @notice Multiplier representing the discount on collateral that a liquidator receives
      */
-    function liquidationIncentiveMantissa() external view returns (uint256);
+    function liquidationIncentiveMantissa(address market) external view returns (uint256);
 
     /**
      * @notice Returns true/false

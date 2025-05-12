@@ -24,6 +24,7 @@ import {DeployBaseRelease} from "../deployers/DeployBaseRelease.sol";
 import {DeployDeployer} from "../deployers/DeployDeployer.s.sol";
 import {DeployRbac} from "./generic/DeployRbac.s.sol";
 import {DeployZkVerifier} from "./generic/DeployZkVerifier.s.sol";
+import {DeployTimelockController} from "./generic/DeployTimelockController.s.sol";
 import {DeployPauser} from "./generic/DeployPauser.s.sol";
 import {DeployOperator} from "./markets/DeployOperator.s.sol";
 import {DeployHostMarket} from "./markets/host/DeployHostMarket.s.sol";
@@ -37,6 +38,8 @@ import {DeployMockOracle} from "./oracles/DeployMockOracle.s.sol";
 import {SetOperatorInRewardDistributor} from "../configuration/SetOperatorInRewardDistributor.s.sol";
 import {SetRole} from "../configuration/SetRole.s.sol";
 import {SetCollateralFactor} from "../configuration/SetCollateralFactor.s.sol";
+import {SetReserveFactor} from "../configuration/SetReserveFactor.s.sol";
+import {SetLiquidationBonus} from "../configuration/SetLiquidationBonus.s.sol";
 import {SupportMarket} from "../configuration/SupportMarket.s.sol";
 import {SetBorrowRateMaxMantissa} from "../configuration/SetBorrowRateMaxMantissa.s.sol";
 import {SetBorrowCap} from "../configuration/SetBorrowCap.s.sol";
@@ -51,6 +54,7 @@ import {DeployLZBridge} from "script/deployment/rebalancer/DeployLZBridge.s.sol"
 
 // import {VerifyDeployment} from "./VerifyDeployment.s.sol";
 
+import "forge-std/console2.sol";
 contract DeployProtocolRelease is DeployBaseRelease {
     using stdJson for string;
 
@@ -64,6 +68,13 @@ contract DeployProtocolRelease is DeployBaseRelease {
     // Track deployed implementations
     address public mTokenHostImplementation;
     address public mTokenGatewayImplementation;
+
+    mapping(string=>uint256) public collateralFactors;
+    mapping(string=>uint256) public reserveFactors;
+    mapping(string=>uint256) public liquidationBonuses;
+    mapping(string=>uint256) public borrowCaps;
+
+    mapping(string=>MarketRelease) public fullConfigs;
 
     Deployer deployer;
 
@@ -81,6 +92,8 @@ contract DeployProtocolRelease is DeployBaseRelease {
     SetRole setRole;
     SupportMarket supportMarket;
     SetCollateralFactor setCollateralFactor;
+    SetReserveFactor setReserveFactor;
+    SetLiquidationBonus setLiquidationBonus;
     SetBorrowRateMaxMantissa setBorrowRateMaxMantissa;
     SetBorrowCap setBorrowCap;
     SetSupplyCap setSupplyCap;
@@ -91,6 +104,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
     DeployEverclearBridge deployEverclearBridge;
     DeployLZBridge deployLZBridge;
     DeployZkVerifier deployZkVerifier;
+    DeployTimelockController deployTimelockController;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";
@@ -108,13 +122,227 @@ contract DeployProtocolRelease is DeployBaseRelease {
         feeds.push(OracleFeed("WBTC", 0x7A99092816C8BD5ec8ba229e3a6E6Da1E628E1F9, "USD", 8));
         feeds.push(OracleFeed("mwstETH", 0x8eCE1AbA32716FdDe8D6482bfd88E9a0ee01f565, "USD", 18));
         feeds.push(OracleFeed("wstETH", 0x8eCE1AbA32716FdDe8D6482bfd88E9a0ee01f565, "USD", 18));
-        feeds.push(OracleFeed("mezETH", 0xD707bD88A6AAe8174C1447af4C746D55676C84BA, "mWETH_api3", 18));
-        feeds.push(OracleFeed("ezETH", 0xD707bD88A6AAe8174C1447af4C746D55676C84BA, "mWETH_api3", 18));
+        feeds.push(OracleFeed("mezETH", 0x93Aa62C43a5cceb33682a267356117C4edbdc9b9, "mWETH_api3", 18));
+        feeds.push(OracleFeed("ezETH", 0x93Aa62C43a5cceb33682a267356117C4edbdc9b9, "mWETH_api3", 18));
         feeds.push(OracleFeed("mweETH", 0xEAd770C0F71f55D0337B0C7524AC3c72103cc032, "USD", 18));
         feeds.push(OracleFeed("weETH", 0xEAd770C0F71f55D0337B0C7524AC3c72103cc032, "USD", 18));
-        feeds.push(OracleFeed("mwrsETH", 0x6feCd2f4798D37fBe64BFDe1eBeCaE3B3fB1Ab9B, "mWETH_api3", 18));
-        feeds.push(OracleFeed("mrsETH", 0x6feCd2f4798D37fBe64BFDe1eBeCaE3B3fB1Ab9B, "mWETH_api3", 18));
-        feeds.push(OracleFeed("mWETH_api3", 0x14D8CA4d05cfd1EA4739AbAB06b28D8dC7C6d6cA, "USD", 18));
+        feeds.push(OracleFeed("mwrsETH", 0x0787b4fe7f532B4E0f495c24b26c4675053cEdEf, "mWETH_api3", 18));
+        feeds.push(OracleFeed("wrsETH", 0x0787b4fe7f532B4E0f495c24b26c4675053cEdEf, "mWETH_api3", 18));
+        feeds.push(OracleFeed("mWETH_api3", 0x5b0cf2b36a65a6BB085D501B971e4c102B9Cd473, "USD", 18));
+
+        // borrow caps
+        borrowCaps["mUSDC"] = 0;
+        borrowCaps["mWETH"] = 0;
+        borrowCaps["mUSDT"] = 0;
+        borrowCaps["mDAI"] = 0;
+        borrowCaps["mWBTC"] = 0;
+        borrowCaps["mwstETH"] = 0;
+        borrowCaps["mezETH"] = 0;
+        borrowCaps["mweETH"] = 0;
+        borrowCaps["mwrsETH"] = 0;
+
+        // collateral factors
+        collateralFactors["mUSDC"] = 900000000000000000;
+        collateralFactors["mWETH"] = 830000000000000000;
+        collateralFactors["mUSDT"] = 900000000000000000;
+        collateralFactors["mDAI"] = 900000000000000000;
+        collateralFactors["mWBTC"] = 780000000000000000;
+        collateralFactors["mwstETH"] = 810000000000000000;
+        collateralFactors["mezETH"] = 750000000000000000;
+        collateralFactors["mweETH"] = 800000000000000000;
+        collateralFactors["mwrsETH"] = 750000000000000000;
+
+        // reserve factors
+        reserveFactors["mUSDC"] = 100000000000000000;
+        reserveFactors["mWETH"] = 150000000000000000;
+        reserveFactors["mUSDT"] = 100000000000000000;
+        reserveFactors["mDAI"] = 100000000000000000;
+        reserveFactors["mWBTC"] = 500000000000000000;
+        reserveFactors["mwstETH"] = 50000000000000000;
+        reserveFactors["mezETH"] = 450000000000000000;
+        reserveFactors["mweETH"] = 450000000000000000;
+        reserveFactors["mwrsETH"] = 450000000000000000;
+
+        // liquidation bonuses
+        liquidationBonuses["mUSDC"] = 1050000000000000000;
+        liquidationBonuses["mWETH"] = 1050000000000000000;
+        liquidationBonuses["mUSDT"] = 1050000000000000000;
+        liquidationBonuses["mDAI"] = 1050000000000000000;
+        liquidationBonuses["mWBTC"] = 1050000000000000000;
+        liquidationBonuses["mwstETH"] = 1060000000000000000;
+        liquidationBonuses["mezETH"] = 1070000000000000000;
+        liquidationBonuses["mweETH"] = 1070000000000000000;
+        liquidationBonuses["mwrsETH"] = 1070000000000000000;
+
+        // full configs
+        fullConfigs["mUSDC"] = MarketRelease({
+            borrowCap: borrowCaps["mUSDC"],
+            borrowRateMaxMantissa: 400000000000,
+            collateralFactor: collateralFactors["mUSDC"],
+            decimals: 6,
+            interestModel: InterestConfig({
+                baseRate: 0,
+                blocksPerYear: 31536000,
+                jumpMultiplier: 11092659363,
+                kink: 920000000000000000,
+                multiplier: 1902587485,
+                name: "mUSDC Interest Model"
+            }),
+            name: "mUSDC",
+            supplyCap: 0,
+            symbol: "mUSDC",
+            underlying: 0x176211869cA2b568f2A7D4EE941E073a821EE1ff,
+            reserveFactor: reserveFactors["mUSDC"],
+            liquidationBonus: liquidationBonuses["mUSDC"]
+        });
+
+        fullConfigs["mWETH"] = MarketRelease({
+            borrowCap: borrowCaps["mWETH"],
+            borrowRateMaxMantissa: 400000000000,
+            collateralFactor: collateralFactors["mWETH"],
+            decimals: 18,
+            interestModel: InterestConfig({
+                baseRate: 0,
+                blocksPerYear: 31536000,
+                jumpMultiplier: 2537211589,
+                kink: 800000000000000000,
+                multiplier: 856118368,
+                name: "mWETH Interest Model"
+            }),
+            name: "mWETH",
+            supplyCap: 0,
+            symbol: "mWETH",
+            underlying: 0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f,
+            reserveFactor: reserveFactors["mWETH"],
+            liquidationBonus: liquidationBonuses["mWETH"]
+        });
+
+        fullConfigs["mUSDT"] = MarketRelease({
+            borrowCap: borrowCaps["mUSDT"],
+            borrowRateMaxMantissa: 400000000000,
+            collateralFactor: collateralFactors["mUSDT"],
+            decimals: 6,
+            interestModel: InterestConfig({
+                baseRate: 0,
+                blocksPerYear: 31536000,
+                jumpMultiplier: 11092659363,
+                kink: 920000000000000000,
+                multiplier: 1902587485,
+                name: "mUSDT Interest Model"
+            }),
+            name: "mUSDT",
+            supplyCap: 0,
+            symbol: "mUSDT",
+            underlying: 0xA219439258ca9da29E9Cc4cE5596924745e12B93,
+            reserveFactor: reserveFactors["mUSDT"],
+            liquidationBonus: liquidationBonuses["mUSDT"]
+        });
+
+        fullConfigs["mWBTC"] = MarketRelease({
+            borrowCap: borrowCaps["mWBTC"],
+            borrowRateMaxMantissa: 400000000000,
+            collateralFactor: collateralFactors["mWBTC"],
+            decimals: 6,
+            interestModel: InterestConfig({
+                baseRate: 0,
+                blocksPerYear: 31536000,
+                jumpMultiplier: 95111963546,
+                kink: 800000000000000000,
+                multiplier: 1268391657,
+                name: "mWBTC Interest Model"
+            }),
+            name: "mWBTC",
+            supplyCap: 0,
+            symbol: "mWBTC",
+            underlying: 0x3aAB2285ddcDdaD8edf438C1bAB47e1a9D05a9b4,
+            reserveFactor: reserveFactors["mWBTC"],
+            liquidationBonus: liquidationBonuses["mWBTC"]
+        });
+
+        fullConfigs["mwstETH"] = MarketRelease({
+            borrowCap: borrowCaps["mwstETH"],
+            borrowRateMaxMantissa: 400000000000,
+            collateralFactor: collateralFactors["mwstETH"],
+            decimals: 18,
+            interestModel: InterestConfig({
+                baseRate: 0,
+                blocksPerYear: 31536000,
+                jumpMultiplier: 26953011055,
+                kink: 700000000000000000,
+                multiplier: 507413996,
+                name: "mwstETH Interest Model"
+            }),
+            name: "mwstETH",
+            supplyCap: 0,
+            symbol: "mwstETH",
+            underlying: 0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F,
+            reserveFactor: reserveFactors["mwstETH"],
+            liquidationBonus: liquidationBonuses["mwstETH"]
+        });
+
+        fullConfigs["mezETH"] = MarketRelease({
+            borrowCap: borrowCaps["mezETH"],
+            borrowRateMaxMantissa: 400000000000,
+            collateralFactor: collateralFactors["mezETH"],
+            decimals: 18,
+            interestModel: InterestConfig({
+                baseRate: 0,
+                blocksPerYear: 31536000,
+                jumpMultiplier: 251900000000,
+                kink: 400000000000000000,
+                multiplier: 1981000000,
+                name: "mezETH Interest Model"
+            }),
+            name: "mezETH",
+            supplyCap: 0,
+            symbol: "mezETH",
+            underlying: 0x2416092f143378750bb29b79eD961ab195CcEea5,
+            reserveFactor: reserveFactors["mezETH"],
+            liquidationBonus: liquidationBonuses["mezETH"]
+        });
+
+        fullConfigs["mweETH"] = MarketRelease({
+            borrowCap: borrowCaps["mweETH"],
+            borrowRateMaxMantissa: 400000000000,
+            collateralFactor: collateralFactors["mweETH"],
+            decimals: 18,
+            interestModel: InterestConfig({
+                baseRate: 317091247,
+                blocksPerYear: 31536000,
+                jumpMultiplier: 95111963546,
+                kink: 400000000000000000,
+                multiplier: 2219638722,
+                name: "mweETH Interest Model"
+            }),
+            name: "mweETH",
+            supplyCap: 0,
+            symbol: "mweETH",
+            underlying: 0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6,
+            reserveFactor: reserveFactors["mweETH"],
+            liquidationBonus: liquidationBonuses["mweETH"]
+        });
+
+        fullConfigs["mwrsETH"] = MarketRelease({
+            borrowCap: borrowCaps["mwrsETH"],
+            borrowRateMaxMantissa: 400000000000,
+            collateralFactor: collateralFactors["mwrsETH"],
+            decimals: 18,
+            interestModel: InterestConfig({
+                baseRate: 0,
+                blocksPerYear: 31536000,
+                jumpMultiplier: 276300000000,
+                kink: 400000000000000000,
+                multiplier: 1585000000,
+                name: "mwrsETH Interest Model"
+            }),
+            name: "mwrsETH",
+            supplyCap: 0,
+            symbol: "mwrsETH",
+            underlying: 0xD2671165570f41BBB3B0097893300b6EB6101E6C,
+            reserveFactor: reserveFactors["mwrsETH"],
+            liquidationBonus: liquidationBonuses["mwrsETH"]
+        });
+
 
         spokePoolAddresses[1] = 0x5c7BCd6E7De5423a257D81B442095A1a6ced35C5;
         spokePoolAddresses[10] = 0x6f26Bf09B1C792e3228e5467807a900A503c0281;
@@ -152,6 +380,8 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
             deployZkVerifier = new DeployZkVerifier();
 
+            deployTimelockController = new DeployTimelockController();
+
             deployBatchSubmitter = new DeployBatchSubmitter();
             setRole = new SetRole();
 
@@ -160,6 +390,8 @@ contract DeployProtocolRelease is DeployBaseRelease {
             address rolesContract = _deployRoles(owner);
             address zkVerifier = _deployZkVerifier(owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId);
             _deployBatchSubmitter(rolesContract, zkVerifier);
+
+            address timelock = _deployTimelock(owner);
 
             deployPauser = new DeployPauser();
 
@@ -174,6 +406,8 @@ contract DeployProtocolRelease is DeployBaseRelease {
                 supportMarket = new SupportMarket();
                 setCollateralFactor = new SetCollateralFactor();
                 setBorrowRateMaxMantissa = new SetBorrowRateMaxMantissa();
+                setReserveFactor = new SetReserveFactor();
+                setLiquidationBonus = new SetLiquidationBonus();
                 setBorrowCap = new SetBorrowCap();
                 setSupplyCap = new SetSupplyCap();
                 updateAllowedChains = new UpdateAllowedChains();
@@ -194,25 +428,24 @@ contract DeployProtocolRelease is DeployBaseRelease {
             _deployAndConfigRebalancerAndBridges(network, rolesContract);
 
             // Transfer ownerhip
-            console.log("Transfer ownership to", configs[network].ownership);
-            uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-            vm.startBroadcast(key);
+            // console.log("Transfer ownership to", configs[network].ownership);
+            // uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
+            // vm.startBroadcast(key);
 
-            console.log(" -- for ZkVerifier");
-            IOwnable(zkVerifier).transferOwnership(configs[network].ownership);
-            console.log(" -- for Pauser");
-            IOwnable(pauser).transferOwnership(configs[network].ownership);
-            console.log(" -- for Roles");
-            IOwnable(rolesContract).transferOwnership(configs[network].ownership);
-            console.log(" -- for mTokenGateway addresses [count]", extensionMarketAddresses.length);
-            for (uint256 j; j < extensionMarketAddresses.length;) {
-                IOwnable(extensionMarketAddresses[j]).transferOwnership(configs[network].ownership);
-                unchecked {
-                    ++j;
-                }
-            }
-
-            vm.stopBroadcast();
+            // console.log(" -- for ZkVerifier");
+            // IOwnable(zkVerifier).transferOwnership(configs[network].ownership);
+            // console.log(" -- for Pauser");
+            // IOwnable(pauser).transferOwnership(configs[network].ownership);
+            // console.log(" -- for Roles");
+            // IOwnable(rolesContract).transferOwnership(configs[network].ownership);
+            // console.log(" -- for mTokenGateway addresses [count]", extensionMarketAddresses.length);
+            // for (uint256 j; j < extensionMarketAddresses.length;) {
+            //     IOwnable(extensionMarketAddresses[j]).transferOwnership(configs[network].ownership);
+            //     unchecked {
+            //         ++j;
+            //     }
+            // }
+            //vm.stopBroadcast();
             console.log("-------------------- DONE");
         }
     }
@@ -311,12 +544,24 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         // Deploy interest model only for host chain
         if (isHost) {
+            market = fullConfigs[market.name];
             interestModel = _deployInterestModel(market.interestModel);
         }
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         // Deploy proxy for market
         if (isHost) {
+            market.collateralFactor = collateralFactors[market.name];
+            market.reserveFactor = reserveFactors[market.name];
+            market.liquidationBonus = liquidationBonuses[market.name];
+            market.borrowCap = borrowCaps[market.name];
+            console.log(" - market params: ");
+            console.log(" --- name");
+            console.logString(market.name);
+            console.log(" --- collateralFactor %s", market.collateralFactor);
+            console.log(" --- reserveFactor %s", market.reserveFactor);
+            console.log(" --- liquidationBonus %s", market.liquidationBonus);
+            console.log(" --- borrowCap %s", market.borrowCap);
             marketAddress = _deployHostMarket(
                 deployer, market, operator, interestModel, _zkVerifier, rolesContract
             );
@@ -346,6 +591,8 @@ contract DeployProtocolRelease is DeployBaseRelease {
                 operator,
                 marketAddress,
                 market.collateralFactor,
+                market.reserveFactor,
+                market.liquidationBonus,
                 market.borrowCap,
                 market.supplyCap,
                 market.borrowRateMaxMantissa
@@ -446,6 +693,8 @@ contract DeployProtocolRelease is DeployBaseRelease {
         address operator,
         address market,
         uint256 collateralFactor,
+        uint256 reserveFactor,
+        uint256 liquidationBonus,
         uint256 borrowCap,
         uint256 supplyCap,
         uint256 borrowRateMaxMantissa
@@ -455,6 +704,12 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         // Set collateral factor
         _setCollateralFactor(operator, market, collateralFactor);
+        
+        // Set reserve factor
+        _setReserveFactor(market, reserveFactor);
+
+        // Set liquidation incentives
+        _setLiquidationIncentive(operator, market, liquidationBonus);
 
         // Set borrow cap
         _setBorrowCap(operator, market, borrowCap);
@@ -485,6 +740,14 @@ contract DeployProtocolRelease is DeployBaseRelease {
         setCollateralFactor.run(operator, market, collateralFactor);
     }
 
+    function _setReserveFactor(address market, uint256 reserveFactor) internal {
+        setReserveFactor.run(market, reserveFactor);
+    }
+
+    function _setLiquidationIncentive(address operator, address market, uint256 liquidationBonus) internal {
+        setLiquidationBonus.run(operator, market, liquidationBonus);
+    }
+
     function _setBorrowRateMaxMantissa(address market, uint256 borrowRateMaxMantissa) internal {
         setBorrowRateMaxMantissa.run(market, borrowRateMaxMantissa);
     }
@@ -512,5 +775,9 @@ contract DeployProtocolRelease is DeployBaseRelease {
     
     function _deployZkVerifier(address _owner, address _risc0Verifier, bytes32 _imageId) internal returns (address) {
         return deployZkVerifier.run(deployer, _owner, _risc0Verifier, _imageId);
+    }
+
+    function _deployTimelock(address _owner) internal returns (address) {
+        return deployTimelockController.run(deployer, _owner);
     }
 }

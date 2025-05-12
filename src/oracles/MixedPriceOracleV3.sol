@@ -91,9 +91,8 @@ contract MixedPriceOracleV3 is IOracleOperator {
         IDefaultAdapter feed = IDefaultAdapter(config.defaultFeed);
 
         // Get price and timestamp
-        (uint80 roundId, int256 price,, uint256 updatedAt,) = feed.latestRoundData();
+        (,int256 price,, uint256 updatedAt,) = feed.latestRoundData();
         require(price > 0, MixedPriceOracle_InvalidPrice());
-        require(roundId > 0, MixedPriceOracle_InvalidRound());
 
         // Check for staleness
         require(block.timestamp - updatedAt < _getStaleness(symbol), MixedPriceOracle_StalePrice());

@@ -1,0 +1,793 @@
+{
+  "generic": {
+    "version": 1,
+    "connextDomains": [
+      { "chainId":1, "domainId": 6648936 },
+      { "chainId":42161, "domainId": 1634886255 },
+      { "chainId":10, "domainId": 10 },
+      { "chainId":8453, "domainId": 1650553709 }
+    ]
+  },
+  "networks": {
+    "linea": {
+      "ownership": "0xB819A871d20913839c37f316Dc914b0570bfc0eE",
+      "chainId": 59144,
+      "isHost": true,
+      "deployer": {
+        "owner": "0xB819A871d20913839c37f316Dc914b0570bfc0eE", 
+        "salt": "DeployerV1"
+      },
+      "oracle": {
+        "oracleType": "MixedPriceOracleV3",
+        "stalenessPeriod": 86400
+      },
+      "markets": [
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 6,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": "mUSDC Interest Model"
+          },
+          "name": "mUSDC",
+          "supplyCap": 0,
+          "symbol": "mUSDC",
+          "underlying": "0x176211869cA2b568f2A7D4EE941E073a821EE1ff",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+	      {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 18,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": "mWETH Interest Model"
+          },
+          "name": "mWETH",
+          "supplyCap": 0,
+          "symbol": "mWETH",
+          "underlying": "0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 6,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": "mUSDT Interest Model"
+          },
+          "name": "mUSDT",
+          "supplyCap": 0,
+          "symbol": "mUSDT",
+          "underlying": "0xA219439258ca9da29E9Cc4cE5596924745e12B93",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 18,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": "mDAI Interest Model"
+          },
+          "name": "mDAI",
+          "supplyCap": 0,
+          "symbol": "mDAI",
+          "underlying": "0x4AF15ec2A0BD43Db75dd04E62FAA3B8EF36b00d5",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 6,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": "mWBTC Interest Model"
+          },
+          "name": "mWBTC",
+          "supplyCap": 0,
+          "symbol": "mWBTC",
+          "underlying": "0x3aAB2285ddcDdaD8edf438C1bAB47e1a9D05a9b4",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 18,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": "mwstETH Interest Model"
+          },
+          "name": "mwstETH",
+          "supplyCap": 0,
+          "symbol": "mwstETH",
+          "underlying": "0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 18,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": "mezETH Interest Model"
+          },
+          "name": "mezETH",
+          "supplyCap": 0,
+          "symbol": "mezETH",
+          "underlying": "0x2416092f143378750bb29b79eD961ab195CcEea5",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 18,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": "mweETH Interest Model"
+          },
+          "name": "mweETH",
+          "supplyCap": 0,
+          "symbol": "mweETH",
+          "underlying": "0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 18,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": "mwrsETH Interest Model"
+          },
+          "name": "mwrsETH",
+          "supplyCap": 0,
+          "symbol": "mwrsETH",
+          "underlying": "0xD2671165570f41BBB3B0097893300b6EB6101E6C",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        }
+      ],
+      "roles": [
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "CHAINS_MANAGER"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE" 
+          ],
+          "roleName": "PAUSE_MANAGER"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "PROOF_FORWARDER"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE" 
+          ],
+          "roleName": "GUARDIAN_RESERVE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE" 
+          ],
+          "roleName": "GUARDIAN_PAUSE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE" 
+          ],
+          "roleName": "GUARDIAN_BORROW_CAP"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE" 
+          ],
+          "roleName": "GUARDIAN_SUPPLY_CAP"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE" 
+          ],
+          "roleName": "GUARDIAN_ORACLE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE" 
+          ],
+          "roleName": "GUARDIAN_BRIDGE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE" 
+          ],
+          "roleName": "REBALANCER_EOA"
+        }
+      ],
+      "zkVerifier": {
+        "imageId": "0xd1333b14cc29a5d8828e9f5842a44c881efbabec67faf033633816939bde3c08",
+        "verifierAddress": "0x8EaB2D97Dfce405A1692a21b3ff3A172d593D319"
+      },
+      "allowedChains": [
+        42161,
+        10,
+        8453
+      ]
+    },
+    "mainnet": {
+      "ownership": "0xB819A871d20913839c37f316Dc914b0570bfc0eE",
+      "chainId": 1,
+      "isHost": false,
+      "deployer": {
+        "owner": "0xB819A871d20913839c37f316Dc914b0570bfc0eE", 
+        "salt": "DeployerV1"
+      },
+      "markets": [
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mUSDC",
+          "supplyCap": 0,
+          "symbol": "mUSDC",
+          "underlying": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mWETH",
+          "supplyCap": 0,
+          "symbol": "mWETH",
+          "underlying": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mUSDT",
+          "supplyCap": 0,
+          "symbol": "mUSDT",
+          "underlying": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mDAI",
+          "supplyCap": 0,
+          "symbol": "mDAI",
+          "underlying": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mWBTC",
+          "supplyCap": 0,
+          "symbol": "mWBTC",
+          "underlying": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mwstETH",
+          "supplyCap": 0,
+          "symbol": "mwstETH",
+          "underlying": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mezETH",
+          "supplyCap": 0,
+          "symbol": "mezETH",
+          "underlying": "0xbf5495Efe5DB9ce00f80364C8B423567e58d2110",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mweETH",
+          "supplyCap": 0,
+          "symbol": "mweETH",
+          "underlying": "0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mwrsETH",
+          "supplyCap": 0,
+          "symbol": "mwrsETH",
+          "underlying": "0x0BF407C43919A5C201af75f3cd9AAb4CEAa9c8ea",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        }
+      ],
+      "roles": [
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "CHAINS_MANAGER"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "PAUSE_MANAGER"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "PROOF_FORWARDER"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_RESERVE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_PAUSE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_BORROW_CAP"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_SUPPLY_CAP"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_ORACLE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_BRIDGE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "REBALANCER_EOA"
+        }
+      ],
+      "zkVerifier": {
+        "imageId": "0xd1333b14cc29a5d8828e9f5842a44c881efbabec67faf033633816939bde3c08",
+        "verifierAddress": "0x8EaB2D97Dfce405A1692a21b3ff3A172d593D319"
+      }
+    },
+    "base": {
+      "ownership": "0xB819A871d20913839c37f316Dc914b0570bfc0eE",
+      "chainId": 8453,
+      "isHost": false,
+      "deployer": {
+        "owner": "0xB819A871d20913839c37f316Dc914b0570bfc0eE", 
+        "salt": "DeployerV1"
+      },
+      "markets": [
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mUSDC",
+          "supplyCap": 0,
+          "symbol": "mUSDC",
+          "underlying": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mWETH",
+          "supplyCap": 0,
+          "symbol": "mWETH",
+          "underlying": "0x4200000000000000000000000000000000000006",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mUSDT",
+          "supplyCap": 0,
+          "symbol": "mUSDT",
+          "underlying": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mDAI",
+          "supplyCap": 0,
+          "symbol": "mDAI",
+          "underlying": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mWBTC",
+          "supplyCap": 0,
+          "symbol": "mWBTC",
+          "underlying": "0x0555E30da8f98308EdB960aa94C0Db47230d2B9c",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mwstETH",
+          "supplyCap": 0,
+          "symbol": "mwstETH",
+          "underlying": "0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mezETH",
+          "supplyCap": 0,
+          "symbol": "mezETH",
+          "underlying": "0x2416092f143378750bb29b79eD961ab195CcEea5",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mweETH",
+          "supplyCap": 0,
+          "symbol": "mweETH",
+          "underlying": "0x04C0599Ae5A44757c0af6F9eC3b93da8976c150A",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mwrsETH",
+          "supplyCap": 0,
+          "symbol": "mwrsETH",
+          "underlying": "0xEDfa23602D0EC14714057867A78d01e94176BEA0",
+          "reserveFactor": 0,
+          "liquidationBonus": 0
+        }
+      ],
+      "roles": [
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "CHAINS_MANAGER"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "PAUSE_MANAGER"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "PROOF_FORWARDER"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_RESERVE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_PAUSE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_BORROW_CAP"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_SUPPLY_CAP"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_ORACLE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_BRIDGE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "REBALANCER_EOA"
+        }
+      ],
+      "zkVerifier": {
+        "imageId": "0xd1333b14cc29a5d8828e9f5842a44c881efbabec67faf033633816939bde3c08",
+        "verifierAddress": "0x0b144E07A0826182B6b59788c34b32Bfa86Fb711"
+      }
+    }
+  }
+}
