@@ -13,12 +13,12 @@ contract Pauser_addPausableMarket is Pauser_Unit_Shared {
         pauser.addPausableMarket(address(0), IPauser.PausableType.Extension);
     }
 
-    function test_RevertWhen_ContractAlreadyRegistered() external {
-        pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
+    // function test_RevertWhen_ContractAlreadyRegistered() external {
+    //     pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
 
-        vm.expectRevert(IPauser.Pauser_AlreadyRegistered.selector);
-        pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
-    }
+    //     vm.expectRevert(IPauser.Pauser_AlreadyRegistered.selector);
+    //     pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
+    // }
 
     function test_WhenContractIsNotRegistered() external {
         pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);

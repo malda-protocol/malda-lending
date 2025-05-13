@@ -2,7 +2,7 @@
 pragma solidity =0.8.28;
 
 import {mTokenConfiguration} from "src/mToken/mTokenConfiguration.sol";
-import {Script, console} from "forge-std/Script.sol";
+import "forge-std/Script.sol";
 
 contract SetReserveFactor is Script {
     function run(address market, uint256 factor) public virtual {

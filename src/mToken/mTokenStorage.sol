@@ -98,7 +98,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     /**
      * @notice Maximum borrow rate that can ever be applied
      */
-    uint256 public borrowRateMaxMantissa = 0.00004e16;
+    uint256 public borrowRateMaxMantissa = 0.0005e16;
 
     /**
      * @inheritdoc ImToken
@@ -351,7 +351,9 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
         /* Calculate the current borrow interest rate */
         uint256 borrowRateMantissa =
             IInterestRateModel(interestRateModel).getBorrowRate(cashPrior, borrowsPrior, reservesPrior);
-        require(borrowRateMantissa <= borrowRateMaxMantissa, mToken_BorrowRateTooHigh());
+        if (borrowRateMaxMantissa > 0) {
+            require(borrowRateMantissa <= borrowRateMaxMantissa, mToken_BorrowRateTooHigh());
+        }
 
         /* Calculate the number of blocks elapsed since the last accrual */
         uint256 blockDelta = currentBlockTimestamp - accrualBlockTimestampPrior;

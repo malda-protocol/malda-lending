@@ -35,7 +35,7 @@ contract mErc20Immutable is mErc20 {
         admin = payable(msg.sender);
 
         // Initialize the market
-        super.initialize(
+        _initializeMErc20(
             underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_
         );
 

@@ -19,6 +19,10 @@ import {mTokenConfiguration} from "./mTokenConfiguration.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
+
+    constructor() {
+        borrowRateMaxMantissa = 0.0005e16;
+    }
     /**
      * @notice Initialize the money market
      * @param operator_ The address of the Operator
@@ -28,14 +32,14 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param symbol_ EIP-20 symbol of this token
      * @param decimals_ EIP-20 decimal precision of this token
      */
-    function initialize(
+    function _initializeMToken(
         address operator_,
         address interestRateModel_,
         uint256 initialExchangeRateMantissa_,
         string memory name_,
         string memory symbol_,
         uint8 decimals_
-    ) public onlyAdmin {
+    ) internal {
         require(accrualBlockTimestamp == 0 && borrowIndex == 0, mToken_AlreadyInitialized());
         require(initialExchangeRateMantissa_ > 0, mToken_ExchangeRateNotValid());
         // Set initial exchange rate

@@ -21,7 +21,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
  * @title Malda's mErc20 Contract
  * @notice mTokens which wrap an EIP-20 underlying
  */
-contract mErc20 is mToken, ImErc20 {
+abstract contract mErc20 is mToken, ImErc20 {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE ------------
@@ -43,7 +43,7 @@ contract mErc20 is mToken, ImErc20 {
      * @param symbol_ ERC-20 symbol of this token
      * @param decimals_ ERC-20 decimal precision of this token
      */
-    function initialize(
+    function _initializeMErc20(
         address underlying_,
         address operator_,
         address interestRateModel_,
@@ -51,10 +51,9 @@ contract mErc20 is mToken, ImErc20 {
         string memory name_,
         string memory symbol_,
         uint8 decimals_
-    ) public {
-
+    ) internal {
         // mToken initialize does the bulk of the work
-        super.initialize(operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_);
+        _initializeMToken(operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_);
 
         // Set underlying and sanity check it
         underlying = underlying_;
