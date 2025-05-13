@@ -4,6 +4,7 @@ pragma solidity =0.8.28;
 import {Script, console} from "forge-std/Script.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
+import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 /**
@@ -32,7 +33,7 @@ contract DeployHostMarket is Script {
 
     function run(Deployer deployer, MarketData memory marketData) public returns (address) {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
-
+        
         // Deploy implementation
         bytes32 implSalt =
             getSalt(string.concat("mTokenHost-implementationV1.0.0", addressToString(marketData.underlyingToken)));
@@ -53,6 +54,16 @@ contract DeployHostMarket is Script {
         }
 
         // Prepare initialization data
+        console.log("Details: ");
+        console.log("  - marketData.underlyingToken: %", marketData.underlyingToken);
+        console.log("  - marketData.operator: %", marketData.operator);
+        console.log("  - marketData.interestModel: %", marketData.interestModel);
+        console.log("  - marketData.exchangeRateMantissa: %", marketData.exchangeRateMantissa);
+        console.log("  - marketData.owner: %", marketData.owner);
+        console.log("  - marketData.zkVerifier: %", marketData.zkVerifier);
+        console.log("  - marketData.roles: %", marketData.roles);
+        console.log("  - marketData.name: ");
+        console.logString(marketData.name);
         bytes memory initData = abi.encodeWithSelector(
             mErc20Host.initialize.selector,
             marketData.underlyingToken,

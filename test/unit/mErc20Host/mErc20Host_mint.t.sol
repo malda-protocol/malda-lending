@@ -183,6 +183,17 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         assertEq(totalSupplyAfter - amount, totalSupplyBefore);
     }
 
+    function test_SetReserveFactor(uint256 amount)
+        external
+        inRange(amount, SMALL, LARGE)
+        whenMintExternalIsCalled
+        givenDecodedAmountIsValid
+        whenMarketIsListed(address(mWethHost))
+    {
+        mWethHost.setReserveFactor(1e17);
+    }
+
+
     function test_WhenSealVerificationWasOk_And_OverflowLimitIsInPlace(uint256 amount)
         external
         inRange(amount, SMALL, LARGE)

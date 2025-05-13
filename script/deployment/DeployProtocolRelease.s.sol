@@ -152,14 +152,14 @@ contract DeployProtocolRelease is DeployBaseRelease {
         collateralFactors["mwrsETH"] = 750000000000000000;
 
         // reserve factors
-        reserveFactors["mUSDC"] = 100000000000000000;
-        reserveFactors["mWETH"] = 150000000000000000;
-        reserveFactors["mUSDT"] = 100000000000000000;
-        reserveFactors["mDAI"] = 100000000000000000;
-        reserveFactors["mWBTC"] = 500000000000000000;
+        reserveFactors["mUSDC"] =   100000000000000000;
+        reserveFactors["mWETH"] =   150000000000000000;
+        reserveFactors["mUSDT"] =   100000000000000000;
+        reserveFactors["mDAI"] =    100000000000000000;
+        reserveFactors["mWBTC"] =   500000000000000000;
         reserveFactors["mwstETH"] = 50000000000000000;
-        reserveFactors["mezETH"] = 450000000000000000;
-        reserveFactors["mweETH"] = 450000000000000000;
+        reserveFactors["mezETH"] =  450000000000000000;
+        reserveFactors["mweETH"] =  450000000000000000;
         reserveFactors["mwrsETH"] = 450000000000000000;
 
         // liquidation bonuses
@@ -176,7 +176,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
         // full configs
         fullConfigs["mUSDC"] = MarketRelease({
             borrowCap: borrowCaps["mUSDC"],
-            borrowRateMaxMantissa: 400000000000,
+            borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mUSDC"],
             decimals: 6,
             interestModel: InterestConfig({
@@ -197,7 +197,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         fullConfigs["mWETH"] = MarketRelease({
             borrowCap: borrowCaps["mWETH"],
-            borrowRateMaxMantissa: 400000000000,
+            borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mWETH"],
             decimals: 18,
             interestModel: InterestConfig({
@@ -218,7 +218,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         fullConfigs["mUSDT"] = MarketRelease({
             borrowCap: borrowCaps["mUSDT"],
-            borrowRateMaxMantissa: 400000000000,
+            borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mUSDT"],
             decimals: 6,
             interestModel: InterestConfig({
@@ -239,7 +239,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         fullConfigs["mWBTC"] = MarketRelease({
             borrowCap: borrowCaps["mWBTC"],
-            borrowRateMaxMantissa: 400000000000,
+            borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mWBTC"],
             decimals: 6,
             interestModel: InterestConfig({
@@ -260,7 +260,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         fullConfigs["mwstETH"] = MarketRelease({
             borrowCap: borrowCaps["mwstETH"],
-            borrowRateMaxMantissa: 400000000000,
+            borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mwstETH"],
             decimals: 18,
             interestModel: InterestConfig({
@@ -281,7 +281,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         fullConfigs["mezETH"] = MarketRelease({
             borrowCap: borrowCaps["mezETH"],
-            borrowRateMaxMantissa: 400000000000,
+            borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mezETH"],
             decimals: 18,
             interestModel: InterestConfig({
@@ -302,7 +302,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         fullConfigs["mweETH"] = MarketRelease({
             borrowCap: borrowCaps["mweETH"],
-            borrowRateMaxMantissa: 400000000000,
+            borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mweETH"],
             decimals: 18,
             interestModel: InterestConfig({
@@ -323,7 +323,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         fullConfigs["mwrsETH"] = MarketRelease({
             borrowCap: borrowCaps["mwrsETH"],
-            borrowRateMaxMantissa: 400000000000,
+            borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mwrsETH"],
             decimals: 18,
             interestModel: InterestConfig({
@@ -389,8 +389,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
             address rolesContract = _deployRoles(owner);
             address zkVerifier = _deployZkVerifier(owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId);
             
-            batchSubmitter = _deployBatchSubmitter(rolesContract, zkVerifier);
-            setRole.run(rolesContract, 0x5641B4889177419E8f79de939967E9277C127cDe, keccak256(abi.encodePacked("PROOF_BATCH_FORWARDER")), true);
+            _deployBatchSubmitter(rolesContract, zkVerifier);
 
             address timelock = _deployTimelock(owner);
 
@@ -563,6 +562,8 @@ contract DeployProtocolRelease is DeployBaseRelease {
             console.log(" --- reserveFactor %s", market.reserveFactor);
             console.log(" --- liquidationBonus %s", market.liquidationBonus);
             console.log(" --- borrowCap %s", market.borrowCap);
+            console.log(" --- _zkVerifier %s", _zkVerifier);
+            console.log(" --- rolesContract %s", rolesContract);
             marketAddress = _deployHostMarket(
                 deployer, market, operator, interestModel, _zkVerifier, rolesContract
             );
@@ -707,7 +708,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
         _setCollateralFactor(operator, market, collateralFactor);
         
         // Set reserve factor
-        _setReserveFactor(market, reserveFactor);
+        //_setReserveFactor(market, reserveFactor);
 
         // Set liquidation incentives
         _setLiquidationIncentive(operator, market, liquidationBonus);

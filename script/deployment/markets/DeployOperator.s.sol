@@ -54,14 +54,14 @@ contract DeployOperator is Script {
             );
             vm.stopBroadcast();
             console.log("Operator proxy deployed at:", operatorAddress);
+
+            console.log("Setting oracle: ", oracle);
+            vm.startBroadcast(key);
+            Operator(operatorAddress).setPriceOracle(oracle);
+            vm.stopBroadcast();
+            console.log("Oracle has been set");
         }
-
-        console.log("Setting oracle: ", oracle);
-        vm.startBroadcast(key);
-        Operator(operatorAddress).setPriceOracle(oracle);
-        vm.stopBroadcast();
-        console.log("Oracle has been set");
-
+      
         return operatorAddress;
     }
 

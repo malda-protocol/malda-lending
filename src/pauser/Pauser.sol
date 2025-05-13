@@ -41,7 +41,7 @@ contract Pauser is Ownable, IPauser {
      */
     function addPausableMarket(address _contract, PausableType _contractType) external onlyOwner {
         require(_contract != address(0), Pauser_AddressNotValid());
-        require(!registeredContracts[_contract], Pauser_AlreadyRegistered());
+        if (registeredContracts[_contract]) return;
         registeredContracts[_contract] = true;
         pausableContracts.push(PausableContract(_contract, _contractType));
         contractTypes[_contract] = _contractType;

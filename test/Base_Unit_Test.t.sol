@@ -66,8 +66,26 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
         operator = Operator(address(operatorProxy));
         vm.label(address(operator), "Operator");
 
+        // /**
+        // * @notice Construct an interest rate model
+        // * @param blocksPerYear_ The estimated number of blocks per year
+        // * @param baseRatePerYear The base APR, scaled by 1e18
+        // * @param multiplierPerYear The rate increase in interest wrt utilization, scaled by 1e18
+        // * @param jumpMultiplierPerYear The multiplier per block after utilization point
+        // * @param kink_ The utilization point where the jump multiplier applies
+        // * @param owner_ The owner of the contract
+        // * @param name_ A user-friendly name for the contract
+        // */
+        //    "interestModel": {
+        //         "baseRate": 792744799,
+        //         "blocksPerYear": 31536000,
+        //         "jumpMultiplier": 251900000000,
+        //         "kink": 400000000000000000,
+        //         "multiplier": 1981000000,
+        //         "name": "mezETH Interest Model"
+        //       },
         interestModel = new JumpRateModelV4(
-            31536000, 0, 1981861998, 43283866057, 800000000000000000, address(this), "InterestModel"
+            3153600, 792744799, 1981000000, 251900000000, 400000000000000000, address(this), "InterestModel"
         );
         vm.label(address(interestModel), "InterestModel");
 

@@ -103,7 +103,6 @@ contract MixedPriceOracleV3_Test is Operator, Test {
         MockChainlinkOracle usdPerUSDCOracle = newUSDOracle(usdPerUsdc);
         MockChainlinkOracle usdcPerEthOracle = newOracleInBase(usdPerEth, usdPerUsdc);
         MockChainlinkOracle ethPerBTCOracle = newOracleInBase(usdPerBitcoin, usdPerEth);
-        MockChainlinkOracle usdPerLargeTokenOracle = newUSDOracle(usdPerUsdc);
 
         uint256 numOracles = 3;
         string[] memory symbols = new string[](numOracles);
