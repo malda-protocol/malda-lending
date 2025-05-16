@@ -717,7 +717,7 @@
           "name": "mwrsETH",
           "supplyCap": 0,
           "symbol": "mwrsETH",
-          "underlying": "0xEDfa23602D0EC14714057867A78d01e94176BEA0",
+          "underlying": "0xD2671165570f41BBB3B0097893300b6EB6101E6C",
           "reserveFactor": 0,
           "liquidationBonus": 0
         }

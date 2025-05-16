@@ -66,6 +66,14 @@ struct OracleFeed {
     uint8 underlyingDecimals;
 }
 
+struct OracleFeedV4 {
+    string symbol;
+    address apiV3Feed;
+    address eOracleFeed;
+    string toSymbol;
+    uint8 underlyingDecimals;
+}
+
 // ---- Testnet configs ---
 struct DeployConfig {
     DeployerConfig deployer;

@@ -9,7 +9,7 @@
     ]
   },
   "networks": {
-    "linea": {
+     "linea": {
       "ownership": "0xB819A871d20913839c37f316Dc914b0570bfc0eE",
       "chainId": 59144,
       "isHost": true,
@@ -80,7 +80,7 @@
           "borrowCap": 0,
           "borrowRateMaxMantissa": 5000000000000,
           "collateralFactor": 0,
-          "decimals": 6,
+          "decimals": 8,
           "interestModel": {
             "baseRate": 0,
             "blocksPerYear": 31536000,
@@ -440,6 +440,209 @@
       "zkVerifier": {
         "imageId": "0xd6d8248d1e786f29a2523024755fec278834380b35606307682d1411b65adba6",
         "verifierAddress": "0x0b144E07A0826182B6b59788c34b32Bfa86Fb711"
+      }
+    },
+    "mainnet": {
+      "ownership": "0xB819A871d20913839c37f316Dc914b0570bfc0eE",
+      "chainId": 1,
+      "isHost": false,
+      "deployer": {
+        "owner": "0xB819A871d20913839c37f316Dc914b0570bfc0eE", 
+        "salt": "DeployerV1.0.3"
+      },
+      "markets": [
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mUSDC",
+          "supplyCap": 0,
+          "symbol": "mUSDC",
+          "underlying": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mWETH",
+          "supplyCap": 0,
+          "symbol": "mWETH",
+          "underlying": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mUSDT",
+          "supplyCap": 0,
+          "symbol": "mUSDT",
+          "underlying": "0xdAC17F958D2ee523a2206206994597C13D831ec7"
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mWBTC",
+          "supplyCap": 0,
+          "symbol": "mWBTC",
+          "underlying": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mwstETH",
+          "supplyCap": 0,
+          "symbol": "mwstETH",
+          "underlying": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mweETH",
+          "supplyCap": 0,
+          "symbol": "mweETH",
+          "underlying": "0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee"
+        },
+        {
+          "borrowCap": 0,
+          "borrowRateMaxMantissa": 0,
+          "collateralFactor": 0,
+          "decimals": 0,
+          "interestModel": {
+            "baseRate": 0,
+            "blocksPerYear": 0,
+            "jumpMultiplier": 0,
+            "kink": 0,
+            "multiplier": 0,
+            "name": ""
+          },
+          "name": "mwrsETH",
+          "supplyCap": 0,
+          "symbol": "mwrsETH",
+          "underlying": "0xA1290d69c65A6Fe4DF752f95823fae25cB99e5A7"
+        }
+      ],
+      "roles": [
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "CHAINS_MANAGER"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "PAUSE_MANAGER"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "PROOF_FORWARDER"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_RESERVE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_PAUSE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_BORROW_CAP"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_SUPPLY_CAP"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_ORACLE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "GUARDIAN_BRIDGE"
+        },
+        {
+          "accounts": [
+            "0xB819A871d20913839c37f316Dc914b0570bfc0eE"
+          ],
+          "roleName": "REBALANCER_EOA"
+        }
+      ],
+      "zkVerifier": {
+        "imageId": "0xd6d8248d1e786f29a2523024755fec278834380b35606307682d1411b65adba6",
+        "verifierAddress": "0x8EaB2D97Dfce405A1692a21b3ff3A172d593D319"
       }
     }
   }

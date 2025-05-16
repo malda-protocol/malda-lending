@@ -241,7 +241,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
             borrowCap: borrowCaps["mWBTC"],
             borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mWBTC"],
-            decimals: 6,
+            decimals: 8,
             interestModel: InterestConfig({
                 baseRate: 0,
                 blocksPerYear: 31536000,
