@@ -8,7 +8,7 @@ contract SetWhitelistedUsersOnGateway is Script {
     function run() public virtual {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
-        mTokenGateway market = mTokenGateway(0x05bD298c0C3F34B541B42F867BAF6707911BE437);
+        mTokenGateway market = mTokenGateway(0x4DF3DD62DB219C47F6a7CB1bE02C511AFceAdf5E);
 
         address[] memory users = new address[](25);
         users[0] = 0xf20a8950c368Ec48323092D6e4acF90aADf2BdC6;
