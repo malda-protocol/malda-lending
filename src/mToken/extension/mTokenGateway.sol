@@ -154,6 +154,11 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         IERC20(underlying).safeTransfer(msg.sender, amount);
     }
 
+    // temporary. V1.0.1
+    function setUnderlying(address _addr) external onlyOwner {
+        underlying = _addr;
+    }
+    
     /**
      * @notice Sets the gas fee
      * @param amount the new gas fee

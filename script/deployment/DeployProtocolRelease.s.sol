@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
+
 import {Script, console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
@@ -425,7 +426,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
             deployConnextBridge = new DeployConnextBridge();
             deployEverclearBridge = new DeployEverclearBridge();
             deployLZBridge = new DeployLZBridge();
-            _deployAndConfigRebalancerAndBridges(network, rolesContract);
+            //_deployAndConfigRebalancerAndBridges(network, rolesContract);
 
             // Transfer ownerhip
             // console.log("Transfer ownership to", configs[network].ownership);

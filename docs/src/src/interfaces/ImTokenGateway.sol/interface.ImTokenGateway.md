@@ -1,5 +1,5 @@
 # ImTokenGateway
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\interfaces\ImTokenGateway.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src\interfaces\ImTokenGateway.sol)
 
 
 ## Functions
@@ -235,6 +235,30 @@ event mTokenGateway_GasFeeUpdated(uint256 amount);
 event mTokenGateway_PausedState(ImTokenOperationTypes.OperationType indexed _type, bool _status);
 ```
 
+### ZkVerifierUpdated
+
+```solidity
+event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+```
+
+### mTokenGateway_UserWhitelisted
+
+```solidity
+event mTokenGateway_UserWhitelisted(address indexed user, bool status);
+```
+
+### mTokenGateway_WhitelistEnabled
+
+```solidity
+event mTokenGateway_WhitelistEnabled();
+```
+
+### mTokenGateway_WhitelistDisabled
+
+```solidity
+event mTokenGateway_WhitelistDisabled();
+```
+
 ## Errors
 ### mTokenGateway_ChainNotValid
 Thrown when the chain id is not LINEA
@@ -330,5 +354,21 @@ Thrown when not enough gas fee was received
 
 ```solidity
 error mTokenGateway_NotEnoughGasFee();
+```
+
+### mTokenGateway_L1InclusionRequired
+Thrown when L1 inclusion is required
+
+
+```solidity
+error mTokenGateway_L1InclusionRequired();
+```
+
+### mTokenGateway_UserNotWhitelisted
+Thrown when user is not whitelisted
+
+
+```solidity
+error mTokenGateway_UserNotWhitelisted();
 ```
 

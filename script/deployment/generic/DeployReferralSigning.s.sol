@@ -6,7 +6,8 @@ import {Script, console} from "forge-std/Script.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 
 contract DeployReferralSigning is Script {
-    function run(Deployer _deployer) public returns (address) {
+    function run() public returns (address) {
+        Deployer _deployer = Deployer(payable(0xc781BaD08968E324D1B91Be3cca30fAd86E7BF98));
         bytes32 salt = getSalt("ReferralSigningV1.0.0");
 
         console.log("Deploying ReferralSigning");

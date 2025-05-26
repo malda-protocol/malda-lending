@@ -1,5 +1,5 @@
 # OFTFeeDetail
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\interfaces\external\layerzero\v2\ILayerZeroOFT.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src\interfaces\external\layerzero\v2\ILayerZeroOFT.sol)
 
 *Struct representing OFT fee details.*
 

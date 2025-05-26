@@ -23,6 +23,7 @@ contract Rebalancer is IRebalancer {
     mapping(uint32 => mapping(uint256 => Msg)) public logs;
     mapping(address => bool) public whitelistedBridges;
     mapping(uint32 => bool) public whitelistedDestinations;
+    mapping(address => bool) public allowedList;
 
     address public saveAddress;
 
@@ -43,6 +44,16 @@ contract Rebalancer is IRebalancer {
     }
 
     // ----------- OWNER METHODS ------------
+    function setAllowList(address[] calldata list, bool status) external {
+        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+
+        uint256 len = list.length;
+        for (uint256 i; i < len; i++) {
+            allowedList[list[i]] = status;
+        }
+        emit AllowedListUpdated(list, status);
+    }
+
     function setWhitelistedBridgeStatus(address _bridge, bool _status) external {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
         require(_bridge != address(0), Rebalancer_AddressNotValid());
@@ -116,15 +127,17 @@ contract Rebalancer is IRebalancer {
         } else {
             currentTransferSize[_msg.dstChainId][_msg.token].size += _amount;
         }
-        require(
-            transferInfo.size + _amount < maxTransferSizes[_msg.dstChainId][_msg.token],
-            Rebalancer_TransferSizeExcedeed()
-        );
+
+        uint256 _maxTransferSize = maxTransferSizes[_msg.dstChainId][_msg.token];
+        if (_maxTransferSize > 0) {
+            require(
+                transferInfo.size + _amount < _maxTransferSize,
+                Rebalancer_TransferSizeExcedeed()
+            );
+        }
 
         // retrieve amounts (make sure to check min and max for that bridge)
-        address operator = ImToken(_market).operator();
-        bool isListed = IOperator(operator).isMarketListed(_market);
-        require(isListed, Rebalancer_MarketNotValid());
+        require(allowedList[_market], Rebalancer_MarketNotValid());
         IRebalanceMarket(_market).extractForRebalancing(_amount);
 
         // log

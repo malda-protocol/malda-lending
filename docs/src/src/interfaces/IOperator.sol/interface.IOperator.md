@@ -1,8 +1,17 @@
 # IOperator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\interfaces\IOperator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src\interfaces\IOperator.sol)
 
 
 ## Functions
+### userWhitelisted
+
+Returns true/false for user
+
+
+```solidity
+function userWhitelisted(address _user) external view returns (bool);
+```
+
 ### isOperator
 
 Should return true
@@ -10,6 +19,42 @@ Should return true
 
 ```solidity
 function isOperator() external view returns (bool);
+```
+
+### limitPerTimePeriod
+
+Should return outflow limit
+
+
+```solidity
+function limitPerTimePeriod() external view returns (uint256);
+```
+
+### cumulativeOutflowVolume
+
+Should return outflow volume
+
+
+```solidity
+function cumulativeOutflowVolume() external view returns (uint256);
+```
+
+### lastOutflowResetTimestamp
+
+Should return last reset time for outflow check
+
+
+```solidity
+function lastOutflowResetTimestamp() external view returns (uint256);
+```
+
+### outflowResetTimeWindow
+
+Should return the outflow volume time window
+
+
+```solidity
+function outflowResetTimeWindow() external view returns (uint256);
 ```
 
 ### isPaused
@@ -61,7 +106,7 @@ Multiplier representing the discount on collateral that a liquidator receives
 
 
 ```solidity
-function liquidationIncentiveMantissa() external view returns (uint256);
+function liquidationIncentiveMantissa(address market) external view returns (uint256);
 ```
 
 ### isMarketListed
@@ -197,6 +242,15 @@ function getHypotheticalAccountLiquidity(
 |`<none>`|`uint256`|hypothetical account liquidity in excess of collateral requirements, hypothetical account shortfall below collateral requirements)|
 |`<none>`|`uint256`||
 
+
+### getUSDValueForAllMarkets
+
+Returns USD value for all markets
+
+
+```solidity
+function getUSDValueForAllMarkets() external view returns (uint256);
+```
 
 ### liquidateCalculateSeizeTokens
 

@@ -1,5 +1,5 @@
 # ImErc20Host
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\interfaces\ImErc20Host.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src\interfaces\ImErc20Host.sol)
 
 
 ## Functions
@@ -20,6 +20,40 @@ Returns the proof data journal
 ```solidity
 function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
 ```
+
+### mintMigration
+
+Mints mTokens during migration without requiring underlying transfer
+
+
+```solidity
+function mintMigration(uint256 amount, uint256 minAmount, address receiver) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`amount`|`uint256`|The amount of underlying to be accounted for|
+|`minAmount`|`uint256`|The min amount of underlying to be accounted for|
+|`receiver`|`address`|The address that will receive the mTokens|
+
+
+### borrowMigration
+
+Borrows from market for a specific borrower and not `msg.sender`
+
+
+```solidity
+function borrowMigration(uint256 amount, address borrower, address receiver) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`amount`|`uint256`|The amount of underlying to be accounted for|
+|`borrower`|`address`|The address that borrow is executed for|
+|`receiver`|`address`||
+
 
 ### extractForRebalancing
 
@@ -256,6 +290,18 @@ Emitted when gas fees are updated for a dst chain
 event mErc20Host_GasFeeUpdated(uint32 indexed dstChainId, uint256 amount);
 ```
 
+### mErc20Host_MintMigration
+
+```solidity
+event mErc20Host_MintMigration(address indexed receiver, uint256 amount);
+```
+
+### mErc20Host_BorrowMigration
+
+```solidity
+event mErc20Host_BorrowMigration(address indexed borrower, uint256 amount);
+```
+
 ## Errors
 ### mErc20Host_ProofGenerationInputNotValid
 Thrown when the chain id is not LINEA
@@ -343,5 +389,13 @@ Thrown when not enough gas fee was received
 
 ```solidity
 error mErc20Host_NotEnoughGasFee();
+```
+
+### mErc20Host_L1InclusionRequired
+Thrown when L1 inclusion is required
+
+
+```solidity
+error mErc20Host_L1InclusionRequired();
 ```
 

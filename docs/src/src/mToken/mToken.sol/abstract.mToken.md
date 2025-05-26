@@ -1,25 +1,32 @@
 # mToken
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\mToken\mToken.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src\mToken\mToken.sol)
 
 **Inherits:**
 [mTokenConfiguration](/src\mToken\mTokenConfiguration.sol\abstract.mTokenConfiguration.md), ReentrancyGuard
 
 
 ## Functions
-### initialize
+### constructor
+
+
+```solidity
+constructor();
+```
+
+### _initializeMToken
 
 Initialize the money market
 
 
 ```solidity
-function initialize(
+function _initializeMToken(
     address operator_,
     address interestRateModel_,
     uint256 initialExchangeRateMantissa_,
     string memory name_,
     string memory symbol_,
     uint8 decimals_
-) public onlyAdmin;
+) internal;
 ```
 **Parameters**
 
@@ -457,6 +464,23 @@ function _borrow(address user, uint256 borrowAmount, bool doTransfer) internal n
 |`doTransfer`|`bool`|If an actual transfer should be performed|
 
 
+### _borrowWithReceiver
+
+Sender borrows assets from the protocol to their own address
+
+
+```solidity
+function _borrowWithReceiver(address user, address receiver, uint256 borrowAmount) internal nonReentrant;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`user`|`address`|The user address|
+|`receiver`|`address`|The underlying receiver address|
+|`borrowAmount`|`uint256`|The amount of the underlying asset to borrow|
+
+
 ### _repay
 
 Sender repays their own borrow
@@ -602,13 +626,14 @@ Users borrow assets from the protocol to their own address
 
 
 ```solidity
-function __borrow(address payable borrower, uint256 borrowAmount, bool doTransfer) private;
+function __borrow(address payable borrower, address payable receiver, uint256 borrowAmount, bool doTransfer) private;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`borrower`|`address payable`||
+|`receiver`|`address payable`||
 |`borrowAmount`|`uint256`|The amount of the underlying asset to borrow|
 |`doTransfer`|`bool`||
 

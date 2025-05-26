@@ -20,7 +20,7 @@ contract ReferralSigningTest is Test {
         referral = new ReferralSigning();
     }
 
-    function sign(uint256 privKey, address user, address referrerAddr, uint256 nonce) internal view returns (bytes memory) {
+    function sign(uint256 privKey, address user, address referrerAddr, uint256 nonce) internal pure returns (bytes memory) {
         bytes32 messageHash = keccak256(abi.encodePacked(user, referrerAddr, nonce));
         bytes32 ethSigned = MessageHashUtils.toEthSignedMessageHash(messageHash);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privKey, ethSigned);

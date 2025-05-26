@@ -1,12 +1,12 @@
 # mTokenProofDecoderLib
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\libraries\mTokenProofDecoderLib.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src\libraries\mTokenProofDecoderLib.sol)
 
 
 ## State Variables
 ### ENTRY_SIZE
 
 ```solidity
-uint256 public constant ENTRY_SIZE = 112;
+uint256 public constant ENTRY_SIZE = 113;
 ```
 
 
@@ -24,7 +24,8 @@ function decodeJournal(bytes memory journalData)
         uint256 accAmountIn,
         uint256 accAmountOut,
         uint32 chainId,
-        uint32 dstChainId
+        uint32 dstChainId,
+        bool L1inclusion
     );
 ```
 
@@ -38,7 +39,8 @@ function encodeJournal(
     uint256 accAmountIn,
     uint256 accAmountOut,
     uint32 chainId,
-    uint32 dstChainId
+    uint32 dstChainId,
+    bool L1inclusion
 ) internal pure returns (bytes memory);
 ```
 
@@ -47,5 +49,17 @@ function encodeJournal(
 
 ```solidity
 error mTokenProofDecoderLib_ChainNotFound();
+```
+
+### mTokenProofDecoderLib_InvalidLength
+
+```solidity
+error mTokenProofDecoderLib_InvalidLength();
+```
+
+### mTokenProofDecoderLib_InvalidInclusion
+
+```solidity
+error mTokenProofDecoderLib_InvalidInclusion();
 ```
 

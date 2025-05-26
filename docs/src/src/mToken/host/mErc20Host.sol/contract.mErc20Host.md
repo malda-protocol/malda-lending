@@ -1,11 +1,25 @@
 # mErc20Host
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\mToken\host\mErc20Host.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src\mToken\host\mErc20Host.sol)
 
 **Inherits:**
-[mErc20Upgradable](/src\mToken\mErc20Upgradable.sol\contract.mErc20Upgradable.md), [ZkVerifier](/src\verifier\ZkVerifier.sol\abstract.ZkVerifier.md), [ImErc20Host](/src\interfaces\ImErc20Host.sol\interface.ImErc20Host.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
+[mErc20Upgradable](/src\mToken\mErc20Upgradable.sol\abstract.mErc20Upgradable.md), [ImErc20Host](/src\interfaces\ImErc20Host.sol\interface.ImErc20Host.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
 
 
 ## State Variables
+### FLASH_MINT_CALLBACK_SUCCESS
+
+```solidity
+bytes4 private constant FLASH_MINT_CALLBACK_SUCCESS = bytes4(keccak256("onFlashMint(address,uint256,bytes)"));
+```
+
+
+### migrator
+
+```solidity
+address public migrator;
+```
+
+
 ### accAmountInPerChain
 
 ```solidity
@@ -41,7 +55,21 @@ mapping(uint32 => uint256) public gasFees;
 ```
 
 
+### verifier
+
+```solidity
+IZkVerifier public verifier;
+```
+
+
 ## Functions
+### onlyMigrator
+
+
+```solidity
+modifier onlyMigrator();
+```
+
 ### initialize
 
 Initializes the new money market
@@ -73,7 +101,7 @@ function initialize(
 |`symbol_`|`string`|ERC-20 symbol of this token|
 |`decimals_`|`uint8`|ERC-20 decimal precision of this token|
 |`admin_`|`address payable`|Address of the administrator of this token|
-|`zkVerifier_`|`address`|The IRiscZeroVerifier address|
+|`zkVerifier_`|`address`|The IZkVerifier address|
 |`roles_`|`address`||
 
 
@@ -94,36 +122,6 @@ Returns the proof data journal
 ```solidity
 function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
 ```
-
-### setVerifier
-
-Sets the _risc0Verifier address
-
-
-```solidity
-function setVerifier(address _risc0Verifier) external onlyAdmin;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_risc0Verifier`|`address`|the new IRiscZeroVerifier address|
-
-
-### setImageId
-
-Sets the image id
-
-
-```solidity
-function setImageId(bytes32 _imageId) external onlyAdmin;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_imageId`|`bytes32`|the new image id|
-
 
 ### updateAllowedChain
 
@@ -156,6 +154,21 @@ function extractForRebalancing(uint256 amount) external;
 |`amount`|`uint256`|The amount to rebalance|
 
 
+### setMigrator
+
+Sets the migrator address
+
+
+```solidity
+function setMigrator(address _migrator) external onlyAdmin;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_migrator`|`address`|The new migrator address|
+
+
 ### setGasFee
 
 Sets the gas fee
@@ -178,13 +191,28 @@ Withdraw gas received so far
 
 
 ```solidity
-function withdrawGasFees(address payable receiver) external onlyAdmin;
+function withdrawGasFees(address payable receiver) external;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`receiver`|`address payable`|the receiver address|
+
+
+### updateZkVerifier
+
+Updates IZkVerifier address
+
+
+```solidity
+function updateZkVerifier(address _zkVerifier) external onlyAdmin;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_zkVerifier`|`address`|the verifier address|
 
 
 ### updateAllowedCallerStatus
@@ -312,11 +340,66 @@ function borrowOnExtension(uint256 amount, uint32 dstChainId) external payable o
 |`dstChainId`|`uint32`|The destination chain to recieve funds|
 
 
+### mintMigration
+
+Mints mTokens during migration without requiring underlying transfer
+
+
+```solidity
+function mintMigration(uint256 amount, uint256 minAmount, address receiver) external onlyMigrator;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`amount`|`uint256`|The amount of underlying to be accounted for|
+|`minAmount`|`uint256`|The min amount of underlying to be accounted for|
+|`receiver`|`address`|The address that will receive the mTokens|
+
+
+### borrowMigration
+
+Borrows from market for a specific borrower and not `msg.sender`
+
+
+```solidity
+function borrowMigration(uint256 amount, address borrower, address receiver) external onlyMigrator;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`amount`|`uint256`|The amount of underlying to be accounted for|
+|`borrower`|`address`|The address that borrow is executed for|
+|`receiver`|`address`||
+
+
+### _computeTotalOutflowAmount
+
+
+```solidity
+function _computeTotalOutflowAmount(uint256[] calldata amounts) private pure returns (uint256);
+```
+
+### _checkOutflow
+
+
+```solidity
+function _checkOutflow(uint256 amount) private;
+```
+
 ### _isAllowedFor
 
 
 ```solidity
 function _isAllowedFor(address _sender, bytes32 role) private view returns (bool);
+```
+
+### _getProofForwarderRole
+
+
+```solidity
+function _getProofForwarderRole() private view returns (bytes32);
 ```
 
 ### _getBatchProofForwarderRole
@@ -326,11 +409,18 @@ function _isAllowedFor(address _sender, bytes32 role) private view returns (bool
 function _getBatchProofForwarderRole() private view returns (bytes32);
 ```
 
+### _getSequencerRole
+
+
+```solidity
+function _getSequencerRole() private view returns (bytes32);
+```
+
 ### _verifyProof
 
 
 ```solidity
-function _verifyProof(bytes calldata journalData, bytes calldata seal) private;
+function _verifyProof(bytes calldata journalData, bytes calldata seal) private view;
 ```
 
 ### _checkSender

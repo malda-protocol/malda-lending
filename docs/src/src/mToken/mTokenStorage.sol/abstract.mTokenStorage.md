@@ -1,5 +1,5 @@
 # mTokenStorage
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\mToken\mTokenStorage.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src\mToken\mTokenStorage.sol)
 
 **Inherits:**
 [ImToken](/src\interfaces\ImToken.sol\interface.ImToken.md), [ExponentialNoError](/src\utils\ExponentialNoError.sol\abstract.ExponentialNoError.md)
@@ -146,7 +146,16 @@ Maximum borrow rate that can ever be applied
 
 
 ```solidity
-uint256 public borrowRateMaxMantissa = 0.00004e16;
+uint256 public borrowRateMaxMantissa = 0.0005e16;
+```
+
+
+### sameChainFlowStateDisabled
+Returns true/false for same chain flow state disable status
+
+
+```solidity
+bool public sameChainFlowStateDisabled;
 ```
 
 
@@ -427,6 +436,22 @@ Event emitted when the borrow max mantissa is updated
 event NewBorrowRateMaxMantissa(uint256 oldVal, uint256 maxMantissa);
 ```
 
+### SameChainFlowStateUpdated
+Event emitted when same chain flow state is enabled or disabled
+
+
+```solidity
+event SameChainFlowStateUpdated(address indexed sender, bool _oldState, bool _newState);
+```
+
+### ZkVerifierUpdated
+Event emitted when same chain flow state is enabled or disabled
+
+
+```solidity
+event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+```
+
 ## Errors
 ### mToken_OnlyAdmin
 
@@ -522,6 +547,12 @@ error mToken_ReserveCashNotAvailable();
 
 ```solidity
 error mToken_RedeemTransferOutNotPossible();
+```
+
+### mToken_SameChainOperationsAreDisabled
+
+```solidity
+error mToken_SameChainOperationsAreDisabled();
 ```
 
 ### mToken_CollateralBlockTimestampNotValid
