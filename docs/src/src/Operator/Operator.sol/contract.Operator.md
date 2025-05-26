@@ -1,5 +1,5 @@
 # Operator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\Operator\Operator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src\Operator\Operator.sol)
 
 **Inherits:**
 [OperatorStorage](/src\Operator\OperatorStorage.sol\abstract.OperatorStorage.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md), OwnableUpgradeable
@@ -21,6 +21,47 @@ constructor();
 
 ```solidity
 function initialize(address _rolesOperator, address _rewardDistributor, address _admin) public initializer;
+```
+
+### onlyAllowedUser
+
+
+```solidity
+modifier onlyAllowedUser(address user);
+```
+
+### setWhitelistedUser
+
+Sets user whitelist status
+
+
+```solidity
+function setWhitelistedUser(address user, bool state) external onlyOwner;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`user`|`address`|The user address|
+|`state`|`bool`|The new staate|
+
+
+### enableWhitelist
+
+Enable user whitelist
+
+
+```solidity
+function enableWhitelist() external onlyOwner;
+```
+
+### disableWhitelist
+
+Disable user whitelist
+
+
+```solidity
+function disableWhitelist() external onlyOwner;
 ```
 
 ### setRolesOperator
@@ -88,12 +129,13 @@ Sets liquidationIncentive
 
 
 ```solidity
-function setLiquidationIncentive(uint256 newLiquidationIncentiveMantissa) external onlyOwner;
+function setLiquidationIncentive(address market, uint256 newLiquidationIncentiveMantissa) external onlyOwner;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
+|`market`|`address`||
 |`newLiquidationIncentiveMantissa`|`uint256`|New liquidationIncentive scaled by 1e18|
 
 
@@ -112,6 +154,62 @@ function supportMarket(address mToken) external onlyOwner;
 |Name|Type|Description|
 |----|----|-----------|
 |`mToken`|`address`|The address of the market (token) to list|
+
+
+### setOutflowVolumeTimeWindow
+
+Sets outflow volume time window
+
+
+```solidity
+function setOutflowVolumeTimeWindow(uint256 newTimeWindow) external onlyOwner;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`newTimeWindow`|`uint256`|The new reset time window|
+
+
+### setOutflowTimeLimitInUSD
+
+Sets outflow volume limit
+
+*when 0, it means there's no limit*
+
+
+```solidity
+function setOutflowTimeLimitInUSD(uint256 amount) external onlyOwner;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`amount`|`uint256`|The new limit|
+
+
+### resetOutflowVolume
+
+Resets outflow volume
+
+
+```solidity
+function resetOutflowVolume() external onlyOwner;
+```
+
+### checkOutflowVolumeLimit
+
+Verifies outflow volule limit
+
+
+```solidity
+function checkOutflowVolumeLimit(uint256 amount) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`amount`|`uint256`|The new limit|
 
 
 ### setMarketBorrowCaps
@@ -361,7 +459,7 @@ Add assets to be included in account liquidity calculation
 
 
 ```solidity
-function enterMarkets(address[] calldata _mTokens) external override;
+function enterMarkets(address[] calldata _mTokens) external override onlyAllowedUser(msg.sender);
 ```
 **Parameters**
 
@@ -376,7 +474,7 @@ Add asset (msg.sender) to be included in account liquidity calculation
 
 
 ```solidity
-function enterMarketsWithSender(address _account) external override;
+function enterMarketsWithSender(address _account) external override onlyAllowedUser(_account);
 ```
 **Parameters**
 
@@ -454,6 +552,45 @@ function claimMalda(address[] memory holders, address[] memory mTokens, bool bor
 |`suppliers`|`bool`|Whether or not to claim MALDA earned by supplying|
 
 
+### getUSDValueForAllMarkets
+
+Returns USD value for all markets
+
+
+```solidity
+function getUSDValueForAllMarkets() external view returns (uint256);
+```
+
+### beforeWithdrawOnExtension
+
+Checks whitelist status on withdrawOnExtension
+
+
+```solidity
+function beforeWithdrawOnExtension(address user) external view onlyAllowedUser(user);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`user`|`address`|The user to check|
+
+
+### beforeBorrowOnExtension
+
+Checks whitelist status on borrowOnExtension
+
+
+```solidity
+function beforeBorrowOnExtension(address user) external view onlyAllowedUser(user);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`user`|`address`|The user to check|
+
+
 ### beforeRebalancing
 
 Checks if the account should be allowed to rebalance tokens
@@ -493,7 +630,7 @@ Checks if the account should be allowed to mint tokens in the given market
 
 
 ```solidity
-function beforeMTokenMint(address mToken, address minter) external override;
+function beforeMTokenMint(address mToken, address minter) external override onlyAllowedUser(minter);
 ```
 **Parameters**
 
@@ -524,7 +661,10 @@ Checks if the account should be allowed to redeem tokens in the given market
 
 
 ```solidity
-function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external override;
+function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens)
+    external
+    override
+    onlyAllowedUser(redeemer);
 ```
 **Parameters**
 
@@ -541,7 +681,10 @@ Checks if the account should be allowed to borrow the underlying asset of the gi
 
 
 ```solidity
-function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external override;
+function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount)
+    external
+    override
+    onlyAllowedUser(borrower);
 ```
 **Parameters**
 
@@ -558,7 +701,7 @@ Checks if the account should be allowed to repay a borrow in the given market
 
 
 ```solidity
-function beforeMTokenRepay(address mToken, address borrower) external;
+function beforeMTokenRepay(address mToken, address borrower) external onlyAllowedUser(borrower);
 ```
 **Parameters**
 
@@ -577,7 +720,8 @@ Checks if the liquidation should be allowed to occur
 function beforeMTokenLiquidate(address mTokenBorrowed, address mTokenCollateral, address borrower, uint256 repayAmount)
     external
     view
-    override;
+    override
+    onlyAllowedUser(borrower);
 ```
 **Parameters**
 
@@ -608,6 +752,13 @@ function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, add
 |`liquidator`|`address`|The address repaying the borrow and seizing the collateral|
 |`borrower`|`address`|The address of the borrower|
 
+
+### _convertMarketAmountToUSDValue
+
+
+```solidity
+function _convertMarketAmountToUSDValue(uint256 amount, address mToken) internal view returns (uint256);
+```
 
 ### _activateMarket
 

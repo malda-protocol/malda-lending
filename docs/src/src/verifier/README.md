@@ -1,4 +1,5 @@
 
 
 # Contents
-- [ZkVerifier](ZkVerifier.sol\abstract.ZkVerifier.md)
+- [IZkVerifier](ZkVerifier.sol\interface.IZkVerifier.md)
+- [ZkVerifier](ZkVerifier.sol\contract.ZkVerifier.md)

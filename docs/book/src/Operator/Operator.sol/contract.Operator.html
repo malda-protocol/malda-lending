@@ -24,9 +24,9 @@
         <link rel="stylesheet" href="../../../fonts/fonts.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" href="../../../highlight.css">
-        <link rel="stylesheet" href="../../../tomorrow-night.css">
-        <link rel="stylesheet" href="../../../ayu-highlight.css">
+        <link rel="stylesheet" id="highlight-css" href="../../../highlight.css">
+        <link rel="stylesheet" id="tomorrow-night-css" href="../../../tomorrow-night.css">
+        <link rel="stylesheet" id="ayu-highlight-css" href="../../../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
         <link rel="stylesheet" href="../../../book.css">
@@ -34,10 +34,11 @@
         <!-- MathJax -->
         <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
-        <!-- Provide site root to javascript -->
+        <!-- Provide site root and default themes to javascript -->
         <script>
-            var path_to_root = "../../../";
-            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+            const path_to_root = "../../../";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../../toc.js"></script>
@@ -47,8 +48,8 @@
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
-                var theme = localStorage.getItem('mdbook-theme');
-                var sidebar = localStorage.getItem('mdbook-sidebar');
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
 
                 if (theme.startsWith('"') && theme.endsWith('"')) {
                     localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
@@ -62,7 +63,8 @@
 
         <!-- Set the theme before any content is loaded, prevents flash -->
         <script>
-            var theme;
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
             const html = document.documentElement;
@@ -75,8 +77,8 @@
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
-            var sidebar = null;
-            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -112,6 +114,7 @@
                             <i class="fa fa-paint-brush"></i>
                         </button>
                         <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
                             <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
@@ -159,7 +162,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="operator"><a class="header" href="#operator">Operator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src%5COperator%5COperator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src%5COperator%5COperator.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src%5COperator%5COperatorStorage.sol%5Cabstract.OperatorStorage.html">OperatorStorage</a>, <a href="/src%5Cinterfaces%5CImToken.sol%5Cinterface.ImTokenOperationTypes.html">ImTokenOperationTypes</a>, OwnableUpgradeable</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
@@ -170,6 +173,27 @@ oz-upgrades-unsafe-allow: constructor</p>
 </code></pre>
 <h3 id="initialize"><a class="header" href="#initialize">initialize</a></h3>
 <pre><code class="language-solidity">function initialize(address _rolesOperator, address _rewardDistributor, address _admin) public initializer;
+</code></pre>
+<h3 id="onlyalloweduser"><a class="header" href="#onlyalloweduser">onlyAllowedUser</a></h3>
+<pre><code class="language-solidity">modifier onlyAllowedUser(address user);
+</code></pre>
+<h3 id="setwhitelisteduser"><a class="header" href="#setwhitelisteduser">setWhitelistedUser</a></h3>
+<p>Sets user whitelist status</p>
+<pre><code class="language-solidity">function setWhitelistedUser(address user, bool state) external onlyOwner;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>user</code></td><td><code>address</code></td><td>The user address</td></tr>
+<tr><td><code>state</code></td><td><code>bool</code></td><td>The new staate</td></tr>
+</tbody></table>
+</div>
+<h3 id="enablewhitelist"><a class="header" href="#enablewhitelist">enableWhitelist</a></h3>
+<p>Enable user whitelist</p>
+<pre><code class="language-solidity">function enableWhitelist() external onlyOwner;
+</code></pre>
+<h3 id="disablewhitelist"><a class="header" href="#disablewhitelist">disableWhitelist</a></h3>
+<p>Disable user whitelist</p>
+<pre><code class="language-solidity">function disableWhitelist() external onlyOwner;
 </code></pre>
 <h3 id="setrolesoperator"><a class="header" href="#setrolesoperator">setRolesOperator</a></h3>
 <p>Sets a new Operator for the market</p>
@@ -205,10 +229,11 @@ oz-upgrades-unsafe-allow: constructor</p>
 <h3 id="setliquidationincentive"><a class="header" href="#setliquidationincentive">setLiquidationIncentive</a></h3>
 <p>Sets liquidationIncentive</p>
 <p><em>Admin function to set liquidationIncentive</em></p>
-<pre><code class="language-solidity">function setLiquidationIncentive(uint256 newLiquidationIncentiveMantissa) external onlyOwner;
+<pre><code class="language-solidity">function setLiquidationIncentive(address market, uint256 newLiquidationIncentiveMantissa) external onlyOwner;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>market</code></td><td><code>address</code></td><td></td></tr>
 <tr><td><code>newLiquidationIncentiveMantissa</code></td><td><code>uint256</code></td><td>New liquidationIncentive scaled by 1e18</td></tr>
 </tbody></table>
 </div>
@@ -220,6 +245,38 @@ oz-upgrades-unsafe-allow: constructor</p>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>mToken</code></td><td><code>address</code></td><td>The address of the market (token) to list</td></tr>
+</tbody></table>
+</div>
+<h3 id="setoutflowvolumetimewindow"><a class="header" href="#setoutflowvolumetimewindow">setOutflowVolumeTimeWindow</a></h3>
+<p>Sets outflow volume time window</p>
+<pre><code class="language-solidity">function setOutflowVolumeTimeWindow(uint256 newTimeWindow) external onlyOwner;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>newTimeWindow</code></td><td><code>uint256</code></td><td>The new reset time window</td></tr>
+</tbody></table>
+</div>
+<h3 id="setoutflowtimelimitinusd"><a class="header" href="#setoutflowtimelimitinusd">setOutflowTimeLimitInUSD</a></h3>
+<p>Sets outflow volume limit</p>
+<p><em>when 0, it means there's no limit</em></p>
+<pre><code class="language-solidity">function setOutflowTimeLimitInUSD(uint256 amount) external onlyOwner;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The new limit</td></tr>
+</tbody></table>
+</div>
+<h3 id="resetoutflowvolume"><a class="header" href="#resetoutflowvolume">resetOutflowVolume</a></h3>
+<p>Resets outflow volume</p>
+<pre><code class="language-solidity">function resetOutflowVolume() external onlyOwner;
+</code></pre>
+<h3 id="checkoutflowvolumelimit"><a class="header" href="#checkoutflowvolumelimit">checkOutflowVolumeLimit</a></h3>
+<p>Verifies outflow volule limit</p>
+<pre><code class="language-solidity">function checkOutflowVolumeLimit(uint256 amount) external;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The new limit</td></tr>
 </tbody></table>
 </div>
 <h3 id="setmarketborrowcaps"><a class="header" href="#setmarketborrowcaps">setMarketBorrowCaps</a></h3>
@@ -378,7 +435,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 </div>
 <h3 id="entermarkets"><a class="header" href="#entermarkets">enterMarkets</a></h3>
 <p>Add assets to be included in account liquidity calculation</p>
-<pre><code class="language-solidity">function enterMarkets(address[] calldata _mTokens) external override;
+<pre><code class="language-solidity">function enterMarkets(address[] calldata _mTokens) external override onlyAllowedUser(msg.sender);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -387,7 +444,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 </div>
 <h3 id="entermarketswithsender"><a class="header" href="#entermarketswithsender">enterMarketsWithSender</a></h3>
 <p>Add asset (msg.sender) to be included in account liquidity calculation</p>
-<pre><code class="language-solidity">function enterMarketsWithSender(address _account) external override;
+<pre><code class="language-solidity">function enterMarketsWithSender(address _account) external override onlyAllowedUser(_account);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -438,6 +495,28 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <tr><td><code>suppliers</code></td><td><code>bool</code></td><td>Whether or not to claim MALDA earned by supplying</td></tr>
 </tbody></table>
 </div>
+<h3 id="getusdvalueforallmarkets"><a class="header" href="#getusdvalueforallmarkets">getUSDValueForAllMarkets</a></h3>
+<p>Returns USD value for all markets</p>
+<pre><code class="language-solidity">function getUSDValueForAllMarkets() external view returns (uint256);
+</code></pre>
+<h3 id="beforewithdrawonextension"><a class="header" href="#beforewithdrawonextension">beforeWithdrawOnExtension</a></h3>
+<p>Checks whitelist status on withdrawOnExtension</p>
+<pre><code class="language-solidity">function beforeWithdrawOnExtension(address user) external view onlyAllowedUser(user);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>user</code></td><td><code>address</code></td><td>The user to check</td></tr>
+</tbody></table>
+</div>
+<h3 id="beforeborrowonextension"><a class="header" href="#beforeborrowonextension">beforeBorrowOnExtension</a></h3>
+<p>Checks whitelist status on borrowOnExtension</p>
+<pre><code class="language-solidity">function beforeBorrowOnExtension(address user) external view onlyAllowedUser(user);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>user</code></td><td><code>address</code></td><td>The user to check</td></tr>
+</tbody></table>
+</div>
 <h3 id="beforerebalancing"><a class="header" href="#beforerebalancing">beforeRebalancing</a></h3>
 <p>Checks if the account should be allowed to rebalance tokens</p>
 <pre><code class="language-solidity">function beforeRebalancing(address mToken) external view override;
@@ -461,7 +540,7 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 </div>
 <h3 id="beforemtokenmint"><a class="header" href="#beforemtokenmint">beforeMTokenMint</a></h3>
 <p>Checks if the account should be allowed to mint tokens in the given market</p>
-<pre><code class="language-solidity">function beforeMTokenMint(address mToken, address minter) external override;
+<pre><code class="language-solidity">function beforeMTokenMint(address mToken, address minter) external override onlyAllowedUser(minter);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -480,7 +559,10 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 </div>
 <h3 id="beforemtokenredeem"><a class="header" href="#beforemtokenredeem">beforeMTokenRedeem</a></h3>
 <p>Checks if the account should be allowed to redeem tokens in the given market</p>
-<pre><code class="language-solidity">function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external override;
+<pre><code class="language-solidity">function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens)
+    external
+    override
+    onlyAllowedUser(redeemer);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -491,7 +573,10 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 </div>
 <h3 id="beforemtokenborrow"><a class="header" href="#beforemtokenborrow">beforeMTokenBorrow</a></h3>
 <p>Checks if the account should be allowed to borrow the underlying asset of the given market</p>
-<pre><code class="language-solidity">function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external override;
+<pre><code class="language-solidity">function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount)
+    external
+    override
+    onlyAllowedUser(borrower);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -502,7 +587,7 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 </div>
 <h3 id="beforemtokenrepay"><a class="header" href="#beforemtokenrepay">beforeMTokenRepay</a></h3>
 <p>Checks if the account should be allowed to repay a borrow in the given market</p>
-<pre><code class="language-solidity">function beforeMTokenRepay(address mToken, address borrower) external;
+<pre><code class="language-solidity">function beforeMTokenRepay(address mToken, address borrower) external onlyAllowedUser(borrower);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -515,7 +600,8 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <pre><code class="language-solidity">function beforeMTokenLiquidate(address mTokenBorrowed, address mTokenCollateral, address borrower, uint256 repayAmount)
     external
     view
-    override;
+    override
+    onlyAllowedUser(borrower);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -539,6 +625,9 @@ or be providing necessary collateral for an outstanding borrow.</em></p>
 <tr><td><code>borrower</code></td><td><code>address</code></td><td>The address of the borrower</td></tr>
 </tbody></table>
 </div>
+<h3 id="_convertmarketamounttousdvalue"><a class="header" href="#_convertmarketamounttousdvalue">_convertMarketAmountToUSDValue</a></h3>
+<pre><code class="language-solidity">function _convertMarketAmountToUSDValue(uint256 amount, address mToken) internal view returns (uint256);
+</code></pre>
 <h3 id="_activatemarket"><a class="header" href="#_activatemarket">_activateMarket</a></h3>
 <pre><code class="language-solidity">function _activateMarket(address _mToken, address borrower) private;
 </code></pre>

@@ -1,5 +1,5 @@
 # OperatorStorage
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\Operator\OperatorStorage.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src\Operator\OperatorStorage.sol)
 
 **Inherits:**
 [IOperator](/src\interfaces\IOperator.sol\interface.IOperator.md), [IOperatorDefender](/src\interfaces\IOperator.sol\interface.IOperatorDefender.md), [ExponentialNoError](/src\utils\ExponentialNoError.sol\abstract.ExponentialNoError.md)
@@ -38,7 +38,7 @@ Multiplier representing the discount on collateral that a liquidator receives
 
 
 ```solidity
-uint256 public liquidationIncentiveMantissa;
+mapping(address => uint256) public liquidationIncentiveMantissa;
 ```
 
 
@@ -98,6 +98,58 @@ address public rewardDistributor;
 ```
 
 
+### limitPerTimePeriod
+Should return outflow limit
+
+
+```solidity
+uint256 public limitPerTimePeriod;
+```
+
+
+### cumulativeOutflowVolume
+Should return outflow volume
+
+
+```solidity
+uint256 public cumulativeOutflowVolume;
+```
+
+
+### lastOutflowResetTimestamp
+Should return last reset time for outflow check
+
+
+```solidity
+uint256 public lastOutflowResetTimestamp;
+```
+
+
+### outflowResetTimeWindow
+Should return the outflow volume time window
+
+
+```solidity
+uint256 public outflowResetTimeWindow;
+```
+
+
+### userWhitelisted
+Returns true/false for user
+
+
+```solidity
+mapping(address => bool) public userWhitelisted;
+```
+
+
+### whitelistEnabled
+
+```solidity
+bool public whitelistEnabled;
+```
+
+
 ### _paused
 
 ```solidity
@@ -127,6 +179,26 @@ uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18;
 
 
 ## Events
+### UserWhitelisted
+Emitted when user whitelist status is changed
+
+
+```solidity
+event UserWhitelisted(address indexed user, bool state);
+```
+
+### WhitelistEnabled
+
+```solidity
+event WhitelistEnabled();
+```
+
+### WhitelistDisabled
+
+```solidity
+event WhitelistDisabled();
+```
+
 ### ActionPaused
 Emitted when pause status is changed
 
@@ -206,7 +278,9 @@ Emitted when liquidation incentive is changed by admin
 
 
 ```solidity
-event NewLiquidationIncentive(uint256 oldLiquidationIncentiveMantissa, uint256 newLiquidationIncentiveMantissa);
+event NewLiquidationIncentive(
+    address market, uint256 oldLiquidationIncentiveMantissa, uint256 newLiquidationIncentiveMantissa
+);
 ```
 
 ### NewPriceOracle
@@ -223,6 +297,30 @@ Event emitted when rolesOperator is changed
 
 ```solidity
 event NewRolesOperator(address indexed oldRoles, address indexed newRoles);
+```
+
+### OutflowLimitUpdated
+Event emitted when outflow limit is updated
+
+
+```solidity
+event OutflowLimitUpdated(address indexed sender, uint256 oldLimit, uint256 newLimit);
+```
+
+### OutflowTimeWindowUpdated
+Event emitted when outflow reset time window is updated
+
+
+```solidity
+event OutflowTimeWindowUpdated(uint256 oldWindow, uint256 newWindow);
+```
+
+### OutflowVolumeReset
+Event emitted when outflow volume has been reset
+
+
+```solidity
+event OutflowVolumeReset();
 ```
 
 ## Errors
@@ -298,6 +396,12 @@ error Operator_PriceFetchFailed();
 error Operator_SenderMustBeToken();
 ```
 
+### Operator_UserNotWhitelisted
+
+```solidity
+error Operator_UserNotWhitelisted();
+```
+
 ### Operator_MarketSupplyReached
 
 ```solidity
@@ -314,6 +418,12 @@ error Operator_RepayAmountNotValid();
 
 ```solidity
 error Operator_MarketAlreadyListed();
+```
+
+### Operator_OutflowVolumeReached
+
+```solidity
+error Operator_OutflowVolumeReached();
 ```
 
 ### Operator_InvalidRolesOperator

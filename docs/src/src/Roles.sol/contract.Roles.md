@@ -1,5 +1,5 @@
 # Roles
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\Roles.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src\Roles.sol)
 
 **Inherits:**
 Ownable, [IRoles](/src\interfaces\IRoles.sol\interface.IRoles.md)
@@ -59,6 +59,13 @@ bytes32 public constant PROOF_FORWARDER = keccak256("PROOF_FORWARDER");
 
 ```solidity
 bytes32 public constant PROOF_BATCH_FORWARDER = keccak256("PROOF_BATCH_FORWARDER");
+```
+
+
+### SEQUENCER
+
+```solidity
+bytes32 public constant SEQUENCER = keccak256("SEQUENCER");
 ```
 
 

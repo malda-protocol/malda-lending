@@ -1,5 +1,5 @@
 # IOperatorDefender
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\interfaces\IOperator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src\interfaces\IOperator.sol)
 
 
 ## Functions
@@ -154,5 +154,52 @@ function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, add
 |`mTokenBorrowed`|`address`|Asset which was borrowed by the borrower|
 |`liquidator`|`address`|The address repaying the borrow and seizing the collateral|
 |`borrower`|`address`|The address of the borrower|
+
+
+### checkOutflowVolumeLimit
+
+Checks if new used amount is within the limits of the outflow volume limit
+
+*Sender must be a listed market*
+
+
+```solidity
+function checkOutflowVolumeLimit(uint256 amount) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`amount`|`uint256`|New amount|
+
+
+### beforeWithdrawOnExtension
+
+Checks whitelist status on withdrawOnExtension
+
+
+```solidity
+function beforeWithdrawOnExtension(address user) external view;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`user`|`address`|The user to check|
+
+
+### beforeBorrowOnExtension
+
+Checks whitelist status on borrowOnExtension
+
+
+```solidity
+function beforeBorrowOnExtension(address user) external view;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`user`|`address`|The user to check|
 
 

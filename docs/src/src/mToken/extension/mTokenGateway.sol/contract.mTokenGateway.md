@@ -1,8 +1,8 @@
 # mTokenGateway
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\mToken\extension\mTokenGateway.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src\mToken\extension\mTokenGateway.sol)
 
 **Inherits:**
-OwnableUpgradeable, [ZkVerifier](/src\verifier\ZkVerifier.sol\abstract.ZkVerifier.md), [ImTokenGateway](/src\interfaces\ImTokenGateway.sol\interface.ImTokenGateway.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
+OwnableUpgradeable, [ImTokenGateway](/src\interfaces\ImTokenGateway.sol\interface.ImTokenGateway.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
 
 
 ## State Variables
@@ -12,6 +12,13 @@ Roles manager
 
 ```solidity
 IRoles public rolesOperator;
+```
+
+
+### verifier
+
+```solidity
+IZkVerifier public verifier;
 ```
 
 
@@ -49,6 +56,20 @@ mapping(address => uint256) public accAmountOut;
 
 ```solidity
 mapping(address => mapping(address => bool)) public allowedCallers;
+```
+
+
+### userWhitelisted
+
+```solidity
+mapping(address => bool) public userWhitelisted;
+```
+
+
+### whitelistEnabled
+
+```solidity
+bool public whitelistEnabled;
 ```
 
 
@@ -95,6 +116,13 @@ function initialize(address payable _owner, address _underlying, address _roles,
 modifier notPaused(OperationType _type);
 ```
 
+### onlyAllowedUser
+
+
+```solidity
+modifier onlyAllowedUser(address user);
+```
+
 ### isPaused
 
 returns pause state for operation
@@ -128,6 +156,40 @@ Returns the proof data journal
 function getProofData(address user, uint32) external view returns (uint256, uint256);
 ```
 
+### setWhitelistedUser
+
+Sets user whitelist status
+
+
+```solidity
+function setWhitelistedUser(address user, bool state) external onlyOwner;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`user`|`address`|The user address|
+|`state`|`bool`|The new staate|
+
+
+### enableWhitelist
+
+Enable user whitelist
+
+
+```solidity
+function enableWhitelist() external onlyOwner;
+```
+
+### disableWhitelist
+
+Disable user whitelist
+
+
+```solidity
+function disableWhitelist() external onlyOwner;
+```
+
 ### setPaused
 
 Set pause for a specific operation
@@ -144,36 +206,6 @@ function setPaused(OperationType _type, bool state) external override;
 |`state`|`bool`|The pause operation status|
 
 
-### setVerifier
-
-Sets the _risc0Verifier address
-
-
-```solidity
-function setVerifier(address _risc0Verifier) external onlyOwner;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_risc0Verifier`|`address`|the new IRiscZeroVerifier address|
-
-
-### setImageId
-
-Sets the image id
-
-
-```solidity
-function setImageId(bytes32 _imageId) external onlyOwner;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_imageId`|`bytes32`|the new image id|
-
-
 ### extractForRebalancing
 
 Extract amount to be used for rebalancing operation
@@ -188,6 +220,13 @@ function extractForRebalancing(uint256 amount) external notPaused(OperationType.
 |----|----|-----------|
 |`amount`|`uint256`|The amount to rebalance|
 
+
+### setUnderlying
+
+
+```solidity
+function setUnderlying(address _addr) external onlyOwner;
+```
 
 ### setGasFee
 
@@ -210,13 +249,28 @@ Withdraw gas received so far
 
 
 ```solidity
-function withdrawGasFees(address payable receiver) external onlyOwner;
+function withdrawGasFees(address payable receiver) external;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`receiver`|`address payable`|the receiver address|
+
+
+### updateZkVerifier
+
+Updates IZkVerifier address
+
+
+```solidity
+function updateZkVerifier(address _zkVerifier) external onlyOwner;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_zkVerifier`|`address`|the verifier address|
 
 
 ### updateAllowedCallerStatus
@@ -245,7 +299,8 @@ function supplyOnHost(uint256 amount, address receiver, bytes4 lineaSelector)
     external
     payable
     override
-    notPaused(OperationType.AmountIn);
+    notPaused(OperationType.AmountIn)
+    onlyAllowedUser(msg.sender);
 ```
 **Parameters**
 
@@ -287,7 +342,7 @@ function _outHere(bytes memory journalData, uint256 amount, address receiver) in
 
 
 ```solidity
-function _verifyProof(bytes calldata journalData, bytes calldata seal) private;
+function _verifyProof(bytes calldata journalData, bytes calldata seal) private view;
 ```
 
 ### _checkSender
@@ -295,5 +350,33 @@ function _verifyProof(bytes calldata journalData, bytes calldata seal) private;
 
 ```solidity
 function _checkSender(address msgSender, address srcSender) private view;
+```
+
+### _getSequencerRole
+
+
+```solidity
+function _getSequencerRole() private view returns (bytes32);
+```
+
+### _getBatchProofForwarderRole
+
+
+```solidity
+function _getBatchProofForwarderRole() private view returns (bytes32);
+```
+
+### _getProofForwarderRole
+
+
+```solidity
+function _getProofForwarderRole() private view returns (bytes32);
+```
+
+### _isAllowedFor
+
+
+```solidity
+function _isAllowedFor(address _sender, bytes32 role) private view returns (bool);
 ```
 

@@ -1,8 +1,8 @@
 # BatchSubmitter
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/6ea8fcbab45a04b689cc49c81c736245cab92c98/src\mToken\BatchSubmitter.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/157d7bccdcadcb7388d89b00ec47106a82e67e78/src\mToken\BatchSubmitter.sol)
 
 **Inherits:**
-[ZkVerifier](/src\verifier\ZkVerifier.sol\abstract.ZkVerifier.md), Ownable
+Ownable
 
 
 ## State Variables
@@ -12,6 +12,13 @@ The roles contract for access control
 
 ```solidity
 IRoles public immutable rolesOperator;
+```
+
+
+### verifier
+
+```solidity
+IZkVerifier public verifier;
 ```
 
 
@@ -41,37 +48,22 @@ bytes4 internal constant OUT_HERE_SELECTOR = ImTokenGateway.outHere.selector;
 
 
 ```solidity
-constructor(address _roles, address zkVerifier_, address _owner) Ownable(_owner);
+constructor(address _roles, address _zkVerifier, address _owner) Ownable(_owner);
 ```
 
-### setVerifier
+### updateZkVerifier
 
-Sets the _risc0Verifier address
+Updates IZkVerifier address
 
 
 ```solidity
-function setVerifier(address _risc0Verifier) external onlyOwner;
+function updateZkVerifier(address _zkVerifier) external onlyOwner;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`_risc0Verifier`|`address`|the new IRiscZeroVerifier address|
-
-
-### setImageId
-
-Sets the image id
-
-
-```solidity
-function setImageId(bytes32 _imageId) external onlyOwner;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_imageId`|`bytes32`|the new image id|
+|`_zkVerifier`|`address`|the verifier address|
 
 
 ### batchProcess
@@ -89,7 +81,7 @@ Verifies the proof using ZkVerifier
 
 
 ```solidity
-function _verifyProof(bytes calldata journalData, bytes calldata seal) private;
+function _verifyProof(bytes calldata journalData, bytes calldata seal) private view;
 ```
 **Parameters**
 
@@ -103,13 +95,29 @@ function _verifyProof(bytes calldata journalData, bytes calldata seal) private;
 ### BatchProcessFailed
 
 ```solidity
-event BatchProcessFailed(bytes32 initHash, bytes reason);
+event BatchProcessFailed(
+    bytes32 initHash,
+    address receiver,
+    address mToken,
+    uint256 amount,
+    uint256 minAmountOut,
+    bytes4 selector,
+    bytes reason
+);
 ```
 
 ### BatchProcessSuccess
 
 ```solidity
-event BatchProcessSuccess(bytes32 initHash);
+event BatchProcessSuccess(
+    bytes32 initHash, address receiver, address mToken, uint256 amount, uint256 minAmountOut, bytes4 selector
+);
+```
+
+### ZkVerifierUpdated
+
+```solidity
+event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
 ```
 
 ## Errors
@@ -129,6 +137,12 @@ error BatchSubmitter_JournalNotValid();
 
 ```solidity
 error BatchSubmitter_InvalidSelector();
+```
+
+### BatchSubmitter_AddressNotValid
+
+```solidity
+error BatchSubmitter_AddressNotValid();
 ```
 
 ## Structs
