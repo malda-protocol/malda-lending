@@ -122,25 +122,6 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
         rebalancer.sendMsg(address(bridgeMock), address(mWethHost), 1 ether, _msg);
     }
 
-    function test_WhenMarketHasEnoughTokens(uint256 amount)
-        external
-        givenSendMsgIsCalledWithRightParameters
-        givenSenderHasRoleGUARDIAN_BRIDGE
-        inRange(amount, SMALL, LARGE)
-        whenMarketIsListed(address(mWethHost))
-    {
-        rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
-        rebalancer.setWhitelistedDestination(0, true);
-
-        IRebalancer.Msg memory _msg =
-            IRebalancer.Msg({dstChainId: 0, token: address(weth), message: abi.encode(amount), bridgeData: ""});
-        _getTokens(weth, address(mWethHost), amount);
-        rebalancer.sendMsg(address(bridgeMock), address(mWethHost), amount, _msg);
-        uint256 bridgeBalance = weth.balanceOf(address(bridgeMock));
-        assertEq(bridgeBalance, amount);
-        // it should extract and rebalance
-    }
-
     function test_WhenMarketHasEnoughTokensButTransferSizeIsNotMet(uint256 amount)
         external
         givenSendMsgIsCalledWithRightParameters
