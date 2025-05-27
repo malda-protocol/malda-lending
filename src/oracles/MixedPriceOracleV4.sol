@@ -80,10 +80,6 @@ contract MixedPriceOracleV4 is IOracleOperator {
             revert MixedPriceOracle_InvalidConfig();
         }
 
-        uint256 apiV3Decimals = IDefaultAdapter(config.api3Feed).decimals();
-        uint256 eOracleDecimals = IDefaultAdapter(config.eOracleFeed).decimals();
-        require(apiV3Decimals == eOracleDecimals, MixedPriceOracle_InvalidConfigDecimals());
-
         configs[symbol] = config;
         emit ConfigSet(symbol, config);
     }
