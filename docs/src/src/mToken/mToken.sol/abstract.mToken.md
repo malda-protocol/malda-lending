@@ -1,5 +1,5 @@
 # mToken
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/acd5ab2b6c54b66703c366d922b6691b77a8c9fd/src\mToken\mToken.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/413dc9221d099e8e0b7a9a3f94769f4666aaf31b/src\mToken\mToken.sol)
 
 **Inherits:**
 [mTokenConfiguration](/src\mToken\mTokenConfiguration.sol\abstract.mTokenConfiguration.md), ReentrancyGuard
@@ -533,8 +533,8 @@ function _liquidate(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`liquidator`|`address`||
-|`borrower`|`address`|The liquidator address|
+|`liquidator`|`address`|The liquidator address|
+|`borrower`|`address`|The borrower of this mToken to be liquidated|
 |`repayAmount`|`uint256`|The amount of the underlying borrowed asset to repay|
 |`mTokenCollateral`|`address`|The market in which to seize collateral from the borrower|
 |`doTransfer`|`bool`|If an actual transfer should be performed|
