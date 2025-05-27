@@ -1,5 +1,5 @@
 # Bytes32AddressLib
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/413dc9221d099e8e0b7a9a3f94769f4666aaf31b/src\libraries\Bytes32AddressLib.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/7babde64a69e0bddbfb8ee96e52976dd39acebdd/src\libraries\Bytes32AddressLib.sol)
 
 **Author:**
 Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/Bytes32AddressLib.sol)
