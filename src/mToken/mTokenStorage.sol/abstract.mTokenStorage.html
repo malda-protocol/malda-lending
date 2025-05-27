@@ -1,0 +1,522 @@
+<!DOCTYPE HTML>
+<html lang="en" class="dark" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>mTokenStorage - Malda</title>
+
+
+        <!-- Custom HTML head -->
+        
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../../../favicon.svg">
+        <link rel="shortcut icon" href="../../../favicon.png">
+        <link rel="stylesheet" href="../../../css/variables.css">
+        <link rel="stylesheet" href="../../../css/general.css">
+        <link rel="stylesheet" href="../../../css/chrome.css">
+        <link rel="stylesheet" href="../../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../../../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../../../highlight.css">
+        <link rel="stylesheet" href="../../../tomorrow-night.css">
+        <link rel="stylesheet" href="../../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../../../book.css">
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    </head>
+    <body class="sidebar-visible no-js">
+    <div id="body-container">
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../../../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "ayu" : "dark";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('dark')
+            html.classList.add(theme);
+            var body = document.querySelector('body');
+            body.classList.remove('no-js')
+            body.classList.add('js');
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var body = document.querySelector('body');
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            body.classList.remove('sidebar-visible');
+            body.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="chapter-item expanded affix "><a href="../../../index.html">README</a></li><li class="chapter-item expanded "><a href="../../../src/Operator/index.html"><strong aria-hidden="true">1.</strong> Operator</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/Operator/Operator.sol/contract.Operator.html"><strong aria-hidden="true">1.1.</strong> Operator</a></li><li class="chapter-item expanded "><a href="../../../src/Operator/OperatorStorage.sol/abstract.OperatorStorage.html"><strong aria-hidden="true">1.2.</strong> OperatorStorage</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/interest/index.html"><strong aria-hidden="true">2.</strong> interest</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/interest/JumpRateModelV4.sol/contract.JumpRateModelV4.html"><strong aria-hidden="true">2.1.</strong> JumpRateModelV4</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/interfaces/index.html"><strong aria-hidden="true">3.</strong> interfaces</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/interfaces/external/index.html"><strong aria-hidden="true">3.1.</strong> external</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/interfaces/external/across/index.html"><strong aria-hidden="true">3.1.1.</strong> across</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/interfaces/external/across/IAcrossReceiverV3.sol/interface.IAcrossReceiverV3.html"><strong aria-hidden="true">3.1.1.1.</strong> IAcrossReceiverV3</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/across/IAcrossSpokePoolV3.sol/interface.IAcrossSpokePoolV3.html"><strong aria-hidden="true">3.1.1.2.</strong> IAcrossSpokePoolV3</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/chainlink/index.html"><strong aria-hidden="true">3.1.2.</strong> chainlink</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/interfaces/external/chainlink/IAggregatorV3.sol/interface.IAggregatorV3.html"><strong aria-hidden="true">3.1.2.1.</strong> IAggregatorV3</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/connext/index.html"><strong aria-hidden="true">3.1.3.</strong> connext</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/interfaces/external/connext/IConnext.sol/interface.IConnext.html"><strong aria-hidden="true">3.1.3.1.</strong> IConnext</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/everclear/index.html"><strong aria-hidden="true">3.1.4.</strong> everclear</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/interfaces/external/everclear/IEverclearSpoke.sol/interface.IEverclearSpoke.html"><strong aria-hidden="true">3.1.4.1.</strong> IEverclearSpoke</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/index.html"><strong aria-hidden="true">3.1.5.</strong> layerzero</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/index.html"><strong aria-hidden="true">3.1.5.1.</strong> v2</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol/struct.MessagingParams.html"><strong aria-hidden="true">3.1.5.1.1.</strong> MessagingParams</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol/struct.MessagingReceipt.html"><strong aria-hidden="true">3.1.5.1.2.</strong> MessagingReceipt</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol/struct.MessagingFee.html"><strong aria-hidden="true">3.1.5.1.3.</strong> MessagingFee</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol/struct.Origin.html"><strong aria-hidden="true">3.1.5.1.4.</strong> Origin</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol/interface.ILayerZeroEndpointV2.html"><strong aria-hidden="true">3.1.5.1.5.</strong> ILayerZeroEndpointV2</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol/struct.SendParam.html"><strong aria-hidden="true">3.1.5.1.6.</strong> SendParam</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol/struct.OFTLimit.html"><strong aria-hidden="true">3.1.5.1.7.</strong> OFTLimit</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol/struct.OFTReceipt.html"><strong aria-hidden="true">3.1.5.1.8.</strong> OFTReceipt</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol/struct.OFTFeeDetail.html"><strong aria-hidden="true">3.1.5.1.9.</strong> OFTFeeDetail</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol/interface.ILayerZeroOFT.html"><strong aria-hidden="true">3.1.5.1.10.</strong> ILayerZeroOFT</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/ILayerZeroReceiverV2.sol/interface.ILayerZeroReceiverV2.html"><strong aria-hidden="true">3.1.5.1.11.</strong> ILayerZeroReceiverV2</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/IMessageLib.sol/enum.MessageLibType.html"><strong aria-hidden="true">3.1.5.1.12.</strong> MessageLibType</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/IMessageLib.sol/interface.IMessageLib.html"><strong aria-hidden="true">3.1.5.1.13.</strong> IMessageLib</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/IMessageLibManager.sol/struct.SetConfigParam.html"><strong aria-hidden="true">3.1.5.1.14.</strong> SetConfigParam</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/IMessageLibManager.sol/interface.IMessageLibManager.html"><strong aria-hidden="true">3.1.5.1.15.</strong> IMessageLibManager</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/IMessagingChannel.sol/interface.IMessagingChannel.html"><strong aria-hidden="true">3.1.5.1.16.</strong> IMessagingChannel</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/IMessagingComposer.sol/interface.IMessagingComposer.html"><strong aria-hidden="true">3.1.5.1.17.</strong> IMessagingComposer</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/v2/IMessagingContext.sol/interface.IMessagingContext.html"><strong aria-hidden="true">3.1.5.1.18.</strong> IMessagingContext</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/ILayerZeroEndpoint.sol/interface.ILayerZeroEndpoint.html"><strong aria-hidden="true">3.1.5.2.</strong> ILayerZeroEndpoint</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/ILayerZeroReceiver.sol/interface.ILayerZeroReceiver.html"><strong aria-hidden="true">3.1.5.3.</strong> ILayerZeroReceiver</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/layerzero/ILayerZeroUserApplicationConfig.sol/interface.ILayerZeroUserApplicationConfig.html"><strong aria-hidden="true">3.1.5.4.</strong> ILayerZeroUserApplicationConfig</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/interfaces/external/poh/index.html"><strong aria-hidden="true">3.1.6.</strong> poh</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/interfaces/external/poh/IPohVerifier.sol/interface.IPohVerifier.html"><strong aria-hidden="true">3.1.6.1.</strong> IPohVerifier</a></li></ol></li></ol></li><li class="chapter-item expanded "><a href="../../../src/interfaces/IBridge.sol/interface.IBridge.html"><strong aria-hidden="true">3.2.</strong> IBridge</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/IDefaultAdapter.sol/interface.IDefaultAdapter.html"><strong aria-hidden="true">3.3.</strong> IDefaultAdapter</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/IInterestRateModel.sol/interface.IInterestRateModel.html"><strong aria-hidden="true">3.4.</strong> IInterestRateModel</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/IOperator.sol/interface.IOperatorData.html"><strong aria-hidden="true">3.5.</strong> IOperatorData</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/IOperator.sol/interface.IOperatorDefender.html"><strong aria-hidden="true">3.6.</strong> IOperatorDefender</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/IOperator.sol/interface.IOperator.html"><strong aria-hidden="true">3.7.</strong> IOperator</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/IOracleOperator.sol/interface.IOracleOperator.html"><strong aria-hidden="true">3.8.</strong> IOracleOperator</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/IOwnable.sol/interface.IOwnable.html"><strong aria-hidden="true">3.9.</strong> IOwnable</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/IPauser.sol/interface.IPauser.html"><strong aria-hidden="true">3.10.</strong> IPauser</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/IRebalancer.sol/interface.IRebalanceMarket.html"><strong aria-hidden="true">3.11.</strong> IRebalanceMarket</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/IRebalancer.sol/interface.IRebalancer.html"><strong aria-hidden="true">3.12.</strong> IRebalancer</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/IRewardDistributor.sol/interface.IRewardDistributorData.html"><strong aria-hidden="true">3.13.</strong> IRewardDistributorData</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/IRewardDistributor.sol/interface.IRewardDistributor.html"><strong aria-hidden="true">3.14.</strong> IRewardDistributor</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/IRoles.sol/interface.IRoles.html"><strong aria-hidden="true">3.15.</strong> IRoles</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/ImErc20.sol/interface.ImErc20.html"><strong aria-hidden="true">3.16.</strong> ImErc20</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/ImErc20Host.sol/interface.ImErc20Host.html"><strong aria-hidden="true">3.17.</strong> ImErc20Host</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.html"><strong aria-hidden="true">3.18.</strong> ImTokenOperationTypes</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/ImToken.sol/interface.ImTokenDelegator.html"><strong aria-hidden="true">3.19.</strong> ImTokenDelegator</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/ImToken.sol/interface.ImTokenMinimal.html"><strong aria-hidden="true">3.20.</strong> ImTokenMinimal</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/ImToken.sol/interface.ImToken.html"><strong aria-hidden="true">3.21.</strong> ImToken</a></li><li class="chapter-item expanded "><a href="../../../src/interfaces/ImTokenGateway.sol/interface.ImTokenGateway.html"><strong aria-hidden="true">3.22.</strong> ImTokenGateway</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/libraries/index.html"><strong aria-hidden="true">4.</strong> libraries</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/libraries/Bytes32AddressLib.sol/library.Bytes32AddressLib.html"><strong aria-hidden="true">4.1.</strong> Bytes32AddressLib</a></li><li class="chapter-item expanded "><a href="../../../src/libraries/BytesLib.sol/library.BytesLib.html"><strong aria-hidden="true">4.2.</strong> BytesLib</a></li><li class="chapter-item expanded "><a href="../../../src/libraries/CREATE3.sol/library.CREATE3.html"><strong aria-hidden="true">4.3.</strong> CREATE3</a></li><li class="chapter-item expanded "><a href="../../../src/libraries/SafeApprove.sol/interface.IToken.html"><strong aria-hidden="true">4.4.</strong> IToken</a></li><li class="chapter-item expanded "><a href="../../../src/libraries/SafeApprove.sol/library.SafeApprove.html"><strong aria-hidden="true">4.5.</strong> SafeApprove</a></li><li class="chapter-item expanded "><a href="../../../src/libraries/mTokenProofDecoderLib.sol/library.mTokenProofDecoderLib.html"><strong aria-hidden="true">4.6.</strong> mTokenProofDecoderLib</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/mToken/index.html"><strong aria-hidden="true">5.</strong> mToken</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/mToken/extension/index.html"><strong aria-hidden="true">5.1.</strong> extension</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/mToken/extension/mTokenGateway.sol/contract.mTokenGateway.html"><strong aria-hidden="true">5.1.1.</strong> mTokenGateway</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/mToken/host/index.html"><strong aria-hidden="true">5.2.</strong> host</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/mToken/host/mErc20Host.sol/contract.mErc20Host.html"><strong aria-hidden="true">5.2.1.</strong> mErc20Host</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/mToken/BatchSubmitter.sol/contract.BatchSubmitter.html"><strong aria-hidden="true">5.3.</strong> BatchSubmitter</a></li><li class="chapter-item expanded "><a href="../../../src/mToken/mErc20.sol/abstract.mErc20.html"><strong aria-hidden="true">5.4.</strong> mErc20</a></li><li class="chapter-item expanded "><a href="../../../src/mToken/mErc20Immutable.sol/contract.mErc20Immutable.html"><strong aria-hidden="true">5.5.</strong> mErc20Immutable</a></li><li class="chapter-item expanded "><a href="../../../src/mToken/mErc20Upgradable.sol/abstract.mErc20Upgradable.html"><strong aria-hidden="true">5.6.</strong> mErc20Upgradable</a></li><li class="chapter-item expanded "><a href="../../../src/mToken/mToken.sol/abstract.mToken.html"><strong aria-hidden="true">5.7.</strong> mToken</a></li><li class="chapter-item expanded "><a href="../../../src/mToken/mTokenConfiguration.sol/abstract.mTokenConfiguration.html"><strong aria-hidden="true">5.8.</strong> mTokenConfiguration</a></li><li class="chapter-item expanded "><a href="../../../src/mToken/mTokenStorage.sol/abstract.mTokenStorage.html" class="active"><strong aria-hidden="true">5.9.</strong> mTokenStorage</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/migration/index.html"><strong aria-hidden="true">6.</strong> migration</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/migration/IMigrator.sol/interface.IMendiMarket.html"><strong aria-hidden="true">6.1.</strong> IMendiMarket</a></li><li class="chapter-item expanded "><a href="../../../src/migration/IMigrator.sol/interface.IMendiComptroller.html"><strong aria-hidden="true">6.2.</strong> IMendiComptroller</a></li><li class="chapter-item expanded "><a href="../../../src/migration/Migrator.sol/contract.Migrator.html"><strong aria-hidden="true">6.3.</strong> Migrator</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/nft/index.html"><strong aria-hidden="true">7.</strong> nft</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/nft/MaldaNft.sol/contract.MaldaNft.html"><strong aria-hidden="true">7.1.</strong> MaldaNft</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/oracles/index.html"><strong aria-hidden="true">8.</strong> oracles</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/oracles/ChainlinkOracle.sol/contract.ChainlinkOracle.html"><strong aria-hidden="true">8.1.</strong> ChainlinkOracle</a></li><li class="chapter-item expanded "><a href="../../../src/oracles/MixedPriceOracleV3.sol/contract.MixedPriceOracleV3.html"><strong aria-hidden="true">8.2.</strong> MixedPriceOracleV3</a></li><li class="chapter-item expanded "><a href="../../../src/oracles/MixedPriceOracleV4.sol/contract.MixedPriceOracleV4.html"><strong aria-hidden="true">8.3.</strong> MixedPriceOracleV4</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/pauser/index.html"><strong aria-hidden="true">9.</strong> pauser</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/pauser/Pauser.sol/contract.Pauser.html"><strong aria-hidden="true">9.1.</strong> Pauser</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/rebalancer/index.html"><strong aria-hidden="true">10.</strong> rebalancer</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/rebalancer/bridges/index.html"><strong aria-hidden="true">10.1.</strong> bridges</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/rebalancer/bridges/AcrossBridge.sol/contract.AccrossBridge.html"><strong aria-hidden="true">10.1.1.</strong> AccrossBridge</a></li><li class="chapter-item expanded "><a href="../../../src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.html"><strong aria-hidden="true">10.1.2.</strong> BaseBridge</a></li><li class="chapter-item expanded "><a href="../../../src/rebalancer/bridges/ConnextBridge.sol/contract.ConnextBridge.html"><strong aria-hidden="true">10.1.3.</strong> ConnextBridge</a></li><li class="chapter-item expanded "><a href="../../../src/rebalancer/bridges/EverclearBridge.sol/contract.EverclearBridge.html"><strong aria-hidden="true">10.1.4.</strong> EverclearBridge</a></li><li class="chapter-item expanded "><a href="../../../src/rebalancer/bridges/LZBridge.sol/contract.LZBridge.html"><strong aria-hidden="true">10.1.5.</strong> LZBridge</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/rebalancer/Rebalancer.sol/contract.Rebalancer.html"><strong aria-hidden="true">10.2.</strong> Rebalancer</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/referral/index.html"><strong aria-hidden="true">11.</strong> referral</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/referral/ReferralSigning.sol/contract.ReferralSigning.html"><strong aria-hidden="true">11.1.</strong> ReferralSigning</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/rewards/index.html"><strong aria-hidden="true">12.</strong> rewards</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/rewards/RewardDistributor.sol/contract.RewardDistributor.html"><strong aria-hidden="true">12.1.</strong> RewardDistributor</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/utils/index.html"><strong aria-hidden="true">13.</strong> utils</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/utils/Deployer.sol/contract.Deployer.html"><strong aria-hidden="true">13.1.</strong> Deployer</a></li><li class="chapter-item expanded "><a href="../../../src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html"><strong aria-hidden="true">13.2.</strong> ExponentialNoError</a></li><li class="chapter-item expanded "><a href="../../../src/utils/LiquidationHelper.sol/contract.LiquidationHelper.html"><strong aria-hidden="true">13.3.</strong> LiquidationHelper</a></li><li class="chapter-item expanded "><a href="../../../src/utils/WrapAndSupply.sol/interface.IWrappedNative.html"><strong aria-hidden="true">13.4.</strong> IWrappedNative</a></li><li class="chapter-item expanded "><a href="../../../src/utils/WrapAndSupply.sol/contract.WrapAndSupply.html"><strong aria-hidden="true">13.5.</strong> WrapAndSupply</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/verifier/index.html"><strong aria-hidden="true">14.</strong> verifier</a></li><li><ol class="section"><li class="chapter-item expanded "><a href="../../../src/verifier/ZkVerifier.sol/interface.IZkVerifier.html"><strong aria-hidden="true">14.1.</strong> IZkVerifier</a></li><li class="chapter-item expanded "><a href="../../../src/verifier/ZkVerifier.sol/contract.ZkVerifier.html"><strong aria-hidden="true">14.2.</strong> ZkVerifier</a></li></ol></li><li class="chapter-item expanded "><a href="../../../src/Counter.sol/contract.Counter.html"><strong aria-hidden="true">15.</strong> Counter</a></li><li class="chapter-item expanded "><a href="../../../src/Roles.sol/contract.Roles.html"><strong aria-hidden="true">16.</strong> Roles</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <!-- Track and set sidebar scroll position -->
+        <script>
+            var sidebarScrollbox = document.querySelector('#sidebar .sidebar-scrollbox');
+            sidebarScrollbox.addEventListener('click', function(e) {
+                if (e.target.tagName === 'A') {
+                    sessionStorage.setItem('sidebar-scroll', sidebarScrollbox.scrollTop);
+                }
+            }, { passive: true });
+            var sidebarScrollTop = sessionStorage.getItem('sidebar-scroll');
+            sessionStorage.removeItem('sidebar-scroll');
+            if (sidebarScrollTop) {
+                // preserve sidebar scroll position when navigating via links within sidebar
+                sidebarScrollbox.scrollTop = sidebarScrollTop;
+            } else {
+                // scroll sidebar to current active section when navigating via "next/previous chapter" buttons
+                var activeSection = document.querySelector('#sidebar .active');
+                if (activeSection) {
+                    activeSection.scrollIntoView({ block: 'center' });
+                }
+            }
+        </script>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Malda</h1>
+
+                    <div class="right-buttons">
+                        <a href="../../../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/malda-protocol/malda-lending" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1 id="mtokenstorage"><a class="header" href="#mtokenstorage">mTokenStorage</a></h1>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/46ffe4f96e87e12ea92a35f2ba728f08edbf4246/src/mToken/mTokenStorage.sol">Git Source</a></p>
+<p><strong>Inherits:</strong>
+<a href="/src/interfaces/ImToken.sol/interface.ImToken.html">ImToken</a>, <a href="/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a></p>
+<h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
+<h3 id="admin"><a class="header" href="#admin">admin</a></h3>
+<p>Administrator for this contract</p>
+<pre><code class="language-solidity">address payable public admin;
+</code></pre>
+<h3 id="pendingadmin"><a class="header" href="#pendingadmin">pendingAdmin</a></h3>
+<p>Pending administrator for this contract</p>
+<pre><code class="language-solidity">address payable public pendingAdmin;
+</code></pre>
+<h3 id="operator"><a class="header" href="#operator">operator</a></h3>
+<p>Contract which oversees inter-mToken operations</p>
+<pre><code class="language-solidity">address public operator;
+</code></pre>
+<h3 id="rolesoperator"><a class="header" href="#rolesoperator">rolesOperator</a></h3>
+<p>Roles manager</p>
+<pre><code class="language-solidity">IRoles public rolesOperator;
+</code></pre>
+<h3 id="name"><a class="header" href="#name">name</a></h3>
+<p>EIP-20 token name for this token</p>
+<pre><code class="language-solidity">string public name;
+</code></pre>
+<h3 id="symbol"><a class="header" href="#symbol">symbol</a></h3>
+<p>EIP-20 token symbol for this token</p>
+<pre><code class="language-solidity">string public symbol;
+</code></pre>
+<h3 id="decimals"><a class="header" href="#decimals">decimals</a></h3>
+<p>EIP-20 token decimals for this token</p>
+<pre><code class="language-solidity">uint8 public decimals;
+</code></pre>
+<h3 id="interestratemodel"><a class="header" href="#interestratemodel">interestRateModel</a></h3>
+<p>Model which tells what the current interest rate should be</p>
+<pre><code class="language-solidity">address public interestRateModel;
+</code></pre>
+<h3 id="reservefactormantissa"><a class="header" href="#reservefactormantissa">reserveFactorMantissa</a></h3>
+<p>Fraction of interest currently set aside for reserves</p>
+<pre><code class="language-solidity">uint256 public reserveFactorMantissa;
+</code></pre>
+<h3 id="accrualblocktimestamp"><a class="header" href="#accrualblocktimestamp">accrualBlockTimestamp</a></h3>
+<p>Block timestamp that interest was last accrued at</p>
+<pre><code class="language-solidity">uint256 public accrualBlockTimestamp;
+</code></pre>
+<h3 id="borrowindex"><a class="header" href="#borrowindex">borrowIndex</a></h3>
+<p>Accumulator of the total earned interest rate since the opening of the market</p>
+<pre><code class="language-solidity">uint256 public borrowIndex;
+</code></pre>
+<h3 id="totalborrows"><a class="header" href="#totalborrows">totalBorrows</a></h3>
+<p>Total amount of outstanding borrows of the underlying in this market</p>
+<pre><code class="language-solidity">uint256 public totalBorrows;
+</code></pre>
+<h3 id="totalreserves"><a class="header" href="#totalreserves">totalReserves</a></h3>
+<p>Total amount of reserves of the underlying held in this market</p>
+<pre><code class="language-solidity">uint256 public totalReserves;
+</code></pre>
+<h3 id="totalsupply"><a class="header" href="#totalsupply">totalSupply</a></h3>
+<p>Returns the value of tokens in existence.</p>
+<pre><code class="language-solidity">uint256 public totalSupply;
+</code></pre>
+<h3 id="totalunderlying"><a class="header" href="#totalunderlying">totalUnderlying</a></h3>
+<p>Returns the amount of underlying tokens</p>
+<pre><code class="language-solidity">uint256 public totalUnderlying;
+</code></pre>
+<h3 id="borrowratemaxmantissa"><a class="header" href="#borrowratemaxmantissa">borrowRateMaxMantissa</a></h3>
+<p>Maximum borrow rate that can ever be applied</p>
+<pre><code class="language-solidity">uint256 public borrowRateMaxMantissa = 0.0005e16;
+</code></pre>
+<h3 id="samechainflowstatedisabled"><a class="header" href="#samechainflowstatedisabled">sameChainFlowStateDisabled</a></h3>
+<p>Returns true/false for same chain flow state disable status</p>
+<pre><code class="language-solidity">bool public sameChainFlowStateDisabled;
+</code></pre>
+<h3 id="accountborrows"><a class="header" href="#accountborrows">accountBorrows</a></h3>
+<pre><code class="language-solidity">mapping(address =&gt; BorrowSnapshot) internal accountBorrows;
+</code></pre>
+<h3 id="accounttokens"><a class="header" href="#accounttokens">accountTokens</a></h3>
+<pre><code class="language-solidity">mapping(address =&gt; uint256) internal accountTokens;
+</code></pre>
+<h3 id="transferallowances"><a class="header" href="#transferallowances">transferAllowances</a></h3>
+<pre><code class="language-solidity">mapping(address =&gt; mapping(address =&gt; uint256)) internal transferAllowances;
+</code></pre>
+<h3 id="initialexchangeratemantissa"><a class="header" href="#initialexchangeratemantissa">initialExchangeRateMantissa</a></h3>
+<p>Initial exchange rate used when minting the first mTokens (used when totalSupply = 0)</p>
+<pre><code class="language-solidity">uint256 internal initialExchangeRateMantissa;
+</code></pre>
+<h3 id="reserve_factor_max_mantissa"><a class="header" href="#reserve_factor_max_mantissa">RESERVE_FACTOR_MAX_MANTISSA</a></h3>
+<p>Maximum fraction of interest that can be set aside for reserves</p>
+<pre><code class="language-solidity">uint256 internal constant RESERVE_FACTOR_MAX_MANTISSA = 1e18;
+</code></pre>
+<h3 id="protocol_seize_share_mantissa"><a class="header" href="#protocol_seize_share_mantissa">PROTOCOL_SEIZE_SHARE_MANTISSA</a></h3>
+<p>Share of seized collateral that is added to reserves</p>
+<pre><code class="language-solidity">uint256 internal constant PROTOCOL_SEIZE_SHARE_MANTISSA = 2.8e16;
+</code></pre>
+<h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
+<h3 id="accrueinterest"><a class="header" href="#accrueinterest">accrueInterest</a></h3>
+<p>Accrues interest on the contract's outstanding loans</p>
+<pre><code class="language-solidity">function accrueInterest() external virtual;
+</code></pre>
+<h3 id="_getblocktimestamp"><a class="header" href="#_getblocktimestamp">_getBlockTimestamp</a></h3>
+<p><em>Function to simply retrieve block timestamp
+This exists mainly for inheriting test contracts to stub this result.</em></p>
+<pre><code class="language-solidity">function _getBlockTimestamp() internal view virtual returns (uint256);
+</code></pre>
+<h3 id="_exchangeratestored"><a class="header" href="#_exchangeratestored">_exchangeRateStored</a></h3>
+<p>Calculates the exchange rate from the underlying to the MToken</p>
+<p><em>This function does not accrue interest before calculating the exchange rate
+Can generate issues if inflated by an attacker when market is created
+Solution: use 0 collateral factor initially</em></p>
+<pre><code class="language-solidity">function _exchangeRateStored() internal view virtual returns (uint256);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>calculated exchange rate scaled by 1e18</td></tr>
+</tbody></table>
+</div>
+<h3 id="_getcashprior"><a class="header" href="#_getcashprior">_getCashPrior</a></h3>
+<p>Gets balance of this contract in terms of the underlying</p>
+<p><em>This excludes the value of the current message, if any</em></p>
+<pre><code class="language-solidity">function _getCashPrior() internal view virtual returns (uint256);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The quantity of underlying owned by this contract</td></tr>
+</tbody></table>
+</div>
+<h3 id="_dotransferin"><a class="header" href="#_dotransferin">_doTransferIn</a></h3>
+<p><em>Performs a transfer in, reverting upon failure. Returns the amount actually transferred to the protocol, in case of a fee.
+This may revert due to insufficient balance or insufficient allowance.</em></p>
+<pre><code class="language-solidity">function _doTransferIn(address from, uint256 amount) internal virtual returns (uint256);
+</code></pre>
+<h3 id="_dotransferout"><a class="header" href="#_dotransferout">_doTransferOut</a></h3>
+<p><em>Performs a transfer out, ideally returning an explanatory error code upon failure rather than reverting.
+If caller has not called checked protocol's balance, may revert due to insufficient cash held in the contract.
+If caller has checked protocol's balance, and verified it is &gt;= amount, this should not revert in normal conditions.</em></p>
+<pre><code class="language-solidity">function _doTransferOut(address payable to, uint256 amount) internal virtual;
+</code></pre>
+<h3 id="_accrueinterest"><a class="header" href="#_accrueinterest">_accrueInterest</a></h3>
+<pre><code class="language-solidity">function _accrueInterest() internal;
+</code></pre>
+<h2 id="events"><a class="header" href="#events">Events</a></h2>
+<h3 id="newrolesoperator"><a class="header" href="#newrolesoperator">NewRolesOperator</a></h3>
+<p>Event emitted when rolesOperator is changed</p>
+<pre><code class="language-solidity">event NewRolesOperator(address indexed oldRoles, address indexed newRoles);
+</code></pre>
+<h3 id="newpendingadmin"><a class="header" href="#newpendingadmin">NewPendingAdmin</a></h3>
+<p>Event emitted when pendingAdmin is changed</p>
+<pre><code class="language-solidity">event NewPendingAdmin(address indexed oldPendingAdmin, address indexed newPendingAdmin);
+</code></pre>
+<h3 id="newadmin"><a class="header" href="#newadmin">NewAdmin</a></h3>
+<p>Event emitted when pendingAdmin is accepted, which means admin is updated</p>
+<pre><code class="language-solidity">event NewAdmin(address indexed oldAdmin, address indexed newAdmin);
+</code></pre>
+<h3 id="newoperator"><a class="header" href="#newoperator">NewOperator</a></h3>
+<p>Event emitted when Operator is changed</p>
+<pre><code class="language-solidity">event NewOperator(address indexed oldOperator, address indexed newOperator);
+</code></pre>
+<h3 id="transfer"><a class="header" href="#transfer">Transfer</a></h3>
+<p>EIP20 Transfer event</p>
+<pre><code class="language-solidity">event Transfer(address indexed from, address indexed to, uint256 amount);
+</code></pre>
+<h3 id="approval"><a class="header" href="#approval">Approval</a></h3>
+<p>EIP20 Approval event</p>
+<pre><code class="language-solidity">event Approval(address indexed owner, address indexed spender, uint256 amount);
+</code></pre>
+<h3 id="accrueinterest-1"><a class="header" href="#accrueinterest-1">AccrueInterest</a></h3>
+<p>Event emitted when interest is accrued</p>
+<pre><code class="language-solidity">event AccrueInterest(uint256 cashPrior, uint256 interestAccumulated, uint256 borrowIndex, uint256 totalBorrows);
+</code></pre>
+<h3 id="mint"><a class="header" href="#mint">Mint</a></h3>
+<p>Event emitted when tokens are minted</p>
+<pre><code class="language-solidity">event Mint(address indexed minter, address indexed receiver, uint256 mintAmount, uint256 mintTokens);
+</code></pre>
+<h3 id="redeem"><a class="header" href="#redeem">Redeem</a></h3>
+<p>Event emitted when tokens are redeemed</p>
+<pre><code class="language-solidity">event Redeem(address indexed redeemer, uint256 redeemAmount, uint256 redeemTokens);
+</code></pre>
+<h3 id="borrow"><a class="header" href="#borrow">Borrow</a></h3>
+<p>Event emitted when underlying is borrowed</p>
+<pre><code class="language-solidity">event Borrow(address indexed borrower, uint256 borrowAmount, uint256 accountBorrows, uint256 totalBorrows);
+</code></pre>
+<h3 id="repayborrow"><a class="header" href="#repayborrow">RepayBorrow</a></h3>
+<p>Event emitted when a borrow is repaid</p>
+<pre><code class="language-solidity">event RepayBorrow(
+    address indexed payer, address indexed borrower, uint256 repayAmount, uint256 accountBorrows, uint256 totalBorrows
+);
+</code></pre>
+<h3 id="liquidateborrow"><a class="header" href="#liquidateborrow">LiquidateBorrow</a></h3>
+<p>Event emitted when a borrow is liquidated</p>
+<pre><code class="language-solidity">event LiquidateBorrow(
+    address indexed liquidator,
+    address indexed borrower,
+    uint256 repayAmount,
+    address indexed mTokenCollateral,
+    uint256 seizeTokens
+);
+</code></pre>
+<h3 id="newmarketinterestratemodel"><a class="header" href="#newmarketinterestratemodel">NewMarketInterestRateModel</a></h3>
+<p>Event emitted when interestRateModel is changed</p>
+<pre><code class="language-solidity">event NewMarketInterestRateModel(address indexed oldInterestRateModel, address indexed newInterestRateModel);
+</code></pre>
+<h3 id="newreservefactor"><a class="header" href="#newreservefactor">NewReserveFactor</a></h3>
+<p>Event emitted when the reserve factor is changed</p>
+<pre><code class="language-solidity">event NewReserveFactor(uint256 oldReserveFactorMantissa, uint256 newReserveFactorMantissa);
+</code></pre>
+<h3 id="reservesadded"><a class="header" href="#reservesadded">ReservesAdded</a></h3>
+<p>Event emitted when the reserves are added</p>
+<pre><code class="language-solidity">event ReservesAdded(address indexed benefactor, uint256 addAmount, uint256 newTotalReserves);
+</code></pre>
+<h3 id="reservesreduced"><a class="header" href="#reservesreduced">ReservesReduced</a></h3>
+<p>Event emitted when the reserves are reduced</p>
+<pre><code class="language-solidity">event ReservesReduced(address indexed admin, uint256 reduceAmount, uint256 newTotalReserves);
+</code></pre>
+<h3 id="newborrowratemaxmantissa"><a class="header" href="#newborrowratemaxmantissa">NewBorrowRateMaxMantissa</a></h3>
+<p>Event emitted when the borrow max mantissa is updated</p>
+<pre><code class="language-solidity">event NewBorrowRateMaxMantissa(uint256 oldVal, uint256 maxMantissa);
+</code></pre>
+<h3 id="samechainflowstateupdated"><a class="header" href="#samechainflowstateupdated">SameChainFlowStateUpdated</a></h3>
+<p>Event emitted when same chain flow state is enabled or disabled</p>
+<pre><code class="language-solidity">event SameChainFlowStateUpdated(address indexed sender, bool _oldState, bool _newState);
+</code></pre>
+<h3 id="zkverifierupdated"><a class="header" href="#zkverifierupdated">ZkVerifierUpdated</a></h3>
+<p>Event emitted when same chain flow state is enabled or disabled</p>
+<pre><code class="language-solidity">event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+</code></pre>
+<h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
+<h3 id="mtoken_onlyadmin"><a class="header" href="#mtoken_onlyadmin">mToken_OnlyAdmin</a></h3>
+<pre><code class="language-solidity">error mToken_OnlyAdmin();
+</code></pre>
+<h3 id="mtoken_redeemempty"><a class="header" href="#mtoken_redeemempty">mToken_RedeemEmpty</a></h3>
+<pre><code class="language-solidity">error mToken_RedeemEmpty();
+</code></pre>
+<h3 id="mtoken_invalidinput"><a class="header" href="#mtoken_invalidinput">mToken_InvalidInput</a></h3>
+<pre><code class="language-solidity">error mToken_InvalidInput();
+</code></pre>
+<h3 id="mtoken_onlyadminorrole"><a class="header" href="#mtoken_onlyadminorrole">mToken_OnlyAdminOrRole</a></h3>
+<pre><code class="language-solidity">error mToken_OnlyAdminOrRole();
+</code></pre>
+<h3 id="mtoken_transfernotvalid"><a class="header" href="#mtoken_transfernotvalid">mToken_TransferNotValid</a></h3>
+<pre><code class="language-solidity">error mToken_TransferNotValid();
+</code></pre>
+<h3 id="mtoken_minamountnotvalid"><a class="header" href="#mtoken_minamountnotvalid">mToken_MinAmountNotValid</a></h3>
+<pre><code class="language-solidity">error mToken_MinAmountNotValid();
+</code></pre>
+<h3 id="mtoken_borrowratetoohigh"><a class="header" href="#mtoken_borrowratetoohigh">mToken_BorrowRateTooHigh</a></h3>
+<pre><code class="language-solidity">error mToken_BorrowRateTooHigh();
+</code></pre>
+<h3 id="mtoken_alreadyinitialized"><a class="header" href="#mtoken_alreadyinitialized">mToken_AlreadyInitialized</a></h3>
+<pre><code class="language-solidity">error mToken_AlreadyInitialized();
+</code></pre>
+<h3 id="mtoken_reservefactortoohigh"><a class="header" href="#mtoken_reservefactortoohigh">mToken_ReserveFactorTooHigh</a></h3>
+<pre><code class="language-solidity">error mToken_ReserveFactorTooHigh();
+</code></pre>
+<h3 id="mtoken_exchangeratenotvalid"><a class="header" href="#mtoken_exchangeratenotvalid">mToken_ExchangeRateNotValid</a></h3>
+<pre><code class="language-solidity">error mToken_ExchangeRateNotValid();
+</code></pre>
+<h3 id="mtoken_marketmethodnotvalid"><a class="header" href="#mtoken_marketmethodnotvalid">mToken_MarketMethodNotValid</a></h3>
+<pre><code class="language-solidity">error mToken_MarketMethodNotValid();
+</code></pre>
+<h3 id="mtoken_liquidateseizetoomuch"><a class="header" href="#mtoken_liquidateseizetoomuch">mToken_LiquidateSeizeTooMuch</a></h3>
+<pre><code class="language-solidity">error mToken_LiquidateSeizeTooMuch();
+</code></pre>
+<h3 id="mtoken_redeemcashnotavailable"><a class="header" href="#mtoken_redeemcashnotavailable">mToken_RedeemCashNotAvailable</a></h3>
+<pre><code class="language-solidity">error mToken_RedeemCashNotAvailable();
+</code></pre>
+<h3 id="mtoken_borrowcashnotavailable"><a class="header" href="#mtoken_borrowcashnotavailable">mToken_BorrowCashNotAvailable</a></h3>
+<pre><code class="language-solidity">error mToken_BorrowCashNotAvailable();
+</code></pre>
+<h3 id="mtoken_reservecashnotavailable"><a class="header" href="#mtoken_reservecashnotavailable">mToken_ReserveCashNotAvailable</a></h3>
+<pre><code class="language-solidity">error mToken_ReserveCashNotAvailable();
+</code></pre>
+<h3 id="mtoken_redeemtransferoutnotpossible"><a class="header" href="#mtoken_redeemtransferoutnotpossible">mToken_RedeemTransferOutNotPossible</a></h3>
+<pre><code class="language-solidity">error mToken_RedeemTransferOutNotPossible();
+</code></pre>
+<h3 id="mtoken_samechainoperationsaredisabled"><a class="header" href="#mtoken_samechainoperationsaredisabled">mToken_SameChainOperationsAreDisabled</a></h3>
+<pre><code class="language-solidity">error mToken_SameChainOperationsAreDisabled();
+</code></pre>
+<h3 id="mtoken_collateralblocktimestampnotvalid"><a class="header" href="#mtoken_collateralblocktimestampnotvalid">mToken_CollateralBlockTimestampNotValid</a></h3>
+<pre><code class="language-solidity">error mToken_CollateralBlockTimestampNotValid();
+</code></pre>
+<h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
+<h3 id="borrowsnapshot"><a class="header" href="#borrowsnapshot">BorrowSnapshot</a></h3>
+<p>Container for borrow balance information</p>
+<pre><code class="language-solidity">struct BorrowSnapshot {
+    uint256 principal;
+    uint256 interestIndex;
+}
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../../../src/mToken/mTokenConfiguration.sol/abstract.mTokenConfiguration.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../../../src/migration/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../../../src/mToken/mTokenConfiguration.sol/abstract.mTokenConfiguration.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../../../src/migration/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../../../elasticlunr.min.js"></script>
+        <script src="../../../mark.min.js"></script>
+        <script src="../../../searcher.js"></script>
+
+        <script src="../../../clipboard.min.js"></script>
+        <script src="../../../highlight.js"></script>
+        <script src="../../../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../../../solidity.min.js"></script>
+
+
+    </div>
+    </body>
+</html>
