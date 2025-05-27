@@ -7,8 +7,9 @@ import {Script, console} from "forge-std/Script.sol";
 
 interface IEnable {
     function enableWhitelist() external;
+    function disableWhitelist() external;
 }
-contract SetWhitelistEnabled is Script {
+contract SetWhitelistDisabled is Script {
     function run() public virtual {
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
@@ -24,7 +25,7 @@ contract SetWhitelistEnabled is Script {
         for(uint256 i; i < markets.length; i++) {
             address market = markets[i];
             vm.startBroadcast(key);
-            IEnable(market).enableWhitelist();
+            IEnable(market).disableWhitelist();
             vm.stopBroadcast();
         }
     }

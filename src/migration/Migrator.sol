@@ -6,7 +6,6 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 import {Operator} from "src/Operator/Operator.sol";
 
-import {ImErc20} from "src/interfaces/ImErc20.sol";
 import {ImToken} from "src/interfaces/ImToken.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import "./IMigrator.sol";
@@ -152,14 +151,14 @@ contract Migrator {
             if (collateralUnderlyingAmount > 0 || borrowAmount > 0) {
                 address maldaMarket =
                     _getMaldaMarket(params.maldaOperator, IMendiMarket(address(mendiMarket)).underlying());
-                require(maldaMarket != address(0), "[Migrator] Malda market not found");
-
-                positions[positionCount++] = Position({
-                    mendiMarket: address(mendiMarket),
-                    maldaMarket: maldaMarket,
-                    collateralUnderlyingAmount: collateralUnderlyingAmount,
-                    borrowAmount: borrowAmount
-                });
+                if (maldaMarket != address(0)) {
+                    positions[positionCount++] = Position({
+                        mendiMarket: address(mendiMarket),
+                        maldaMarket: maldaMarket,
+                        collateralUnderlyingAmount: collateralUnderlyingAmount,
+                        borrowAmount: borrowAmount
+                    });
+                }
             }
         }
 

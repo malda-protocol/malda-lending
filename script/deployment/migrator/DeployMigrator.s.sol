@@ -7,7 +7,8 @@ import {Migrator} from "src/migration/Migrator.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 
 contract DeployMigrator is Script {
-    function run(Deployer deployer) public returns (address) {
+    function run() public returns (address) {
+        Deployer deployer = Deployer(payable(0xc781BaD08968E324D1B91Be3cca30fAd86E7BF98));
         uint256 key = vm.envUint("OWNER_PRIVATE_KEY");
 
         bytes32 salt = getSalt("MigratorV1.0.0");
