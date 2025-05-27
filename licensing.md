@@ -17,6 +17,10 @@ You can find the full text of the BSL 1.1 as applied to this project in the `LIC
 
 * **Compound V2**, which is licensed under the **BSD 3-Clause "New" or "Revised" License**. A copy of this license is available in the `LICENSE-COMPOUND-V2` file.
 
+* **Risc0**, which is licensed under the **Apache License 2.0**. A copy of this license is available in the `LICENSE-RISC0` file.
+
+While Merge Layers Inc. licenses this repository *as a whole* under BSL 1.1, by using this software, **you MUST also comply with the terms, conditions, and notice requirements of the underlying Apache License 2.0**. This license contains specific terms regarding distribution, modification notices, patent grants, and requires the inclusion of attribution notices, which apply to the original components, even as modified within this project.
+
 While Merge Layers Inc. licenses this repository *as a whole* under BSL 1.1, by using this software, **you MUST also comply with the terms, conditions, and notice requirements of the underlying BSD 3-Clause License**. This license contains terms regarding redistribution and attribution that apply to the original components, even as modified within this project.
 
 Required attributions can be found in the `NOTICE` file (if applicable) and within the original source code components.
