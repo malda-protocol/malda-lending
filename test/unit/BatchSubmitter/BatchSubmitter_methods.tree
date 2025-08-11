@@ -20,8 +20,8 @@
 │       └── it should emit BatchProcessFailed
 └── when liquidate
     ├── when it succeeds
-    │   └── it should increase user balance and total supply
+    │   └── should make a call to liquidateExternal
     ├── when it fails
     │   └── it should emit BatchProcessFailed
     └── when multiple operations
-        └── it should process all liquidate operations successfully 
+        └── it should make a call to liquidateExternal for each operation

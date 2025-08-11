@@ -230,14 +230,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         ifNotBlacklisted(msg.sender)
         ifNotBlacklisted(receiver)
     {
-        // checks
-        require(amount > 0, mTokenGateway_AmountNotValid());
-        require(msg.value >= gasFee, mTokenGateway_NotEnoughGasFee());
-
-        IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
-
-        // effects
-        accAmountIn[receiver] += amount;
+        _takeIn(underlying, amount, receiver);
 
         emit mTokenGateway_Supplied(
             msg.sender,
@@ -249,6 +242,43 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
             LINEA_CHAIN_ID,
             lineaSelector
         );
+    }
+
+        /**
+     * @inheritdoc ImTokenGateway
+     */
+    function liquidate(address userToLiquidate, uint256 liquidateAmount, address collateral, address receiver)
+        external
+        payable
+        override
+        notPaused(OperationType.Liquidate)
+        notPaused(OperationType.AmountIn)
+        onlyAllowedUser(msg.sender)
+        ifNotBlacklisted(msg.sender)
+        ifNotBlacklisted(receiver)
+    {
+        _takeIn(underlying, liquidateAmount, receiver);
+
+        emit mTokenGateway_Liquidate(
+            msg.sender,
+            receiver,
+            liquidateAmount,
+            uint32(block.chainid),
+            LINEA_CHAIN_ID,
+            userToLiquidate,
+            collateral
+        );
+    }
+
+    function _takeIn(address asset, uint256 amount, address receiver) internal {
+                // checks
+        require(amount > 0, mTokenGateway_AmountNotValid());
+        require(msg.value >= gasFee, mTokenGateway_NotEnoughGasFee());
+
+        IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
+
+        // effects
+        accAmountIn[receiver] += amount;
     }
 
     /**
