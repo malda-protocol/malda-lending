@@ -59,6 +59,8 @@ contract BatchSubmitter is Ownable {
      * selectors Array of function selectors for each operation
      * startIndex Start index for processing journals
      * endIndex End index for processing journals (exclusive)
+     * userToLiquidate Array of users to liquidate (for liquidateExternal operations)
+     * collateral Array of collateral addresses (for liquidateExternal operations)
      */
     struct BatchProcessMsg {
         address[] receivers;
@@ -70,12 +72,15 @@ contract BatchSubmitter is Ownable {
         bytes4[] selectors;
         bytes32[] initHashes;
         uint256 startIndex;
+        address[] userToLiquidate;
+        address[] collateral;
     }
 
     // Function selectors for supported operations
     bytes4 internal constant MINT_SELECTOR = ImErc20Host.mintExternal.selector;
     bytes4 internal constant REPAY_SELECTOR = ImErc20Host.repayExternal.selector;
     bytes4 internal constant OUT_HERE_SELECTOR = ImTokenGateway.outHere.selector;
+    bytes4 internal constant LIQUIDATE_SELECTOR = ImErc20Host.liquidateExternal.selector;
 
     constructor(address _roles, address _zkVerifier, address _owner) Ownable(_owner) {
         require(_roles != address(0), BatchSubmitter_AddressNotValid());
@@ -167,6 +172,35 @@ contract BatchSubmitter is Ownable {
                 }
             } else if (selector == OUT_HERE_SELECTOR) {
                 try ImTokenGateway(data.mTokens[i]).outHere(encodedJournal, "", singleAmount, data.receivers[i]) {
+                    emit BatchProcessSuccess(
+                        data.initHashes[i],
+                        data.receivers[i],
+                        data.mTokens[i],
+                        data.amounts[i],
+                        data.minAmountsOut[i],
+                        selector
+                    );
+                } catch (bytes memory reason) {
+                    emit BatchProcessFailed(
+                        data.initHashes[i],
+                        data.receivers[i],
+                        data.mTokens[i],
+                        data.amounts[i],
+                        data.minAmountsOut[i],
+                        selector,
+                        reason
+                    );
+                }
+            } else if (selector == LIQUIDATE_SELECTOR) {
+                address[] memory singleUserToLiquidate = new address[](1);
+                singleUserToLiquidate[0] = data.userToLiquidate[i];
+                
+                address[] memory singleCollateral = new address[](1);
+                singleCollateral[0] = data.collateral[i];
+                
+                try ImErc20Host(data.mTokens[i]).liquidateExternal(
+                    encodedJournal, "", singleUserToLiquidate, singleAmount, singleCollateral, data.receivers[i]
+                ) {
                     emit BatchProcessSuccess(
                         data.initHashes[i],
                         data.receivers[i],

@@ -15,6 +15,13 @@
 │   │   └── it should increase user balance and total supply
 │   └── when it fails
 │       └── it should emit BatchProcessFailed
-└── when repay
-    └── when it fails
-        └── it should emit BatchProcessFailed 
+├── when repay
+│   └── when it fails
+│       └── it should emit BatchProcessFailed
+└── when liquidate
+    ├── when it succeeds
+    │   └── it should increase user balance and total supply
+    ├── when it fails
+    │   └── it should emit BatchProcessFailed
+    └── when multiple operations
+        └── it should process all liquidate operations successfully 

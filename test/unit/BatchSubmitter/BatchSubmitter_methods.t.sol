@@ -18,6 +18,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
     bytes4 internal constant OUT_HERE_SELECTOR = ImTokenGateway.outHere.selector;
     bytes4 internal constant MINT_SELECTOR = ImErc20Host.mintExternal.selector;
     bytes4 internal constant REPAY_SELECTOR = ImErc20Host.repayExternal.selector;
+    bytes4 internal constant LIQUIDATE_SELECTOR = ImErc20Host.liquidateExternal.selector;
 
     modifier whenMarketIsListed(address mToken) {
         operator.supportMarket(mToken);
@@ -74,7 +75,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         vm.expectRevert(BatchSubmitter.BatchSubmitter_CallerNotAllowed.selector);
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0
+                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0, new address[](0), new address[](0)
             )
         );
     }
@@ -98,7 +99,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         initHashes[0] = bytes32(0);
 
         batchSubmitter.batchProcess(
-            BatchSubmitter.BatchProcessMsg(receivers, "", "", mTokens, amounts, amounts, selectors, initHashes, 0)
+            BatchSubmitter.BatchProcessMsg(receivers, "", "", mTokens, amounts, amounts, selectors, initHashes, 0, new address[](0), new address[](0))
         );
     }
 
@@ -126,7 +127,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         vm.expectRevert(BatchSubmitter.BatchSubmitter_InvalidSelector.selector);
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "", mTokens, amounts, amounts, invalidSelectors, initHashes, 0
+                receivers, encodedJournals, "", mTokens, amounts, amounts, invalidSelectors, initHashes, 0, new address[](0), new address[](0)
             )
         );
     }
@@ -170,7 +171,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0
+                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0, new address[](0), new address[](0)
             )
         );
 
@@ -223,7 +224,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0
+                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0, new address[](0), new address[](0)
             )
         );
     }
@@ -263,7 +264,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0
+                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0, new address[](0), new address[](0)
             )
         );
 
@@ -317,7 +318,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0
+                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0, new address[](0), new address[](0)
             )
         );
     }
@@ -362,7 +363,213 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0
+                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0, new address[](0), new address[](0)
+            )
+        );
+    }
+
+    // ----------- LIQUIDATE TESTS -----------
+
+    function test_WhenLiquidateSucceeds(uint256 amount)
+        external
+        givenSenderHasProofForwarderRole
+        givenJournalDataIsValid
+        inRange(amount, SMALL, LARGE)
+    {
+        // Reset storage arrays to length 1
+        mTokens = new address[](1);
+        mTokens[0] = address(mWethHost);
+
+        amounts = new uint256[](1);
+        amounts[0] = amount;
+
+        selectors = new bytes4[](1);
+        selectors[0] = LIQUIDATE_SELECTOR;
+
+        receivers = new address[](1);
+        receivers[0] = address(this);
+
+        address[] memory userToLiquidate = new address[](1);
+        userToLiquidate[0] = address(0x123); // User to liquidate
+
+        address[] memory collateral = new address[](1);
+        collateral[0] = address(mWethHost); // Collateral token
+
+        address[] memory senders = new address[](1);
+        senders[0] = address(this);
+
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
+        journals = abi.decode(encodedJournals, (bytes[]));
+
+        initHashes = new bytes32[](1);
+        initHashes[0] = keccak256(journals[0]);
+
+        // Expect the liquidateExternal call to be made with correct parameters
+        vm.expectCall(
+            address(mWethHost),
+            abi.encodeWithSelector(
+                ImErc20Host.liquidateExternal.selector,
+                encodedJournals,
+                "",
+                userToLiquidate,
+                amounts,
+                collateral,
+                receivers[0]
+            )
+        );
+
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0, userToLiquidate, collateral
+            )
+        );
+    }
+
+    function test_WhenLiquidateFails() external givenSenderHasProofForwarderRole givenJournalDataIsValid {
+        // Reset storage arrays to length 1
+        mTokens = new address[](1);
+        mTokens[0] = address(mWethHost);
+
+        amounts = new uint256[](1);
+        amounts[0] = 1 ether;
+
+        selectors = new bytes4[](1);
+        selectors[0] = LIQUIDATE_SELECTOR;
+
+        receivers = new address[](1);
+        receivers[0] = address(this);
+
+        address[] memory userToLiquidate = new address[](1);
+        userToLiquidate[0] = address(0x123); // User to liquidate
+
+        address[] memory collateral = new address[](1);
+        collateral[0] = address(0); // Invalid collateral address
+
+        address[] memory senders = new address[](1);
+        senders[0] = address(this);
+
+        address[] memory markets = new address[](1);
+        markets[0] = address(0); // Invalid market address
+
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, markets, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
+        journals = abi.decode(encodedJournals, (bytes[]));
+
+        initHashes = new bytes32[](1);
+        initHashes[0] = keccak256(journals[0]);
+
+        vm.expectEmit(true, true, true, true);
+        emit BatchSubmitter.BatchProcessFailed(
+            initHashes[0],
+            receivers[0],
+            mTokens[0],
+            amounts[0],
+            amounts[0],
+            selectors[0],
+            abi.encodePacked(ImErc20Host.mErc20Host_AddressNotValid.selector)
+        );
+
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0, userToLiquidate, collateral
+            )
+        );
+    }
+
+    function test_WhenLiquidateWithMultipleOperations() external givenSenderHasProofForwarderRole givenJournalDataIsValid {
+        // Test multiple liquidate operations in a single batch
+        mTokens = new address[](2);
+        mTokens[0] = address(mWethHost);
+        mTokens[1] = address(mUsdcHost);
+
+        amounts = new uint256[](2);
+        amounts[0] = 1 ether;
+        amounts[1] = 1000 * 10**6; // 1000 USDC
+
+        selectors = new bytes4[](2);
+        selectors[0] = LIQUIDATE_SELECTOR;
+        selectors[1] = LIQUIDATE_SELECTOR;
+
+        receivers = new address[](2);
+        receivers[0] = address(this);
+        receivers[1] = address(0x456);
+
+        address[] memory userToLiquidate = new address[](2);
+        userToLiquidate[0] = address(0x123);
+        userToLiquidate[1] = address(0x789);
+
+        address[] memory collateral = new address[](2);
+        collateral[0] = address(mWethHost);
+        collateral[1] = address(mUsdcHost);
+
+        address[] memory senders = new address[](2);
+        senders[0] = address(this);
+        senders[1] = address(this);
+
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
+        journals = abi.decode(encodedJournals, (bytes[]));
+
+        initHashes = new bytes32[](2);
+        initHashes[0] = keccak256(journals[0]);
+        initHashes[1] = keccak256(journals[1]);
+
+        // Expect the first liquidateExternal call to be made with correct parameters
+        bytes[] memory singleJournal1 = new bytes[](1);
+        singleJournal1[0] = journals[0];
+        
+        address[] memory singleUserToLiquidate1 = new address[](1);
+        singleUserToLiquidate1[0] = userToLiquidate[0];
+        
+        uint256[] memory singleAmount1 = new uint256[](1);
+        singleAmount1[0] = amounts[0];
+        
+        address[] memory singleCollateral1 = new address[](1);
+        singleCollateral1[0] = collateral[0];
+
+        vm.expectCall(
+            address(mWethHost),
+            abi.encodeWithSelector(
+                ImErc20Host.liquidateExternal.selector,
+                abi.encode(singleJournal1),
+                "",
+                singleUserToLiquidate1,
+                singleAmount1,
+                singleCollateral1,
+                receivers[0]
+            )
+        );
+
+        // Expect the second liquidateExternal call to be made with correct parameters
+        bytes[] memory singleJournal2 = new bytes[](1);
+        singleJournal2[0] = journals[1];
+        
+        address[] memory singleUserToLiquidate2 = new address[](1);
+        singleUserToLiquidate2[0] = userToLiquidate[1];
+        
+        uint256[] memory singleAmount2 = new uint256[](1);
+        singleAmount2[0] = amounts[1];
+        
+        address[] memory singleCollateral2 = new address[](1);
+        singleCollateral2[0] = collateral[1];
+
+        vm.expectCall(
+            address(mUsdcHost),
+            abi.encodeWithSelector(
+                ImErc20Host.liquidateExternal.selector,
+                abi.encode(singleJournal2),
+                "",
+                singleUserToLiquidate2,
+                singleAmount2,
+                singleCollateral2,
+                receivers[1]
+            )
+        );
+
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0, userToLiquidate, collateral
             )
         );
     }
