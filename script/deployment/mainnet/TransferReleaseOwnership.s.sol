@@ -36,6 +36,7 @@ contract TransferReleaseOwnership is DeployBaseRelease {
     address rebalancer;
     address acrossBridge;
     address everclearBridge;
+    address lzBridge;
     address rolesContract;
     address oracle;
     address operator;
