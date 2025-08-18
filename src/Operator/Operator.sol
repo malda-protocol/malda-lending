@@ -672,7 +672,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         address mTokenCollateral,
         address borrower,
         uint256 repayAmount
-    ) external view override onlyAllowedUser(borrower) ifNotBlacklisted(borrower) {
+    ) external view override {
         require(!_paused[mTokenBorrowed][OperationType.Liquidate], Operator_Paused());
         require(markets[mTokenBorrowed].isListed, Operator_MarketNotListed());
         require(markets[mTokenCollateral].isListed, Operator_MarketNotListed());
@@ -698,7 +698,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         external
         override
         ifNotBlacklisted(liquidator)
-        ifNotBlacklisted(borrower)
     {
         require(
             !_paused[mTokenCollateral][OperationType.Seize] && !_paused[mTokenBorrowed][OperationType.Seize],
