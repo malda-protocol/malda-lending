@@ -34,7 +34,6 @@ import {DeployMixedPriceOracleV4} from "../oracles/DeployMixedPriceOracleV4.s.so
 import {DeployRebalancer} from "script/deployment/rebalancer/DeployRebalancer.s.sol";
 import {DeployAcrossBridge} from "script/deployment/rebalancer/DeployAcrossBridge.s.sol";
 import {DeployEverclearBridge} from "script/deployment/rebalancer/DeployEverclearBridge.s.sol";
-import {DeployLZBridge} from "script/deployment/rebalancer/DeployLZBridge.s.sol";
 
 import {SetRole} from "../../configuration/SetRole.s.sol";
 import {SetOperatorInRewardDistributor} from "../../configuration/SetOperatorInRewardDistributor.s.sol";
@@ -56,7 +55,6 @@ contract DeployCoreRelease is DeployBaseRelease {
     DeployRebalancer deployRebalancer;
     DeployAcrossBridge deployAcrossBridge;
     DeployEverclearBridge deployEverclearBridge;
-    DeployLZBridge deployLZBridge;
     DeployZkVerifier deployZkVerifier;
     DeployTimelockController deployTimelockController;
     DeployGasHelper deployGasHelper;
@@ -98,7 +96,6 @@ contract DeployCoreRelease is DeployBaseRelease {
             deployRebalancer = new DeployRebalancer();
             deployAcrossBridge = new DeployAcrossBridge();
             deployEverclearBridge = new DeployEverclearBridge();
-            deployLZBridge = new DeployLZBridge();
             setOperatorInRewardDistributor = new SetOperatorInRewardDistributor();
             deployPauser = new DeployPauser();
             deployInterest = new DeployJumpRateModelV4();
@@ -114,7 +111,7 @@ contract DeployCoreRelease is DeployBaseRelease {
             address batchSubmitter = _deployBatchSubmitter(rolesContract, zkVerifier);
             address timelock = _deployTimelock(owner);
             address gasHelper = _deployGasHelper();
-            (address rebalancer, address acrossBridge, address everclearBridge, address lzBridge) =
+            (address rebalancer, address acrossBridge, address everclearBridge) =
                 _deployAndConfigRebalancerAndBridges(network, rolesContract);
             address pauser;
             address rewardDistributor;
@@ -142,7 +139,6 @@ contract DeployCoreRelease is DeployBaseRelease {
             json = vm.serializeAddress("core", "Rebalancer", rebalancer);
             json = vm.serializeAddress("core", "AcrossBridge", acrossBridge);
             json = vm.serializeAddress("core", "EverclearBridge", everclearBridge);
-            json = vm.serializeAddress("core", "LZBridge", lzBridge);
             json = vm.serializeAddress("core", "Roles", rolesContract);
             if (configs[network].isHost) {
                 json = vm.serializeAddress("core", "Oracle", oracle);
@@ -159,7 +155,7 @@ contract DeployCoreRelease is DeployBaseRelease {
 
     function _deployAndConfigRebalancerAndBridges(string memory network, address rolesContract)
         internal
-        returns (address rebalancer, address acrossBridge, address everclearBridge, address lzBridge)
+        returns (address rebalancer, address acrossBridge, address everclearBridge)
     {
         console.log(" --- Deploying rebalancer");
         rebalancer = deployRebalancer.run(rolesContract, owner, deployer);
@@ -181,16 +177,9 @@ contract DeployCoreRelease is DeployBaseRelease {
             deployEverclearBridge.run(rolesContract, everclearAddresses[configs[network].chainId], deployer);
         console.log(" --- Deployed everclearBridge at ", everclearBridge);
 
-        console.log(" --- Deploying LZBridge");
-        lzBridge = 
-            deployLZBridge.run(rolesContract, deployer);
-        console.log(" --- Deployed LZBridge at ", lzBridge);
-
         console.log(" ---- Setting REBALANCER role for the Rebalancer contract");
         setRole.run(rolesContract, address(rebalancer), keccak256(abi.encodePacked("REBALANCER")), true);
         console.log(" --- All rebalancer contracts deployed and configured for network", network);
-
-        //TODO: add whitelisted destinatiations and bridges to rebalancer
     }
 
     function _deployHostChain(string memory network, address rolesContract)
