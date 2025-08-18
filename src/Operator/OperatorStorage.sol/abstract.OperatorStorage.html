@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="operatorstorage"><a class="header" href="#operatorstorage">OperatorStorage</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/6b4286b11e81b4529e2ea5dd6a4d748cec6f6b7c/src/Operator/OperatorStorage.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/97579c42ace246a65e407543fa183946ea3b9303/src/Operator/OperatorStorage.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/interfaces/IOperator.sol/interface.IOperator.html">IOperator</a>, <a href="/src/interfaces/IOperator.sol/interface.IOperatorDefender.html">IOperatorDefender</a>, <a href="/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
@@ -245,13 +245,6 @@
 <p>Should return the outflow volume time window</p>
 <pre><code class="language-solidity">uint256 public outflowResetTimeWindow;
 </code></pre>
-<h3 id="userwhitelisted"><a class="header" href="#userwhitelisted">userWhitelisted</a></h3>
-<p>Returns true/false for user</p>
-<pre><code class="language-solidity">mapping(address =&gt; bool) public userWhitelisted;
-</code></pre>
-<h3 id="whitelistenabled"><a class="header" href="#whitelistenabled">whitelistEnabled</a></h3>
-<pre><code class="language-solidity">bool public whitelistEnabled;
-</code></pre>
 <h3 id="_paused"><a class="header" href="#_paused">_paused</a></h3>
 <pre><code class="language-solidity">mapping(address =&gt; mapping(ImTokenOperationTypes.OperationType =&gt; bool)) internal _paused;
 </code></pre>
@@ -265,11 +258,11 @@
 <pre><code class="language-solidity">uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18;
 </code></pre>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
-<h3 id="userwhitelisted-1"><a class="header" href="#userwhitelisted-1">UserWhitelisted</a></h3>
+<h3 id="userwhitelisted"><a class="header" href="#userwhitelisted">UserWhitelisted</a></h3>
 <p>Emitted when user whitelist status is changed</p>
 <pre><code class="language-solidity">event UserWhitelisted(address indexed user, bool state);
 </code></pre>
-<h3 id="whitelistenabled-1"><a class="header" href="#whitelistenabled-1">WhitelistEnabled</a></h3>
+<h3 id="whitelistenabled"><a class="header" href="#whitelistenabled">WhitelistEnabled</a></h3>
 <pre><code class="language-solidity">event WhitelistEnabled();
 </code></pre>
 <h3 id="whitelistdisabled"><a class="header" href="#whitelistdisabled">WhitelistDisabled</a></h3>
