@@ -426,7 +426,83 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         );
     }
 
-    function test_WhenLiquidateFails() external givenSenderHasProofForwarderRole givenJournalDataIsValid {
+    function test_WhenLiquidateFails_ButMintSucceeds() external givenSenderHasProofForwarderRole givenJournalDataIsValid {
+        // Reset storage arrays to length 1
+        mTokens = new address[](1);
+        mTokens[0] = address(mWethHost);
+
+        amounts = new uint256[](1);
+        amounts[0] = 1 ether;
+
+        selectors = new bytes4[](1);
+        selectors[0] = LIQUIDATE_SELECTOR;
+
+        receivers = new address[](1);
+        receivers[0] = address(this);
+
+        address[] memory userToLiquidate = new address[](1);
+        userToLiquidate[0] = address(0x123); // User to liquidate
+
+        address[] memory collateral = new address[](1);
+        collateral[0] = address(0); // Invalid collateral address
+
+        address[] memory senders = new address[](1);
+        senders[0] = address(this);
+
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
+        journals = abi.decode(encodedJournals, (bytes[]));
+
+        initHashes = new bytes32[](1);
+        initHashes[0] = keccak256(journals[0]);
+
+        // Expect liquidateExternal to be called first (and fail)
+        vm.expectCall(
+            address(mWethHost),
+            abi.encodeWithSelector(
+                ImErc20Host.liquidateExternal.selector,
+                encodedJournals,
+                "",
+                userToLiquidate,
+                amounts,
+                collateral,
+                receivers[0]
+            )
+        );
+
+        // Expect mintExternal to be called as fallback (and succeed)
+
+        vm.expectCall(
+            address(mWethHost),
+            abi.encodeWithSelector(
+                ImErc20Host.mintExternal.selector,
+                encodedJournals,
+                "",
+                amounts,
+                new uint256[](1),
+                receivers[0]
+            )
+        );
+
+        // Expect success event with MINT_SELECTOR (not LIQUIDATE_SELECTOR)
+        vm.expectEmit(true, true, true, true);
+        emit BatchSubmitter.BatchProcessSuccess(
+            initHashes[0],
+            receivers[0],
+            mTokens[0],
+            amounts[0],
+            amounts[0],
+            MINT_SELECTOR
+        );
+
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0, userToLiquidate, collateral
+            )
+        );
+    }
+
+    function test_WhenLiquidateFails_AndMintAlsoFails() external givenSenderHasProofForwarderRole givenJournalDataIsValid {
         // Reset storage arrays to length 1
         mTokens = new address[](1);
         mTokens[0] = address(mWethHost);
@@ -459,6 +535,37 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         initHashes = new bytes32[](1);
         initHashes[0] = keccak256(journals[0]);
 
+        // Expect liquidateExternal to be called first (and fail)
+        vm.expectCall(
+            address(mWethHost),
+            abi.encodeWithSelector(
+                ImErc20Host.liquidateExternal.selector,
+                encodedJournals,
+                "",
+                userToLiquidate,
+                amounts,
+                collateral,
+                receivers[0]
+            )
+        );
+
+        // Expect mintExternal to be called as fallback (and also fail)
+        uint256[] memory singleMinAmounts = new uint256[](1);
+        singleMinAmounts[0] = amounts[0];
+
+        vm.expectCall(
+            address(mWethHost),
+            abi.encodeWithSelector(
+                ImErc20Host.mintExternal.selector,
+                encodedJournals,
+                "",
+                amounts,
+                singleMinAmounts,
+                receivers[0]
+            )
+        );
+
+        // Expect failure event with original LIQUIDATE_SELECTOR
         vm.expectEmit(true, true, true, true);
         emit BatchSubmitter.BatchProcessFailed(
             initHashes[0],

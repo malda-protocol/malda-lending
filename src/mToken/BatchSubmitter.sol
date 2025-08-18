@@ -210,15 +210,30 @@ contract BatchSubmitter is Ownable {
                         selector
                     );
                 } catch (bytes memory reason) {
-                    emit BatchProcessFailed(
-                        data.initHashes[i],
-                        data.receivers[i],
-                        data.mTokens[i],
-                        data.amounts[i],
-                        data.minAmountsOut[i],
-                        selector,
-                        reason
-                    );
+                    // If liquidate fails, try mint as fallback
+                    
+                    try ImErc20Host(data.mTokens[i]).mintExternal(
+                        encodedJournal, "", singleAmount, new uint256[](1), data.receivers[i]
+                    ) {
+                        emit BatchProcessSuccess(
+                            data.initHashes[i],
+                            data.receivers[i],
+                            data.mTokens[i],
+                            data.amounts[i],
+                            data.minAmountsOut[i],
+                            MINT_SELECTOR
+                        );
+                    } catch (bytes memory mintReason) {
+                        emit BatchProcessFailed(
+                            data.initHashes[i],
+                            data.receivers[i],
+                            data.mTokens[i],
+                            data.amounts[i],
+                            0,
+                            selector,
+                            reason
+                        );
+                    }
                 }
             } else {
                 revert BatchSubmitter_InvalidSelector();
