@@ -21,6 +21,7 @@ import {SetRole} from "../../configuration/SetRole.s.sol";
 import {SetCollateralFactor} from "../../configuration/SetCollateralFactor.s.sol";
 import {SetReserveFactor} from "../../configuration/SetReserveFactor.s.sol";
 import {SetLiquidationBonus} from "../../configuration/SetLiquidationBonus.s.sol";
+import {SetCloseFactor} from "../../configuration/SetCloseFactor.s.sol";
 import {SupportMarket} from "../../configuration/SupportMarket.s.sol";
 import {SetBorrowRateMaxMantissa} from "../../configuration/SetBorrowRateMaxMantissa.s.sol";
 import {SetBorrowCap} from "../../configuration/SetBorrowCap.s.sol";
@@ -50,6 +51,9 @@ contract ConfigureRelease is DeployBaseRelease {
     SetBorrowCap setBorrowCap;
     SetSupplyCap setSupplyCap;
     SetPriceFeedOnOracleV4 setFeed;
+    SetCloseFactor setCloseFactor;
+
+    uint256 constant DEFAULT_CLOSE_FACTOR = 0.1e18; //10%
 
     function setUp() public override {
         configPath = "deployment-config-release.json";
@@ -316,6 +320,8 @@ contract ConfigureRelease is DeployBaseRelease {
     }
 
     function _configure(string memory network) internal {
+        setCloseFactor.run(operator, DEFAULT_CLOSE_FACTOR);
+        
         uint256 feedsLength = feeds.length;
         for (uint256 i; i < feedsLength; ++i) {
             setFeed.run(oracle);
