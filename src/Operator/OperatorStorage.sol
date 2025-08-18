@@ -112,13 +112,6 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     uint256 public outflowResetTimeWindow;
 
     /**
-     * @inheritdoc IOperator
-     */
-    mapping(address => bool) public userWhitelisted;
-
-    bool public whitelistEnabled;
-
-    /**
      * @dev Local vars for avoiding stack-depth limits in calculating account liquidity.
      *  Note that `mTokenBalance` is the number of mTokens the account owns in the market,
      *  whereas `borrowBalance` is the amount of underlying that the account has borrowed.

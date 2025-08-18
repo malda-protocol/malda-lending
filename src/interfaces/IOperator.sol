@@ -130,11 +130,6 @@ interface IOperatorDefender {
 interface IOperator {
     // ----------- VIEW ------------
     /**
-     * @notice Returns true/false for user
-     */
-    function userWhitelisted(address _user) external view returns (bool);
-
-    /**
      * @notice Should return true
      */
     function isOperator() external view returns (bool);

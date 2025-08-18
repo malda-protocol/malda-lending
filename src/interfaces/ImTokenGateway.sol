@@ -151,11 +151,6 @@ interface ImTokenGateway {
     error mTokenGateway_L1InclusionRequired();
 
     /**
-     * @notice Thrown when user is not whitelisted
-     */
-    error mTokenGateway_UserNotWhitelisted();
-
-    /**
      * @notice Thrown when user is blacklisted
      */
     error mTokenGateway_UserBlacklisted();
