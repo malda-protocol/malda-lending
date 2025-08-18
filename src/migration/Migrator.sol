@@ -19,6 +19,7 @@ pragma solidity ^0.8.10;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+import {SafeApprove} from "src/libraries/SafeApprove.sol";
 import {Operator} from "src/Operator/Operator.sol";
 
 import {ImToken} from "src/interfaces/ImToken.sol";
@@ -113,8 +114,7 @@ contract Migrator {
         for (uint256 i; i < posLength; ++i) {
             Position memory position = positions[i];
             if (position.borrowAmount > 0) {
-                IERC20 underlying = IERC20(IMendiMarket(position.mendiMarket).underlying());
-                underlying.approve(position.mendiMarket, position.borrowAmount);
+                SafeApprove.safeApprove(position.mendiMarket, position.mendiMarket, position.borrowAmount);
                 require(
                     IMendiMarket(position.mendiMarket).repayBorrowBehalf(msg.sender, position.borrowAmount) == 0,
                     "[Migrator] Mendi repay failed"
