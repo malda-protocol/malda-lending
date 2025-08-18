@@ -549,9 +549,6 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
             )
         );
 
-        // Expect mintExternal to be called as fallback (and also fail)
-        uint256[] memory singleMinAmounts = new uint256[](1);
-        singleMinAmounts[0] = amounts[0];
 
         vm.expectCall(
             address(mWethHost),
@@ -560,7 +557,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
                 encodedJournals,
                 "",
                 amounts,
-                singleMinAmounts,
+                new uint256[](1),
                 receivers[0]
             )
         );
@@ -572,7 +569,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
             receivers[0],
             mTokens[0],
             amounts[0],
-            amounts[0],
+            0,
             selectors[0],
             abi.encodePacked(ImErc20Host.mErc20Host_AddressNotValid.selector)
         );

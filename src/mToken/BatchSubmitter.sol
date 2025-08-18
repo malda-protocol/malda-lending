@@ -223,7 +223,7 @@ contract BatchSubmitter is Ownable {
                             data.minAmountsOut[i],
                             MINT_SELECTOR
                         );
-                    } catch (bytes memory mintReason) {
+                    } catch (bytes memory) {
                         emit BatchProcessFailed(
                             data.initHashes[i],
                             data.receivers[i],
