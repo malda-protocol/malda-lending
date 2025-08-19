@@ -34,8 +34,9 @@ import {IOperatorData, IOperator, IOperatorDefender} from "src/interfaces/IOpera
 // contracts
 import {OperatorStorage} from "./OperatorStorage.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {HypernativeFirewallProtected} from "src/libraries/HypernativeFirewallProtected.sol";
 
-contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable {
+contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable, HypernativeFirewallProtected {
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -68,6 +69,10 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     }
 
     // ----------- OWNER ------------
+    function initFirewall(address _firewall) external onlyOwner {
+        _initHypernativeFirewall(_firewall, owner());
+    }
+
     /**
      * @notice Sets user whitelist status
      * @param user The user address
@@ -438,10 +443,14 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     }
 
     // ----------- PUBLIC ------------
+    function firewallRegister(address _account) public override(HypernativeFirewallProtected) {
+        super.firewallRegister(_account);
+    }
+
     /**
      * @inheritdoc IOperator
      */
-    function enterMarkets(address[] calldata _mTokens) external override onlyAllowedUser(msg.sender) {
+    function enterMarkets(address[] calldata _mTokens) external override onlyAllowedUser(msg.sender) onlyFirewallApproved() {
         uint256 len = _mTokens.length;
         for (uint256 i = 0; i < len;) {
             address __mToken = _mTokens[i];
@@ -513,7 +522,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
      * @notice Claim all the MALDA accrued by holder in all markets
      * @param holder The address to claim MALDA for
      */
-    function claimMalda(address holder) external override {
+    function claimMalda(address holder) external override onlyFirewallApproved() {
         address[] memory holders = new address[](1);
         holders[0] = holder;
         return _claim(holders, allMarkets, true, true);
@@ -524,7 +533,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
      * @param holder The address to claim MALDA for
      * @param mTokens The list of markets to claim MALDA in
      */
-    function claimMalda(address holder, address[] memory mTokens) external override {
+    function claimMalda(address holder, address[] memory mTokens) external override onlyFirewallApproved() {
         address[] memory holders = new address[](1);
         holders[0] = holder;
         _claim(holders, mTokens, true, true);
@@ -540,6 +549,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     function claimMalda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers)
         external
         override
+        onlyFirewallApproved()
     {
         _claim(holders, mTokens, borrowers, suppliers);
     }
@@ -586,7 +596,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenMint(address mToken, address minter) external override onlyAllowedUser(minter) ifNotBlacklisted(minter) {
+    function beforeMTokenMint(address mToken, address minter) external override onlyAllowedUser(minter) ifNotBlacklisted(minter) onlyFirewallApproved() {
         require(!_paused[mToken][OperationType.Mint], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
         // Keep the flywheel moving
@@ -611,7 +621,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
      * @inheritdoc IOperatorDefender
      */
 
-    function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external override onlyAllowedUser(redeemer) ifNotBlacklisted(redeemer) {
+    function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external override onlyAllowedUser(redeemer) ifNotBlacklisted(redeemer) onlyFirewallApproved() {
         _beforeRedeem(mToken, redeemer, redeemTokens);
 
         // Keep the flywheel moving
@@ -655,7 +665,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenRepay(address mToken, address borrower) external onlyAllowedUser(borrower) {
+    function beforeMTokenRepay(address mToken, address borrower) external onlyAllowedUser(borrower) onlyFirewallApproved() {
         require(!_paused[mToken][OperationType.Repay], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
@@ -699,6 +709,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         override
         ifNotBlacklisted(liquidator)
         ifNotBlacklisted(borrower)
+        onlyFirewallApproved()
     {
         require(
             !_paused[mTokenCollateral][OperationType.Seize] && !_paused[mTokenBorrowed][OperationType.Seize],

@@ -26,6 +26,7 @@ pragma solidity =0.8.28;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {HypernativeFirewallProtected} from "src/libraries/HypernativeFirewallProtected.sol";
 
 // contracts
 import {IRoles} from "src/interfaces/IRoles.sol";
@@ -37,7 +38,7 @@ import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
 
 import {IZkVerifier} from "src/verifier/ZkVerifier.sol";
 
-contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTypes {
+contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTypes, HypernativeFirewallProtected {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE -----------
@@ -127,6 +128,10 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     }
 
     // ----------- OWNER ------------
+    function initFirewall(address _firewall) external onlyOwner {
+        _initHypernativeFirewall(_firewall, owner());
+    }   
+
     /**
      * @notice Sets user whitelist status
      * @param user The user address
@@ -210,6 +215,10 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     }
 
     // ----------- PUBLIC ------------
+    function firewallRegister(address _account) public override(HypernativeFirewallProtected) {
+        super.firewallRegister(_account);
+    }
+
     /**
      * @inheritdoc ImTokenGateway
      */
@@ -229,6 +238,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         onlyAllowedUser(msg.sender)
         ifNotBlacklisted(msg.sender)
         ifNotBlacklisted(receiver)
+        onlyFirewallApproved()
     {
         // checks
         require(amount > 0, mTokenGateway_AmountNotValid());
@@ -259,6 +269,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         notPaused(OperationType.AmountOutHere)
         ifNotBlacklisted(msg.sender)
         ifNotBlacklisted(receiver)
+        onlyFirewallApproved()
     {
         // verify received data
         if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
