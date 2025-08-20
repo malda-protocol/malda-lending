@@ -270,17 +270,6 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         );
     }
 
-    function _takeIn(address asset, uint256 amount, address receiver) internal {
-                // checks
-        require(amount > 0, mTokenGateway_AmountNotValid());
-        require(msg.value >= gasFee, mTokenGateway_NotEnoughGasFee());
-
-        IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
-
-        // effects
-        accAmountIn[receiver] += amount;
-    }
-
     /**
      * @inheritdoc ImTokenGateway
      */
@@ -308,7 +297,21 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         }
     }
 
-    function _outHere(bytes memory journalData, uint256 amount, address receiver) internal {
+
+    // ----------- PRIVATE ------------
+
+    function _takeIn(address asset, uint256 amount, address receiver) private {
+        // checks
+        require(amount > 0, mTokenGateway_AmountNotValid());
+        require(msg.value >= gasFee, mTokenGateway_NotEnoughGasFee());
+
+        IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
+
+        // effects
+        accAmountIn[receiver] += amount;
+    }
+
+    function _outHere(bytes memory journalData, uint256 amount, address receiver) private {
         (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(journalData);
 
@@ -342,7 +345,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         );
     }
 
-    // ----------- PRIVATE ------------
+
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
         require(journalData.length > 0, mTokenGateway_JournalNotValid());
 
