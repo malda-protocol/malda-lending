@@ -13,3 +13,6 @@
 [submodule "lib/risc0-ethereum"]
 	path = lib/risc0-ethereum
 	url = https://github.com/risc0/risc0-ethereum
+[submodule "lib/safe-smart-account"]
+	path = lib/safe-smart-account
+	url = https://github.com/safe-global/safe-smart-account

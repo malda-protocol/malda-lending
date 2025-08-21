@@ -23,7 +23,10 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {IBlacklister} from "src/interfaces/IBlacklister.sol";
 
-
+/**
+ * @title Malda's Blacklister Contract
+ * @notice Blocks addresses to access the protocol
+ */
 contract Blacklister is OwnableUpgradeable, IBlacklister {
     // ----------- STORAGE -----------
     mapping(address => bool) public isBlacklisted;
@@ -56,21 +59,55 @@ contract Blacklister is OwnableUpgradeable, IBlacklister {
     }
 
     // ----------- VIEW ------------
+    /**
+     * @inheritdoc IBlacklister
+     */
     function getBlacklistedAddresses() external view returns (address[] memory) {
         return _blacklistedList;
     }
     
     // ----------- OWNER ------------
+    /**
+     * @inheritdoc IBlacklister
+     */
+    function batchBlacklist(address[] memory users) external override onlyOwnerOrGuardian {
+        uint256 length = users.length;
+        for (uint256 i; i < length; ++i) {
+            address user = users[i];
+            if (isBlacklisted[user]) revert Blacklister_AlreadyBlacklisted();
+            _addToBlacklist(user);
+        }
+    }
+
+    /**
+     * @inheritdoc IBlacklister
+     */
     function blacklist(address user) external override onlyOwnerOrGuardian {
         if (isBlacklisted[user]) revert Blacklister_AlreadyBlacklisted();
         _addToBlacklist(user);
     }
 
+    /**
+     * @inheritdoc IBlacklister
+     */
     function unblacklist(address user) external override onlyOwnerOrGuardian {
         if (!isBlacklisted[user]) revert Blacklister_NotBlacklisted();
         isBlacklisted[user] = false;
         _removeFromBlacklistList(user);
         emit Unblacklisted(user);
+    }
+
+    /**
+     * @inheritdoc IBlacklister
+     */
+    function batchUnblacklist(address[] memory users) external override onlyOwnerOrGuardian {
+        uint256 length = users.length;
+        for (uint256 i; i < length; ++i) {
+            address user = users[i];
+            if (!isBlacklisted[user]) revert Blacklister_NotBlacklisted();
+            _removeFromBlacklistList(user);
+            emit Unblacklisted(user);
+        }
     }
 
    
