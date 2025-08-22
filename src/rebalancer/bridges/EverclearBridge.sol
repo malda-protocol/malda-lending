@@ -58,7 +58,6 @@ contract EverclearBridge is BaseBridge, IBridge {
     error Everclear_NotImplemented();
     error Everclear_AddressNotValid();
     error Everclear_DestinationNotValid();
-    error Everclear_DestinationMismatch();
     error Everclear_DestinationsLengthMismatch();
 
     constructor(address _roles, address _feeAdapter) BaseBridge(_roles) {
@@ -86,8 +85,6 @@ contract EverclearBridge is BaseBridge, IBridge {
         bytes memory // unused
     ) external payable onlyRebalancer {
         IntentParams memory params = _decodeIntent(_message);
-
-        require(address(uint160(uint256(params.receiver))) == _market, Everclear_DestinationMismatch());
 
         require(params.inputAsset == _token, Everclear_TokenMismatch());
         require(_extractedAmount >= params.amount, BaseBridge_AmountMismatch());
