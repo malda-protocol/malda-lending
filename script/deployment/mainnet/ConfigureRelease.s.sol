@@ -53,7 +53,7 @@ contract ConfigureRelease is DeployBaseRelease {
     SetPriceFeedOnOracleV4 setFeed;
     SetCloseFactor setCloseFactor;
 
-    uint256 constant DEFAULT_CLOSE_FACTOR = 0.1e18; //10%
+    uint256 constant DEFAULT_CLOSE_FACTOR = 0.5e18; //50%
 
     function setUp() public override {
         configPath = "deployment-config-release.json";
