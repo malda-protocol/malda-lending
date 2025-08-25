@@ -102,7 +102,7 @@ contract DeployRebalancers is Script {
 
     function _deployEverclearBridge(address roles, address spoke, address deployer) private returns (address) {
         console.log("Deploying Everclear bridge");
-        address result = deployEverclearBridge.run(roles, spoke, Deployer(payable(deployer)));
+        address result = deployEverclearBridge.run(roles, spoke, Deployer(payable(deployer)), address(0));
         console.log("Everclear bridge deployed at: ");
         return result;
     }

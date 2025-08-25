@@ -3,6 +3,7 @@ pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
 import {EverclearBridge} from "src/rebalancer/bridges/EverclearBridge.sol";
+import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 
 /**
@@ -16,12 +17,15 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployEverclearBridge is Script {
-    function run(address roles, address feeAdapter, Deployer deployer) public returns (address) {
+    function run(address roles, address feeAdapter, Deployer deployer, address rebalancer) public returns (address) {
         bytes32 salt = getSalt("EverclearBridgeV1.0");
 
         vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
         address created =
             deployer.create(salt, abi.encodePacked(type(EverclearBridge).creationCode, abi.encode(roles, feeAdapter)));
+        if (rebalancer != address(0)) {
+            Rebalancer(rebalancer).setWhitelistedBridgeStatus(created, true);
+        }
         vm.stopBroadcast();
 
         console.log(" EverclearBridge deployed at: %s", created);

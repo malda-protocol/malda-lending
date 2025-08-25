@@ -3,6 +3,7 @@ pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
 import {AccrossBridge} from "src/rebalancer/bridges/AcrossBridge.sol";
+import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 
 /**
@@ -16,12 +17,15 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployAcrossBridge is Script {
-    function run(address roles, address spoke, Deployer deployer) public returns (address) {
+    function run(address roles, address spoke, Deployer deployer, address rebalancer) public returns (address) {
         bytes32 salt = getSalt("AcrossBridgeV1.0");
 
         vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
         address created =
             deployer.create(salt, abi.encodePacked(type(AccrossBridge).creationCode, abi.encode(roles, spoke)));
+        if (rebalancer != address(0)) {
+            Rebalancer(rebalancer).setWhitelistedBridgeStatus(created, true);
+        }
         vm.stopBroadcast();
 
         console.log(" AccrossBridge deployed at: %s", created);
