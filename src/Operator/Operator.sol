@@ -618,6 +618,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
             require(totalAmount <= supplyCap, Operator_MarketSupplyReached());
         }
     }
+    
     /**
      * @inheritdoc IOperatorDefender
      */
