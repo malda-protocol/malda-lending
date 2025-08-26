@@ -168,6 +168,13 @@ interface ImErc20Host {
 
     // ----------- PUBLIC -----------
     /**
+     * @notice Updates whitelist status for an extension chain
+     * @param _chainId The chain to update for
+     * @param _status The new status
+     */
+    function updateAllowedChain(uint32 _chainId, bool _status) external;
+
+    /**
      * @notice Mints mTokens during migration without requiring underlying transfer
      * @param mint Mint or borrow
      * @param amount The amount of underlying to be accounted for

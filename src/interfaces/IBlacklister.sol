@@ -39,6 +39,12 @@ interface IBlacklister {
     /// @notice Blacklists a user immediately (onlyOwner).
     function blacklist(address user) external;
 
+    /// @notice Blacklists multiple users immediately (onlyOwner).
+    function batchBlacklist(address[] memory users) external;
+
     /// @notice Removes a user from the blacklist (onlyOwner).
     function unblacklist(address user) external;
+
+    /// @notice Removes multiple users from the blacklist (onlyOwner).
+    function batchUnblacklist(address[] memory users) external;
 }

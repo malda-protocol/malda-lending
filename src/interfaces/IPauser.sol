@@ -63,6 +63,20 @@ interface IPauser is ImTokenOperationTypes {
     function emergencyPauseMarketFor(address _market, OperationType _pauseType) external;
 
     /**
+     * @notice pauses a specific operation for multiple markets
+     * @param _markets the mToken addresses
+     * @param _pauseType the operation type
+     */
+    function emergencyPauseMarketsFor(address[] memory _markets, ImTokenOperationTypes.OperationType _pauseType) external;
+
+    /**
+     * @notice pauses multiple operations for a market
+     * @param _market the mToken address
+     * @param _pauseTypes the operation types
+     */
+    function emergencyPauseMarketForMultipleOperations(address _market, ImTokenOperationTypes.OperationType[] memory _pauseTypes) external;
+
+    /**
      * @notice pauses all operations for all registered markets
      */
     function emergencyPauseAll() external;

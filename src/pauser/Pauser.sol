@@ -96,6 +96,26 @@ contract Pauser is Ownable, IPauser {
     /**
      * @inheritdoc IPauser
      */
+    function emergencyPauseMarketsFor(address[] memory _markets, ImTokenOperationTypes.OperationType _pauseType) external {
+        uint256 marketsLength = _markets.length;
+        for (uint256 i; i < marketsLength; ++i) {
+            _pauseMarketOperation(_markets[i], _pauseType);
+        }
+    }
+
+    /**
+     * @inheritdoc IPauser
+     */
+    function emergencyPauseMarketForMultipleOperations(address _market, ImTokenOperationTypes.OperationType[] memory _pauseTypes) external {
+        uint256 opLength = _pauseTypes.length;
+        for (uint256 i; i < opLength; ++i) {
+            _pauseMarketOperation(_market, _pauseTypes[i]);
+        }
+    }
+
+    /**
+     * @inheritdoc IPauser
+     */
     function emergencyPauseAll() external {
         uint256 len = pausableContracts.length;
         for (uint256 i; i < len;) {

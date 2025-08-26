@@ -25,8 +25,7 @@ pragma solidity =0.8.28;
 
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {IBridge} from "src/interfaces/IBridge.sol";
-import {IOperator} from "src/interfaces/IOperator.sol";
-import {ImTokenMinimal, ImToken} from "src/interfaces/ImToken.sol";
+import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {IRebalancer, IRebalanceMarket} from "src/interfaces/IRebalancer.sol";
 
 import {SafeApprove} from "src/libraries/SafeApprove.sol";
