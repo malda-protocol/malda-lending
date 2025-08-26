@@ -107,12 +107,12 @@ contract EverclearBridge is BaseBridge, IBridge {
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _extractedAmount);
 
         if (_extractedAmount > params.amount) {
-            uint256 toReturn = _extractedAmount - params.amount;
+            uint256 toReturn = _extractedAmount - params.amount - params.feeParams.fee;
             IERC20(_token).safeTransfer(_market, toReturn);
             emit RebalancingReturnedToMarket(_market, toReturn, _extractedAmount);
         }
 
-        SafeApprove.safeApprove(params.inputAsset, address(everclearFeeAdapter), params.amount);
+        SafeApprove.safeApprove(params.inputAsset, address(everclearFeeAdapter), params.amount + params.feeParams.fee);
         (bytes32 id,) = everclearFeeAdapter.newIntent(
             params.destinations,
             params.receiver,
