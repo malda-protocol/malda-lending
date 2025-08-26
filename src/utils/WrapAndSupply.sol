@@ -86,7 +86,10 @@ contract WrapAndSupply {
 
         IERC20(underlying).approve(mTokenGateway, 0);
         IERC20(underlying).approve(mTokenGateway, amount);
-        ImTokenGateway(mTokenGateway).supplyOnHost(amount, receiver, selector);
+
+        uint256 _gasFee = ImTokenGateway(mTokenGateway).gasFee();
+        amount = msg.value - _gasFee;
+        ImTokenGateway(mTokenGateway).supplyOnHost{value: _gasFee}(amount, receiver, selector);
     }
 
     // ----------- PRIVATE ------------
