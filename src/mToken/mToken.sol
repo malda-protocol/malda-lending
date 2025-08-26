@@ -672,7 +672,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     function __mint(address minter, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer)
         private
     {
-        IOperatorDefender(operator).beforeMTokenMint(address(this), minter);
+        IOperatorDefender(operator).beforeMTokenMint(address(this), minter, receiver);
 
         Exp memory exchangeRate = Exp({mantissa: _exchangeRateStored()});
 

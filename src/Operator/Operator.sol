@@ -596,12 +596,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenMint(address mToken, address minter) external override onlyAllowedUser(minter) ifNotBlacklisted(minter) onlyFirewallApproved() {
+    function beforeMTokenMint(address mToken, address minter, address receiver) external override onlyAllowedUser(minter) ifNotBlacklisted(minter) onlyFirewallApproved() {
         require(!_paused[mToken][OperationType.Mint], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
         // Keep the flywheel moving
         _updateMaldaSupplyIndex(mToken);
         _distributeSupplierMalda(mToken, minter);
+        _distributeSupplierMalda(mToken, receiver);
     }
 
     /**
