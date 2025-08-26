@@ -3,6 +3,7 @@ pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
 import {LZBridge} from "src/rebalancer/bridges/LZBridge.sol";
+import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 
 /**
@@ -16,11 +17,14 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployLZBridge is Script {
-    function run(address roles, Deployer deployer) public returns (address) {
+    function run(address roles, Deployer deployer, address rebalancer) public returns (address) {
         bytes32 salt = getSalt("LZBridgeV1.0");
 
         vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
         address created = deployer.create(salt, abi.encodePacked(type(LZBridge).creationCode, abi.encode(roles)));
+        if (rebalancer != address(0)) {
+            Rebalancer(rebalancer).setWhitelistedBridgeStatus(created, true);
+        }
         vm.stopBroadcast();
 
         console.log(" LZBridge deployed at: %s", created);

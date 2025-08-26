@@ -458,7 +458,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
         if (spokePoolAddresses[configs[network].chainId] != address(0)) {
             console.log(" --- Deploying acrossBridge");
             address acrossBridge =
-                deployAcrossBridge.run(rolesContract, spokePoolAddresses[configs[network].chainId], deployer);
+                deployAcrossBridge.run(rolesContract, spokePoolAddresses[configs[network].chainId], deployer, address(0));
             console.log(" --- Deployed acrossBridge at ", acrossBridge);
         } else {
             console.log(
@@ -469,7 +469,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         console.log(" --- Deploying everclearBridge");
         address everclearBridge =
-            deployEverclearBridge.run(rolesContract, everclearAddresses[configs[network].chainId], deployer);
+            deployEverclearBridge.run(rolesContract, everclearAddresses[configs[network].chainId], deployer, address(0));
         console.log(" --- Deployed everclearBridge at ", everclearBridge);
 
         console.log(" ---- Setting REBALANCER role for the Rebalancer contract");

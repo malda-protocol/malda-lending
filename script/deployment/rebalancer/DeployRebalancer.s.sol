@@ -33,6 +33,14 @@ contract DeployRebalancer is Script {
                 deployer.create(salt, abi.encodePacked(type(Rebalancer).creationCode, abi.encode(roles, saveAddress)));
             vm.stopBroadcast();
             console.log("Rebalancer deployed at:", created);
+
+            console.log("Setting whitelisted destinations:", created);
+            vm.startBroadcast(key);
+            Rebalancer(created).setWhitelistedDestination(1, true);
+            Rebalancer(created).setWhitelistedDestination(10, true);
+            Rebalancer(created).setWhitelistedDestination(8453, true);
+            Rebalancer(created).setWhitelistedDestination(59144, true);
+            vm.stopBroadcast();
         } else {
             console.log("Using existing Rebalancer at: %s", created);
         }

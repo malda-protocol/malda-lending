@@ -7,9 +7,6 @@ import {MockEventEmitter} from "src/MockEventEmitter.sol";
 
 contract DeployEventEmitter is Script {
     function run() public returns (address) {
-        Deployer _deployer = Deployer(payable(0x7775C52aeA3780944aE69b389c23c9de325ce29B));
-
-
         console.log("Deploying EventEmitter");
 
  
