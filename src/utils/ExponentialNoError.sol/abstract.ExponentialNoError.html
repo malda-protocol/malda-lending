@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="exponentialnoerror"><a class="header" href="#exponentialnoerror">ExponentialNoError</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/ecb70d32c83ee81456e1e4b2bd6133658db80799/src/utils/ExponentialNoError.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/706552062fd3166fd57399cbdeb04df3d876e834/src/utils/ExponentialNoError.sol">Git Source</a></p>
 <p><strong>Author:</strong>
 Compound</p>
 <p>Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
@@ -294,6 +294,12 @@ For example, truncate(Exp{mantissa: 15 * expScale}) = 15</em></p>
 </code></pre>
 <h3 id="div_-6"><a class="header" href="#div_-6">div_</a></h3>
 <pre><code class="language-solidity">function div_(uint256 a, uint256 b) internal pure returns (uint256);
+</code></pre>
+<h3 id="divup_"><a class="header" href="#divup_">divUp_</a></h3>
+<pre><code class="language-solidity">function divUp_(uint256 a, uint256 b) internal pure returns (uint256);
+</code></pre>
+<h3 id="divup_-1"><a class="header" href="#divup_-1">divUp_</a></h3>
+<pre><code class="language-solidity">function divUp_(uint256 a, Exp memory b) internal pure returns (uint256);
 </code></pre>
 <h3 id="fraction"><a class="header" href="#fraction">fraction</a></h3>
 <pre><code class="language-solidity">function fraction(uint256 a, uint256 b) internal pure returns (Double memory);
