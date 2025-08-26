@@ -139,11 +139,12 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
     function handleV3AcrossMessage(
         address tokenSent,
         uint256 amount,
-        address, // relayer is unused
+        address relayer,
         bytes memory message
     ) external onlySpokePool nonReentrant {
         address market = abi.decode(message, (address));
         address _underlying = ImTokenMinimal(market).underlying();
+        require(whitelistedRelayers[uint32(block.chainid)][relayer], AcrossBridge_RelayerNotValid());
         require(_underlying == tokenSent, AcrossBridge_TokenMismatch());
         if (amount > 0) {
             IERC20(tokenSent).safeTransfer(market, amount);
