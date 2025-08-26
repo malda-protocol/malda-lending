@@ -139,7 +139,7 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
     function handleV3AcrossMessage(
         address tokenSent,
         uint256 amount,
-        address relayer, // relayer is unused
+        address relayer,
         bytes memory message
     ) external onlySpokePool nonReentrant {
         address market = abi.decode(message, (address));
