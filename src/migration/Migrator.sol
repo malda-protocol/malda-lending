@@ -23,9 +23,11 @@ import {Operator} from "src/Operator/Operator.sol";
 
 import {ImToken} from "src/interfaces/ImToken.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
+import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
+
 import "./IMigrator.sol";
 
-contract Migrator {
+contract Migrator is ExponentialNoError {
     using SafeERC20 for IERC20;
 
     mapping(address => bool) public allowedMarkets;
@@ -91,8 +93,9 @@ contract Migrator {
         for (uint256 i; i < posLength; ++i) {
             Position memory position = positions[i];
             if (position.collateralUnderlyingAmount > 0) {
-                uint256 minCollateral =
-                    position.collateralUnderlyingAmount - (position.collateralUnderlyingAmount * 1e4 / 1e5);
+                uint256 _exchangeRate = ImToken(position.maldaMarket).exchangeRateStored();
+                uint256 minCollateral =  
+                    div_(position.collateralUnderlyingAmount - (position.collateralUnderlyingAmount * 1e4 / 1e5), _exchangeRate);  
                 ImErc20Host(position.maldaMarket).mintOrBorrowMigration(
                     true, position.collateralUnderlyingAmount, msg.sender, address(0), minCollateral
                 );
