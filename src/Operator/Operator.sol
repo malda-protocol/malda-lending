@@ -581,7 +581,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external override ifNotBlacklisted(src) ifNotBlacklisted(dst) {
+    function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external override ifNotBlacklisted(src) ifNotBlacklisted(dst) onlyFirewallApproved() {
         require(!_paused[mToken][OperationType.Transfer], Operator_Paused());
 
         /* Get sender tokensHeld and amountOwed underlying from the mToken */
@@ -632,7 +632,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external override onlyAllowedUser(borrower) ifNotBlacklisted(borrower) {
+    function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external override onlyAllowedUser(borrower) ifNotBlacklisted(borrower) onlyFirewallApproved() {
         require(!_paused[mToken][OperationType.Borrow], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
