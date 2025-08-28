@@ -330,4 +330,18 @@ interface IOperator {
      * @param suppliers Whether or not to claim MALDA earned by supplying
      */
     function claimMalda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers) external;
+
+    /**
+     * @notice Set the given borrow caps for the given mToken markets. Borrowing that brings total borrows to or above borrow cap will revert.
+     * @param mTokens The addresses of the markets (tokens) to change the borrow caps for
+     * @param newBorrowCaps The new borrow cap values in underlying to be set. A value of 0 corresponds to unlimited borrowing.
+     */
+    function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newBorrowCaps) external;
+
+    /**
+     * @notice Set the given supply caps for the given mToken markets. Supplying that brings total supply to or above supply cap will revert.
+     * @param mTokens The addresses of the markets (tokens) to change the supply caps for
+     * @param newSupplyCaps The new supply cap values in underlying to be set. A value of 0 corresponds to unlimited supplying.
+     */
+    function setMarketSupplyCaps(address[] calldata mTokens, uint256[] calldata newSupplyCaps) external;
 }
