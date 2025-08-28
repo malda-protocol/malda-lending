@@ -27,6 +27,7 @@ import {SafeApprove} from "src/libraries/SafeApprove.sol";
 
 import {IBridge} from "src/interfaces/IBridge.sol";
 import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
+import {Operator} from "src/Operator/Operator.sol";
 import {IAcrossSpokePoolV3} from "src/interfaces/external/across/IAcrossSpokePoolV3.sol";
 
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
@@ -37,6 +38,7 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
     // ----------- STORAGE ------------
     address public immutable acrossSpokePool;
     uint256 public immutable maxSlippage;
+    address public immutable operator;
     mapping(uint32 => mapping(address => bool)) public whitelistedRelayers;
 
     uint256 private constant SLIPPAGE_PRECISION = 1e5;
@@ -62,11 +64,14 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
     error AcrossBridge_AddressNotValid();
     error AcrossBridge_SlippageNotValid();
     error AcrossBridge_RelayerNotValid();
+    error AcrossBridge_MarketNotValid();
 
-    constructor(address _roles, address _spokePool) BaseBridge(_roles) {
+    constructor(address _roles, address _spokePool, address _operator) BaseBridge(_roles) {
         require(_spokePool != address(0), AcrossBridge_AddressNotValid());
+        require(_operator != address(0), AcrossBridge_AddressNotValid());
         acrossSpokePool = _spokePool;
         maxSlippage = 1e4;
+        operator = _operator;
     }
 
     modifier onlySpokePool() {
@@ -143,6 +148,8 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
         bytes memory message
     ) external onlySpokePool nonReentrant {
         address market = abi.decode(message, (address));
+        (bool isListed,,) = Operator(operator).markets(market);
+        require(isListed, AcrossBridge_MarketNotValid());
         address _underlying = ImTokenMinimal(market).underlying();
         require(_underlying == tokenSent, AcrossBridge_TokenMismatch());
         if (amount > 0) {
