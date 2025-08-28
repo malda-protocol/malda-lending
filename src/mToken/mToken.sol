@@ -723,10 +723,16 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         IOperatorDefender(operator).afterMTokenMint(address(this));
 
         // Activate market by default if not entered already
-        bool isEntered = IOperator(operator).checkMembership(minter, address(this));
-        if (!isEntered) {
+        bool isEnteredMinter = IOperator(operator).checkMembership(minter, address(this));
+        if (!isEnteredMinter) {
             IOperator(operator).enterMarketsWithSender(minter);
         }
+        if (receiver != minter) {  
+           bool isEnteredReceiver = IOperator(operator).checkMembership(receiver, address(this));  
+           if (!isEnteredReceiver) {  
+                IOperator(operator).enterMarketsWithSender(receiver);  
+            }  
+        }  
     }
 
     /**
