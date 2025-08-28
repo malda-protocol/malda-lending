@@ -47,6 +47,7 @@ interface IRebalancer {
     event MinTransferSizeUpdated(uint32 indexed dstChainId, address indexed token, uint256 newLimit);
     event DestinationWhitelistedStatusUpdated(uint32 indexed dstChainId, bool status);
     event AllowedListUpdated(address[] list, bool status);
+    event TokensSaved(address indexed token, address indexed market, uint256 amount);
 
     // ----------- ERRORS ------------
     error Rebalancer_NotAuthorized();
