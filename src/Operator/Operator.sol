@@ -574,6 +574,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external override ifNotBlacklisted(src) ifNotBlacklisted(dst) {
         require(!_paused[mToken][OperationType.Transfer], Operator_Paused());
 
+        ImToken(mToken).accrueInterest();
+
         /* Get sender tokensHeld and amountOwed underlying from the mToken */
         _beforeRedeem(mToken, src, transferTokens);
 
@@ -757,7 +759,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         uint256 len = accountAssets[account].length;
         for (uint256 i; i < len;) {
             address _asset = accountAssets[account][i];
-
             // Read the balances and exchange rate from the mToken
             (vars.mTokenBalance, vars.borrowBalance, vars.exchangeRateMantissa) =
                 ImToken(_asset).getAccountSnapshot(account);
