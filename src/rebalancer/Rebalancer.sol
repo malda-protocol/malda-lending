@@ -44,6 +44,7 @@ contract Rebalancer is IRebalancer {
     mapping(address => bool) public whitelistedBridges;
     mapping(uint32 => bool) public whitelistedDestinations;
     mapping(address => bool) public allowedList;
+    address public admin;
 
     address public saveAddress;
 
@@ -57,13 +58,15 @@ contract Rebalancer is IRebalancer {
     mapping(uint32 => mapping(address => TransferInfo)) public currentTransferSize;
     uint256 public transferTimeWindow;
 
-    constructor(address _roles, address _saveAddress) {
+    constructor(address _roles, address _saveAddress, address _admin) {
         require(_roles != address(0), Rebalancer_AddressNotValid());
         require(_saveAddress != address(0), Rebalancer_AddressNotValid());
+        require(_admin != address(0), Rebalancer_AddressNotValid());
         
         roles = IRoles(_roles);
         transferTimeWindow = 86400;
         saveAddress = _saveAddress;
+        admin = _admin;
     }
 
     // ----------- OWNER METHODS ------------
@@ -101,7 +104,7 @@ contract Rebalancer is IRebalancer {
     }
 
     function saveTokens(address token, address market) external {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+        if (msg.sender != admin) revert Rebalancer_NotAuthorized();
         uint256 amount = IERC20(token).balanceOf(address(this));
         IERC20(token).safeTransfer(market, amount);
         emit TokensSaved(token, market, amount);
