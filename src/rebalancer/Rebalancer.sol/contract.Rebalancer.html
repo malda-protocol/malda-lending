@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="rebalancer"><a class="header" href="#rebalancer">Rebalancer</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/003d1371298b5cda1f754b2da5fe7d2826027cfa/src/rebalancer/Rebalancer.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/64ff14271bb080deeb7e732993d1de54524b81aa/src/rebalancer/Rebalancer.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/interfaces/IRebalancer.sol/interface.IRebalancer.html">IRebalancer</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
@@ -202,9 +202,6 @@
 <h3 id="allowedlist"><a class="header" href="#allowedlist">allowedList</a></h3>
 <pre><code class="language-solidity">mapping(address =&gt; bool) public allowedList;
 </code></pre>
-<h3 id="admin"><a class="header" href="#admin">admin</a></h3>
-<pre><code class="language-solidity">address public admin;
-</code></pre>
 <h3 id="saveaddress"><a class="header" href="#saveaddress">saveAddress</a></h3>
 <pre><code class="language-solidity">address public saveAddress;
 </code></pre>
@@ -217,12 +214,18 @@
 <h3 id="currenttransfersize"><a class="header" href="#currenttransfersize">currentTransferSize</a></h3>
 <pre><code class="language-solidity">mapping(uint32 =&gt; mapping(address =&gt; TransferInfo)) public currentTransferSize;
 </code></pre>
+<h3 id="whitelistedmarkets"><a class="header" href="#whitelistedmarkets">whitelistedMarkets</a></h3>
+<pre><code class="language-solidity">mapping(address =&gt; bool) public whitelistedMarkets;
+</code></pre>
 <h3 id="transfertimewindow"><a class="header" href="#transfertimewindow">transferTimeWindow</a></h3>
 <pre><code class="language-solidity">uint256 public transferTimeWindow;
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<pre><code class="language-solidity">constructor(address _roles, address _saveAddress, address _admin);
+<pre><code class="language-solidity">constructor(address _roles, address _saveAddress);
+</code></pre>
+<h3 id="setmarketstatus"><a class="header" href="#setmarketstatus">setMarketStatus</a></h3>
+<pre><code class="language-solidity">function setMarketStatus(address[] calldata list, bool status) external;
 </code></pre>
 <h3 id="setallowlist"><a class="header" href="#setallowlist">setAllowList</a></h3>
 <pre><code class="language-solidity">function setAllowList(address[] calldata list, bool status) external;
@@ -236,14 +239,15 @@
 <h3 id="saveeth"><a class="header" href="#saveeth">saveEth</a></h3>
 <pre><code class="language-solidity">function saveEth() external;
 </code></pre>
-<h3 id="savetokens"><a class="header" href="#savetokens">saveTokens</a></h3>
-<pre><code class="language-solidity">function saveTokens(address token, address market) external;
-</code></pre>
 <h3 id="setmintransfersize"><a class="header" href="#setmintransfersize">setMinTransferSize</a></h3>
 <pre><code class="language-solidity">function setMinTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external;
 </code></pre>
 <h3 id="setmaxtransfersize"><a class="header" href="#setmaxtransfersize">setMaxTransferSize</a></h3>
 <pre><code class="language-solidity">function setMaxTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external;
+</code></pre>
+<h3 id="ismarketwhitelisted"><a class="header" href="#ismarketwhitelisted">isMarketWhitelisted</a></h3>
+<p>returns if a market is whitelisted</p>
+<pre><code class="language-solidity">function isMarketWhitelisted(address market) external view returns (bool);
 </code></pre>
 <h3 id="isbridgewhitelisted"><a class="header" href="#isbridgewhitelisted">isBridgeWhitelisted</a></h3>
 <p>returns if a bridge implementation is whitelisted</p>
