@@ -25,13 +25,13 @@ pragma solidity =0.8.28;
 
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {IBridge} from "src/interfaces/IBridge.sol";
-import {IOperator} from "src/interfaces/IOperator.sol";
-import {ImTokenMinimal, ImToken} from "src/interfaces/ImToken.sol";
+import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {IRebalancer, IRebalanceMarket} from "src/interfaces/IRebalancer.sol";
+import {HypernativeFirewallProtected} from "src/libraries/HypernativeFirewallProtected.sol";
 
 import {SafeApprove} from "src/libraries/SafeApprove.sol";
 
-contract Rebalancer is IRebalancer {
+contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
     // ----------- STORAGE ------------
     IRoles public roles;
     uint256 public nonce;
@@ -62,7 +62,7 @@ contract Rebalancer is IRebalancer {
     }
 
     // ----------- OWNER METHODS ------------
-    function setAllowList(address[] calldata list, bool status) external {
+    function setAllowList(address[] calldata list, bool status) external onlyFirewallApproved() {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
 
         uint256 len = list.length;
@@ -72,20 +72,20 @@ contract Rebalancer is IRebalancer {
         emit AllowedListUpdated(list, status);
     }
 
-    function setWhitelistedBridgeStatus(address _bridge, bool _status) external {
+    function setWhitelistedBridgeStatus(address _bridge, bool _status) external onlyFirewallApproved() {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
         require(_bridge != address(0), Rebalancer_AddressNotValid());
         whitelistedBridges[_bridge] = _status;
         emit BridgeWhitelistedStatusUpdated(_bridge, _status);
     }
 
-    function setWhitelistedDestination(uint32 _dstId, bool _status) external {
+    function setWhitelistedDestination(uint32 _dstId, bool _status) external onlyFirewallApproved() {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
         emit DestinationWhitelistedStatusUpdated(_dstId, _status);
         whitelistedDestinations[_dstId] = _status;
     }
 
-    function saveEth() external {
+    function saveEth() external onlyFirewallApproved() {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
 
         uint256 amount = address(this).balance;
@@ -95,13 +95,13 @@ contract Rebalancer is IRebalancer {
         emit EthSaved(amount);
     }
 
-    function setMinTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external {
+    function setMinTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external onlyFirewallApproved() {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
         minTransferSizes[_dstChainId][_token] = _limit;
         emit MinTransferSizeUpdated(_dstChainId, _token, _limit);
     }
 
-    function setMaxTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external {
+    function setMaxTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external onlyFirewallApproved() {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
         maxTransferSizes[_dstChainId][_token] = _limit;
         emit MaxTransferSizeUpdated(_dstChainId, _token, _limit);
@@ -123,10 +123,14 @@ contract Rebalancer is IRebalancer {
     }
 
     // ----------- EXTERNAL METHODS ------------
+    function firewallRegister(address _account) public override(HypernativeFirewallProtected) {
+        super.firewallRegister(_account);
+    }
+    
     /**
      * @inheritdoc IRebalancer
      */
-    function sendMsg(address _bridge, address _market, uint256 _amount, Msg calldata _msg) external payable {
+    function sendMsg(address _bridge, address _market, uint256 _amount, Msg calldata _msg) external payable onlyFirewallApproved() {
         // checks
         if (!roles.isAllowedFor(msg.sender, roles.REBALANCER_EOA())) revert Rebalancer_NotAuthorized();
         require(whitelistedBridges[_bridge], Rebalancer_BridgeNotWhitelisted());
