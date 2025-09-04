@@ -99,6 +99,8 @@ contract LifiBridge is BaseBridge, IBridge, ReentrancyGuard {
         bytes memory,
         bytes memory
     ) external payable onlyRebalancer nonReentrant {
+        /// @dev no need to check destination and market here as these are already validated by `Rebalancer`
+        ///      The other bridges have a custom `bytes` param that is checked
 
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _extractedAmount);
 
