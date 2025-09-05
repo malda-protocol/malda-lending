@@ -25,6 +25,7 @@ import {DeployRbac} from "../generic/DeployRbac.s.sol";
 import {DeployZkVerifier} from "../generic/DeployZkVerifier.s.sol";
 import {DeployTimelockController} from "../generic/DeployTimelockController.s.sol";
 import {DeployGasHelper} from "../generic/DeployGasHelper.s.sol";
+import {DeployBlacklister} from "../generic/DeployBlacklister.s.sol";
 import {DeployPauser} from "../generic/DeployPauser.s.sol";
 import {DeployOperator} from "../markets/DeployOperator.s.sol";
 import {DeployJumpRateModelV4} from "../interest/DeployJumpRateModelV4.s.sol";
@@ -48,6 +49,7 @@ contract DeployCoreRelease is DeployBaseRelease {
     DeployRbac deployRbac;
     DeployBatchSubmitter deployBatchSubmitter;
     DeployJumpRateModelV4 deployInterest;
+    DeployBlacklister deployBlacklister;
     DeployOperator deployOperator;
     DeployPauser deployPauser;
     DeployMixedPriceOracleV4 deployOracle;
@@ -101,10 +103,12 @@ contract DeployCoreRelease is DeployBaseRelease {
             deployInterest = new DeployJumpRateModelV4();
             deployGasHelper = new DeployGasHelper();
             setRole = new SetRole();
+            deployBlacklister = new DeployBlacklister();
 
             owner = configs[network].deployer.owner;
             deployer = Deployer(payable(_deployDeployer(network)));
             address rolesContract = _deployRoles(owner);
+            address blacklister = _deployBlacklister(rolesContract);
             address zkVerifier = _deployZkVerifier(
                 owner, configs[network].zkVerifier.verifierAddress, configs[network].zkVerifier.imageId
             );
@@ -119,7 +123,7 @@ contract DeployCoreRelease is DeployBaseRelease {
             address operator;
             if (configs[network].isHost) {
                 console.log("Deploying host chain");
-                (pauser, rewardDistributor, oracle, operator) = _deployHostChain(network, rolesContract);
+                (pauser, rewardDistributor, oracle, operator) = _deployHostChain(network, rolesContract, blacklister);
             } else {
                 console.log("Deploying extension chain");
                 pauser = _deployExtensionChain(rolesContract);
@@ -133,6 +137,7 @@ contract DeployCoreRelease is DeployBaseRelease {
             // }
             string memory json;
             json = vm.serializeAddress("core", "Pauser", pauser);
+            json = vm.serializeAddress("core", "Blacklister", blacklister);
             json = vm.serializeAddress("core", "BatchSubmitter", batchSubmitter);
             json = vm.serializeAddress("core", "TimelockController", timelock);
             json = vm.serializeAddress("core", "ZkVerifier", zkVerifier);
@@ -183,13 +188,13 @@ contract DeployCoreRelease is DeployBaseRelease {
         console.log(" --- All rebalancer contracts deployed and configured for network", network);
     }
 
-    function _deployHostChain(string memory network, address rolesContract)
+    function _deployHostChain(string memory network, address rolesContract, address blacklister)
         internal
         returns (address pauser, address rewardDistributor, address oracle, address operator)
     {
         rewardDistributor = _deployRewardDistributor();
         oracle = _deployOracle(configs[network].oracle, rolesContract);
-        operator = _deployOperator(oracle, rewardDistributor, rolesContract);
+        operator = _deployOperator(blacklister, oracle, rewardDistributor, rolesContract);
         pauser = _deployPauser(rolesContract, operator);
 
         _setOperatorInRewardDistributor(operator, rewardDistributor);
@@ -224,11 +229,11 @@ contract DeployCoreRelease is DeployBaseRelease {
         return deployOracle.runWithoutFeeds(deployer, rolesContract, oracleConfig.stalenessPeriod);
     }
 
-    function _deployOperator(address oracle, address rewardDistributor, address rolesContract)
+    function _deployOperator(address blacklister, address oracle, address rewardDistributor, address rolesContract)
         internal
         returns (address)
     {
-        return deployOperator.run(deployer, oracle, rewardDistributor, rolesContract, owner);
+        return deployOperator.run(deployer, blacklister, oracle, rewardDistributor, rolesContract, owner);
     }
 
     function _deployPauser(address rolesContract, address operator) internal returns (address) {
@@ -237,6 +242,10 @@ contract DeployCoreRelease is DeployBaseRelease {
 
     function _deployGasHelper() internal returns (address) {
         return deployGasHelper.run(deployer, owner);
+    }
+
+    function _deployBlacklister(address roles) internal returns (address) {
+        return deployBlacklister.run(deployer, owner, roles);
     }
 
     function _setOperatorInRewardDistributor(address operator, address rewardDistributor) internal {

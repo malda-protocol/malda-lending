@@ -22,6 +22,7 @@ import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 import {DeployDeployer} from "../../deployers/DeployDeployer.s.sol";
 import {DeployRbac} from "../generic/DeployRbac.s.sol";
 import {DeployZkVerifier} from "../generic/DeployZkVerifier.s.sol";
+import {DeployBlacklister} from "../generic/DeployBlacklister.s.sol";
 import {DeployPauser} from "../generic/DeployPauser.s.sol";
 import {DeployGasHelper} from "../generic/DeployGasHelper.s.sol";
 import {DeployOperator} from "../markets/DeployOperator.s.sol";
@@ -31,7 +32,6 @@ import {DeployBatchSubmitter} from "../generic/DeployBatchSubmitter.s.sol";
 import {DeployMixedPriceOracleV4} from "../oracles/DeployMixedPriceOracleV4.s.sol";
 
 import {SetRole} from "../../configuration/SetRole.s.sol";
-import {SetOperatorInRewardDistributor} from "../../configuration/SetOperatorInRewardDistributor.s.sol";
 
 // forge script DeployCoreTestnet --slow
 // forge script DeployCoreTestnet --slow  --multi --verify --broadcast
@@ -50,6 +50,7 @@ contract DeployCoreTestnet is DeployBaseRelease {
     DeployMixedPriceOracleV4 deployOracle;
     DeployRewardDistributor deployReward;
     DeployZkVerifier deployZkVerifier;
+    DeployBlacklister deployBlacklister;
     DeployGasHelper deployGasHelper;
     SetRole setRole;
 
@@ -72,6 +73,8 @@ contract DeployCoreTestnet is DeployBaseRelease {
 
             deployGasHelper = new DeployGasHelper();
 
+            deployBlacklister = new DeployBlacklister();
+
             // deploys or fetches the existing one
             deployRbac = new DeployRbac();
             deployZkVerifier = new DeployZkVerifier();
@@ -87,6 +90,8 @@ contract DeployCoreTestnet is DeployBaseRelease {
             );
             _deployBatchSubmitter(rolesContract, zkVerifier);
 
+            address blacklister = _deployBlacklister(rolesContract);
+
             deployPauser = new DeployPauser();
 
             _deployGasHelper();
@@ -100,7 +105,7 @@ contract DeployCoreTestnet is DeployBaseRelease {
 
                 address rewardDistributor = _deployRewardDistributor();
                 address oracle = _deployOracle(configs[network].oracle, rolesContract);
-                address operator = _deployOperator(oracle, rewardDistributor, rolesContract);
+                address operator = _deployOperator(blacklister, oracle, rewardDistributor, rolesContract);
 
                 console.log("Deploying Pauser on host chain");
                 pauser = _deployPauser(rolesContract, operator);
@@ -140,11 +145,11 @@ contract DeployCoreTestnet is DeployBaseRelease {
         return deployOracle.runTestnet(deployer, rolesContract, oracleConfig.stalenessPeriod);
     }
 
-    function _deployOperator(address oracle, address rewardDistributor, address rolesContract)
+    function _deployOperator(address blacklisterOperator, address oracle, address rewardDistributor, address rolesContract)
         internal
         returns (address)
     {
-        return deployOperator.run(deployer, oracle, rewardDistributor, rolesContract, owner);
+        return deployOperator.run(deployer, blacklisterOperator, oracle, rewardDistributor, rolesContract, owner);
     }
 
     function _deployPauser(address rolesContract, address operator) internal returns (address) {
@@ -153,6 +158,10 @@ contract DeployCoreTestnet is DeployBaseRelease {
 
     function _deployGasHelper() internal returns (address) {
         return deployGasHelper.run(deployer, owner);
+    }
+
+    function _deployBlacklister(address roles) internal returns (address) {
+        return deployBlacklister.run(deployer, owner, roles);
     }
 
     function _deployInterestModel(InterestConfig memory modelConfig) internal returns (address) {
