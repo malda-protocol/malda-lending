@@ -222,6 +222,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
      */
     function resetOutflowVolume() external onlyOwner {
         cumulativeOutflowVolume = 0;
+        lastOutflowResetTimestamp = block.timestamp;
         emit OutflowVolumeReset();
     }
 
