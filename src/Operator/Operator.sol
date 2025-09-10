@@ -680,7 +680,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         uint256 borrowBalance = ImToken(mTokenBorrowed).borrowBalanceStored(borrower);
 
         if (_isDeprecated(mTokenBorrowed)) {
-            require(borrowBalance >= repayAmount, Operator_RepayAmountNotValid());
+            require(borrowBalance == repayAmount, Operator_RepayAmountNotValid());
         } else {
             (, uint256 shortfall) = _getHypotheticalAccountLiquidity(borrower, address(0), 0, 0);
             require(shortfall > 0, Operator_InsufficientLiquidity());
