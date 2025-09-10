@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="mixedpriceoraclev4"><a class="header" href="#mixedpriceoraclev4">MixedPriceOracleV4</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/f48f3994e0c4e069ceb044732bc8ce6a89c9688a/src/oracles/MixedPriceOracleV4.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/5dcb88c917588368b6685761d80e0ff3edfaacc8/src/oracles/MixedPriceOracleV4.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/interfaces/IOracleOperator.sol/interface.IOracleOperator.html">IOracleOperator</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
@@ -230,11 +230,8 @@
 <h3 id="_getpriceusd"><a class="header" href="#_getpriceusd">_getPriceUSD</a></h3>
 <pre><code class="language-solidity">function _getPriceUSD(string memory symbol) internal view returns (uint256);
 </code></pre>
-<h3 id="_getapi3price"><a class="header" href="#_getapi3price">_getApi3Price</a></h3>
-<pre><code class="language-solidity">function _getApi3Price(string memory symbol) internal view returns (uint256 price, uint256 lastUpdate);
-</code></pre>
-<h3 id="_geteoracleprice"><a class="header" href="#_geteoracleprice">_geteOraclePrice</a></h3>
-<pre><code class="language-solidity">function _geteOraclePrice(string memory symbol) internal view returns (uint256 price, uint256 lastUpdate);
+<h3 id="_getlatestprice"><a class="header" href="#_getlatestprice">_getLatestPrice</a></h3>
+<pre><code class="language-solidity">function _getLatestPrice(string memory symbol, PriceConfig memory config) internal view returns (uint256, uint256);
 </code></pre>
 <h3 id="_absdiff"><a class="header" href="#_absdiff">_absDiff</a></h3>
 <pre><code class="language-solidity">function _absDiff(int256 a, int256 b) internal pure returns (uint256);
@@ -268,8 +265,14 @@
 <h3 id="mixedpriceoracle_invalidprice"><a class="header" href="#mixedpriceoracle_invalidprice">MixedPriceOracle_InvalidPrice</a></h3>
 <pre><code class="language-solidity">error MixedPriceOracle_InvalidPrice();
 </code></pre>
+<h3 id="mixedpriceoracle_invalidround"><a class="header" href="#mixedpriceoracle_invalidround">MixedPriceOracle_InvalidRound</a></h3>
+<pre><code class="language-solidity">error MixedPriceOracle_InvalidRound();
+</code></pre>
 <h3 id="mixedpriceoracle_invalidconfig"><a class="header" href="#mixedpriceoracle_invalidconfig">MixedPriceOracle_InvalidConfig</a></h3>
 <pre><code class="language-solidity">error MixedPriceOracle_InvalidConfig();
+</code></pre>
+<h3 id="mixedpriceoracle_invalidconfigdecimals"><a class="header" href="#mixedpriceoracle_invalidconfigdecimals">MixedPriceOracle_InvalidConfigDecimals</a></h3>
+<pre><code class="language-solidity">error MixedPriceOracle_InvalidConfigDecimals();
 </code></pre>
 <h3 id="mixedpriceoracle_deltatoohigh"><a class="header" href="#mixedpriceoracle_deltatoohigh">MixedPriceOracle_DeltaTooHigh</a></h3>
 <pre><code class="language-solidity">error MixedPriceOracle_DeltaTooHigh();
