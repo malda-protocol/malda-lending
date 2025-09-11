@@ -49,6 +49,8 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     // Add migrator address
     address public migrator;
 
+    uint256[50] private __gap;  
+
     // Add modifier for migrator only
     modifier onlyMigrator() {
         require(msg.sender == migrator, mErc20Host_CallerNotAllowed());
