@@ -105,6 +105,10 @@ contract Rebalancer is IRebalancer {
 
     function saveTokens(address token, address market) external {
         if (msg.sender != admin) revert Rebalancer_NotAuthorized();
+
+        address _underlying = ImTokenMinimal(market).underlying();
+        require(_underlying == token, Rebalancer_RequestNotValid());
+        
         uint256 amount = IERC20(token).balanceOf(address(this));
         IERC20(token).safeTransfer(market, amount);
         emit TokensSaved(token, market, amount);
