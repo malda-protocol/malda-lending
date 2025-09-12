@@ -155,18 +155,21 @@ contract Rebalancer is IRebalancer {
         // min transfer size check
         require(_amount > minTransferSizes[_msg.dstChainId][_msg.token], Rebalancer_TransferSizeMinNotMet());
 
-        // max transfer size checks
-        TransferInfo memory transferInfo = currentTransferSize[_msg.dstChainId][_msg.token];
+        // max transfer size checks (FIXED)
+        TransferInfo storage transferInfo = currentTransferSize[_msg.dstChainId][_msg.token];
         uint256 transferSizeDeadline = transferInfo.timestamp + transferTimeWindow;
+
         if (transferSizeDeadline < block.timestamp) {
-            currentTransferSize[_msg.dstChainId][_msg.token] = TransferInfo(_amount, block.timestamp);
+            // reset the window
+            transferInfo.size = _amount;
+            transferInfo.timestamp = block.timestamp;
         } else {
-            currentTransferSize[_msg.dstChainId][_msg.token].size += _amount;
+            transferInfo.size += _amount;
         }
 
         uint256 _maxTransferSize = maxTransferSizes[_msg.dstChainId][_msg.token];
         if (_maxTransferSize > 0) {
-            require(transferInfo.size + _amount < _maxTransferSize, Rebalancer_TransferSizeExcedeed());
+            require(transferInfo.size <= _maxTransferSize, Rebalancer_TransferSizeExcedeed());
         }
 
         // retrieve amounts (make sure to check min and max for that bridge)
