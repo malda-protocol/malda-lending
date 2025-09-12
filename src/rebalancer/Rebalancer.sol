@@ -72,6 +72,7 @@ contract Rebalancer is IRebalancer {
             allowedTokensPerBridge[bridge][tokens[i]] = status;
         }
         emit AllowedTokensUpdated(bridge, status, tokens);
+    }
 
     function setMarketStatus(address[] calldata list, bool status) external {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
