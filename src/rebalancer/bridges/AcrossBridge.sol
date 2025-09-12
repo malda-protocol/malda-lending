@@ -26,6 +26,7 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 import {SafeApprove} from "src/libraries/SafeApprove.sol";
 
 import {IBridge} from "src/interfaces/IBridge.sol";
+import {IRebalancer} from "src/interfaces/IRebalancer.sol";
 import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {IAcrossSpokePoolV3} from "src/interfaces/external/across/IAcrossSpokePoolV3.sol";
 
@@ -37,6 +38,7 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
     // ----------- STORAGE ------------
     address public immutable acrossSpokePool;
     uint256 public immutable maxSlippage;
+    address public immutable rebalancer;
     mapping(uint32 => mapping(address => bool)) public whitelistedRelayers;
 
     uint256 private constant SLIPPAGE_PRECISION = 1e5;
@@ -62,11 +64,14 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
     error AcrossBridge_AddressNotValid();
     error AcrossBridge_SlippageNotValid();
     error AcrossBridge_RelayerNotValid();
+    error AcrossBridge_InvalidReceiver();
 
-    constructor(address _roles, address _spokePool) BaseBridge(_roles) {
+    constructor(address _roles, address _spokePool, address _rebalancer) BaseBridge(_roles) {
         require(_spokePool != address(0), AcrossBridge_AddressNotValid());
+        require(_rebalancer != address(0), AcrossBridge_AddressNotValid());
         acrossSpokePool = _spokePool;
         maxSlippage = 1e4;
+        rebalancer = _rebalancer;
     }
 
     modifier onlySpokePool() {
@@ -143,6 +148,7 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
         bytes memory message
     ) external onlySpokePool nonReentrant {
         address market = abi.decode(message, (address));
+        require(IRebalancer(rebalancer).isMarketWhitelisted(market), AcrossBridge_InvalidReceiver());
         address _underlying = ImTokenMinimal(market).underlying();
         require(whitelistedRelayers[uint32(block.chainid)][relayer], AcrossBridge_RelayerNotValid());
         require(_underlying == tokenSent, AcrossBridge_TokenMismatch());
