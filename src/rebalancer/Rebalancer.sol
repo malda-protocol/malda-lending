@@ -50,6 +50,7 @@ contract Rebalancer is IRebalancer {
     mapping(uint32 => mapping(address => uint256)) public maxTransferSizes;
     mapping(uint32 => mapping(address => uint256)) public minTransferSizes;
     mapping(uint32 => mapping(address => TransferInfo)) public currentTransferSize;
+    mapping(address => bool) public whitelistedMarkets;
     uint256 public transferTimeWindow;
 
     constructor(address _roles, address _saveAddress) {
@@ -62,6 +63,16 @@ contract Rebalancer is IRebalancer {
     }
 
     // ----------- OWNER METHODS ------------
+    function setMarketStatus(address[] calldata list, bool status) external {
+        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+
+        uint256 len = list.length;
+        for (uint256 i; i < len; i++) {
+            whitelistedMarkets[list[i]] = status;
+        }
+        emit MarketListUpdated(list, status);
+    }
+
     function setAllowList(address[] calldata list, bool status) external {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
 
@@ -108,6 +119,13 @@ contract Rebalancer is IRebalancer {
     }
 
     // ----------- VIEW METHODS ------------
+     /**
+     * @inheritdoc IRebalancer
+     */
+    function isMarketWhitelisted(address market) external view returns (bool) {
+        return whitelistedMarkets[market];
+    }
+
     /**
      * @inheritdoc IRebalancer
      */
