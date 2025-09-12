@@ -155,7 +155,7 @@ contract Rebalancer is IRebalancer {
         // min transfer size check
         require(_amount > minTransferSizes[_msg.dstChainId][_msg.token], Rebalancer_TransferSizeMinNotMet());
 
-        // max transfer size checks (FIXED)
+        // max transfer size checks
         TransferInfo storage transferInfo = currentTransferSize[_msg.dstChainId][_msg.token];
         uint256 transferSizeDeadline = transferInfo.timestamp + transferTimeWindow;
 
