@@ -187,6 +187,15 @@ abstract contract ExponentialNoError {
         return a / b;
     }
 
+    function divUp_(uint256 a, uint256 b) internal pure returns (uint256) {
+        require(b != 0, "DIV_BY_ZERO");
+        return a == 0 ? 0 : 1 + (a - 1) / b;
+    }
+
+    function divUp_(uint256 a, Exp memory b) internal pure returns (uint256) {
+        return divUp_(mul_(a, expScale), b.mantissa);
+    }
+
     function fraction(uint256 a, uint256 b) internal pure returns (Double memory) {
         return Double({mantissa: div_(mul_(a, doubleScale), b)});
     }
