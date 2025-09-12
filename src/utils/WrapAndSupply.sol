@@ -60,7 +60,8 @@ contract WrapAndSupply {
         address underlying = ImTokenMinimal(mToken).underlying();
         require(underlying == address(wrappedNative), WrapAndSupply_AddressNotValid());
 
-        uint256 amount = _wrap();
+        uint256 amount = msg.value;
+        _wrap(amount);
 
         IERC20(underlying).approve(mToken, 0);
         IERC20(underlying).approve(mToken, amount);
@@ -82,22 +83,22 @@ contract WrapAndSupply {
         address underlying = ImTokenGateway(mTokenGateway).underlying();
         require(underlying == address(wrappedNative), WrapAndSupply_AddressNotValid());
 
-        uint256 amount = _wrap();
+        uint256 _gasFee = ImTokenGateway(mTokenGateway).gasFee();
+        uint256 amount = msg.value - _gasFee;
+
+        _wrap(amount);
 
         IERC20(underlying).approve(mTokenGateway, 0);
         IERC20(underlying).approve(mTokenGateway, amount);
 
-        uint256 _gasFee = ImTokenGateway(mTokenGateway).gasFee();
-        amount = msg.value - _gasFee;
         ImTokenGateway(mTokenGateway).supplyOnHost{value: _gasFee}(amount, receiver, selector);
     }
 
     // ----------- PRIVATE ------------
-    function _wrap() private returns (uint256) {
-        uint256 amount = msg.value;
-        require(amount > 0, WrapAndSupply_AmountNotValid());
+    function _wrap(uint256 amountToWrap) private {
+        require(amountToWrap <= msg.value, WrapAndSupply_AmountNotValid());
+        require(amountToWrap > 0, WrapAndSupply_AmountNotValid());
 
-        wrappedNative.deposit{value: amount}();
-        return amount;
+        wrappedNative.deposit{value: amountToWrap}();
     }
 }
