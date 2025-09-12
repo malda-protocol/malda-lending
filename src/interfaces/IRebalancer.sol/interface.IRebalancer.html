@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="irebalancer"><a class="header" href="#irebalancer">IRebalancer</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/4bb94799198a7dd150ff0cc3101487f677c1a2cd/src/interfaces/IRebalancer.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/f52cc598bd4f25ca9dd247971cef2f44f0a56538/src/interfaces/IRebalancer.sol">Git Source</a></p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="nonce"><a class="header" href="#nonce">nonce</a></h3>
 <p>returns current nonce</p>
@@ -193,6 +193,10 @@
 <h3 id="isdestinationwhitelisted"><a class="header" href="#isdestinationwhitelisted">isDestinationWhitelisted</a></h3>
 <p>returns if a destination is whitelisted</p>
 <pre><code class="language-solidity">function isDestinationWhitelisted(uint32 dstId) external view returns (bool);
+</code></pre>
+<h3 id="ismarketwhitelisted"><a class="header" href="#ismarketwhitelisted">isMarketWhitelisted</a></h3>
+<p>returns if a market is whitelisted</p>
+<pre><code class="language-solidity">function isMarketWhitelisted(address market) external view returns (bool);
 </code></pre>
 <h3 id="sendmsg"><a class="header" href="#sendmsg">sendMsg</a></h3>
 <p>sends a bridge message</p>
@@ -232,6 +236,9 @@
 </code></pre>
 <h3 id="tokenssaved"><a class="header" href="#tokenssaved">TokensSaved</a></h3>
 <pre><code class="language-solidity">event TokensSaved(address indexed token, address indexed market, uint256 amount);
+</code></pre>
+<h3 id="marketlistupdated"><a class="header" href="#marketlistupdated">MarketListUpdated</a></h3>
+<pre><code class="language-solidity">event MarketListUpdated(address[] list, bool status);
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="rebalancer_notauthorized"><a class="header" href="#rebalancer_notauthorized">Rebalancer_NotAuthorized</a></h3>
