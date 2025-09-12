@@ -625,7 +625,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
              *  redeemTokens = redeemAmountIn / exchangeRate
              *  redeemAmount = redeemAmountIn
              */
-            redeemTokens = div_(redeemAmountIn, exchangeRate);
+            redeemTokens = divUp_(redeemAmountIn, exchangeRate);
             redeemAmount = redeemAmountIn;
         }
         if (redeemTokens == 0 && redeemAmount == 0) revert mt_RedeemEmpty();
