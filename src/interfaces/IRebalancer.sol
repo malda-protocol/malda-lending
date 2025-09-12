@@ -47,6 +47,7 @@ interface IRebalancer {
     event MinTransferSizeUpdated(uint32 indexed dstChainId, address indexed token, uint256 newLimit);
     event DestinationWhitelistedStatusUpdated(uint32 indexed dstChainId, bool status);
     event AllowedListUpdated(address[] list, bool status);
+    event MarketListUpdated(address[] list, bool status);
 
     // ----------- ERRORS ------------
     error Rebalancer_NotAuthorized();
@@ -73,6 +74,11 @@ interface IRebalancer {
      * @notice returns if a destination is whitelisted
      */
     function isDestinationWhitelisted(uint32 dstId) external view returns (bool);
+
+     /**
+     * @notice returns if a market is whitelisted
+     */
+    function isMarketWhitelisted(address market) external view returns (bool);
 
     // ----------- EXTERNAL METHODS ------------
     /**

@@ -92,16 +92,8 @@ contract EverclearBridge is BaseBridge, IBridge {
         require(address(uint160(uint256(params.receiver))) == _market, BaseBridge_AddressNotValid());
 
         uint256 destinationsLength = params.destinations.length;
-        require(destinationsLength > 0, Everclear_DestinationsLengthMismatch());
-
-        bool found;
-        for (uint256 i; i < destinationsLength; ++i) {
-            if (params.destinations[i] == _dstChainId) {
-                found = true;
-                break;
-            }
-        }
-        require(found, Everclear_DestinationNotValid());
+        require(destinationsLength == 1, Everclear_DestinationsLengthMismatch());
+        require (params.destinations[0] == _dstChainId, Everclear_DestinationNotValid());
 
         if (_extractedAmount > params.amount) {
             uint256 toReturn = _extractedAmount - params.amount;
