@@ -135,12 +135,12 @@ contract MixedPriceOracleV4 is IOracleOperator {
 
         // staleness
         uint256 _staleness = _getStaleness(symbol);
-        bool api3Fresh = block.timestamp - api3LastUpdate <= _staleness;
+        bool api3Fresh = _isFresh(api3LastUpdate, _staleness);
         if (!api3Fresh || deltaBps > deltaSymbol) {
-            require(block.timestamp - eOracleLastUpdate <= _staleness, MixedPriceOracle_eOracleStalePrice());
+            require(_isFresh(eOracleLastUpdate, _staleness), MixedPriceOracle_eOracleStalePrice());
             return eOracleUsd;
         } else {
-            require(block.timestamp - api3LastUpdate <= _staleness, MixedPriceOracle_ApiV3StalePrice());
+            require(_isFresh(api3LastUpdate, _staleness), MixedPriceOracle_ApiV3StalePrice());
             return api3Usd;
         }
     }
@@ -180,6 +180,14 @@ contract MixedPriceOracleV4 is IOracleOperator {
             }
         }
     }
+
+    // Safe freshness check helper  
+    function _isFresh(uint256 updatedAt, uint256 staleness) internal view returns (bool) {  
+        uint256 timeDiff = updatedAt > block.timestamp ?   
+            updatedAt - block.timestamp :   
+            block.timestamp - updatedAt;  
+        return timeDiff <= staleness;  
+    }  
 
     // ----------- HELPERS ------------
     function _absDiff(int256 a, int256 b) internal pure returns (uint256) {
