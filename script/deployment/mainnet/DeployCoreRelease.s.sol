@@ -163,7 +163,7 @@ contract DeployCoreRelease is DeployBaseRelease {
 
         if (spokePoolAddresses[configs[network].chainId] != address(0)) {
             console.log(" --- Deploying acrossBridge");
-            acrossBridge = deployAcrossBridge.run(rolesContract, spokePoolAddresses[configs[network].chainId], deployer);
+            acrossBridge = deployAcrossBridge.run(rolesContract, spokePoolAddresses[configs[network].chainId], rebalancer, deployer);
             console.log(" --- Deployed acrossBridge at ", acrossBridge);
         } else {
             console.log(
