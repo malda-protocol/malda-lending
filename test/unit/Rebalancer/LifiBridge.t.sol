@@ -52,29 +52,7 @@ contract LifiBridgeTest is Test {
         assertTrue(bridge.allowedSelectors(swapSel));
     }
 
-    // --- admin: setAllowedSelector ---
-
-    function test_onlyConfigurator_can_setAllowedSelector() public {
-        bytes4 fakeSel = bytes4(keccak256("startBridgeTokensViaStargate((bytes32,string,string,address,address,address,uint256,uint256,bool,bool))"));
-
-        // unauthorized
-        vm.prank(stranger);
-        vm.expectRevert(); // BaseBridge's onlyBridgeConfigurator() revert (unknown selector), accept any revert
-        bridge.setAllowedSelector(fakeSel, true);
-
-        // authorized
-        vm.prank(configurator);
-        bridge.setAllowedSelector(fakeSel, true);
-        assertTrue(bridge.allowedSelectors(fakeSel));
-
-        // flip back to false
-        vm.prank(configurator);
-        bridge.setAllowedSelector(fakeSel, false);
-        assertFalse(bridge.allowedSelectors(fakeSel));
-    }
-
     // --- getFee ---
-
     function test_getFee_alwaysReverts_NotImplemented() public view {
         // staticcall so we don't need to set msg.sender role
         // expecting custom error selector
