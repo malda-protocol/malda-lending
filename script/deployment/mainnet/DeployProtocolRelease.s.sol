@@ -630,7 +630,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
         internal
         returns (address)
     {
-        return deployOperator.run(deployer, oracle, rewardDistributor, rolesContract, owner);
+        return deployOperator.run(deployer, address(0), oracle, rewardDistributor, rolesContract, owner);
     }
 
     function _deployPauser(address rolesContract, address operator) internal returns (address) {
@@ -683,7 +683,7 @@ contract DeployProtocolRelease is DeployBaseRelease {
         address zkVerifier,
         address rolesContract
     ) internal returns (address) {
-        return deployExt.run(_deployer, market.underlying, market.name, owner, zkVerifier, rolesContract);
+        return deployExt.run(_deployer, address(0), market.underlying, market.name, owner, zkVerifier, rolesContract);
     }
 
     function _configureMarket(

@@ -245,7 +245,7 @@ contract DeployProtocolUpdated is DeployBase {
         internal
         returns (address)
     {
-        return deployOperator.run(deployer, oracle, rewardDistributor, rolesContract, owner);
+        return deployOperator.run(deployer, address(0), oracle, rewardDistributor, rolesContract, owner);
     }
 
     function _deployPauser(address rolesContract, address operator) internal {
@@ -297,7 +297,7 @@ contract DeployProtocolUpdated is DeployBase {
         returns (address)
     {
         console.log("----------------- market.name", market.name);
-        return deployExt.run(_deployer, market.underlying, market.name, owner, zkVerifier, rolesContract);
+        return deployExt.run(_deployer, address(0), market.underlying, market.name, owner, zkVerifier, rolesContract);
     }
 
     function _configureMarket(

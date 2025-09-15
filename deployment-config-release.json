@@ -15,7 +15,7 @@
       "isHost": true,
       "deployer": {
         "owner": "0xB819A871d20913839c37f316Dc914b0570bfc0eE", 
-        "salt": "DeployerV1.0.4"
+        "salt": "DeployerV1.0.5"
       },
       "oracle": {
         "oracleType": "MixedPriceOracleV3",

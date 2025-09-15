@@ -35,6 +35,7 @@ contract DeployMarketsTestnet is DeployBaseRelease {
     address interestModel;
     address oracle;
     address pauser;
+    address blacklister;
 
     DeployHostMarket deployHost;
     DeployExtensionMarket deployExt;
@@ -53,12 +54,13 @@ contract DeployMarketsTestnet is DeployBaseRelease {
         operator = 0x5908318Cbd299Dc8d6D0D7b9548cab732B61d9Dc;
         oracle = 0xFd8C637973AFC6a372b663831ef18163127A9a32;
         pauser = 0xD4eDaD10c61D32B91f8eB12157c5Ed9E4B10854f;
+        blacklister = 0xD4eDaD10c61D32B91f8eB12157c5Ed9E4B10854f;
         // SET before running it ^!
 
         // check to make sure addresses were set
         if (
             oracle == address(0) || address(deployer) == address(0) || rolesContract == address(0)
-                || zkVerifier == address(0) || operator == address(0) || pauser == address(0)
+                || zkVerifier == address(0) || operator == address(0) || pauser == address(0) || blacklister == address(0)
         ) {
             revert ADDRESSES_NOT_SET();
         }
@@ -143,7 +145,7 @@ contract DeployMarketsTestnet is DeployBaseRelease {
     }
 
     function _deployExtensionMarket(MarketRelease memory market) internal returns (address) {
-        return deployExt.run(deployer, market.underlying, market.name, owner, zkVerifier, rolesContract);
+        return deployExt.run(deployer, blacklister, market.underlying, market.name, owner, zkVerifier, rolesContract);
     }
 
     function _updateAllowedChains(address market, string memory network) internal {

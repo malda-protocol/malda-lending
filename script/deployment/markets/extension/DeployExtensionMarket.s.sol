@@ -19,6 +19,7 @@ import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transpa
 contract DeployExtensionMarket is Script {
     function run(
         Deployer deployer,
+        address blacklister,
         address underlyingToken,
         string calldata name,
         address owner,
@@ -49,7 +50,7 @@ contract DeployExtensionMarket is Script {
 
         // Prepare initialization data
         bytes memory initData = abi.encodeWithSelector(
-            mTokenGateway.initialize.selector, payable(owner), underlyingToken, roles, zkVerifier
+            mTokenGateway.initialize.selector, payable(owner), underlyingToken, roles, blacklister, zkVerifier
         );
 
         // Deploy proxy

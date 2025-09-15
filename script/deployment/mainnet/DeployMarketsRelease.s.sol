@@ -44,6 +44,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
     address oracle;
     address pauser;
     address gasHelper;
+    address blacklister;
 
     Deployer deployer;
 
@@ -237,6 +238,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
         operator = vm.parseJsonAddress(jsonContent, ".Operator");
         oracle = vm.parseJsonAddress(jsonContent, ".Oracle");
         pauser = vm.parseJsonAddress(jsonContent, ".Pauser");
+        blacklister = vm.parseJsonAddress(jsonContent, ".Blacklister");
         gasHelper = vm.parseJsonAddress(jsonContent, ".DefaultGasHelper");
         deployer = Deployer(payable(vm.parseJsonAddress(jsonContent, ".Deployer")));
 
@@ -402,7 +404,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
     }
 
     function _deployExtensionMarket(Deployer _deployer, MarketRelease memory market) internal returns (address) {
-        return deployExt.run(_deployer, market.underlying, market.name, owner, zkVerifier, rolesContract);
+        return deployExt.run(_deployer, blacklister, market.underlying, market.name, owner, zkVerifier, rolesContract);
     }
 
     function _updateAllowedChains(address market, string memory network) internal {
