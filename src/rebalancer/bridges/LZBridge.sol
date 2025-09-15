@@ -75,7 +75,7 @@ contract LZBridge is BaseBridge, IBridge {
         IERC20(_token).safeTransferFrom(msg.sender, address(this), sendParam.amountLD);
 
         // send OFT
-        (MessagingReceipt memory msgReceipt,) = ILayerZeroOFT(_token).send{value: msg.value}(sendParam, fees, market); // refundAddress = market
+        (MessagingReceipt memory msgReceipt,) = ILayerZeroOFT(_token).send{value: msg.value}(sendParam, fees, msg.sender); // fee refund = rebalancer
 
         emit MsgSent(_dstChainId, market, sendParam.amountLD, sendParam.minAmountLD, msgReceipt.guid);
     }
