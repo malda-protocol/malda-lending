@@ -672,7 +672,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     function __mint(address minter, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer)
         private
     {
-        IOperatorDefender(operator).beforeMTokenMint(address(this), minter);
+        IOperatorDefender(operator).beforeMTokenMint(address(this), minter, receiver);
 
         Exp memory exchangeRate = Exp({mantissa: _exchangeRateStored()});
 
@@ -697,14 +697,13 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
          */
 
         uint256 mintTokens = div_(actualMintAmount, exchangeRate);
-        require(mintTokens >= minAmountOut, mt_MinAmountNotValid());
-
         // avoid exchangeRate manipulation
         if (totalSupply == 0) {
             totalSupply = 1000;
             accountTokens[address(0)] = 1000;
             mintTokens -= 1000;
         }
+        require(mintTokens >= minAmountOut, mt_MinAmountNotValid());
 
         /*
          * We calculate the new total supply of mTokens and minter token balance, checking for overflow:
