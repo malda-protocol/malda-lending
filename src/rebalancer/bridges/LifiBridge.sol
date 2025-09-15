@@ -77,11 +77,6 @@ contract LifiBridge is BaseBridge, IBridge, ReentrancyGuard {
         allowedSelectors[ILiFiLIFuel.swapAndStartBridgeTokensViaLIFuel.selector] = true;
     }
 
-    // ----------- OWNER ------------
-    function setAllowedSelector(bytes4 selector, bool allowed) external onlyBridgeConfigurator {
-        allowedSelectors[selector] = allowed;
-    }
-
      // ----------- VIEW ------------
     /// @inheritdoc IBridge
     function getFee(uint32, bytes memory, bytes memory) external pure returns (uint256) {
@@ -120,35 +115,4 @@ contract LifiBridge is BaseBridge, IBridge, ReentrancyGuard {
 
         ILiFiLIFuel(lifiDiamond).startBridgeTokensViaLIFuel(bd);
     }
-
-    /**
-     function forwardToDiamond(
-        address token,
-        uint256 amount,
-        uint256 value,
-        bytes calldata diamondCalldata
-    ) external payable onlyRebalancer nonReentrant {
-        require(diamondCalldata.length >= 4, "no selector");
-        bytes4 sel;
-        assembly { 
-            sel := calldataload(diamondCalldata.offset) 
-        }
-        if (!allowedSelectors[sel]) revert LiFiBridge_SelectorNotAllowed();
-
-        IERC20(token).safeTransferFrom(msg.sender, address(this), amount);
-        IERC20(token).safeApprove(lifiDiamond, amount);
-
-        (bool ok, bytes memory ret) = lifiDiamond.call{value: value}(diamondCalldata);
-        require(ok, _bubble(ret));
-    }
-
-    // ----------- INTERNAL ------------
-    function _bubble(bytes memory ret) private pure returns (string memory) {
-        if (ret.length < 68) return "Diamond call failed";
-        assembly { ret := add(ret, 0x04) }
-        return abi.decode(ret, (string));
-    }
-    */
-
-
 }
