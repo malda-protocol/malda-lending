@@ -263,7 +263,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0
+                receivers, encodedJournals, "0x123", mTokens, amounts, new uint256[](1), selectors, initHashes, 0
             )
         );
 

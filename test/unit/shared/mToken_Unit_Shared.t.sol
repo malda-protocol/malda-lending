@@ -141,7 +141,7 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         address underlying = mErc20Immutable(mToken).underlying();
         _getTokens(ERC20Mock(underlying), address(this), supplyAmount);
         IERC20(underlying).approve(mToken, supplyAmount);
-        mErc20Immutable(mToken).mint(supplyAmount, address(this), supplyAmount);
+        mErc20Immutable(mToken).mint(supplyAmount, address(this), supplyAmount - 1000);
     }
 
     // function _borrowGatewayPrerequisites(address mGateway, uint256 supplyAmount) internal {
