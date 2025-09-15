@@ -210,7 +210,12 @@ interface ImTokenGateway {
      * @notice Returns the proof data journal
      */
     function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
-
+    
+    /**
+     * @notice Returns the gas fee for Linea
+     */
+    function gasFee() external view returns (uint256);
+    
     // ----------- PUBLIC -----------
     /**
      * @notice Extract amount to be used for rebalancing operation

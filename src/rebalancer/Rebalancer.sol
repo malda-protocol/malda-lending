@@ -23,6 +23,9 @@ pragma solidity =0.8.28;
 |_|_|_|__|__|_____|____/|__|__|   
 */
 
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {IBridge} from "src/interfaces/IBridge.sol";
 import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
@@ -32,6 +35,8 @@ import {HypernativeFirewallProtected} from "src/libraries/HypernativeFirewallPro
 import {SafeApprove} from "src/libraries/SafeApprove.sol";
 
 contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
+    using SafeERC20 for IERC20;
+    
     // ----------- STORAGE ------------
     IRoles public roles;
     uint256 public nonce;
@@ -40,6 +45,7 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
     mapping(address => mapping(address => bool)) public allowedTokensPerBridge;
     mapping(uint32 => bool) public whitelistedDestinations;
     mapping(address => bool) public allowedList;
+    address public admin;
 
     address public saveAddress;
 
@@ -54,13 +60,15 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
     mapping(address => bool) public whitelistedMarkets;
     uint256 public transferTimeWindow;
 
-    constructor(address _roles, address _saveAddress) {
+    constructor(address _roles, address _saveAddress, address _admin) {
         require(_roles != address(0), Rebalancer_AddressNotValid());
         require(_saveAddress != address(0), Rebalancer_AddressNotValid());
+        require(_admin != address(0), Rebalancer_AddressNotValid());
         
         roles = IRoles(_roles);
         transferTimeWindow = 86400;
         saveAddress = _saveAddress;
+        admin = _admin;
     }
 
     // ----------- OWNER METHODS ------------
@@ -118,7 +126,19 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         emit EthSaved(amount);
     }
 
+    function saveTokens(address token, address market) external {
+        if (msg.sender != admin) revert Rebalancer_NotAuthorized();
+
+        address _underlying = ImTokenMinimal(market).underlying();
+        require(_underlying == token, Rebalancer_RequestNotValid());
+        
+        uint256 amount = IERC20(token).balanceOf(address(this));
+        IERC20(token).safeTransfer(market, amount);
+        emit TokensSaved(token, market, amount);
+    }
+
     function setMinTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external onlyFirewallApproved() {
+
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
         minTransferSizes[_dstChainId][_token] = _limit;
         emit MinTransferSizeUpdated(_dstChainId, _token, _limit);

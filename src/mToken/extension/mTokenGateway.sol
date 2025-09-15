@@ -72,6 +72,8 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     ///@dev gas fee for `supplyOnHost`
     uint256 public gasFee;
 
+    uint256[50] private __gap;  
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
