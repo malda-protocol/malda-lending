@@ -589,6 +589,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external override ifNotBlacklisted(src) ifNotBlacklisted(dst) {
         require(!_paused[mToken][OperationType.Transfer], Operator_Paused());
 
+        ImToken(mToken).accrueInterest();
+
         /* Get sender tokensHeld and amountOwed underlying from the mToken */
         _beforeRedeem(mToken, src, transferTokens);
 
@@ -601,12 +603,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenMint(address mToken, address minter) external override onlyAllowedUser(minter) ifNotBlacklisted(minter) {
+    function beforeMTokenMint(address mToken, address minter, address receiver) external override onlyAllowedUser(minter) ifNotBlacklisted(minter) ifNotBlacklisted(receiver) {
         require(!_paused[mToken][OperationType.Mint], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
         // Keep the flywheel moving
         _updateMaldaSupplyIndex(mToken);
         _distributeSupplierMalda(mToken, minter);
+        _distributeSupplierMalda(mToken, receiver);
     }
 
     /**
@@ -777,7 +780,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
         uint256 len = accountAssets[account].length;
         for (uint256 i; i < len;) {
             address _asset = accountAssets[account][i];
-
             // Read the balances and exchange rate from the mToken
             (vars.mTokenBalance, vars.borrowBalance, vars.exchangeRateMantissa) =
                 ImToken(_asset).getAccountSnapshot(account);

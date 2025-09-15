@@ -41,4 +41,7 @@ interface IBlacklister {
 
     /// @notice Removes a user from the blacklist (onlyOwner).
     function unblacklist(address user) external;
+
+    /// @notice Removes a user from the blacklist (onlyOwner).
+    function unblacklist(address user, uint256 index) external;
 }
