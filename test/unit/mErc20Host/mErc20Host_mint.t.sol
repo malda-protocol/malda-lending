@@ -25,7 +25,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
-        mWethHost.mint(amount, address(this), amount);
+        mWethHost.mint(amount, address(this), amount - 1000);
     }
 
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
@@ -34,7 +34,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
-        mWethHost.mint(amount, address(this), amount);
+        mWethHost.mint(amount, address(this), amount - 1000);
     }
 
     function test_RevertGiven_WhenSupplyCapIsReached(uint256 amount)
@@ -47,7 +47,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         weth.approve(address(mWethHost), amount);
 
         vm.expectRevert(OperatorStorage.Operator_MarketSupplyReached.selector);
-        mWethHost.mint(amount, address(this), amount);
+        mWethHost.mint(amount, address(this), amount - 1000);
         // it should revert with Operator_MarketSupplyReached
     }
 
@@ -62,7 +62,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         uint256 balanceWethBefore = weth.balanceOf(address(this));
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
-        mWethHost.mint(amount, address(this), amount);
+        mWethHost.mint(amount, address(this), amount - 1000);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethHost.totalSupply();
@@ -105,7 +105,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         amounts[0] = amount;
 
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.mintExternal("", "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal("", "0x123", amounts, new uint256[](1), address(this));
     }
 
     function test_RevertGiven_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
@@ -117,7 +117,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         amounts[0] = amount;
 
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.mintExternal("", "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal("", "0x123", amounts, new uint256[](1), address(this));
     }
 
     function test_GivenDecodedAmountIs0() external whenMintExternalIsCalled whenMarketIsListed(address(mWethHost)) {
@@ -127,7 +127,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), 0);
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
     }
 
     function test_RevertWhen_SealVerificationFails(uint256 amount)
@@ -146,7 +146,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
     }
 
     function test_WhenSealVerificationWasOk(uint256 amount)
@@ -165,7 +165,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethHost.totalSupply();
@@ -210,22 +210,22 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount * 20);
 
         Operator(operator).setOutflowTimeLimitInUSD(amount * 1e8 + 1);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         vm.warp(block.timestamp + 2 hours);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
         vm.warp(block.timestamp + 1);
         vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         vm.warp(block.timestamp + 2 hours);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         uint256 totalSupplyAfter = mWethHost.totalSupply();
         uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
@@ -254,8 +254,8 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount * 10);
 
         Operator(operator).setOutflowTimeLimitInUSD(amount * 50);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         uint256 totalSupplyAfter = mWethHost.totalSupply();
         uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
@@ -279,7 +279,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         Operator(operator).setOutflowTimeLimitInUSD(amount * 50);
         blacklister.blacklist(address(this));
         vm.expectRevert(OperatorStorage.Operator_UserBlacklisted.selector);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
     }
 
     function test_WhenSealVerificationWasOk_And_AmountIsZero()
@@ -300,7 +300,7 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         Operator(operator).setOutflowTimeLimitInUSD(100);
 
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         uint256 totalSupplyAfter = mWethHost.totalSupply();
         uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
@@ -326,13 +326,13 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount * 20);
 
         Operator(operator).setOutflowTimeLimitInUSD(amount * 1e8 * 2 - 1);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         Operator(operator).setOutflowTimeLimitInUSD(amount * 1e8 * 50);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         uint256 totalSupplyAfter = mWethHost.totalSupply();
         uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
@@ -359,14 +359,14 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         operator.enableWhitelist();
 
         vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         operator.setWhitelistedUser(address(this), false);
         vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         operator.setWhitelistedUser(address(this), true);
-        mWethHost.mintExternal(journalData, "0x123", amounts, amounts, address(this));
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethHost.totalSupply();
