@@ -15,6 +15,16 @@
 │   │   └── it should increase user balance and total supply
 │   └── when it fails
 │       └── it should emit BatchProcessFailed
-└── when repay
-    └── when it fails
-        └── it should emit BatchProcessFailed 
+├── when repay
+│   └── when it fails
+│       └── it should emit BatchProcessFailed
+└── when liquidate
+    ├── when it succeeds
+    │   └── should make a call to liquidateExternal
+    ├── when it fails
+    │   ├── when mint fallback succeeds
+    │   │   └── it should emit BatchProcessSuccess with MINT_SELECTOR
+    │   └── when mint fallback also fails
+    │       └── it should emit BatchProcessFailed
+    └── when multiple operations
+        └── it should make a call to liquidateExternal for each operation
