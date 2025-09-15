@@ -65,6 +65,7 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
     error AcrossBridge_SlippageNotValid();
     error AcrossBridge_RelayerNotValid();
     error AcrossBridge_InvalidReceiver();
+    error AcrossBridge_MaxFeeExceeded();
 
     constructor(address _roles, address _spokePool, address _rebalancer) BaseBridge(_roles) {
         require(_spokePool != address(0), AcrossBridge_AddressNotValid());
@@ -120,6 +121,7 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
         DecodedMessage memory msgData = _decodeMessage(_message);
         require(_extractedAmount == msgData.inputAmount, BaseBridge_AmountMismatch());
         require(whitelistedRelayers[_dstChainId][msgData.relayer], AcrossBridge_RelayerNotValid());
+        require(msgData.outputAmount >= (msgData.inputAmount * 90) / 100, AcrossBridge_MaxFeeExceeded());
 
         // retrieve tokens from `Rebalancer`
         IERC20(_token).safeTransferFrom(msg.sender, address(this), msgData.inputAmount);

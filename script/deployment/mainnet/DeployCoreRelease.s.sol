@@ -158,7 +158,7 @@ contract DeployCoreRelease is DeployBaseRelease {
         returns (address rebalancer, address acrossBridge, address everclearBridge)
     {
         console.log(" --- Deploying rebalancer");
-        rebalancer = deployRebalancer.run(rolesContract, owner, deployer);
+        rebalancer = deployRebalancer.run(rolesContract, owner, owner, deployer);
         console.log(" --- Deployed rebalancer at ", rebalancer);
 
         if (spokePoolAddresses[configs[network].chainId] != address(0)) {
