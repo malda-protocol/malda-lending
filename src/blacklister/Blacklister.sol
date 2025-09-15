@@ -73,6 +73,13 @@ contract Blacklister is OwnableUpgradeable, IBlacklister {
         emit Unblacklisted(user);
     }
 
+    function unblacklist(address user, uint256 index) external override onlyOwnerOrGuardian { 
+        if (!isBlacklisted[user]) revert Blacklister_NotBlacklisted();
+        isBlacklisted[user] = false;
+        _removeFromBlacklistList(user, index);
+        emit Unblacklisted(user);
+    }
+
    
     // ----------- INTERNAL ------------
     function _addToBlacklist(address user) internal {
@@ -90,5 +97,15 @@ contract Blacklister is OwnableUpgradeable, IBlacklister {
                 break;
             }
         }
+    }
+
+    function _removeFromBlacklistList(address user, uint256 index) internal {
+        uint256 len = _blacklistedList.length;
+        if (_blacklistedList[index] == user) {  
+            _blacklistedList[index] = _blacklistedList[len - 1];  
+            _blacklistedList.pop();  
+        } else {  
+            revert Blacklister_NotBlacklisted();  
+        }  
     }
 }

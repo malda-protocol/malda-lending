@@ -88,6 +88,11 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     /**
      * @inheritdoc IOperator
      */
+    mapping(address => uint256) public minBorrowSize;
+
+    /**
+     * @inheritdoc IOperator
+     */
     address public rewardDistributor;
 
     /**
@@ -147,6 +152,8 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     // No collateralFactorMantissa may exceed this value
     uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18; // 0.95
 
+    uint256[50] private __gap;  
+
     // ----------- ERRORS ------------
     error Operator_Paused();
     error Operator_Mismatch();
@@ -168,6 +175,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     error Operator_OutflowVolumeReached();
     error Operator_InvalidRolesOperator();
     error Operator_InsufficientLiquidity();
+    error Operator_MarketBorrowSizeNotMet();
     error Operator_MarketBorrowCapReached();
     error Operator_InvalidCollateralFactor();
     error Operator_InvalidBlacklistOperator();
@@ -252,4 +260,9 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
      * @notice Event emitted when outflow volume has been reset
      */
     event OutflowVolumeReset();
+
+    /**
+     * @notice Event emitted when min borrow size set for markets
+     */
+    event MinBorrowSizeSet(address[] markets, uint256[] amounts);
 }
