@@ -40,14 +40,14 @@ contract LZBridge is BaseBridge, IBridge {
      * @inheritdoc IBridge
      * @dev use `getOptionsData` for `_bridgeData`
      */
-    function getFee(uint32 _dstChainId, bytes memory _message, bytes memory _composeMsg)
+    function getFee(uint32 _dstChainId, bytes memory _message, bytes memory)
         external
         view
         returns (uint256)
     {
         require(_dstChainId > 0, LZBridge_ChainNotRegistered());
 
-        (MessagingFee memory fees,) = _getFee(_dstChainId, _message, _composeMsg);
+        (MessagingFee memory fees,) = _getFee(_dstChainId, _message);
         return fees.nativeFee; // no option to pay in LZ token with this version
     }
 
@@ -55,7 +55,7 @@ contract LZBridge is BaseBridge, IBridge {
     /**
      * @inheritdoc IBridge
      */
-    function sendMsg(uint256 _extractedAmount, address _market, uint32 _dstChainId, address _token, bytes memory _message, bytes memory _composeMsg)
+    function sendMsg(uint256 _extractedAmount, address _market, uint32 _dstChainId, address _token, bytes memory _message, bytes memory)
         external
         payable
         onlyRebalancer
@@ -67,7 +67,7 @@ contract LZBridge is BaseBridge, IBridge {
         require (_market == market, LZBridge_DestinationMismatch());
 
         // compute fee and craft message
-        (MessagingFee memory fees, SendParam memory sendParam) = _getFee(_dstChainId, _message, _composeMsg);
+        (MessagingFee memory fees, SendParam memory sendParam) = _getFee(_dstChainId, _message);
         if (msg.value < fees.nativeFee) revert LZBridge_NotEnoughFees();
         require(_extractedAmount == sendParam.amountLD, BaseBridge_AmountMismatch());
 
@@ -81,7 +81,7 @@ contract LZBridge is BaseBridge, IBridge {
     }
 
     // ----------- PRIVATE ------------
-    function _getFee(uint32 dstEid, bytes memory _message, bytes memory _composeMsg)
+    function _getFee(uint32 dstEid, bytes memory _message)
         private
         view
         returns (MessagingFee memory fees, SendParam memory lzSendParams)
@@ -94,7 +94,7 @@ contract LZBridge is BaseBridge, IBridge {
             amountLD: amountLD,
             minAmountLD: minAmountLD,
             extraOptions: extraOptions,
-            composeMsg: _composeMsg,
+            composeMsg: "",
             oftCmd: ""
         });
         address _underlying = ImTokenMinimal(market).underlying();
