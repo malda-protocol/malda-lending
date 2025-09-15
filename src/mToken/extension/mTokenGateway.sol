@@ -230,14 +230,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         ifNotBlacklisted(msg.sender)
         ifNotBlacklisted(receiver)
     {
-        // checks
-        require(amount > 0, mTokenGateway_AmountNotValid());
-        require(msg.value >= gasFee, mTokenGateway_NotEnoughGasFee());
-
-        IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
-
-        // effects
-        accAmountIn[receiver] += amount;
+        _takeIn(underlying, amount, receiver);
 
         emit mTokenGateway_Supplied(
             msg.sender,
@@ -248,6 +241,32 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
             uint32(block.chainid),
             LINEA_CHAIN_ID,
             lineaSelector
+        );
+    }
+
+        /**
+     * @inheritdoc ImTokenGateway
+     */
+    function liquidate(address userToLiquidate, uint256 liquidateAmount, address collateral, address receiver)
+        external
+        payable
+        override
+        notPaused(OperationType.Liquidate)
+        notPaused(OperationType.AmountIn)
+        onlyAllowedUser(msg.sender)
+        ifNotBlacklisted(msg.sender)
+        ifNotBlacklisted(receiver)
+    {
+        _takeIn(underlying, liquidateAmount, receiver);
+
+        emit mTokenGateway_Liquidate(
+            msg.sender,
+            receiver,
+            liquidateAmount,
+            uint32(block.chainid),
+            LINEA_CHAIN_ID,
+            userToLiquidate,
+            collateral
         );
     }
 
@@ -278,12 +297,27 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         }
     }
 
-    function _outHere(bytes memory journalData, uint256 amount, address receiver) internal {
+
+    // ----------- PRIVATE ------------
+
+    function _takeIn(address asset, uint256 amount, address receiver) private {
+        // checks
+        require(amount > 0, mTokenGateway_AmountNotValid());
+        require(msg.value >= gasFee, mTokenGateway_NotEnoughGasFee());
+
+        IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
+
+        // effects
+        accAmountIn[receiver] += amount;
+    }
+
+    function _outHere(bytes memory journalData, uint256 amount, address receiver) private {
         (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(journalData);
 
         // temporary overwrite; will be removed in future implementations
         receiver = _sender;
+        require (!blacklistOperator.isBlacklisted(_sender), mTokenGateway_UserBlacklisted());
 
         // checks
         _checkSender(msg.sender, _sender);
@@ -312,7 +346,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         );
     }
 
-    // ----------- PRIVATE ------------
+
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
         require(journalData.length > 0, mTokenGateway_JournalNotValid());
 

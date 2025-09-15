@@ -28,7 +28,7 @@ contract mErc20_mint is mToken_Unit_Shared {
         inRange(amount, SMALL, LARGE)
     {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
-        mWeth.mint(amount, address(this), amount);
+        mWeth.mint(amount, address(this), amount - 1000);
     }
 
     function test_RevertGiven_WhenSupplyCapIsReached(uint256 amount)
@@ -42,7 +42,7 @@ contract mErc20_mint is mToken_Unit_Shared {
 
         // it should revert with Operator_MarketSupplyReached
         vm.expectRevert(OperatorStorage.Operator_MarketSupplyReached.selector);
-        mWeth.mint(amount, address(this), amount);
+        mWeth.mint(amount, address(this), amount - 1000);
     }
 
     function test_WhenSupplyCapIsGreater(uint256 amount)
@@ -59,7 +59,7 @@ contract mErc20_mint is mToken_Unit_Shared {
         bool enteredBefore = operator.checkMembership(address(this), address(mWeth));
         assertFalse(enteredBefore);
 
-        mWeth.mint(amount, address(this), amount);
+        mWeth.mint(amount, address(this), amount - 1000);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWeth.totalSupply();
@@ -85,14 +85,14 @@ contract mErc20_mint is mToken_Unit_Shared {
         mWeth.mint(amount, address(this), amount);
     }
 
-    function test_WrapAndSupply() external whenMarketIsListed(address(mWeth)) {
+    function test_WrapAndSupplyX() external whenMarketIsListed(address(mWeth)) {
         WrapAndSupply wrapAndSupply = new WrapAndSupply(address(weth));
         vm.label(address(wrapAndSupply), "WrapAndSupply Helper");
 
         uint256 totalSupplyBefore = mWeth.totalSupply();
         uint256 balanceOfBefore = mWeth.balanceOf(address(this));
 
-        wrapAndSupply.wrapAndSupplyOnHostMarket{value: SMALL}(address(mWeth), address(this), SMALL);
+        wrapAndSupply.wrapAndSupplyOnHostMarket{value: SMALL}(address(mWeth), address(this), SMALL - 1000);
 
         uint256 totalSupplyAfter = mWeth.totalSupply();
         uint256 balanceOfAfter = mWeth.balanceOf(address(this));
@@ -122,14 +122,14 @@ contract mErc20_mint is mToken_Unit_Shared {
         operator.enableWhitelist();
 
         vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
-        mWeth.mint(amount, address(this), amount);
+        mWeth.mint(amount, address(this), amount - 1000);
 
         operator.setWhitelistedUser(address(this), false);
         vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
-        mWeth.mint(amount, address(this), amount);
+        mWeth.mint(amount, address(this), amount - 1000);
 
         operator.setWhitelistedUser(address(this), true);
-        mWeth.mint(amount, address(this), amount);
+        mWeth.mint(amount, address(this), amount - 1000);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWeth.totalSupply();
