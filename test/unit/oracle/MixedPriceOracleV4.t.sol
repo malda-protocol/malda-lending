@@ -2,16 +2,10 @@
 pragma solidity =0.8.28;
 
 import {MixedPriceOracleV4} from "src/oracles/MixedPriceOracleV4.sol";
-import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
-import {ImToken} from "src/interfaces/ImToken.sol";
-
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
-import {Base_Unit_Test} from "test/Base_Unit_Test.t.sol";
-import {Operator} from "src/Operator/Operator.sol";
 
 contract MockAdapter {
     uint8 public decimals = 8;
@@ -162,5 +156,63 @@ contract MixedPriceOracleV4Test is Test {
 
         vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_eOracleStalePrice.selector);
         oracle.getPrice(address(token));
+    }
+
+    function test_ComposedPrice_OneHop() public {
+        string[] memory symbols = new string[](2);
+        symbols[0] = "ETH";
+        symbols[1] = "weETH";
+
+        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](2);
+        configs[0] = MixedPriceOracleV4.PriceConfig({
+            api3Feed: address(api3),
+            eOracleFeed: address(eOracle),
+            toSymbol: "USD",
+            underlyingDecimals: 18
+        });
+        configs[1] = MixedPriceOracleV4.PriceConfig({
+            api3Feed: address(api3),
+            eOracleFeed: address(eOracle),
+            toSymbol: "ETH", 
+            underlyingDecimals: 18
+        });
+
+        oracle = new MixedPriceOracleV4(symbols, configs, address(roles), 1 days);
+        roles.allow(address(this));
+
+        api3.setPrice(105e8);
+        api3.setUpdatedAt(block.timestamp);
+        eOracle.setPrice(100e8);
+        eOracle.setUpdatedAt(block.timestamp);
+
+        api3.setPrice(3000e8);
+        eOracle.setPrice(2700e8);
+
+        // should revert because composed delta is too high
+        vm.expectRevert(); 
+        oracle.getPrice(address(token));
+    }
+
+    function test_RevertsIfNegativePrice() public {
+        api3.setPrice(-1);
+        eOracle.setPrice(-1);
+
+        vm.expectRevert(); 
+        oracle.getPrice(address(token));
+    }
+
+    function test_UsesSymbolSpecificDelta() public {
+        api3.setPrice(100e8);
+        eOracle.setPrice(120e8);
+        api3.setUpdatedAt(block.timestamp);
+        eOracle.setUpdatedAt(block.timestamp);
+
+        uint256 price = oracle.getPrice(address(token));
+        assertEq(price, 120e18);
+
+  
+        oracle.setSymbolMaxPriceDelta(25000, "MOCK"); // 25%
+        price = oracle.getPrice(address(token));
+        assertEq(price, 100e18); 
     }
 }

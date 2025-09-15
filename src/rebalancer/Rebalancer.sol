@@ -37,6 +37,7 @@ contract Rebalancer is IRebalancer {
     uint256 public nonce;
     mapping(uint32 => mapping(uint256 => Msg)) public logs;
     mapping(address => bool) public whitelistedBridges;
+    mapping(address => mapping(address => bool)) public allowedTokensPerBridge;
     mapping(uint32 => bool) public whitelistedDestinations;
     mapping(address => bool) public allowedList;
 
@@ -63,6 +64,16 @@ contract Rebalancer is IRebalancer {
     }
 
     // ----------- OWNER METHODS ------------
+    function setAllowedTokens(address bridge, address[] memory tokens, bool status) external {
+        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+
+        uint256 len = tokens.length;
+        for (uint256 i; i < len; i++) {
+            allowedTokensPerBridge[bridge][tokens[i]] = status;
+        }
+        emit AllowedTokensUpdated(bridge, status, tokens);
+    }
+
     function setMarketStatus(address[] calldata list, bool status) external {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
 
@@ -71,6 +82,7 @@ contract Rebalancer is IRebalancer {
             whitelistedMarkets[list[i]] = status;
         }
         emit MarketListUpdated(list, status);
+
     }
 
     function setAllowList(address[] calldata list, bool status) external {
@@ -151,22 +163,26 @@ contract Rebalancer is IRebalancer {
         require(whitelistedDestinations[_msg.dstChainId], Rebalancer_DestinationNotWhitelisted());
         address _underlying = ImTokenMinimal(_market).underlying();
         require(_underlying == _msg.token, Rebalancer_RequestNotValid());
+        require(allowedTokensPerBridge[_bridge][_underlying], Rebalancer_UnderlyingNotAllowedForBridge());
 
         // min transfer size check
         require(_amount > minTransferSizes[_msg.dstChainId][_msg.token], Rebalancer_TransferSizeMinNotMet());
 
         // max transfer size checks
-        TransferInfo memory transferInfo = currentTransferSize[_msg.dstChainId][_msg.token];
+        TransferInfo storage transferInfo = currentTransferSize[_msg.dstChainId][_msg.token];
         uint256 transferSizeDeadline = transferInfo.timestamp + transferTimeWindow;
+
         if (transferSizeDeadline < block.timestamp) {
-            currentTransferSize[_msg.dstChainId][_msg.token] = TransferInfo(_amount, block.timestamp);
+            // reset the window
+            transferInfo.size = _amount;
+            transferInfo.timestamp = block.timestamp;
         } else {
-            currentTransferSize[_msg.dstChainId][_msg.token].size += _amount;
+            transferInfo.size += _amount;
         }
 
         uint256 _maxTransferSize = maxTransferSizes[_msg.dstChainId][_msg.token];
         if (_maxTransferSize > 0) {
-            require(transferInfo.size + _amount < _maxTransferSize, Rebalancer_TransferSizeExcedeed());
+            require(transferInfo.size <= _maxTransferSize, Rebalancer_TransferSizeExcedeed());
         }
 
         // retrieve amounts (make sure to check min and max for that bridge)
