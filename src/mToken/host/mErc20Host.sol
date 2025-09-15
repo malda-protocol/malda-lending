@@ -286,7 +286,6 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         // 1 - withdraw
         // 2 - borrow
         CommonLib.checkHostToExtension(amount, dstChainId, msg.value, allowedChains, gasHelper);
-        _checkOutflow(amount);
 
         uint256 _amount = amount;
         if (actionType == 1) {
@@ -299,6 +298,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
             revert mErc20Host_ActionNotAvailable();
         }
         acc[dstChainId].outPerChain[msg.sender] += _amount;
+        _checkOutflow(_amount);
     }
 
     /**
