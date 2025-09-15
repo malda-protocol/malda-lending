@@ -56,6 +56,7 @@ contract EverclearBridge is BaseBridge, IBridge {
     // ----------- ERRORS ------------
     error Everclear_TokenMismatch();
     error Everclear_NotImplemented();
+    error Everclear_MaxFeeExceeded();
     error Everclear_AddressNotValid();
     error Everclear_DestinationNotValid();
     error Everclear_DestinationsLengthMismatch();
@@ -88,11 +89,13 @@ contract EverclearBridge is BaseBridge, IBridge {
 
         require(params.inputAsset == _token, Everclear_TokenMismatch());
         require(_extractedAmount >= params.amount, BaseBridge_AmountMismatch());
+        require(params.amount > 0 , BaseBridge_AmountMismatch());
 
         uint256 destinationsLength = params.destinations.length;
         require(destinationsLength == 1, Everclear_DestinationsLengthMismatch());
         require (params.destinations[0] == _dstChainId, Everclear_DestinationNotValid());
-
+        require(params.maxFee <= params.amount / 10, Everclear_MaxFeeExceeded());
+        
         if (_extractedAmount > params.amount) {
             uint256 toReturn = _extractedAmount - params.amount;
             IERC20(_token).safeTransfer(_market, toReturn);
