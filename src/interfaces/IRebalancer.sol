@@ -48,6 +48,8 @@ interface IRebalancer {
     event DestinationWhitelistedStatusUpdated(uint32 indexed dstChainId, bool status);
     event AllowedListUpdated(address[] list, bool status);
     event TokensSaved(address indexed token, address indexed market, uint256 amount);
+    event AllowedTokensUpdated(address indexed bridge, bool status, address[] list);
+
     event MarketListUpdated(address[] list, bool status);
 
 
@@ -60,6 +62,7 @@ interface IRebalancer {
     error Rebalancer_TransferSizeExcedeed();
     error Rebalancer_TransferSizeMinNotMet();
     error Rebalancer_DestinationNotWhitelisted();
+    error Rebalancer_UnderlyingNotAllowedForBridge();
 
     // ----------- VIEW METHODS ------------
     /**

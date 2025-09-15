@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {Script, console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Operator} from "src/Operator/Operator.sol";
@@ -25,6 +26,7 @@ import {SetCloseFactor} from "../../configuration/SetCloseFactor.s.sol";
 import {SupportMarket} from "../../configuration/SupportMarket.s.sol";
 import {SetBorrowRateMaxMantissa} from "../../configuration/SetBorrowRateMaxMantissa.s.sol";
 import {SetBorrowCap} from "../../configuration/SetBorrowCap.s.sol";
+import {SetMinBorrowSize} from "../../configuration/SetMinBorrowSize.s.sol";
 import {SetSupplyCap} from "../../configuration/SetSupplyCap.s.sol";
 import {SetPriceFeedOnOracleV4} from "../../configuration/SetPriceFeedOnOracleV4.s.sol";
 
@@ -37,6 +39,7 @@ contract ConfigureRelease is DeployBaseRelease {
     mapping(string => uint256) public reserveFactors;
     mapping(string => uint256) public liquidationBonuses;
     mapping(string => uint256) public borrowCaps;
+    mapping(string => uint256) public minBorrowSize;
     mapping(string => MarketRelease) public fullConfigs;
 
     address oracle;
@@ -49,6 +52,7 @@ contract ConfigureRelease is DeployBaseRelease {
     SetLiquidationBonus setLiquidationBonus;
     SetBorrowRateMaxMantissa setBorrowRateMaxMantissa;
     SetBorrowCap setBorrowCap;
+    SetMinBorrowSize setMinBorrowSize;
     SetSupplyCap setSupplyCap;
     SetPriceFeedOnOracleV4 setFeed;
     SetCloseFactor setCloseFactor;
@@ -69,6 +73,17 @@ contract ConfigureRelease is DeployBaseRelease {
         borrowCaps["mezETH"] = 0;
         borrowCaps["mweETH"] = 0;
         borrowCaps["mwrsETH"] = 0;
+        
+        // min caps
+        minBorrowSize["mUSDC"] = 10e6; //10 USDC
+        minBorrowSize["mWETH"] = 0.0025e18;
+        minBorrowSize["mUSDT"] = 10e6;
+        minBorrowSize["mDAI"] = 0.0025e18;
+        minBorrowSize["mWBTC"] = 0.0001e8;
+        minBorrowSize["mwstETH"] = 0.0025e18;
+        minBorrowSize["mezETH"] = 0.0025e18;
+        minBorrowSize["mweETH"] = 0.0025e18;
+        minBorrowSize["mwrsETH"] = 0.0025e18;
 
         // collateral factors
         collateralFactors["mUSDC"] = 900000000000000000;
@@ -308,6 +323,7 @@ contract ConfigureRelease is DeployBaseRelease {
                 setCollateralFactor = new SetCollateralFactor();
                 setBorrowRateMaxMantissa = new SetBorrowRateMaxMantissa();
                 setBorrowCap = new SetBorrowCap();
+                setMinBorrowSize = new SetMinBorrowSize();
                 setSupplyCap = new SetSupplyCap();
                 setReserveFactor = new SetReserveFactor();
                 setFeed = new SetPriceFeedOnOracleV4();
@@ -367,6 +383,9 @@ contract ConfigureRelease is DeployBaseRelease {
         // Set borrow cap
         _setBorrowCap(market, borrowCap);
 
+        // Set min borrow size
+        _setMinBorrowSize(market, minBorrowSize[IERC20Metadata(market).symbol()]);
+
         // Set supply cap
         _setSupplyCap(market, supplyCap);
 
@@ -412,6 +431,10 @@ contract ConfigureRelease is DeployBaseRelease {
 
     function _setBorrowCap(address market, uint256 borrowCap) internal {
         setBorrowCap.run(operator, market, borrowCap);
+    }
+    
+    function _setMinBorrowSize(address market, uint256 amount) internal {
+        setMinBorrowSize.run(operator, market, amount);
     }
 
     function _setSupplyCap(address market, uint256 supplyCap) internal {
