@@ -62,9 +62,10 @@ interface IOperatorDefender {
     /**
      * @notice Checks if the account should be allowed to mint tokens in the given market
      * @param mToken The market to verify the mint against
-     * @param minter The account which would get the minted tokens
+     * @param minter The account which would supplies the assets
+     * @param receiver The account which would get the minted tokens
      */
-    function beforeMTokenMint(address mToken, address minter) external;
+    function beforeMTokenMint(address mToken, address minter, address receiver) external;
 
     /**
      * @notice Validates mint and reverts on rejection. May emit logs.
@@ -218,6 +219,11 @@ interface IOperator {
      * @notice Supply caps enforced by supplyAllowed for each mToken address. Defaults to zero which corresponds to unlimited supplying.
      */
     function supplyCaps(address _mToken) external view returns (uint256);
+
+    /**
+     * @notice Supply caps enforced by supplyAllowed for each mToken address. Defaults to zero which corresponds to unlimited supplying.
+     */
+    function minBorrowSize(address _mToken) external view returns (uint256);
 
     /**
      * @notice Reward Distributor to markets supply and borrow (including protocol token)

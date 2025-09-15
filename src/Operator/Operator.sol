@@ -69,6 +69,21 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
 
     // ----------- OWNER ------------
     /**
+     * @notice Sets min borrow size per market
+     * @param mTokens The market address
+     * @param amounts The new size
+     */
+    function setBorrowSizeMin(address[] memory mTokens, uint256[] memory amounts) external onlyOwner {
+        uint256 length = mTokens.length;
+        require (amounts.length == length, Operator_InvalidInput());
+
+        for (uint256 i; i < length; ++i) {
+            minBorrowSize[mTokens[i]] - amounts[i];
+        }
+        emit MinBorrowSizeSet(mTokens, amounts);
+    }
+
+    /**
      * @notice Sets user whitelist status
      * @param user The user address
      * @param state The new staate
@@ -222,6 +237,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
      */
     function resetOutflowVolume() external onlyOwner {
         cumulativeOutflowVolume = 0;
+        lastOutflowResetTimestamp = block.timestamp;
         emit OutflowVolumeReset();
     }
 
@@ -588,12 +604,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenMint(address mToken, address minter) external override onlyAllowedUser(minter) ifNotBlacklisted(minter) {
+    function beforeMTokenMint(address mToken, address minter, address receiver) external override onlyAllowedUser(minter) ifNotBlacklisted(minter) ifNotBlacklisted(receiver) {
         require(!_paused[mToken][OperationType.Mint], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
         // Keep the flywheel moving
         _updateMaldaSupplyIndex(mToken);
         _distributeSupplierMalda(mToken, minter);
+        _distributeSupplierMalda(mToken, receiver);
     }
 
     /**
@@ -644,6 +661,11 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable 
             uint256 nextTotalBorrows = add_(totalBorrows, borrowAmount);
             require(nextTotalBorrows < borrowCap, Operator_MarketBorrowCapReached());
         }
+
+        // Verify borrow size
+        uint256 totalAccountBorrowCrt = ImToken(mToken).borrowBalanceStored(borrower);
+        uint256 nextTotalAccountBorrow = add_(totalAccountBorrowCrt, borrowAmount);
+        require(nextTotalAccountBorrow > minBorrowSize[mToken], Operator_MarketBorrowSizeNotMet());
 
         // liquidity check
         (, uint256 shortfall) = _getHypotheticalAccountLiquidity(borrower, mToken, 0, borrowAmount);
