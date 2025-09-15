@@ -317,6 +317,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
 
         // temporary overwrite; will be removed in future implementations
         receiver = _sender;
+        require (!blacklistOperator.isBlacklisted(_sender), mTokenGateway_UserBlacklisted());
 
         // checks
         _checkSender(msg.sender, _sender);
