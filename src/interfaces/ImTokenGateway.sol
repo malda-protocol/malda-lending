@@ -49,6 +49,19 @@ interface ImTokenGateway {
     );
 
     /**
+     * @notice Emitted when a liquidate operation is initiated
+     */
+    event mTokenGateway_Liquidate(
+        address indexed from,
+        address indexed receiver,
+        uint256 amount,
+        uint32 srcChainId,
+        uint32 dstChainId,
+        address userToLiquidate,
+        address collateral
+    );
+
+    /**
      * @notice Emitted when an extract was finalized
      */
     event mTokenGateway_Extracted(
@@ -226,6 +239,16 @@ interface ImTokenGateway {
      * @param lineaSelector The method selector to be called on Linea by our relayer. If empty, user has to submit it
      */
     function supplyOnHost(uint256 amount, address receiver, bytes4 lineaSelector) external payable;
+
+
+    /**
+     * @notice Liquidate a user
+     * @param userToLiquidate The user to liquidate
+     * @param liquidateAmount The amount to liquidate
+     * @param collateral The collateral address
+     * @param receiver The receiver address
+     */
+    function liquidate(address userToLiquidate, uint256 liquidateAmount, address collateral, address receiver) external payable;
 
     /**
      * @notice Extract tokens

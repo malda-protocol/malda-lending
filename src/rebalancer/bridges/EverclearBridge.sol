@@ -91,18 +91,25 @@ contract EverclearBridge is BaseBridge, IBridge {
         require(_extractedAmount >= params.amount, BaseBridge_AmountMismatch());
         require(params.amount > 0 , BaseBridge_AmountMismatch());
 
+        require(address(uint160(uint256(params.receiver))) == _market, BaseBridge_AddressNotValid());
+
         uint256 destinationsLength = params.destinations.length;
+
         require(destinationsLength == 1, Everclear_DestinationsLengthMismatch());
         require (params.destinations[0] == _dstChainId, Everclear_DestinationNotValid());
+
         require(params.maxFee <= params.amount / 10, Everclear_MaxFeeExceeded());
-        
+             
+        // retrieve tokens from `Rebalancer`
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), _extractedAmount);
+
         if (_extractedAmount > params.amount) {
-            uint256 toReturn = _extractedAmount - params.amount;
+            uint256 toReturn = _extractedAmount - params.amount - params.feeParams.fee;
             IERC20(_token).safeTransfer(_market, toReturn);
             emit RebalancingReturnedToMarket(_market, toReturn, _extractedAmount);
         }
 
-        SafeApprove.safeApprove(params.inputAsset, address(everclearFeeAdapter), params.amount);
+        SafeApprove.safeApprove(params.inputAsset, address(everclearFeeAdapter), params.amount + params.feeParams.fee);
         (bytes32 id,) = everclearFeeAdapter.newIntent(
             params.destinations,
             params.receiver,
