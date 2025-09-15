@@ -149,6 +149,8 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
      */
     uint256 internal constant PROTOCOL_SEIZE_SHARE_MANTISSA = 2.8e16; //2.8%
 
+    uint256[50] private __gap;  
+
     // ----------- ERRORS ------------
     error mt_OnlyAdmin();
     error mt_RedeemEmpty();
