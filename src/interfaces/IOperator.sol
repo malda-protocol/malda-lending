@@ -221,6 +221,11 @@ interface IOperator {
     function supplyCaps(address _mToken) external view returns (uint256);
 
     /**
+     * @notice Supply caps enforced by supplyAllowed for each mToken address. Defaults to zero which corresponds to unlimited supplying.
+     */
+    function minBorrowSize(address _mToken) external view returns (uint256);
+
+    /**
      * @notice Reward Distributor to markets supply and borrow (including protocol token)
      */
     function rewardDistributor() external view returns (address);
