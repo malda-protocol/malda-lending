@@ -152,6 +152,8 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     // No collateralFactorMantissa may exceed this value
     uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18; // 0.95
 
+    uint256[50] private __gap;  
+
     // ----------- ERRORS ------------
     error Operator_Paused();
     error Operator_Mismatch();
