@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="operatorstorage"><a class="header" href="#operatorstorage">OperatorStorage</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/89990f7a3c15d7fbb83ce18492354b51cc0fddcb/src/Operator/OperatorStorage.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/bc1e5b08df3a7a2755ce8caaafe7c50f7f533a57/src/Operator/OperatorStorage.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/interfaces/IOperator.sol/interface.IOperator.html">IOperator</a>, <a href="/src/interfaces/IOperator.sol/interface.IOperatorDefender.html">IOperatorDefender</a>, <a href="/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
@@ -224,6 +224,10 @@
 <h3 id="supplycaps"><a class="header" href="#supplycaps">supplyCaps</a></h3>
 <p>Supply caps enforced by supplyAllowed for each mToken address. Defaults to zero which corresponds to unlimited supplying.</p>
 <pre><code class="language-solidity">mapping(address =&gt; uint256) public supplyCaps;
+</code></pre>
+<h3 id="minborrowsize"><a class="header" href="#minborrowsize">minBorrowSize</a></h3>
+<p>Supply caps enforced by supplyAllowed for each mToken address. Defaults to zero which corresponds to unlimited supplying.</p>
+<pre><code class="language-solidity">mapping(address =&gt; uint256) public minBorrowSize;
 </code></pre>
 <h3 id="rewarddistributor"><a class="header" href="#rewarddistributor">rewardDistributor</a></h3>
 <p>Reward Distributor to markets supply and borrow (including protocol token)</p>
@@ -339,6 +343,10 @@
 <p>Event emitted when outflow volume has been reset</p>
 <pre><code class="language-solidity">event OutflowVolumeReset();
 </code></pre>
+<h3 id="minborrowsizeset"><a class="header" href="#minborrowsizeset">MinBorrowSizeSet</a></h3>
+<p>Event emitted when min borrow size set for markets</p>
+<pre><code class="language-solidity">event MinBorrowSizeSet(address[] markets, uint256[] amounts);
+</code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="operator_paused"><a class="header" href="#operator_paused">Operator_Paused</a></h3>
 <pre><code class="language-solidity">error Operator_Paused();
@@ -399,6 +407,9 @@
 </code></pre>
 <h3 id="operator_insufficientliquidity"><a class="header" href="#operator_insufficientliquidity">Operator_InsufficientLiquidity</a></h3>
 <pre><code class="language-solidity">error Operator_InsufficientLiquidity();
+</code></pre>
+<h3 id="operator_marketborrowsizenotmet"><a class="header" href="#operator_marketborrowsizenotmet">Operator_MarketBorrowSizeNotMet</a></h3>
+<pre><code class="language-solidity">error Operator_MarketBorrowSizeNotMet();
 </code></pre>
 <h3 id="operator_marketborrowcapreached"><a class="header" href="#operator_marketborrowcapreached">Operator_MarketBorrowCapReached</a></h3>
 <pre><code class="language-solidity">error Operator_MarketBorrowCapReached();
