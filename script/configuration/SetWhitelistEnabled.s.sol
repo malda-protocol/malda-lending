@@ -5,7 +5,7 @@ import {mErc20Host} from "../../src/mToken/host/mErc20Host.sol";
 import {Script, console} from "forge-std/Script.sol";
 
 interface IEnable {
-    function enableWhitelist() external;
+    function setWhitelistStatus(bool status) external;
 }
 
 contract SetWhitelistEnabled is Script {
@@ -24,7 +24,7 @@ contract SetWhitelistEnabled is Script {
         for (uint256 i; i < markets.length; i++) {
             address market = markets[i];
             vm.startBroadcast(key);
-            IEnable(market).enableWhitelist();
+            IEnable(market).setWhitelistStatus(true);
             vm.stopBroadcast();
         }
     }

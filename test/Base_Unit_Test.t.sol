@@ -69,7 +69,7 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
 
         Operator oprImp = new Operator();
         bytes memory operatorInitData =
-            abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(blacklister), address(rewards), address(this));
+            abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(blacklister), address(this));
         ERC1967Proxy operatorProxy = new ERC1967Proxy(address(oprImp), operatorInitData);
         operator = Operator(address(operatorProxy));
         vm.label(address(operator), "Operator");

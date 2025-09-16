@@ -38,8 +38,6 @@ interface IOperatorData {
         uint256 collateralFactorMantissa;
         // Per-market mapping of "accounts in this asset"
         mapping(address => bool) accountMembership;
-        // Whether or not this market receives MALDA
-        bool isMalded;
     }
 }
 
@@ -65,7 +63,7 @@ interface IOperatorDefender {
      * @param minter The account which would supplies the assets
      * @param receiver The account which would get the minted tokens
      */
-    function beforeMTokenMint(address mToken, address minter, address receiver) external;
+    function beforeMTokenMint(address mToken, address minter, address receiver) external view;
 
     /**
      * @notice Validates mint and reverts on rejection. May emit logs.
@@ -79,7 +77,7 @@ interface IOperatorDefender {
      * @param redeemer The account which would redeem the tokens
      * @param redeemTokens The number of mTokens to exchange for the underlying asset in the market
      */
-    function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external;
+    function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external view;
 
     /**
      * @notice Checks if the account should be allowed to borrow the underlying asset of the given market
@@ -94,7 +92,7 @@ interface IOperatorDefender {
      * @param mToken The market to verify the repay against
      * @param borrower The account which would borrowed the asset
      */
-    function beforeMTokenRepay(address mToken, address borrower) external;
+    function beforeMTokenRepay(address mToken, address borrower) external view;
 
     /**
      * @notice Checks if the liquidation should be allowed to occur
@@ -115,10 +113,9 @@ interface IOperatorDefender {
      * @param mTokenCollateral Asset which was used as collateral and will be seized
      * @param mTokenBorrowed Asset which was borrowed by the borrower
      * @param liquidator The address repaying the borrow and seizing the collateral
-     * @param borrower The address of the borrower
      */
-    function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator, address borrower)
-        external;
+    function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator)
+        external view;
 
     /**
      * @notice Checks if new used amount is within the limits of the outflow volume limit
@@ -134,11 +131,6 @@ interface IOperator {
      * @notice Returns true/false for user
      */
     function userWhitelisted(address _user) external view returns (bool);
-
-    /**
-     * @notice Should return true
-     */
-    function isOperator() external view returns (bool);
 
     /**
      * @notice Should return outflow limit
@@ -226,24 +218,12 @@ interface IOperator {
     function minBorrowSize(address _mToken) external view returns (uint256);
 
     /**
-     * @notice Reward Distributor to markets supply and borrow (including protocol token)
-     */
-    function rewardDistributor() external view returns (address);
-
-    /**
      * @notice Returns whether the given account is entered in the given asset
      * @param account The address of the account to check
      * @param mToken The mToken to check
      * @return True if the account is in the asset, otherwise false.
      */
     function checkMembership(address account, address mToken) external view returns (bool);
-
-    /**
-     * @notice Determine the current account liquidity wrt collateral requirements
-     * @return  account liquidity in excess of collateral requirements,
-     *          account shortfall below collateral requirements)
-     */
-    function getAccountLiquidity(address account) external view returns (uint256, uint256);
 
     /**
      * @notice Determine what the account liquidity would be if the given amounts were redeemed/borrowed
@@ -265,19 +245,6 @@ interface IOperator {
      * @notice Returns USD value for all markets
      */
     function getUSDValueForAllMarkets() external view returns (uint256);
-
-    /**
-     * @notice Calculate number of tokens of collateral asset to seize given an underlying amount
-     * @dev Used in liquidation (called in mTokenBorrowed.liquidate)
-     * @param mTokenBorrowed The address of the borrowed mToken
-     * @param mTokenCollateral The address of the collateral mToken
-     * @param actualRepayAmount The amount of mTokenBorrowed underlying to convert into mTokenCollateral tokens
-     * @return number of mTokenCollateral tokens to be seized in a liquidation
-     */
-    function liquidateCalculateSeizeTokens(address mTokenBorrowed, address mTokenCollateral, uint256 actualRepayAmount)
-        external
-        view
-        returns (uint256);
 
     /**
      * @notice Returns true if the given mToken market has been deprecated
@@ -314,26 +281,4 @@ interface IOperator {
      * @param _mToken The address of the asset to be removed
      */
     function exitMarket(address _mToken) external;
-
-    /**
-     * @notice Claim all the MALDA accrued by holder in all markets
-     * @param holder The address to claim MALDA for
-     */
-    function claimMalda(address holder) external;
-
-    /**
-     * @notice Claim all the MALDA accrued by holder in the specified markets
-     * @param holder The address to claim MALDA for
-     * @param mTokens The list of markets to claim MALDA in
-     */
-    function claimMalda(address holder, address[] memory mTokens) external;
-
-    /**
-     * @notice Claim all MALDA accrued by the holders
-     * @param holders The addresses to claim MALDA for
-     * @param mTokens The list of markets to claim MALDA in
-     * @param borrowers Whether or not to claim MALDA earned by borrowing
-     * @param suppliers Whether or not to claim MALDA earned by supplying
-     */
-    function claimMalda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers) external;
 }

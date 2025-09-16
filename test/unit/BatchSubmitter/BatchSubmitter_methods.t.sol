@@ -262,9 +262,12 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         uint256 balanceBefore = mWethHost.balanceOf(address(this));
         uint256 totalSupplyBefore = mWethHost.totalSupply();
 
+        uint256[] memory minAmounts = new uint256[](1);
+        minAmounts[0] = amount - 1000;
+
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0, new address[](0), new address[](0)
+                receivers, encodedJournals, "0x123", mTokens, amounts, minAmounts, selectors, initHashes, 0, new address[](0), new address[](0)
             )
         );
 

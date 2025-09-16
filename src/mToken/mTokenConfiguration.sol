@@ -133,8 +133,6 @@ abstract contract mTokenConfiguration is mTokenStorage {
     }
 
     function _setOperator(address _operator) internal {
-        require(IOperator(_operator).isOperator(), mt_MarketMethodNotValid());
-
         emit NewOperator(operator, _operator);
 
         operator = _operator;

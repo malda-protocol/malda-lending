@@ -37,7 +37,7 @@ contract DeployOperator is Script {
             console.log("Operator implementation deployed at:", implementation);
         }
 
-        bytes memory initData = abi.encodeWithSelector(Operator.initialize.selector, roles, blacklistOperator, rewards, owner);
+        bytes memory initData = abi.encodeWithSelector(Operator.initialize.selector, roles, blacklistOperator, owner);
 
         // Deploy proxy
         bytes32 proxySalt = _getSalt("OperatorProxyV1.0.0");

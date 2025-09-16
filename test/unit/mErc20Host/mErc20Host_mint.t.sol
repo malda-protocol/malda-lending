@@ -356,7 +356,8 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
-        operator.enableWhitelist();
+        operator.setWhitelistStatus(true);
+
 
         vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));

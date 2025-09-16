@@ -19,12 +19,18 @@ contract DeployEverclearBridge is Script {
     function run(address roles, address feeAdapter, Deployer deployer) public returns (address) {
         bytes32 salt = getSalt("EverclearBridgeV1.0");
 
-        vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
-        address created =
-            deployer.create(salt, abi.encodePacked(type(EverclearBridge).creationCode, abi.encode(roles, feeAdapter)));
-        vm.stopBroadcast();
+        address created = deployer.precompute(salt);
+        // Deploy only if not already deployed
+        if (created.code.length == 0) {
+            vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
+            created =
+                deployer.create(salt, abi.encodePacked(type(EverclearBridge).creationCode, abi.encode(roles, feeAdapter)));
+            vm.stopBroadcast();
 
-        console.log(" EverclearBridge deployed at: %s", created);
+            console.log(" EverclearBridge deployed at: %s", created);
+        } else {
+            console.log("Using existing EverclearBridge at: %s", created);
+        }
         return created;
     }
 

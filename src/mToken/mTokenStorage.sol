@@ -156,6 +156,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     error mt_RedeemEmpty();
     error mt_InvalidInput();
     error mt_OnlyAdminOrRole();
+    error mt_PriceFetchFailed();
     error mt_TransferNotValid();
     error mt_MinAmountNotValid();
     error mt_BorrowRateTooHigh();
