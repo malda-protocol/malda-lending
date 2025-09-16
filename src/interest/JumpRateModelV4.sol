@@ -69,28 +69,43 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
     /**
      * @notice Construct an interest rate model
      * @param blocksPerYear_ The estimated number of blocks per year
-     * @param baseRatePerYear The base APR, scaled by 1e18
-     * @param multiplierPerYear The rate increase in interest wrt utilization, scaled by 1e18
-     * @param jumpMultiplierPerYear The multiplier per block after utilization point
+     * @param baseRatePerBlock_ The base APR, scaled by 1e18
+     * @param multiplierPerBlock_ The rate increase in interest wrt utilization, scaled by 1e18
+     * @param jumpMultiplierPerBlock_ The multiplier per block after utilization point
      * @param kink_ The utilization point where the jump multiplier applies
      * @param owner_ The owner of the contract
      * @param name_ A user-friendly name for the contract
      */
     constructor(
         uint256 blocksPerYear_,
-        uint256 baseRatePerYear,
-        uint256 multiplierPerYear,
-        uint256 jumpMultiplierPerYear,
+        uint256 baseRatePerBlock_,
+        uint256 multiplierPerBlock_,
+        uint256 jumpMultiplierPerBlock_,
         uint256 kink_,
         address owner_,
         string memory name_
     ) Ownable(owner_) {
         blocksPerYear = blocksPerYear_;
         name = name_;
-        _updateJumpRateModel(baseRatePerYear, multiplierPerYear, jumpMultiplierPerYear, kink_);
+        _updateJumpRateModelWithoutComputation(baseRatePerBlock_, multiplierPerBlock_, jumpMultiplierPerBlock_, kink_);
     }
 
     // ----------- OWNER ------------
+    /**
+     * @notice Update the parameters of the interest rate model (only callable by owner, i.e. Timelock)
+     * @param baseRatePerBlock_ The approximate target base APR, as a mantissa (scaled by 1e18)
+     * @param multiplierPerBlock_ The rate of increase in interest rate wrt utilization (scaled by 1e18)
+     * @param jumpMultiplierPerBlock_ The multiplierPerBlock after hitting a specified utilization point
+     * @param kink_ The utilization point at which the jump multiplier is applied
+     */
+    function updateJumpRateModelDirect(
+        uint256 baseRatePerBlock_,
+        uint256 multiplierPerBlock_,
+        uint256 jumpMultiplierPerBlock_,
+        uint256 kink_
+    ) external onlyOwner {
+        _updateJumpRateModelWithoutComputation(baseRatePerBlock_, multiplierPerBlock_, jumpMultiplierPerBlock_, kink_);
+    }
 
     /**
      * @notice Update the parameters of the interest rate model (only callable by owner, i.e. Timelock)
@@ -165,6 +180,20 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
     }
 
     // ----------- PRIVATE ------------
+    function _updateJumpRateModelWithoutComputation(
+        uint256 basePerBlock_,
+        uint256 multiplierPerBlock_,
+        uint256 jumpMultiplierPerBlock_,
+        uint256 kink_
+    ) private {
+        baseRatePerBlock = basePerBlock_;
+        multiplierPerBlock = multiplierPerBlock_;
+        jumpMultiplierPerBlock = jumpMultiplierPerBlock_;
+        kink = kink_;
+
+        emit NewInterestParams(baseRatePerBlock, multiplierPerBlock, jumpMultiplierPerBlock, kink);
+    }
+
     /**
      * @notice Internal function to update the parameters of the interest rate model
      * @param baseRatePerYear The base APR, scaled by 1e18

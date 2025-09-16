@@ -119,7 +119,7 @@ contract mErc20_mint is mToken_Unit_Shared {
         bool enteredBefore = operator.checkMembership(address(this), address(mWeth));
         assertFalse(enteredBefore);
 
-        operator.enableWhitelist();
+        operator.setWhitelistStatus(true);
 
         vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
         mWeth.mint(amount, address(this), amount - 1000);

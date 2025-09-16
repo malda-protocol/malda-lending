@@ -27,6 +27,7 @@ pragma solidity =0.8.28;
 import {ImToken, ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {IInterestRateModel} from "src/interfaces/IInterestRateModel.sol";
 import {IOperator, IOperatorDefender} from "src/interfaces/IOperator.sol";
+import {IOracleOperator} from "src/interfaces/IOracleOperator.sol";
 
 // contracts
 import {mTokenConfiguration} from "./mTokenConfiguration.sol";
@@ -386,7 +387,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param seizeTokens The number of mTokens to seize
      */
     function _seize(address seizerToken, address liquidator, address borrower, uint256 seizeTokens) internal {
-        IOperatorDefender(operator).beforeMTokenSeize(address(this), seizerToken, liquidator, borrower);
+        IOperatorDefender(operator).beforeMTokenSeize(address(this), seizerToken, liquidator);
 
         require(borrower != liquidator, mt_InvalidInput());
 
@@ -487,8 +488,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         // (No safe failures beyond this point)
 
         /* We calculate the number of collateral tokens that will be seized */
-        uint256 seizeTokens =
-            IOperator(operator).liquidateCalculateSeizeTokens(address(this), mTokenCollateral, actualRepayAmount);
+        uint256 seizeTokens = __calculateSeizeTokens(address(this), mTokenCollateral, actualRepayAmount);
 
         /* Revert if borrower collateral token balance < seizeTokens */
         require(ImToken(mTokenCollateral).balanceOf(borrower) >= seizeTokens, mt_LiquidateSeizeTooMuch());
@@ -503,6 +503,30 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         /* We emit a LiquidateBorrow event */
         emit LiquidateBorrow(liquidator, borrower, actualRepayAmount, address(mTokenCollateral), seizeTokens);
     }
+
+    function __calculateSeizeTokens(address mTokenBorrowed, address mTokenCollateral, uint256 actualRepayAmount) private view returns (uint256) {
+        address _oracleOperator = IOperator(operator).oracleOperator();
+        uint256 priceBorrowedMantissa = IOracleOperator(_oracleOperator).getUnderlyingPrice(mTokenBorrowed);
+        uint256 priceCollateralMantissa = IOracleOperator(_oracleOperator).getUnderlyingPrice(mTokenCollateral);
+        if (priceBorrowedMantissa == 0 || priceCollateralMantissa == 0) {
+            revert mt_PriceFetchFailed();
+        }
+
+        uint256 exchangeRateMantissa = ImToken(mTokenCollateral).exchangeRateStored();
+
+        uint256 _incentiveMantissa = IOperator(operator).liquidationIncentiveMantissa(mTokenCollateral);
+        Exp memory numerator = mul_(
+            Exp({mantissa: _incentiveMantissa}),
+            Exp({mantissa: priceBorrowedMantissa})
+        );
+        Exp memory denominator = mul_(
+            Exp({mantissa: priceCollateralMantissa}),
+            Exp({mantissa: exchangeRateMantissa})
+        );
+        Exp memory ratio = div_(numerator, denominator);
+
+        return mul_ScalarTruncate(ratio, actualRepayAmount);
+    }
     /**
      * @notice Borrows are repaid by another user (possibly the borrower).
      * @param payer the account paying off the borrow
@@ -510,7 +534,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param repayAmount the amount of underlying tokens being returned, or `type(uint256).max` for the full outstanding amount
      * @param doTransfer If an actual transfer should be performed
      */
-
     function __repay(address payer, address borrower, uint256 repayAmount, bool doTransfer) private returns (uint256) {
         IOperatorDefender(operator).beforeMTokenRepay(address(this), borrower);
 

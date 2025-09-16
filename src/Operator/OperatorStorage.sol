@@ -91,10 +91,6 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     mapping(address => uint256) public minBorrowSize;
 
     /**
-     * @inheritdoc IOperator
-     */
-    address public rewardDistributor;
-
     /**
      * @inheritdoc IOperator
      */
@@ -179,7 +175,6 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     error Operator_MarketBorrowCapReached();
     error Operator_InvalidCollateralFactor();
     error Operator_InvalidBlacklistOperator();
-    error Operator_InvalidRewardDistributor();
     error Operator_OracleUnderlyingFetchError();
     error Operator_Deactivate_MarketBalanceOwed();
 
@@ -196,8 +191,6 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
      */
     event ActionPaused(address indexed mToken, ImTokenOperationTypes.OperationType _type, bool state);
 
-    /// @notice Emitted when reward distributor is changed
-    event NewRewardDistributor(address indexed oldRewardDistributor, address indexed newRewardDistributor);
     /**
      * @notice Emitted when borrow cap for a mToken is changed
      */

@@ -27,7 +27,6 @@ pragma solidity =0.8.28;
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {IBlacklister} from "src/interfaces/IBlacklister.sol";
 import {IOracleOperator} from "src/interfaces/IOracleOperator.sol";
-import {IRewardDistributor} from "src/interfaces/IRewardDistributor.sol";
 import {ImToken, ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {IOperatorData, IOperator, IOperatorDefender} from "src/interfaces/IOperator.sol";
 
@@ -42,15 +41,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         _disableInitializers();
     }
 
-    function initialize(address _rolesOperator, address _blacklistOperator, address _rewardDistributor, address _admin) public initializer {
+    function initialize(address _rolesOperator, address _blacklistOperator, address _admin) public initializer {
         require(_rolesOperator != address(0), Operator_InvalidRolesOperator());
         require(_blacklistOperator != address(0), Operator_InvalidBlacklistOperator());
-        require(_rewardDistributor != address(0), Operator_InvalidRewardDistributor());
         require(_admin != address(0), Operator_InvalidInput());
         __Ownable_init(_admin);
         rolesOperator = IRoles(_rolesOperator);
         blacklistOperator = IBlacklister(_blacklistOperator);
-        rewardDistributor = _rewardDistributor;
         outflowResetTimeWindow = 1 hours;
         lastOutflowResetTimestamp = block.timestamp;
         limitPerTimePeriod = 0;
@@ -98,21 +95,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         emit UserWhitelisted(user, state);
     }
 
-    /**
-     * @notice Enable user whitelist
-     */
-    function enableWhitelist() external onlyOwner {
-        whitelistEnabled = true;
-        emit WhitelistEnabled();
+    function setWhitelistStatus(bool status) external onlyOwner {
+        whitelistEnabled = status;
+        if (status) emit WhitelistEnabled();
+        else emit WhitelistDisabled();
+
     }
 
-    /**
-     * @notice Disable user whitelist
-     */
-    function disableWhitelist() external onlyOwner {
-        whitelistEnabled = false;
-        emit WhitelistDisabled();
-    }
 
     /**
      * @notice Sets a new Operator for the market
@@ -200,10 +189,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     function supportMarket(address mToken) external onlyOwner {
         require(!markets[address(mToken)].isListed, Operator_MarketAlreadyListed());
 
-        // Note that isMalded is not in active use anymore
         IOperatorData.Market storage newMarket = markets[mToken];
         newMarket.isListed = true;
-        newMarket.isMalded = false;
         newMarket.collateralFactorMantissa = 0;
 
         for (uint256 i = 0; i < allMarkets.length;) {
@@ -339,26 +326,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         emit ActionPaused(mToken, _type, state);
     }
 
-    /**
-     * @notice Admin function to change the Reward Distributor
-     * @param newRewardDistributor The address of the new Reward Distributor
-     */
-    function setRewardDistributor(address newRewardDistributor) external onlyOwner {
-        // Emit NewRewardDistributor(OldRewardDistributor, NewRewardDistributor)
-        emit NewRewardDistributor(rewardDistributor, newRewardDistributor);
-
-        // Store rewardDistributor with value newRewardDistributor
-        rewardDistributor = newRewardDistributor;
-    }
-
     // ----------- VIEW ------------
-    /**
-     * @inheritdoc IOperator
-     */
-    function isOperator() external pure override returns (bool) {
-        return true;
-    }
-
     /**
      * @inheritdoc IOperator
      */
@@ -409,13 +377,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /**
      * @inheritdoc IOperator
      */
-    function getAccountLiquidity(address account) public view returns (uint256, uint256) {
-        return _getHypotheticalAccountLiquidity(account, address(0), 0, 0);
-    }
-
-    /**
-     * @inheritdoc IOperator
-     */
     function getHypotheticalAccountLiquidity(
         address account,
         address mTokenModify,
@@ -423,39 +384,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         uint256 borrowAmount
     ) external view returns (uint256, uint256) {
         return _getHypotheticalAccountLiquidity(account, mTokenModify, redeemTokens, borrowAmount);
-    }
-
-    /**
-     * @inheritdoc IOperator
-     */
-    function liquidateCalculateSeizeTokens(address mTokenBorrowed, address mTokenCollateral, uint256 actualRepayAmount)
-        external
-        view
-        returns (uint256)
-    {
-        /* Read oracle prices for borrowed and collateral markets */
-        uint256 priceBorrowedMantissa = IOracleOperator(oracleOperator).getUnderlyingPrice(mTokenBorrowed);
-        uint256 priceCollateralMantissa = IOracleOperator(oracleOperator).getUnderlyingPrice(mTokenCollateral);
-        require(priceBorrowedMantissa > 0 && priceCollateralMantissa > 0, Operator_PriceFetchFailed());
-
-        /*
-         * Get the exchange rate and calculate the number of collateral tokens to seize:
-         *  seizeAmount = actualRepayAmount * liquidationIncentive * priceBorrowed / priceCollateral
-         *  seizeTokens = seizeAmount / exchangeRate
-         *   = actualRepayAmount * (liquidationIncentive * priceBorrowed) / (priceCollateral * exchangeRate)
-         */
-        uint256 exchangeRateMantissa = ImToken(mTokenCollateral).exchangeRateStored();
-
-        Exp memory numerator;
-        Exp memory denominator;
-        Exp memory ratio;
-        numerator = mul_(
-            Exp({mantissa: liquidationIncentiveMantissa[mTokenCollateral]}), Exp({mantissa: priceBorrowedMantissa})
-        );
-        denominator = mul_(Exp({mantissa: priceCollateralMantissa}), Exp({mantissa: exchangeRateMantissa}));
-        ratio = div_(numerator, denominator);
-
-        return mul_ScalarTruncate(ratio, actualRepayAmount);
     }
 
     // ----------- PUBLIC ------------
@@ -535,42 +463,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     }
 
     /**
-     * @notice Claim all the MALDA accrued by holder in all markets
-     * @param holder The address to claim MALDA for
-     */
-    function claimMalda(address holder) external override onlyFirewallApproved() {
-        address[] memory holders = new address[](1);
-        holders[0] = holder;
-        return _claim(holders, allMarkets, true, true);
-    }
-
-    /**
-     * @notice Claim all the MALDA accrued by holder in the specified markets
-     * @param holder The address to claim MALDA for
-     * @param mTokens The list of markets to claim MALDA in
-     */
-    function claimMalda(address holder, address[] memory mTokens) external override onlyFirewallApproved() {
-        address[] memory holders = new address[](1);
-        holders[0] = holder;
-        _claim(holders, mTokens, true, true);
-    }
-
-    /**
-     * @notice Claim all MALDA accrued by the holders
-     * @param holders The addresses to claim MALDA for
-     * @param mTokens The list of markets to claim MALDA in
-     * @param borrowers Whether or not to claim MALDA earned by borrowing
-     * @param suppliers Whether or not to claim MALDA earned by supplying
-     */
-    function claimMalda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers)
-        external
-        override
-        onlyFirewallApproved()
-    {
-        _claim(holders, mTokens, borrowers, suppliers);
-    }
-
-    /**
      * @notice Returns USD value for all markets
      */
     function getUSDValueForAllMarkets() external view returns (uint256) {
@@ -604,23 +496,14 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
 
         /* Get sender tokensHeld and amountOwed underlying from the mToken */
         _beforeRedeem(mToken, src, transferTokens);
-
-        // Keep the flywheel moving
-        _updateMaldaSupplyIndex(mToken);
-        _distributeSupplierMalda(mToken, src);
-        _distributeSupplierMalda(mToken, dst);
     }
 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenMint(address mToken, address minter, address receiver) external override onlyAllowedUser(minter) ifNotBlacklisted(minter) ifNotBlacklisted(receiver) onlyFirewallApproved() onlyAllowedUser(minter) {
+    function beforeMTokenMint(address mToken, address minter, address receiver) external view override onlyAllowedUser(minter) ifNotBlacklisted(minter) ifNotBlacklisted(receiver) onlyFirewallApproved() onlyAllowedUser(minter) {
         require(!_paused[mToken][OperationType.Mint], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
-        // Keep the flywheel moving
-        _updateMaldaSupplyIndex(mToken);
-        _distributeSupplierMalda(mToken, minter);
-        _distributeSupplierMalda(mToken, receiver);
     }
 
     /**
@@ -640,12 +523,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
      * @inheritdoc IOperatorDefender
      */
 
-    function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external override onlyAllowedUser(redeemer) ifNotBlacklisted(redeemer) onlyFirewallApproved() {
+    function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external view override onlyAllowedUser(redeemer) ifNotBlacklisted(redeemer) onlyFirewallApproved() {
         _beforeRedeem(mToken, redeemer, redeemTokens);
-
-        // Keep the flywheel moving
-        _updateMaldaSupplyIndex(mToken);
-        _distributeSupplierMalda(mToken, redeemer);
     }
 
     /**
@@ -680,22 +559,14 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         // liquidity check
         (, uint256 shortfall) = _getHypotheticalAccountLiquidity(borrower, mToken, 0, borrowAmount);
         require(shortfall == 0, Operator_InsufficientLiquidity());
-
-        // Keep the flywheel moving
-        _updateMaldaBorrowIndex(mToken);
-        _distributeBorrowerMalda(mToken, borrower);
     }
 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenRepay(address mToken, address borrower) external onlyAllowedUser(borrower) onlyFirewallApproved() {
+    function beforeMTokenRepay(address mToken, address borrower) external view onlyAllowedUser(borrower) onlyFirewallApproved() {
         require(!_paused[mToken][OperationType.Repay], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
-
-        // Keep the flywheel moving
-        _updateMaldaBorrowIndex(mToken);
-        _distributeBorrowerMalda(mToken, borrower);
     }
 
     /**
@@ -728,8 +599,9 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator, address borrower)
+    function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator)
         external
+        view
         override
         ifNotBlacklisted(liquidator)
         onlyFirewallApproved()
@@ -741,11 +613,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         require(markets[mTokenBorrowed].isListed, Operator_MarketNotListed());
         require(markets[mTokenCollateral].isListed, Operator_MarketNotListed());
         require(ImToken(mTokenCollateral).operator() == ImToken(mTokenBorrowed).operator(), Operator_Mismatch());
-
-        // Keep the flywheel moving
-        _updateMaldaSupplyIndex(mTokenCollateral);
-        _distributeSupplierMalda(mTokenCollateral, borrower);
-        _distributeSupplierMalda(mTokenCollateral, liquidator);
     }
 
     // ----------- PRIVATE ------------
@@ -837,75 +704,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         } else {
             return (0, vars.sumBorrowPlusEffects - vars.sumCollateral);
         }
-    }
-
-    /**
-     * @notice Notify reward distributor for supply index update
-     * @param mToken The market whose supply index to update
-     */
-    function _updateMaldaSupplyIndex(address mToken) private {
-        IRewardDistributor(rewardDistributor).notifySupplyIndex(mToken);
-    }
-
-    /**
-     * @notice Notify reward distributor for borrow index update
-     * @param mToken The market whose borrow index to update
-     */
-    function _updateMaldaBorrowIndex(address mToken) private {
-        IRewardDistributor(rewardDistributor).notifyBorrowIndex(mToken);
-    }
-
-    /**
-     * @notice Notify reward distributor for supplier update
-     * @param mToken The market in which the supplier is interacting
-     * @param supplier The address of the supplier to distribute MALDA to
-     */
-    function _distributeSupplierMalda(address mToken, address supplier) private {
-        IRewardDistributor(rewardDistributor).notifySupplier(mToken, supplier);
-    }
-
-    /**
-     * @notice Notify reward distributor for borrower update
-     * @dev Borrowers will not begin to accrue until after the first interaction with the protocol.
-     * @param mToken The market in which the borrower is interacting
-     * @param borrower The address of the borrower to distribute MALDA to
-     */
-    function _distributeBorrowerMalda(address mToken, address borrower) private {
-        IRewardDistributor(rewardDistributor).notifyBorrower(mToken, borrower);
-    }
-
-    function _claim(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers) private {
-        uint256 len = mTokens.length;
-        for (uint256 i; i < len;) {
-            address mToken = mTokens[i];
-            require(markets[mToken].isListed, Operator_MarketNotListed());
-            if (borrowers) {
-                _updateMaldaBorrowIndex(address(mToken));
-                for (uint256 j = 0; j < holders.length;) {
-                    _distributeBorrowerMalda(address(mToken), holders[j]);
-
-                    unchecked {
-                        ++j;
-                    }
-                }
-            }
-            if (suppliers) {
-                _updateMaldaSupplyIndex(address(mToken));
-                for (uint256 j = 0; j < holders.length;) {
-                    _distributeSupplierMalda(address(mToken), holders[j]);
-
-                    unchecked {
-                        ++j;
-                    }
-                }
-            }
-
-            unchecked {
-                ++i;
-            }
-        }
-
-        IRewardDistributor(rewardDistributor).claim(holders);
     }
 
     function _isDeprecated(address mToken) private view returns (bool) {

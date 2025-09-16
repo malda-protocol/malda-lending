@@ -51,7 +51,7 @@ contract MigrationTests is Base_Integration_Test {
 
         Operator oprImp = new Operator();
         bytes memory operatorInitData =
-            abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(this), address(rewards), address(this));
+            abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(this), address(this));
         ERC1967Proxy operatorProxy = new ERC1967Proxy(address(oprImp), operatorInitData);
         operator = Operator(address(operatorProxy));
         vm.label(address(operator), "Operator");

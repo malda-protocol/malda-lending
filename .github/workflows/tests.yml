@@ -38,8 +38,35 @@ jobs:
         run: forge install
 
       - name: Check contract sizes
-        run: forge build
-        id: build
+        run: |
+          MAX_SIZE=24576
+          WARN20=$((MAX_SIZE * 80 / 100))
+          WARN10=$((MAX_SIZE * 90 / 100))
+          WARN5=$((MAX_SIZE * 95 / 100))
+
+          echo "## Full forge build --sizes output" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          forge build --sizes | tee -a $GITHUB_STEP_SUMMARY | \
+          awk -F'|' -v max=$MAX_SIZE -v w20=$WARN20 -v w10=$WARN10 -v w5=$WARN5 '
+            NR>4 && NF>4 {
+              # column 2 = contract, column 3 = runtime size
+              gsub(/ /,"",$2); gsub(/ /,"",$3); gsub(/,/,"",$3);
+              contract=$2; size=$3+0;
+              if (contract != "") {
+                if (size >= max) {
+                  print "::error::" contract " exceeds the EVM max size (" size " / " max ")"
+                  exitcode=1
+                } else if (size >= w5) {
+                  print "::warning::" contract " is above 95% of max size (" size " / " max ")"
+                } else if (size >= w10) {
+                  print "::warning::" contract " is above 90% of max size (" size " / " max ")"
+                } else if (size >= w20) {
+                  print "::warning::" contract " is above 80% of max size (" size " / " max ")"
+                }
+              }
+            }
+            END { exit exitcode }
+          '
 
       - name: Run Solidity tests
         run: forge test 
