@@ -80,7 +80,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         require (amounts.length == length, Operator_InvalidInput());
 
         for (uint256 i; i < length; ++i) {
-            minBorrowSize[mTokens[i]] - amounts[i];
+            minBorrowSize[mTokens[i]] = amounts[i];
         }
         emit MinBorrowSizeSet(mTokens, amounts);
     }
