@@ -1,4 +1,4 @@
-{
+  {
   "generic": {
     "version": 1,
     "connextDomains": [
@@ -80,25 +80,7 @@
           "borrowCap": 0,
           "borrowRateMaxMantissa": 0,
           "collateralFactor": 0,
-          "decimals": 18,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": "mDAI Interest Model"
-          },
-          "name": "mDAI",
-          "supplyCap": 0,
-          "symbol": "mDAI",
-          "underlying": "0x4AF15ec2A0BD43Db75dd04E62FAA3B8EF36b00d5"
-        },
-        {
-          "borrowCap": 0,
-          "borrowRateMaxMantissa": 0,
-          "collateralFactor": 0,
-          "decimals": 6,
+          "decimals": 8,
           "interestModel": {
             "baseRate": 0,
             "blocksPerYear": 0,
@@ -147,42 +129,6 @@
           "supplyCap": 0,
           "symbol": "mezETH",
           "underlying": "0x2416092f143378750bb29b79eD961ab195CcEea5"
-        },
-        {
-          "borrowCap": 0,
-          "borrowRateMaxMantissa": 0,
-          "collateralFactor": 0,
-          "decimals": 18,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": "mweETH Interest Model"
-          },
-          "name": "mweETH",
-          "supplyCap": 0,
-          "symbol": "mweETH",
-          "underlying": "0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6"
-        },
-        {
-          "borrowCap": 0,
-          "borrowRateMaxMantissa": 0,
-          "collateralFactor": 0,
-          "decimals": 18,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": "mwrsETH Interest Model"
-          },
-          "name": "mwrsETH",
-          "supplyCap": 0,
-          "symbol": "mwrsETH",
-          "underlying": "0xD2671165570f41BBB3B0097893300b6EB6101E6C"
         }
       ],
       "roles": [
@@ -317,25 +263,7 @@
           "name": "mUSDT",
           "supplyCap": 0,
           "symbol": "mUSDT",
-          "underlying": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58"
-        },
-        {
-          "borrowCap": 0,
-          "borrowRateMaxMantissa": 0,
-          "collateralFactor": 0,
-          "decimals": 0,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": ""
-          },
-          "name": "mDAI",
-          "supplyCap": 0,
-          "symbol": "mDAI",
-          "underlying": "0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb"
+          "underlying": "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2"
         },
         {
           "borrowCap": 0,
@@ -372,60 +300,6 @@
           "supplyCap": 0,
           "symbol": "mwstETH",
           "underlying": "0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452"
-        },
-        {
-          "borrowCap": 0,
-          "borrowRateMaxMantissa": 0,
-          "collateralFactor": 0,
-          "decimals": 0,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": ""
-          },
-          "name": "mezETH",
-          "supplyCap": 0,
-          "symbol": "mezETH",
-          "underlying": "0x2416092f143378750bb29b79eD961ab195CcEea5"
-        },
-        {
-          "borrowCap": 0,
-          "borrowRateMaxMantissa": 0,
-          "collateralFactor": 0,
-          "decimals": 0,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": ""
-          },
-          "name": "mweETH",
-          "supplyCap": 0,
-          "symbol": "mweETH",
-          "underlying": "0x04C0599Ae5A44757c0af6F9eC3b93da8976c150A"
-        },
-        {
-          "borrowCap": 0,
-          "borrowRateMaxMantissa": 0,
-          "collateralFactor": 0,
-          "decimals": 0,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": ""
-          },
-          "name": "mwrsETH",
-          "supplyCap": 0,
-          "symbol": "mwrsETH",
-          "underlying": "0xEDfa23602D0EC14714057867A78d01e94176BEA0"
         }
       ],
       "roles": [
@@ -571,24 +445,6 @@
             "multiplier": 0,
             "name": ""
           },
-          "name": "mDAI",
-          "supplyCap": 0,
-          "symbol": "mDAI",
-          "underlying": "0x6B175474E89094C44Da98b954EedeAC495271d0F"
-        },
-        {
-          "borrowCap": 0,
-          "borrowRateMaxMantissa": 0,
-          "collateralFactor": 0,
-          "decimals": 0,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": ""
-          },
           "name": "mWBTC",
           "supplyCap": 0,
           "symbol": "mWBTC",
@@ -611,60 +467,6 @@
           "supplyCap": 0,
           "symbol": "mwstETH",
           "underlying": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0"
-        },
-        {
-          "borrowCap": 0,
-          "borrowRateMaxMantissa": 0,
-          "collateralFactor": 0,
-          "decimals": 0,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": ""
-          },
-          "name": "mezETH",
-          "supplyCap": 0,
-          "symbol": "mezETH",
-          "underlying": "0xbf5495Efe5DB9ce00f80364C8B423567e58d2110"
-        },
-        {
-          "borrowCap": 0,
-          "borrowRateMaxMantissa": 0,
-          "collateralFactor": 0,
-          "decimals": 0,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": ""
-          },
-          "name": "mweETH",
-          "supplyCap": 0,
-          "symbol": "mweETH",
-          "underlying": "0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee"
-        },
-        {
-          "borrowCap": 0,
-          "borrowRateMaxMantissa": 0,
-          "collateralFactor": 0,
-          "decimals": 0,
-          "interestModel": {
-            "baseRate": 0,
-            "blocksPerYear": 0,
-            "jumpMultiplier": 0,
-            "kink": 0,
-            "multiplier": 0,
-            "name": ""
-          },
-          "name": "mwrsETH",
-          "supplyCap": 0,
-          "symbol": "mwrsETH",
-          "underlying": "0xA1290d69c65A6Fe4DF752f95823fae25cB99e5A7"
         }
       ],
       "roles": [

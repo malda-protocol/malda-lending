@@ -61,15 +61,15 @@ contract DeployMarketsRelease is DeployBaseRelease {
         // full configs
         fullConfigs["mUSDC"] = MarketRelease({
             borrowCap: 0,
-            borrowRateMaxMantissa: 0.0005e16,
+            borrowRateMaxMantissa: 0.0,
             collateralFactor: 0,
             decimals: 6,
             interestModel: InterestConfig({
                 baseRate: 0,
                 blocksPerYear: 31536000,
-                jumpMultiplier: 3499999999994448000,
+                jumpMultiplier: 110984271943,
                 kink: 920000000000000000,
-                multiplier: 50605736204435511,
+                multiplier: 1744038559,
                 name: "mUSDC Interest Model"
             }),
             name: "mUSDC",
@@ -82,15 +82,15 @@ contract DeployMarketsRelease is DeployBaseRelease {
 
         fullConfigs["mWETH"] = MarketRelease({
             borrowCap: 0,
-            borrowRateMaxMantissa: 0.0005e16,
+            borrowRateMaxMantissa: 0,
             collateralFactor: 0,
             decimals: 18,
             interestModel: InterestConfig({
                 baseRate: 0,
                 blocksPerYear: 31536000,
-                jumpMultiplier: 4999999999974048000,
+                jumpMultiplier: 158548959918,
                 kink: 900000000000000000,
-                multiplier: 22498715810630400,
+                multiplier: 792744799,
                 name: "mWETH Interest Model"
             }),
             name: "mWETH",
@@ -103,15 +103,15 @@ contract DeployMarketsRelease is DeployBaseRelease {
 
         fullConfigs["mUSDT"] = MarketRelease({
             borrowCap: 0,
-            borrowRateMaxMantissa: 0.0005e16,
+            borrowRateMaxMantissa: 0,
             collateralFactor: 0,
             decimals: 6,
             interestModel: InterestConfig({
                 baseRate: 0,
                 blocksPerYear: 31536000,
-                jumpMultiplier: 3499999999994448000,
+                jumpMultiplier: 110984271943,
                 kink: 920000000000000000,
-                multiplier: 55194998244975695,
+                multiplier: 1902587519,
                 name: "mUSDT Interest Model"
             }),
             name: "mUSDT",
@@ -124,15 +124,15 @@ contract DeployMarketsRelease is DeployBaseRelease {
 
         fullConfigs["mWBTC"] = MarketRelease({
             borrowCap: 0,
-            borrowRateMaxMantissa: 0.0005e16,
+            borrowRateMaxMantissa: 0,
             collateralFactor: 0,
             decimals: 8,
             interestModel: InterestConfig({
                 baseRate: 0,
                 blocksPerYear: 31536000,
-                jumpMultiplier: 11999999999995568000,
+                jumpMultiplier: 380517503805,
                 kink: 800000000000000000,
-                multiplier: 36005582570424320,
+                multiplier: 1426940639,
                 name: "mWBTC Interest Model"
             }),
             name: "mWBTC",
@@ -145,15 +145,15 @@ contract DeployMarketsRelease is DeployBaseRelease {
 
         fullConfigs["mwstETH"] = MarketRelease({
             borrowCap: 0,
-            borrowRateMaxMantissa: 0.0005e16,
+            borrowRateMaxMantissa: 0,
             collateralFactor: 0,
             decimals: 18,
             interestModel: InterestConfig({
                 baseRate: 0,
                 blocksPerYear: 31536000,
-                jumpMultiplier: 8499924722164496000,
+                jumpMultiplier: 269533231861,
                 kink: 800000000000000000,
-                multiplier: 12799993755404800,
+                multiplier: 507356671,
                 name: "mwstETH Interest Model"
             }),
             name: "mwstETH",
@@ -166,63 +166,21 @@ contract DeployMarketsRelease is DeployBaseRelease {
 
         fullConfigs["mezETH"] = MarketRelease({
             borrowCap: 0,
-            borrowRateMaxMantissa: 0.0005e16,
+            borrowRateMaxMantissa: 0,
             collateralFactor: 0,
             decimals: 18,
             interestModel: InterestConfig({
                 baseRate: 0,
                 blocksPerYear: 31536000,
-                jumpMultiplier: 3000002316638736000,
+                jumpMultiplier: 95129375951,
                 kink: 400000000000000000,
-                multiplier: 27999732233587200,
+                multiplier: 2219685438,
                 name: "mezETH Interest Model"
             }),
             name: "mezETH",
             supplyCap: 0,
             symbol: "mezETH",
             underlying: 0x2416092f143378750bb29b79eD961ab195CcEea5,
-            reserveFactor: 0,
-            liquidationBonus: 0
-        });
-
-        fullConfigs["mweETH"] = MarketRelease({
-            borrowCap: 0,
-            borrowRateMaxMantissa: 0.0005e16,
-            collateralFactor: 0,
-            decimals: 18,
-            interestModel: InterestConfig({
-                baseRate: 317091247,
-                blocksPerYear: 31536000,
-                jumpMultiplier: 3000002316638736000,
-                kink: 400000000000000000,
-                multiplier: 27999732233587200,
-                name: "mweETH Interest Model"
-            }),
-            name: "mweETH",
-            supplyCap: 0,
-            symbol: "mweETH",
-            underlying: 0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6,
-            reserveFactor: 0,
-            liquidationBonus: 0
-        });
-
-        fullConfigs["mwrsETH"] = MarketRelease({
-            borrowCap: 0,
-            borrowRateMaxMantissa: 0.0005e16,
-            collateralFactor: 0,
-            decimals: 18,
-            interestModel: InterestConfig({
-                baseRate: 0,
-                blocksPerYear: 31536000,
-                jumpMultiplier: 3000002316638736000,
-                kink: 400000000000000000,
-                multiplier: 27999732233587200,
-                name: "mwrsETH Interest Model"
-            }),
-            name: "mwrsETH",
-            supplyCap: 0,
-            symbol: "mwrsETH",
-            underlying: 0xD2671165570f41BBB3B0097893300b6EB6101E6C,
             reserveFactor: 0,
             liquidationBonus: 0
         });
@@ -272,29 +230,12 @@ contract DeployMarketsRelease is DeployBaseRelease {
             console.log("-------------------- DONE");
         }
 
-        marketAddresses.push(address(0x1));
-        marketAddresses.push(address(0x2));
-        marketAddresses.push(address(0x3));
         string memory outputPath = "script/deployment/mainnet/output/release-deployed-market-addresses.json";
         string memory json = "[";
         for (uint256 i; i < marketAddresses.length; ++i) {
             address addr = marketAddresses[i];
 
-            // Check if it's in extensionMarketAddresses
-            bool isExtension = false;
-            for (uint256 j; j < extensionMarketAddresses.length; ++j) {
-                if (addr == extensionMarketAddresses[j]) {
-                    isExtension = true;
-                    break;
-                }
-            }
-
-            string memory obj;
-            if (isExtension) {
-                obj = string(abi.encodePacked('{"address":"', vm.toString(addr), '","isExtension":true}'));
-            } else {
-                obj = string(abi.encodePacked('{"address":"', vm.toString(addr), '"}'));
-            }
+            string memory obj = string(abi.encodePacked('{"address":"', vm.toString(addr), '"}'));
 
             json = string(abi.encodePacked(json, obj));
             if (i < marketAddresses.length - 1) {

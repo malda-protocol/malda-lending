@@ -42,10 +42,10 @@ contract DeployJumpRateModelV4 is Script {
                 abi.encodePacked(
                     type(JumpRateModelV4).creationCode,
                     abi.encode(
-                        data.blocksPerYear,
-                        data.baseRatePerYear,
-                        data.multiplierPerYear,
-                        data.jumpMultiplierPerYear,
+                        data.blocksPerYear, 
+                        data.baseRatePerYear, //per block
+                        data.multiplierPerYear, //per block
+                        data.jumpMultiplierPerYear, //per block
                         data.kink,
                         owner,
                         data.name

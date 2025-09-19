@@ -69,6 +69,18 @@ contract TransferReleaseOwnership is DeployBaseRelease {
     }
 
     function run() public {
+        // ------------------
+        // ------------------
+        // ------------------
+        // ------------------
+        // ------------- OWNER TO SET -----------
+        address owner = 0x91B945CbB063648C44271868a7A0c7BdFf64827D;
+        // ------------------
+        // ------------------
+        // ------------------
+        // ------------------
+        // ------------------
+
         // Deploy to all networks
         for (uint256 i = 0; i < networks.length; i++) {
             string memory network = networks[i];

@@ -70,7 +70,7 @@ contract DeployCoreRelease is DeployBaseRelease {
         spokePoolAddresses[1] = 0x5c7BCd6E7De5423a257D81B442095A1a6ced35C5;
         spokePoolAddresses[10] = 0x6f26Bf09B1C792e3228e5467807a900A503c0281;
         spokePoolAddresses[8453] = 0x09aea4b2242abC8bb4BB78D537A67a245A7bEC64;
-        spokePoolAddresses[59144] = address(0);
+        spokePoolAddresses[59144] = 0x7E63A5f1a8F0B4d0934B2f2327DAED3F6bb2ee75;
 
         everclearAddresses[1] = 0xa05A3380889115bf313f1Db9d5f335157Be4D816;
         everclearAddresses[10] = 0xa05A3380889115bf313f1Db9d5f335157Be4D816;
