@@ -82,12 +82,12 @@ contract UpdateRoles is DeployBaseRelease {
 
         // Set roles for new addresses
         for (uint256 i = 0; i < rolesLength; i++) {
-            setRole.run(rolesContract, roles[i].account, roles[i].role, true);
+            setRole.run(rolesContract, rolesData[i].account, rolesData[i].role, true);
         }
 
         // Remove roles from original addresses
         for (uint256 i = 0; i < rolesLength; i++) {
-            setRole.run(rolesContract, original, roles[i].role, false);
+            setRole.run(rolesContract, original, rolesData[i].role, false);
         }
     }
 }
