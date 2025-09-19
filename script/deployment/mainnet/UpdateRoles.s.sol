@@ -63,7 +63,7 @@ contract UpdateRoles is DeployBaseRelease {
 
     function _setRoles(string memory network) internal {
         uint256 rolesLength = 10;
-        RoleData[] memory roles = new RoleData[](rolesLength);
+        RoleData[] memory rolesData = new RoleData[](rolesLength);
 
         address target = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
         address target2 = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
