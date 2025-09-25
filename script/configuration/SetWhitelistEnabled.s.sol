@@ -14,7 +14,7 @@ contract SetWhitelistEnabled is Script {
         vm.stopBroadcast();
         
         // set whitelisted users
-        address[] memory users = new address[](22);
+        address[] memory users = new address[](25);
         users[0]  = 0xf20a8950c368Ec48323092D6e4acF90aADf2BdC6;
         users[1]  = 0x8E72a24221517E51502f20f387415a06b27A5b51;
         users[2]  = 0x50d8Deadd2b3140B151CaB2C4FB76F1f59b236F8;
@@ -37,6 +37,9 @@ contract SetWhitelistEnabled is Script {
         users[19] = 0xBD9C90D6774CB5320B54Bb7998b6Bcc5e4A9071f;
         users[20] = 0x8f2eABa31B1b613ca78F2795bA05400F0583c5A4;
         users[21] = 0xBd0Ce952bA069A1e15f3bf3916d4B07bBBdBC8B3;
+        users[22] = 0x5641B4889177419E8f79de939967E9277C127cDe;
+        users[23] = 0x25B0327D46A10CDC6Bb88387d9f7e33743b2504D;
+        users[24] = 0x9ea397603aA16664874fcd496b4D37eDD5B3b649;
 
         console.log("Setting whitelisted users on Linea");
         for (uint256 i; i < users.length; ++i) {

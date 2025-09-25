@@ -11,7 +11,7 @@ import {IPauser} from "src/interfaces/IPauser.sol";
 import {Pauser} from "src/pauser/Pauser.sol";
 
 import {
-    DeployConfig,
+    DeployConfig, 
     MarketRelease,
     Role,
     InterestConfig,
@@ -184,6 +184,48 @@ contract DeployMarketsRelease is DeployBaseRelease {
             reserveFactor: 0,
             liquidationBonus: 0
         });
+
+        fullConfigs["mweETH"] = MarketRelease({
+            borrowCap: 0,
+            borrowRateMaxMantissa: 0.0005e16,
+            collateralFactor: 0,
+            decimals: 18,
+            interestModel: InterestConfig({
+                baseRate: 0,
+                blocksPerYear: 31536000,
+                jumpMultiplier: 95129375951,
+                kink: 400000000000000000,
+                multiplier: 2219685438,
+                name: "mweETH Interest Model"
+            }),
+            name: "mweETH",
+            supplyCap: 0,
+            symbol: "mweETH",
+            underlying: 0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6,
+            reserveFactor: 0,
+            liquidationBonus: 0
+        });
+
+        fullConfigs["mwrsETH"] = MarketRelease({
+            borrowCap: 0,
+            borrowRateMaxMantissa: 0.0005e16,
+            collateralFactor: 0,
+            decimals: 18,
+            interestModel: InterestConfig({
+                baseRate: 0,
+                blocksPerYear: 31536000,
+                jumpMultiplier: 95129375951,
+                kink: 400000000000000000,
+                multiplier: 2219685438,
+                name: "mwrsETH Interest Model"
+            }),
+            name: "mwrsETH",
+            supplyCap: 0,
+            symbol: "mwrsETH",
+            underlying: 0xD2671165570f41BBB3B0097893300b6EB6101E6C,
+            reserveFactor: 0,
+            liquidationBonus: 0
+        });
     }
 
     function run() public {
@@ -248,6 +290,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
 
     function _deployHostChain(string memory network) internal {
         uint256 marketsLength = configs[network].markets.length;
+        console.log("Need to deploy, markets count: ", marketsLength);
         for (uint256 i; i < marketsLength;) {
             _deployAndConfigureMarket(true, configs[network].markets[i], network);
             unchecked {
@@ -274,6 +317,8 @@ contract DeployMarketsRelease is DeployBaseRelease {
         // Deploy interest model only for host chain
         if (isHost) {
             market = fullConfigs[market.name];
+            console.log("Host market name: ");
+            console.logString(market.name);
             interestModel = _deployInterestModel(market.interestModel);
         }
         uint256 key = vm.envUint("PRIVATE_KEY");

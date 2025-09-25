@@ -74,6 +74,8 @@ contract ConfigureRelease is DeployBaseRelease {
         borrowCaps["mwstETH"] = 0;
         borrowCaps["mWBTC"]  = 0;
         borrowCaps["mezETH"] = 0;
+        borrowCaps["mweETH"] = 0;
+        borrowCaps["mwrsETH"] = 0;
 
         // min caps
         minBorrowSize["mUSDC"]  = 10e6;       // 10 USDC (6 decimals)
@@ -82,6 +84,8 @@ contract ConfigureRelease is DeployBaseRelease {
         minBorrowSize["mwstETH"] = 0.0025e18; // 0.0025 wstETH
         minBorrowSize["mWBTC"]  = 0.0001e8;   // 0.0001 BTC (8 decimals)
         minBorrowSize["mezETH"] = 0.002e18;
+        minBorrowSize["mweETH"] = 0.002e18;
+        minBorrowSize["mwrsETH"] = 0.002e18;
 
         // collateral factors
         collateralFactors["mUSDC"]  = 900000000000000000; // 0.90
@@ -90,6 +94,8 @@ contract ConfigureRelease is DeployBaseRelease {
         collateralFactors["mwstETH"] = 810000000000000000; // 0.81
         collateralFactors["mWBTC"]  = 780000000000000000; // 0.78
         collateralFactors["mezETH"] = 750000000000000000; // 0.75
+        collateralFactors["mweETH"] = 800000000000000000;
+        collateralFactors["mwrsETH"] = 750000000000000000;
 
         // reserve factors
         reserveFactors["mUSDC"]  = 100000000000000000; // 0.10
@@ -98,6 +104,8 @@ contract ConfigureRelease is DeployBaseRelease {
         reserveFactors["mwstETH"] = 50000000000000000; // 0.05
         reserveFactors["mWBTC"]  = 500000000000000000; // 0.50
         reserveFactors["mezETH"] = 450000000000000000; // 0.45
+        reserveFactors["mweETH"] = 450000000000000000;
+        reserveFactors["mwrsETH"] = 450000000000000000;
 
         // liquidation bonuses
         liquidationBonuses["mUSDC"]  = 1050000000000000000; // 1.05
@@ -106,6 +114,8 @@ contract ConfigureRelease is DeployBaseRelease {
         liquidationBonuses["mwstETH"] = 1060000000000000000; // 1.06
         liquidationBonuses["mWBTC"]  = 1050000000000000000; // 1.05
         liquidationBonuses["mezETH"] = 1070000000000000000; // 1.07
+        liquidationBonuses["mweETH"] = 1070000000000000000;
+        liquidationBonuses["mwrsETH"] = 1070000000000000000;
 
         // full configs
         fullConfigs["mUSDC"] = MarketRelease({
@@ -233,6 +243,47 @@ contract ConfigureRelease is DeployBaseRelease {
             reserveFactor: reserveFactors["mezETH"],
             liquidationBonus: liquidationBonuses["mezETH"]
         });
+                fullConfigs["mweETH"] = MarketRelease({
+            borrowCap: borrowCaps["mweETH"],
+            borrowRateMaxMantissa: 0.0005e16,
+            collateralFactor: collateralFactors["mweETH"],
+            decimals: 18,
+            interestModel: InterestConfig({
+                baseRate: 317091247,
+                blocksPerYear: 31536000,
+                jumpMultiplier: 3000002316638736000,
+                kink: 400000000000000000,
+                multiplier: 27999732233587200,
+                name: "mweETH Interest Model"
+            }),
+            name: "mweETH",
+            supplyCap: 0,
+            symbol: "mweETH",
+            underlying: 0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6,
+            reserveFactor: reserveFactors["mweETH"],
+            liquidationBonus: liquidationBonuses["mweETH"]
+        });
+
+        fullConfigs["mwrsETH"] = MarketRelease({
+            borrowCap: borrowCaps["mwrsETH"],
+            borrowRateMaxMantissa: 0.0005e16,
+            collateralFactor: collateralFactors["mwrsETH"],
+            decimals: 18,
+            interestModel: InterestConfig({
+                baseRate: 0,
+                blocksPerYear: 31536000,
+                jumpMultiplier: 3000002316638736000,
+                kink: 400000000000000000,
+                multiplier: 27999732233587200,
+                name: "mwrsETH Interest Model"
+            }),
+            name: "mwrsETH",
+            supplyCap: 0,
+            symbol: "mwrsETH",
+            underlying: 0xD2671165570f41BBB3B0097893300b6EB6101E6C,
+            reserveFactor: reserveFactors["mwrsETH"],
+            liquidationBonus: liquidationBonuses["mwrsETH"]
+        });
 
         string memory marketsOutputPath = "script/deployment/mainnet/output/release-deployed-market-addresses.json";
         string memory rawMarketJson = vm.readFile(marketsOutputPath);
@@ -273,7 +324,6 @@ contract ConfigureRelease is DeployBaseRelease {
             _setRoles(network);
 
             if (configs[network].isHost) {
-                continue;
                 console.log("Configuring LINEA");
                 supportMarket = new SupportMarket();
                 setCollateralFactor = new SetCollateralFactor();

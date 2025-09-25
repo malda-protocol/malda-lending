@@ -24,6 +24,10 @@ interface IAdmin {
     function setPendingAdmin(address newAdmin) external;
 }
 
+interface ISafeModule {
+    function setMaster(address newAdmin) external;
+}
+
 contract TransferReleaseOwnership is DeployBaseRelease {
     using stdJson for string;
 
@@ -41,6 +45,7 @@ contract TransferReleaseOwnership is DeployBaseRelease {
     address operator;
     address deployer;
     address gasHelper;
+    address safeModule = 0x923b1e0e129fac8949d6d0c8c2f932be4b055637;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";
@@ -74,7 +79,7 @@ contract TransferReleaseOwnership is DeployBaseRelease {
         // ------------------
         // ------------------
         // ------------- OWNER TO SET -----------
-        address owner = 0x91B945CbB063648C44271868a7A0c7BdFf64827D;
+        address owner = 0x91B945CbB063648C44271868a7A0c7BdFf64827D; ///// SET!!!!
         // ------------------
         // ------------------
         // ------------------
@@ -93,35 +98,39 @@ contract TransferReleaseOwnership is DeployBaseRelease {
             vm.startBroadcast(key);
 
             // Transfer ownerhip
-            console.log("Transfer ownership to", configs[network].ownership);
+            console.log("Transfer ownership to", owner);
 
-            console.log(" -- for Deployer");
-            IAdmin(deployer).setPendingAdmin(configs[network].ownership);
-            console.log(" -- for Pauser");
-            IOwnable(pauser).transferOwnership(configs[network].ownership);
-            console.log(" -- for BatchSubmitter");
-            IOwnable(batchSubmitter).transferOwnership(configs[network].ownership);
-            console.log(" -- for RewardDistributor");
-            IOwnable(rewardDistributor).transferOwnership(configs[network].ownership);
-            console.log(" -- for ZkVerifier");
-            IOwnable(zkVerifier).transferOwnership(configs[network].ownership);
-            console.log(" -- for Roles");
-            IOwnable(rolesContract).transferOwnership(configs[network].ownership);
+            console.log(" -- for Deployer ", owner);
+            IAdmin(deployer).setPendingAdmin(owner);
+            console.log(" -- for Pauser ", owner);
+            IOwnable(pauser).transferOwnership(owner);
+            console.log(" -- for BatchSubmitter ", owner);
+            IOwnable(batchSubmitter).transferOwnership(owner);
+            console.log(" -- for RewardDistributor ", owner);
+            IOwnable(rewardDistributor).transferOwnership(owner);
+            console.log(" -- for ZkVerifier ", owner);
+            IOwnable(zkVerifier).transferOwnership(owner);
+            console.log(" -- for Roles ", owner);
+            IOwnable(rolesContract).transferOwnership(owner);
             if (configs[network].isHost) {
                 console.log(" HOST");
-                console.log(" -- for Operator");
-                IOwnable(operator).transferOwnership(configs[network].ownership);
-                console.log(" -- for DefaultGasHelper");
-                IOwnable(gasHelper).transferOwnership(configs[network].ownership);
+                console.log(" -- for Operator ", owner);
+                IOwnable(operator).transferOwnership(owner);
+                console.log(" -- for DefaultGasHelper ", owner);
+                IOwnable(gasHelper).transferOwnership(owner);
+                console.log(" -- for all host markets ", owner);
                 for (uint256 j; j < marketList.length; ++j) {
                     console.log(" -- for market: ", marketList[i]);
-                    IAdmin(marketList[j]).setPendingAdmin(configs[network].ownership);
+                    IAdmin(marketList[j]).setPendingAdmin(owner);
                 }
+                ISafeModule(safeModule).setMaster(newAdmin);
+
             } else {
                 console.log(" EXTENSION");
+                console.log(" -- for all extension markets ", owner);
                 for (uint256 j; j < marketList.length; ++j) {
                     console.log(" -- for market: ", marketList[j]);
-                    IOwnable(marketList[j]).transferOwnership(configs[network].ownership);
+                    IOwnable(marketList[j]).transferOwnership(owner);
                 }
             }
 

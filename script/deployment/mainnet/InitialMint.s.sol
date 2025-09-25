@@ -31,7 +31,7 @@ contract InitialMint is DeployBaseRelease {
 
         string memory marketsOutputPath = "script/deployment/mainnet/output/release-deployed-market-addresses.json";
         string memory rawMarketJson = vm.readFile(marketsOutputPath);
-        uint256 length = 6;
+        uint256 length = 2;
         marketList = new address[](length);
         console.log("Markets: ");
         for (uint256 i; i < length; ++i) {
