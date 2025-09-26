@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="everclearbridge"><a class="header" href="#everclearbridge">EverclearBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/c44792e9eb1f38612b2ce92e2fbc436eab3280fa/src/rebalancer/bridges/EverclearBridge.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/4c168d742f06627fefececf87da6ec29c19143fa/src/rebalancer/bridges/EverclearBridge.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.html">BaseBridge</a>, <a href="/src/interfaces/IBridge.sol/interface.IBridge.html">IBridge</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
@@ -214,6 +214,12 @@
 </code></pre>
 <h3 id="_decodeintent"><a class="header" href="#_decodeintent">_decodeIntent</a></h3>
 <pre><code class="language-solidity">function _decodeIntent(bytes memory message) internal pure returns (IntentParams memory);
+</code></pre>
+<h3 id="_extractfeeparams"><a class="header" href="#_extractfeeparams">_extractFeeParams</a></h3>
+<pre><code class="language-solidity">function _extractFeeParams(bytes memory intentData)
+    private
+    pure
+    returns (uint256 fee, uint256 deadline, bytes memory sig);
 </code></pre>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="msgsent"><a class="header" href="#msgsent">MsgSent</a></h3>
