@@ -103,7 +103,7 @@ contract EverclearBridge is BaseBridge, IBridge {
         // retrieve tokens from `Rebalancer`
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _extractedAmount);
 
-        if (_extractedAmount > params.amount) {
+        if (_extractedAmount > params.amount + params.feeParams.fee) {
             uint256 toReturn = _extractedAmount - params.amount - params.feeParams.fee;
             IERC20(_token).safeTransfer(_market, toReturn);
             emit RebalancingReturnedToMarket(_market, toReturn, _extractedAmount);
@@ -116,8 +116,8 @@ contract EverclearBridge is BaseBridge, IBridge {
             params.inputAsset,
             params.outputAsset,
             params.amount,
-            params.maxFee,
-            params.ttl,
+            0, //max fee
+            0, //ttl
             params.data,
             params.feeParams
         );
@@ -139,12 +139,27 @@ contract EverclearBridge is BaseBridge, IBridge {
             uint256 amount,
             uint24 maxFee,
             uint48 ttl,
-            bytes memory data,
-            IFeeAdapter.FeeParams memory feeParams
+            bytes memory data
         ) = abi.decode(
-            intentData, (uint32[], bytes32, address, bytes32, uint256, uint24, uint48, bytes, IFeeAdapter.FeeParams)
+            intentData, (uint32[], bytes32, address, bytes32, uint256, uint24, uint48, bytes)
         );
 
+        (uint256 fee, uint256 deadline, bytes memory sig) = _extractFeeParams(intentData);
+        IFeeAdapter.FeeParams memory feeParams = IFeeAdapter.FeeParams(fee, deadline, sig);
+
         return IntentParams(destinations, receiver, inputAsset, outputAsset, amount, maxFee, ttl, data, feeParams);
+    }
+
+    function _extractFeeParams(bytes memory intentData) private pure returns (uint256 fee, uint256 deadline, bytes memory sig) {
+        uint256 feeParamsOffset = BytesLib.toUint256(intentData, 0x120);
+        uint256 feeParamsPtr = feeParamsOffset; 
+
+        fee = BytesLib.toUint256(intentData, feeParamsPtr);
+        deadline = BytesLib.toUint256(intentData, feeParamsPtr + 32);
+
+        uint256 sigOffset = BytesLib.toUint256(intentData, feeParamsOffset + 64);
+        uint256 sigLen = BytesLib.toUint256(intentData, feeParamsOffset + sigOffset);
+        sig = BytesLib.slice(intentData, feeParamsOffset + sigOffset + 32, sigLen);
+
     }
 }
