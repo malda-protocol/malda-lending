@@ -9,7 +9,7 @@ contract SetWhitelistedUsersOnGateway is Script {
         uint256 key = vm.envUint("PRIVATE_KEY");
 
         address[] memory users = new address[](25);
-        users[0]  = 0xf20a8950c368Ec48323092D6e4acF90aADf2BdC6;
+        users[0]  = 0xaB910D20C728a15A66e931ef0fAB5232eD5AA4bB;
         users[1]  = 0x8E72a24221517E51502f20f387415a06b27A5b51;
         users[2]  = 0x50d8Deadd2b3140B151CaB2C4FB76F1f59b236F8;
         users[3]  = 0x574582C44e3f1EF2cB29a7131B057FebBCC8244E;

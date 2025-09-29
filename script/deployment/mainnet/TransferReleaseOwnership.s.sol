@@ -45,7 +45,7 @@ contract TransferReleaseOwnership is DeployBaseRelease {
     address operator;
     address deployer;
     address gasHelper;
-    address safeModule = 0x923b1e0e129fac8949d6d0c8c2f932be4b055637;
+    address safeModule = 0x923B1e0e129fAc8949d6d0C8C2f932Be4B055637;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";
@@ -123,7 +123,7 @@ contract TransferReleaseOwnership is DeployBaseRelease {
                     console.log(" -- for market: ", marketList[i]);
                     IAdmin(marketList[j]).setPendingAdmin(owner);
                 }
-                ISafeModule(safeModule).setMaster(newAdmin);
+                ISafeModule(safeModule).setMaster(owner);
 
             } else {
                 console.log(" EXTENSION");

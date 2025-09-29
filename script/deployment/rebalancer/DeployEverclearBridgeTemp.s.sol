@@ -6,7 +6,7 @@ import {EverclearBridge} from "src/rebalancer/bridges/EverclearBridge.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 
 /**
- * forge script DeployEverclearBridgeV5  \
+ * forge script DeployEverclearBridge  \
  *     --slow \
  *     --verify \
  *     --verifier-url <url> \
@@ -15,21 +15,24 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --etherscan-api-key <key> \
  *     --broadcast
  */
-contract DeployEverclearBridgeV5 is Script {
-    function run(address roles, address feeAdapter, Deployer deployer) public returns (address) {
-        bytes32 salt = getSalt("EverclearBridgeV5V1.0");
+contract DeployEverclearBridgeTemp is Script {
+    function run() public returns (address) {
+        address roles = 0xB97bB519743A5096505E4d3e6507a189Fa2B39f9;
+        address feeAdapter = 0x15a7cA97D1ed168fB34a4055CEFa2E2f9Bdb6C75;
+        Deployer deployer = Deployer(payable(0x8F91616F05b3D74A8Ae56e43C585F0972Ccb91Df));
+        bytes32 salt = getSalt("EverclearV1.0.5");
 
         address created = deployer.precompute(salt);
         // Deploy only if not already deployed
         if (created.code.length == 0) {
             vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
             created =
-                deployer.create(salt, abi.encodePacked(type(EverclearBridgeV5).creationCode, abi.encode(roles, feeAdapter)));
+                deployer.create(salt, abi.encodePacked(type(EverclearBridge).creationCode, abi.encode(roles, feeAdapter)));
             vm.stopBroadcast();
 
-            console.log(" EverclearBridgeV5 deployed at: %s", created);
+            console.log(" EverclearBridge deployed at: %s", created);
         } else {
-            console.log("Using existing EverclearBridgeV5 at: %s", created);
+            console.log("Using existing EverclearBridge at: %s", created);
         }
         return created;
     }
