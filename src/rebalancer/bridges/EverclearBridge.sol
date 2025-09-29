@@ -103,7 +103,7 @@ contract EverclearBridge is BaseBridge, IBridge {
         // retrieve tokens from `Rebalancer`
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _extractedAmount);
 
-        if (_extractedAmount > params.amount) {
+        if (_extractedAmount > params.amount + params.feeParams.fee) {
             uint256 toReturn = _extractedAmount - params.amount - params.feeParams.fee;
             IERC20(_token).safeTransfer(_market, toReturn);
             emit RebalancingReturnedToMarket(_market, toReturn, _extractedAmount);
