@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="operator"><a class="header" href="#operator">Operator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/077f6239dc59a84ccf1bd95ced24985574af48ef/src/Operator/Operator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/f624435e018324b8a78c1df390ba947d6cde82ac/src/Operator/Operator.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/Operator/OperatorStorage.sol/abstract.OperatorStorage.html">OperatorStorage</a>, <a href="/src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.html">ImTokenOperationTypes</a>, OwnableUpgradeable, <a href="/src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.html">HypernativeFirewallProtected</a></p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
@@ -200,6 +200,9 @@ oz-upgrades-unsafe-allow: constructor</p>
 </code></pre>
 <h3 id="initfirewall"><a class="header" href="#initfirewall">initFirewall</a></h3>
 <pre><code class="language-solidity">function initFirewall(address _firewall) external onlyOwner;
+</code></pre>
+<h3 id="setblacklister"><a class="header" href="#setblacklister">setBlacklister</a></h3>
+<pre><code class="language-solidity">function setBlacklister(address _blacklister) external onlyOwner;
 </code></pre>
 <h3 id="setborrowsizemin"><a class="header" href="#setborrowsizemin">setBorrowSizeMin</a></h3>
 <p>Sets min borrow size per market</p>
