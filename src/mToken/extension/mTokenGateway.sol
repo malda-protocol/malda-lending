@@ -133,7 +133,11 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     function initFirewall(address _firewall) external onlyOwner {
         _initHypernativeFirewall(_firewall, owner());
     }   
-
+    
+    function setBlacklister(address _blacklister) external onlyOwner {
+        blacklistOperator = IBlacklister(_blacklister);
+    }
+    
     /**
      * @notice Sets user whitelist status
      * @param user The user address

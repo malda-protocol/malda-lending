@@ -15,7 +15,7 @@ contract UpgradeOperator is Script {
         // Setup
 
         address proxy = 0x4bbd2B599425026b8A504816D8A043636e2D7Ec7;
-        string memory salt = "ReleaseV1.0.5-patch";
+        string memory salt = "ReleaseV1.0.5-patch-blacklister";
         address create3Deployer = 0x8F91616F05b3D74A8Ae56e43C585F0972Ccb91Df;
 
         uint256 key = vm.envUint("PRIVATE_KEY");

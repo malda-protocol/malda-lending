@@ -125,6 +125,33 @@ contract EverclearBridge is BaseBridge, IBridge {
     }
 
     // ----------- INTERNAL ------------
+    /**
+     * @notice Decodes an intent message returned by the Everclear intents API into structured parameters.
+     * @dev 
+     * - The input `message` is the raw ABI-encoded calldata of a `FeeAdapter.newIntent` call.
+     * - The first 4 bytes are the function selector, which are skipped.
+     * - The remaining bytes encode the primary intent parameters followed by `FeeParams`.
+     * - Because `FeeParams` is a dynamic struct appended at the end, its data must be located by
+     *   reading its offset and decoding separately.
+     * 
+     * Layout of `FeeAdapter.newIntent` calldata after the selector:
+     * ```
+     * destinations (uint32[])   @ offset 0x00
+     * receiver (bytes32)        @ offset 0x20
+     * inputAsset (address)      @ offset 0x40
+     * outputAsset (bytes32)     @ offset 0x60
+     * amount (uint256)          @ offset 0x80
+     * maxFee (uint24)           @ offset 0xa0
+     * ttl (uint48)              @ offset 0xc0
+     * data (bytes)              @ offset 0xe0
+     * feeParams (FeeParams)     @ offset 0x100 (9th arg → pointer)
+     * ```
+     * Since each static argument occupies a 32-byte slot, the pointer to `feeParams`
+     * lives at offset `0x100` (256 bytes) after the selector is removed.
+     * 
+     * @param message ABI-encoded calldata for `FeeAdapter.newIntent`.
+     * @return Decoded `IntentParams` struct with both core parameters and nested `FeeParams`.
+     */
     function _decodeIntent(bytes memory message) internal pure returns (IntentParams memory) {
         // message contains data obtained from `https://api.everclear.org/intents` call
         // data can be decoded into `FeeAdapter.newIntent` call params
@@ -150,6 +177,26 @@ contract EverclearBridge is BaseBridge, IBridge {
         return IntentParams(destinations, receiver, inputAsset, outputAsset, amount, maxFee, ttl, data, feeParams);
     }
 
+    /**
+     * @notice Extracts the nested `FeeParams` struct from ABI-encoded `intentData`.
+     * @dev 
+     * - `FeeParams` is the 9th parameter of `FeeAdapter.newIntent` and therefore stored as a pointer at offset `0x100`.
+     * - The selector has already been removed, so the pointer is read at byte position `0x100` (256 bytes).
+     * - The pointer gives the offset to the start of the `FeeParams` struct relative to the start of intentData.
+     * - Within `FeeParams`, the layout is:
+     *   ```
+     *   fee      (uint256) @ +0x00
+     *   deadline (uint256) @ +0x20
+     *   sig      (bytes)   @ +0x40 (stored as offset → length → data)
+     *   ```
+     * - The `sig` field is dynamic, so we read its offset (at +0x40) relative to the `FeeParams` base,
+     *   then read the length at that offset, then slice out the actual signature bytes.
+     *
+     * @param intentData ABI-encoded calldata without selector, containing intent arguments.
+     * @return fee The fee value.
+     * @return deadline The signature deadline.
+     * @return sig The validator/relayer signature.
+     */
     function _extractFeeParams(bytes memory intentData) private pure returns (uint256 fee, uint256 deadline, bytes memory sig) {
         uint256 feeParamsOffset = BytesLib.toUint256(intentData, 0x120);
         uint256 feeParamsPtr = feeParamsOffset; 
@@ -160,6 +207,5 @@ contract EverclearBridge is BaseBridge, IBridge {
         uint256 sigOffset = BytesLib.toUint256(intentData, feeParamsOffset + 64);
         uint256 sigLen = BytesLib.toUint256(intentData, feeParamsOffset + sigOffset);
         sig = BytesLib.slice(intentData, feeParamsOffset + sigOffset + 32, sigLen);
-
     }
 }

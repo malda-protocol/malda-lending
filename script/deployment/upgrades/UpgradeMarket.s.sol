@@ -22,9 +22,9 @@ contract UpgradeMarket is Script {
     function run() public {
         // Setup
 
-        address proxy = 0x66DfCBf23319D68bdF0cB57797Fcc0A64d2265f8;
-        MarketType marketType = MarketType.HOST;
-        string memory salt = "ReleaseV1.0.5-patch-v2";
+        address proxy = 0x1eEa258B505cd6381171c1075EC6934F8D0Faf3b;
+        MarketType marketType = MarketType.GATEWAY;
+        string memory salt = "ReleaseV1.0.5-patch-blacklister0x1eEa258B505cd6381171c1075EC6934F8D0Faf3b";
         address create3Deployer = 0x8F91616F05b3D74A8Ae56e43C585F0972Ccb91Df;
 
         uint256 key = vm.envUint("PRIVATE_KEY");
