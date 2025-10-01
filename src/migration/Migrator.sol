@@ -44,14 +44,14 @@ contract Migrator is ExponentialNoError {
 
     constructor(address _operator) {
         MALDA_OPERATOR = _operator;
-        allowedMarkets[0x269C36A173D881720544Fb303E681370158FF1FD] = true;
-        allowedMarkets[0xC7Bc6bD45Eb84D594f51cED3c5497E6812C7732f] = true;
-        allowedMarkets[0xDF0635c1eCfdF08146150691a97e2Ff6a8Aa1a90] = true;
-        allowedMarkets[0xcb4d153604a6F21Ff7625e5044E89C3b903599Bc] = true;
-        allowedMarkets[0x1D8e8cEFEb085f3211Ab6a443Ad9051b54D1cd1a] = true;
-        allowedMarkets[0x0B3c6645F4F2442AD4bbee2e2273A250461cA6f8] = true;
-        allowedMarkets[0x8BaD0c523516262a439197736fFf982F5E0987cC] = true;
-        allowedMarkets[0x4DF3DD62DB219C47F6a7CB1bE02C511AFceAdf5E] = true;
+        allowedMarkets[0x1eEa258B505cd6381171c1075EC6934F8D0Faf3b] = true;
+        allowedMarkets[0x6AECeD8e67964Eb6d0Ae7B159D27eF07F6c11b99] = true;
+        allowedMarkets[0x66DfCBf23319D68bdF0cB57797Fcc0A64d2265f8] = true;
+        allowedMarkets[0x0E5ad58f827f53C9F92c71319b77772F2a1FBdb2] = true;
+        allowedMarkets[0xe79a5f1E2E5619dF1cbb089Db3B11ff9E4dA5aff] = true;
+        allowedMarkets[0x867B44af79da71684508c25a1323db3cce5bC23D] = true;
+        allowedMarkets[0x301E5481271fD4F4f4C0291F88d7d829c64E2B2b] = true;
+        allowedMarkets[0xa31963C753f277f7d82d98F56b2C374256925eB7] = true;
     }
 
     /**

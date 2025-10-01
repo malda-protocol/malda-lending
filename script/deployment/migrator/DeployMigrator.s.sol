@@ -8,19 +8,21 @@ import {Deployer} from "src/utils/Deployer.sol";
 
 contract DeployMigrator is Script {
     function run() public returns (address) {
-        Deployer deployer = Deployer(payable(0xc781BaD08968E324D1B91Be3cca30fAd86E7BF98));
+        Deployer deployer = Deployer(payable(0x8F91616F05b3D74A8Ae56e43C585F0972Ccb91Df));
         uint256 key = vm.envUint("PRIVATE_KEY");
 
-        bytes32 salt = getSalt("MigratorV1.0.0");
+        bytes32 salt = getSalt("MigratorV1.0.5");
 
         console.log("Deploying Migrator");
 
         address created = deployer.precompute(salt);
+        address operator = 0x4bbd2B599425026b8A504816D8A043636e2D7Ec7;
 
         // Deploy only if not already deployed
         if (created.code.length == 0) {
             vm.startBroadcast(key);
-            created = deployer.create(salt, type(Migrator).creationCode);
+            created = 
+                deployer.create(salt, abi.encodePacked(type(Migrator).creationCode, abi.encode(operator)));
             vm.stopBroadcast();
             console.log("Migrator deployed at: %s", created);
         } else {
