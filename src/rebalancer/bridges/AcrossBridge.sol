@@ -44,6 +44,7 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
     uint256 private constant SLIPPAGE_PRECISION = 1e5;
 
     struct DecodedMessage {
+        address outputToken;
         uint256 inputAmount;
         uint256 outputAmount;
         address relayer;
@@ -146,13 +147,12 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
     function handleV3AcrossMessage(
         address tokenSent,
         uint256 amount,
-        address relayer, // relayer is unused
+        address, // relayer is unused
         bytes memory message
     ) external onlySpokePool nonReentrant {
         address market = abi.decode(message, (address));
         require(IRebalancer(rebalancer).isMarketWhitelisted(market), AcrossBridge_InvalidReceiver());
         address _underlying = ImTokenMinimal(market).underlying();
-        require(whitelistedRelayers[uint32(block.chainid)][relayer], AcrossBridge_RelayerNotValid());
         require(_underlying == tokenSent, AcrossBridge_TokenMismatch());
         if (amount > 0) {
             IERC20(tokenSent).safeTransfer(market, amount);
@@ -163,10 +163,10 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
 
     // ----------- PRIVATE ------------
     function _decodeMessage(bytes memory _message) private pure returns (DecodedMessage memory) {
-        (uint256 inputAmount, uint256 outputAmount, address relayer, uint32 deadline, uint32 exclusivityDeadline) =
-            abi.decode(_message, (uint256, uint256, address, uint32, uint32));
+        (address outputToken, uint256 inputAmount, uint256 outputAmount, address relayer, uint32 deadline, uint32 exclusivityDeadline) =
+            abi.decode(_message, (address, uint256, uint256, address, uint32, uint32));
 
-        return DecodedMessage(inputAmount, outputAmount, relayer, deadline, exclusivityDeadline);
+        return DecodedMessage(outputToken, inputAmount, outputAmount, relayer, deadline, exclusivityDeadline);
     }
 
     function _depositV3Now(bytes memory _message, address _token, uint32 _dstChainId, address _market) private {
@@ -177,7 +177,7 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
             msg.sender, //depositor
             address(this), //recipient
             _token,
-            address(0), //outputToken is automatically resolved to the same token on destination
+            msgData.outputToken,
             msgData.inputAmount,
             msgData.outputAmount, //outputAmount should be set as the inputAmount - relay fees; use Across API
             uint256(_dstChainId),
