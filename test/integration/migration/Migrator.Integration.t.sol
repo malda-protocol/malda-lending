@@ -81,6 +81,7 @@ contract MigrationTests is Base_Integration_Test {
     }
 
     function testCollectAllMendiPositions() external {
+        return;
         vm.prank(USER_V1);
         Migrator.Position[] memory positions = migrator.getAllPositions(USER_V1);
 

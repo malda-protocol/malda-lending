@@ -35,7 +35,7 @@ contract SetPriceFeedOnOracleV4 is Script {
     function run(address oracle) public {
         uint256 key = vm.envUint("PRIVATE_KEY");
 
-        OracleFeedV4[] memory feeds = new OracleFeedV4[](16);
+        OracleFeedV4[] memory feeds = new OracleFeedV4[](12);
         // usdc
         feeds[0] = OracleFeedV4({
             symbol: "mUSDC",
@@ -111,45 +111,15 @@ contract SetPriceFeedOnOracleV4 is Script {
             toSymbol: "USD",
             underlyingDecimals: 18
         });
-        //weETH
-        feeds[10] = OracleFeedV4({
-            symbol: "mweETH",
-            apiV3Feed: 0x6Bd45e0f0adaAE6481f2B4F3b867911BF5f8321b,
-            eOracleFeed: 0xA0a8c2c8e506a92DE06D0815d6b0B8042e246BB4,
-            toSymbol: "USD",
-            underlyingDecimals: 18
-        });
-        feeds[11] = OracleFeedV4({
-            symbol: "weETH",
-            apiV3Feed: 0x6Bd45e0f0adaAE6481f2B4F3b867911BF5f8321b,
-            eOracleFeed: 0xb71B0D0Bf654D360E5CD5B39E8bbD7CEE9970E09,
-            toSymbol: "USD",
-            underlyingDecimals: 18
-        });
-        //rsETH
-        feeds[12] = OracleFeedV4({
-            symbol: "mwrsETH",
-            apiV3Feed: 0xB7b25D8e8490a138c854426e7000C7E114C2DebF,
-            eOracleFeed: 0xE6690E91d399e9f522374399412EbE04DA991315,
-            toSymbol: "USD",
-            underlyingDecimals: 18
-        });
-        feeds[13] = OracleFeedV4({
-            symbol: "wrsETH",
-            apiV3Feed: 0xB7b25D8e8490a138c854426e7000C7E114C2DebF,
-            eOracleFeed: 0xE6690E91d399e9f522374399412EbE04DA991315,
-            toSymbol: "USD",
-            underlyingDecimals: 18
-        });
         //wstETH
-        feeds[14] = OracleFeedV4({
+        feeds[10] = OracleFeedV4({
             symbol: "mwstETH",
             apiV3Feed: 0x043F8c576154E19E05cD53b21Baab86deC75c728,
             eOracleFeed: 0xB37568E6d24715E0C97e345C328f208dDbF8A7A9,
             toSymbol: "USD",
             underlyingDecimals: 18
         });
-        feeds[15] = OracleFeedV4({
+        feeds[11] = OracleFeedV4({
             symbol: "wstETH",
             apiV3Feed: 0x043F8c576154E19E05cD53b21Baab86deC75c728,
             eOracleFeed: 0xB37568E6d24715E0C97e345C328f208dDbF8A7A9,

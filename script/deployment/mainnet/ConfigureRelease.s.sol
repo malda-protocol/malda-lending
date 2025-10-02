@@ -29,6 +29,8 @@ import {SetBorrowCap} from "../../configuration/SetBorrowCap.s.sol";
 import {SetMinBorrowSize} from "../../configuration/SetMinBorrowSize.s.sol";
 import {SetSupplyCap} from "../../configuration/SetSupplyCap.s.sol";
 import {SetPriceFeedOnOracleV4} from "../../configuration/SetPriceFeedOnOracleV4.s.sol";
+import {SetWhitelistEnabled} from "../../configuration/SetWhitelistEnabled.s.sol";
+import {SetWhitelistedUsersOnGateway} from "../../configuration/SetWhitelistedUsersOnGateway.s.sol";
 
 contract ConfigureRelease is DeployBaseRelease {
     using stdJson for string;
@@ -56,6 +58,8 @@ contract ConfigureRelease is DeployBaseRelease {
     SetSupplyCap setSupplyCap;
     SetPriceFeedOnOracleV4 setFeed;
     SetCloseFactor setCloseFactor;
+    SetWhitelistEnabled setWhitelistEnabled;
+    SetWhitelistedUsersOnGateway setWhitelistEnabledOnExtension;
 
     uint256 constant DEFAULT_CLOSE_FACTOR = 0.5e18; //50%
 
@@ -64,57 +68,52 @@ contract ConfigureRelease is DeployBaseRelease {
         super.setUp();
 
         // borrow caps
-        borrowCaps["mUSDC"] = 0;
-        borrowCaps["mWETH"] = 0;
-        borrowCaps["mUSDT"] = 0;
-        borrowCaps["mDAI"] = 0;
-        borrowCaps["mWBTC"] = 0;
+        borrowCaps["mUSDC"]  = 0;
+        borrowCaps["mUSDT"]  = 0;
+        borrowCaps["mWETH"]  = 0;
         borrowCaps["mwstETH"] = 0;
+        borrowCaps["mWBTC"]  = 0;
         borrowCaps["mezETH"] = 0;
         borrowCaps["mweETH"] = 0;
         borrowCaps["mwrsETH"] = 0;
-        
+
         // min caps
-        minBorrowSize["mUSDC"] = 10e6; //10 USDC
-        minBorrowSize["mWETH"] = 0.0025e18;
-        minBorrowSize["mUSDT"] = 10e6;
-        minBorrowSize["mDAI"] = 0.0025e18;
-        minBorrowSize["mWBTC"] = 0.0001e8;
-        minBorrowSize["mwstETH"] = 0.0025e18;
-        minBorrowSize["mezETH"] = 0.0025e18;
-        minBorrowSize["mweETH"] = 0.0025e18;
-        minBorrowSize["mwrsETH"] = 0.0025e18;
+        minBorrowSize["mUSDC"]  = 10e6;       // 10 USDC (6 decimals)
+        minBorrowSize["mUSDT"]  = 10e6;       // 10 USDT (6 decimals)
+        minBorrowSize["mWETH"]  = 0.0025e18;  // 0.0025 ETH
+        minBorrowSize["mwstETH"] = 0.0025e18; // 0.0025 wstETH
+        minBorrowSize["mWBTC"]  = 0.0001e8;   // 0.0001 BTC (8 decimals)
+        minBorrowSize["mezETH"] = 0.002e18;
+        minBorrowSize["mweETH"] = 0.002e18;
+        minBorrowSize["mwrsETH"] = 0.002e18;
 
         // collateral factors
-        collateralFactors["mUSDC"] = 900000000000000000;
-        collateralFactors["mWETH"] = 830000000000000000;
-        collateralFactors["mUSDT"] = 900000000000000000;
-        collateralFactors["mDAI"] = 900000000000000000;
-        collateralFactors["mWBTC"] = 780000000000000000;
-        collateralFactors["mwstETH"] = 810000000000000000;
-        collateralFactors["mezETH"] = 750000000000000000;
+        collateralFactors["mUSDC"]  = 900000000000000000; // 0.90
+        collateralFactors["mUSDT"]  = 900000000000000000; // 0.90
+        collateralFactors["mWETH"]  = 830000000000000000; // 0.83
+        collateralFactors["mwstETH"] = 810000000000000000; // 0.81
+        collateralFactors["mWBTC"]  = 780000000000000000; // 0.78
+        collateralFactors["mezETH"] = 750000000000000000; // 0.75
         collateralFactors["mweETH"] = 800000000000000000;
         collateralFactors["mwrsETH"] = 750000000000000000;
 
         // reserve factors
-        reserveFactors["mUSDC"] = 100000000000000000;
-        reserveFactors["mWETH"] = 150000000000000000;
-        reserveFactors["mUSDT"] = 100000000000000000;
-        reserveFactors["mDAI"] = 100000000000000000;
-        reserveFactors["mWBTC"] = 500000000000000000;
-        reserveFactors["mwstETH"] = 50000000000000000;
-        reserveFactors["mezETH"] = 450000000000000000;
+        reserveFactors["mUSDC"]  = 100000000000000000; // 0.10
+        reserveFactors["mUSDT"]  = 100000000000000000; // 0.10
+        reserveFactors["mWETH"]  = 150000000000000000; // 0.15
+        reserveFactors["mwstETH"] = 50000000000000000; // 0.05
+        reserveFactors["mWBTC"]  = 500000000000000000; // 0.50
+        reserveFactors["mezETH"] = 450000000000000000; // 0.45
         reserveFactors["mweETH"] = 450000000000000000;
         reserveFactors["mwrsETH"] = 450000000000000000;
 
         // liquidation bonuses
-        liquidationBonuses["mUSDC"] = 1050000000000000000;
-        liquidationBonuses["mWETH"] = 1050000000000000000;
-        liquidationBonuses["mUSDT"] = 1050000000000000000;
-        liquidationBonuses["mDAI"] = 1050000000000000000;
-        liquidationBonuses["mWBTC"] = 1050000000000000000;
-        liquidationBonuses["mwstETH"] = 1060000000000000000;
-        liquidationBonuses["mezETH"] = 1070000000000000000;
+        liquidationBonuses["mUSDC"]  = 1050000000000000000; // 1.05
+        liquidationBonuses["mUSDT"]  = 1050000000000000000; // 1.05
+        liquidationBonuses["mWETH"]  = 1050000000000000000; // 1.05
+        liquidationBonuses["mwstETH"] = 1060000000000000000; // 1.06
+        liquidationBonuses["mWBTC"]  = 1050000000000000000; // 1.05
+        liquidationBonuses["mezETH"] = 1070000000000000000; // 1.07
         liquidationBonuses["mweETH"] = 1070000000000000000;
         liquidationBonuses["mwrsETH"] = 1070000000000000000;
 
@@ -123,19 +122,19 @@ contract ConfigureRelease is DeployBaseRelease {
             borrowCap: borrowCaps["mUSDC"],
             borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mUSDC"],
-            decimals: 6,
+            decimals: 0,
             interestModel: InterestConfig({
                 baseRate: 0,
-                blocksPerYear: 31536000,
-                jumpMultiplier: 3499999999994448000,
-                kink: 920000000000000000,
-                multiplier: 50605736204435511,
+                blocksPerYear: 0,
+                jumpMultiplier: 0,
+                kink: 0,
+                multiplier: 0,
                 name: "mUSDC Interest Model"
             }),
             name: "mUSDC",
             supplyCap: 0,
             symbol: "mUSDC",
-            underlying: 0x176211869cA2b568f2A7D4EE941E073a821EE1ff,
+            underlying: address(0),
             reserveFactor: reserveFactors["mUSDC"],
             liquidationBonus: liquidationBonuses["mUSDC"]
         });
@@ -144,19 +143,19 @@ contract ConfigureRelease is DeployBaseRelease {
             borrowCap: borrowCaps["mWETH"],
             borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mWETH"],
-            decimals: 18,
+            decimals: 0,
             interestModel: InterestConfig({
                 baseRate: 0,
-                blocksPerYear: 31536000,
-                jumpMultiplier: 4999999999974048000,
-                kink: 900000000000000000,
-                multiplier: 22498715810630400,
+                blocksPerYear: 0,
+                jumpMultiplier: 0,
+                kink: 0,
+                multiplier: 0,
                 name: "mWETH Interest Model"
             }),
             name: "mWETH",
             supplyCap: 0,
             symbol: "mWETH",
-            underlying: 0xe5D7C2a44FfDDf6b295A15c148167daaAf5Cf34f,
+            underlying: address(0),
             reserveFactor: reserveFactors["mWETH"],
             liquidationBonus: liquidationBonuses["mWETH"]
         });
@@ -165,19 +164,19 @@ contract ConfigureRelease is DeployBaseRelease {
             borrowCap: borrowCaps["mUSDT"],
             borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mUSDT"],
-            decimals: 6,
+            decimals: 0,
             interestModel: InterestConfig({
                 baseRate: 0,
-                blocksPerYear: 31536000,
-                jumpMultiplier: 3499999999994448000,
-                kink: 920000000000000000,
-                multiplier: 55194998244975695,
+                blocksPerYear: 0,
+                jumpMultiplier: 0,
+                kink: 0,
+                multiplier: 0,
                 name: "mUSDT Interest Model"
             }),
             name: "mUSDT",
             supplyCap: 0,
             symbol: "mUSDT",
-            underlying: 0xA219439258ca9da29E9Cc4cE5596924745e12B93,
+            underlying: address(0),
             reserveFactor: reserveFactors["mUSDT"],
             liquidationBonus: liquidationBonuses["mUSDT"]
         });
@@ -186,19 +185,19 @@ contract ConfigureRelease is DeployBaseRelease {
             borrowCap: borrowCaps["mWBTC"],
             borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mWBTC"],
-            decimals: 8,
+            decimals: 0,
             interestModel: InterestConfig({
                 baseRate: 0,
-                blocksPerYear: 31536000,
-                jumpMultiplier: 11999999999995568000,
-                kink: 800000000000000000,
-                multiplier: 36005582570424320,
+                blocksPerYear: 0,
+                jumpMultiplier: 0,
+                kink: 0,
+                multiplier: 0,
                 name: "mWBTC Interest Model"
             }),
             name: "mWBTC",
             supplyCap: 0,
             symbol: "mWBTC",
-            underlying: 0x3aAB2285ddcDdaD8edf438C1bAB47e1a9D05a9b4,
+            underlying: address(0),
             reserveFactor: reserveFactors["mWBTC"],
             liquidationBonus: liquidationBonuses["mWBTC"]
         });
@@ -207,19 +206,19 @@ contract ConfigureRelease is DeployBaseRelease {
             borrowCap: borrowCaps["mwstETH"],
             borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mwstETH"],
-            decimals: 18,
+            decimals: 0,
             interestModel: InterestConfig({
                 baseRate: 0,
-                blocksPerYear: 31536000,
-                jumpMultiplier: 8499924722164496000,
-                kink: 800000000000000000,
-                multiplier: 12799993755404800,
+                blocksPerYear: 0,
+                jumpMultiplier: 0,
+                kink: 0,
+                multiplier: 0,
                 name: "mwstETH Interest Model"
             }),
             name: "mwstETH",
             supplyCap: 0,
             symbol: "mwstETH",
-            underlying: 0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F,
+            underlying: address(0),
             reserveFactor: reserveFactors["mwstETH"],
             liquidationBonus: liquidationBonuses["mwstETH"]
         });
@@ -228,24 +227,23 @@ contract ConfigureRelease is DeployBaseRelease {
             borrowCap: borrowCaps["mezETH"],
             borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mezETH"],
-            decimals: 18,
+            decimals: 0,
             interestModel: InterestConfig({
                 baseRate: 0,
-                blocksPerYear: 31536000,
-                jumpMultiplier: 3000002316638736000,
-                kink: 400000000000000000,
-                multiplier: 27999732233587200,
+                blocksPerYear: 0,
+                jumpMultiplier: 0,
+                kink: 0,
+                multiplier: 0,
                 name: "mezETH Interest Model"
             }),
             name: "mezETH",
             supplyCap: 0,
             symbol: "mezETH",
-            underlying: 0x2416092f143378750bb29b79eD961ab195CcEea5,
+            underlying: address(0),
             reserveFactor: reserveFactors["mezETH"],
             liquidationBonus: liquidationBonuses["mezETH"]
         });
-
-        fullConfigs["mweETH"] = MarketRelease({
+                fullConfigs["mweETH"] = MarketRelease({
             borrowCap: borrowCaps["mweETH"],
             borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mweETH"],
@@ -289,13 +287,20 @@ contract ConfigureRelease is DeployBaseRelease {
 
         string memory marketsOutputPath = "script/deployment/mainnet/output/release-deployed-market-addresses.json";
         string memory rawMarketJson = vm.readFile(marketsOutputPath);
-        uint256 length = 8;
+        uint256 length = 6;
         marketList = new address[](length);
+        console.log("Markets: ");
         for (uint256 i; i < length; ++i) {
             string memory base = string.concat("[", vm.toString(i), "]");
 
             address marketAddr = vm.parseJsonAddress(rawMarketJson, string.concat(base, ".address"));
-            marketList.push(marketAddr);
+            if (marketAddr != address(0)) {
+                marketList[i] = marketAddr;
+            }
+        }
+        console.log("Registered no of markets:", marketList.length);
+        for (uint256 i; i < marketList.length; ++i) {
+            console.log(" - market: ", marketList[i]);
         }
 
         string memory corePath = "script/deployment/mainnet/output/release-deployed-core-addresses.json";
@@ -319,16 +324,23 @@ contract ConfigureRelease is DeployBaseRelease {
             _setRoles(network);
 
             if (configs[network].isHost) {
+                console.log("Configuring LINEA");
                 supportMarket = new SupportMarket();
                 setCollateralFactor = new SetCollateralFactor();
                 setBorrowRateMaxMantissa = new SetBorrowRateMaxMantissa();
                 setBorrowCap = new SetBorrowCap();
+                setCloseFactor = new SetCloseFactor();
                 setMinBorrowSize = new SetMinBorrowSize();
                 setSupplyCap = new SetSupplyCap();
                 setReserveFactor = new SetReserveFactor();
                 setFeed = new SetPriceFeedOnOracleV4();
                 setLiquidationBonus = new SetLiquidationBonus();
+                setWhitelistEnabled = new SetWhitelistEnabled();
                 _configure(network);
+            } else {
+                console.log("Configuring EXTENSION");
+                setWhitelistEnabledOnExtension = new SetWhitelistedUsersOnGateway();
+                setWhitelistEnabledOnExtension.run(marketList);
             }
 
             console.log("-------------------- DONE");
@@ -336,15 +348,20 @@ contract ConfigureRelease is DeployBaseRelease {
     }
 
     function _configure(string memory network) internal {
+        console.log("Configuring whitelist", address(operator));
+        setWhitelistEnabled.run(operator);
+
+        console.log("Configuring close factor on operator", address(operator));
         setCloseFactor.run(operator, DEFAULT_CLOSE_FACTOR);
         
-        uint256 feedsLength = feeds.length;
-        for (uint256 i; i < feedsLength; ++i) {
-            setFeed.run(oracle);
-        }
+        console.log("Settings feeds on oracle", address(oracle));
+        setFeed.run(oracle);
 
         uint256 marketsLength = marketList.length;
+        console.log("Configuring markets, count: ", marketsLength);
         for (uint256 i; i < marketsLength; ++i) {
+            console.log("Market name: ");
+            console.logString(configs[network].markets[i].name);
             MarketRelease storage mktRelease = fullConfigs[configs[network].markets[i].name];
             _configureMarket(marketList[i], mktRelease);
         }

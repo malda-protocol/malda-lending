@@ -19,7 +19,7 @@ contract DeployAcrossBridge is Script {
     function run(address roles, address spoke, address rebalancer, Deployer deployer) public returns (address) {
         bytes32 salt = getSalt("AcrossBridgeV1.0");
 
-         address created = deployer.precompute(salt);
+        address created = deployer.precompute(salt);
         // Deploy only if not already deployed
         if (created.code.length == 0) {
             vm.startBroadcast(vm.envUint("PRIVATE_KEY"));

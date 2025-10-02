@@ -597,7 +597,7 @@
           "name": "mUSDT",
           "supplyCap": 0,
           "symbol": "mUSDT",
-          "underlying": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+          "underlying": "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
           "reserveFactor": 0,
           "liquidationBonus": 0
         },

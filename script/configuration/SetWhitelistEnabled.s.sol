@@ -1,31 +1,53 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {mErc20Host} from "../../src/mToken/host/mErc20Host.sol";
 import {Script, console} from "forge-std/Script.sol";
-
-interface IEnable {
-    function setWhitelistStatus(bool status) external;
-}
+import {Operator} from "src/Operator/Operator.sol";
 
 contract SetWhitelistEnabled is Script {
-    function run() public virtual {
+    function run(address operator) public virtual {
         uint256 key = vm.envUint("PRIVATE_KEY");
 
-        address[] memory markets = new address[](7);
-        markets[0] = 0x269C36A173D881720544Fb303E681370158FF1FD;
-        markets[1] = 0xC7Bc6bD45Eb84D594f51cED3c5497E6812C7732f;
-        markets[2] = 0xDF0635c1eCfdF08146150691a97e2Ff6a8Aa1a90;
-        markets[3] = 0x2B588F7f4832561e46924F3Ea54C244569724915;
-        markets[4] = 0x1D8e8cEFEb085f3211Ab6a443Ad9051b54D1cd1a;
-        markets[5] = 0x8BaD0c523516262a439197736fFf982F5E0987cC;
-        markets[6] = 0x4DF3DD62DB219C47F6a7CB1bE02C511AFceAdf5E;
+        console.log("Setting whitelisted status for Linea on true:");
+        vm.startBroadcast(key);
+        Operator(operator).setWhitelistStatus(true);
+        vm.stopBroadcast();
+        
+        // set whitelisted users
+        address[] memory users = new address[](25);
+        users[0]  = 0xf20a8950c368Ec48323092D6e4acF90aADf2BdC6;
+        users[1]  = 0x8E72a24221517E51502f20f387415a06b27A5b51;
+        users[2]  = 0x50d8Deadd2b3140B151CaB2C4FB76F1f59b236F8;
+        users[3]  = 0x574582C44e3f1EF2cB29a7131B057FebBCC8244E;
+        users[4]  = 0x281567fe62b587EC1755f6F33b80160F544Dc5d0;
+        users[5]  = 0x2705f6A8F01bd4A805D9FC73151DBe37BB8d1edE;
+        users[6]  = 0xc9C9693b6A445D05Add0043662fad9Ac600Ad088;
+        users[7]  = 0x7EfE40B2E6dA8b28AaB6Bd2D622B9Cd7f5fE077c;
+        users[8]  = 0xa22DCB8F0A2848289124086F35ae9dB2a0006962;
+        users[9]  = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
+        users[10] = 0x40282d3Cf4890D9806BC1853e97a59C93D813653;
+        users[11] = 0xB5b901F1BB86421301138b5c45C1D3Fe96663161;
+        users[12] = 0xBAec8904499dcdee770c60df15b0C37EAC84Fb62;
+        users[13] = 0xfC4A23271b60887FC246B060B6931a08E2BC434c;
+        users[14] = 0x65b142550aE82f4BB3792E1eEfb2FC35541A3837;
+        users[15] = 0x75149feEBb20E1fE5Ddb89302a6d4bACE70c14Ce;
+        users[16] = 0x65B6D4770DAdcFba6d363dE86aA4D9c76283cea0;
+        users[17] = 0xa6A9fdDC94BB4FE7520A2eA1CC2c433e18683342;
+        users[18] = 0x18D04F05f80ADE5373849385a1c24E1E0a6d1744;
+        users[19] = 0xBD9C90D6774CB5320B54Bb7998b6Bcc5e4A9071f;
+        users[20] = 0x8f2eABa31B1b613ca78F2795bA05400F0583c5A4;
+        users[21] = 0xBd0Ce952bA069A1e15f3bf3916d4B07bBBdBC8B3;
+        users[22] = 0x5641B4889177419E8f79de939967E9277C127cDe;
+        users[23] = 0x25B0327D46A10CDC6Bb88387d9f7e33743b2504D;
+        users[24] = 0x9ea397603aA16664874fcd496b4D37eDD5B3b649;
 
-        for (uint256 i; i < markets.length; i++) {
-            address market = markets[i];
+        console.log("Setting whitelisted users on Linea");
+        for (uint256 i; i < users.length; ++i) {
             vm.startBroadcast(key);
-            IEnable(market).setWhitelistStatus(true);
+            Operator(operator).setWhitelistedUser(users[i], true);
             vm.stopBroadcast();
         }
+        console.log("Users set");
+
     }
 }

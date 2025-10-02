@@ -10,6 +10,7 @@ contract SetBorrowRateMaxMantissa is Script {
         uint256 key = vm.envUint("PRIVATE_KEY");
 
         console.log("Setting borrow rate max mantissa for market", market);
+        console.log("Setting borrow rate max mantissa with value", borrowRateMaxMantissa);
 
         if (mTokenConfiguration(market).borrowRateMaxMantissa() == borrowRateMaxMantissa) {
             console.log("Borrow rate max mantissa already set");

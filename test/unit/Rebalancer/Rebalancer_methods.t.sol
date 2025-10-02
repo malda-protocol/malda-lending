@@ -4,6 +4,7 @@ pragma solidity =0.8.28;
 import {IRebalancer, IRebalanceMarket} from "src/interfaces/IRebalancer.sol";
 import {IFeeAdapter} from "src/interfaces/external/everclear/IFeeAdapter.sol";
 import {Rebalancer_Unit_Shared} from "../shared/Rebalancer_Unit_Shared.t.sol";
+import {BytesLib} from "src/libraries/BytesLib.sol";
 
 import "forge-std/console2.sol";
 
@@ -21,6 +22,43 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
         //does nothing; for readability only
         _;
     }
+
+
+    function testDecodeFull() external {
+        bytes memory msge = hex"0000000000000000000000000000000000000000000000000000000000000140000000000000000000000000b819a871d20913839c37f316dc914b0570bfc0ee000000000000000000000000176211869ca2b568f2a7d4ee941e073a821ee1ff000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda0291300000000000000000000000000000000000000000000000000000000004908e000000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000001a00000000000000000000000000000000000000000000000000000000000000220000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000021050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000342600000000000000000000000000000000000000000000000000000000068d57c3800000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000041640266288fc38585602e100c62f4bdad09957a74b0cd68a70860adcbc2119d02117b14da483dbc26ba437f2da24a22d87a4f8bad9d8183513bbf59af8535ff0a1c00000000000000000000000000000000000000000000000000000000000000"; // your full calldata without selector
+
+    (
+            uint32[] memory destinations,
+            bytes32 receiver,
+            address inputAsset,
+            bytes32 outputAsset,
+            uint256 amount,
+            uint256 maxFee,
+            uint256 ttl,
+            bytes memory data
+        ) = abi.decode(
+            msge,
+            (uint32[], bytes32, address, bytes32, uint256, uint256, uint256, bytes)
+        );
+
+        (uint256 fee, uint256 deadline, bytes memory sig) = _extractFeeParams(msge);
+
+        console2.log("Fee:", fee);
+        console2.log("Deadline:", deadline);
+    }
+    function _extractFeeParams(bytes memory msge) private view returns (uint256 fee, uint256 deadline, bytes memory sig) {
+        uint256 feeParamsOffset = BytesLib.toUint256(msge, 0x120);
+        uint256 feeParamsPtr = feeParamsOffset; // absolute inside msge
+
+        fee = BytesLib.toUint256(msge, feeParamsPtr);
+        deadline = BytesLib.toUint256(msge, feeParamsPtr + 32);
+
+        uint256 sigOffset = BytesLib.toUint256(msge, feeParamsOffset + 64);
+        uint256 sigLen = BytesLib.toUint256(msge, feeParamsOffset + sigOffset);
+        sig = BytesLib.slice(msge, feeParamsOffset + sigOffset + 32, sigLen);
+
+    }
+
 
     function test_WhenSetWhitelistedBridgeStatusIsCalledWithTrue() external givenSenderDoesNotHaveGUARDIAN_BRIDGERole {
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);

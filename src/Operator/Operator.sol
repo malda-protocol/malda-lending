@@ -70,6 +70,10 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         _initHypernativeFirewall(_firewall, owner());
     }
 
+    function setBlacklister(address _blacklister) external onlyOwner {
+        blacklistOperator = IBlacklister(_blacklister);
+    }
+
     /**
      * @notice Sets min borrow size per market
      * @param mTokens The market address

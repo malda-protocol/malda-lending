@@ -22,10 +22,10 @@ contract UpgradeMarket is Script {
     function run() public {
         // Setup
 
-        address proxy = 0xDF0635c1eCfdF08146150691a97e2Ff6a8Aa1a90;
+        address proxy = 0x1eEa258B505cd6381171c1075EC6934F8D0Faf3b;
         MarketType marketType = MarketType.GATEWAY;
-        string memory salt = "DeployerV1.0.1";
-        address create3Deployer = 0xc781BaD08968E324D1B91Be3cca30fAd86E7BF98;
+        string memory salt = "ReleaseV1.0.5-patch-blacklister0x1eEa258B505cd6381171c1075EC6934F8D0Faf3b";
+        address create3Deployer = 0x8F91616F05b3D74A8Ae56e43C585F0972Ccb91Df;
 
         uint256 key = vm.envUint("PRIVATE_KEY");
         Deployer deployer = Deployer(payable(create3Deployer));
@@ -60,7 +60,7 @@ contract UpgradeMarket is Script {
     }
 
     function _deployGatewayImplementation(Deployer deployer, string memory salt) internal returns (address) {
-        bytes32 implSalt = keccak256(abi.encodePacked("mTokenGatewayImplementationV1.0.1", salt));
+        bytes32 implSalt = keccak256(abi.encodePacked("mTokenGatewayImplementation", salt));
         vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
         address implementation = deployer.create(implSalt, type(mTokenGateway).creationCode);
         vm.stopBroadcast();
