@@ -103,7 +103,7 @@ contract EverclearBridge is BaseBridge, IBridge {
         // retrieve tokens from `Rebalancer`
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _extractedAmount);
 
-        if (_extractedAmount > params.amount) {
+        if (_extractedAmount > params.amount + params.feeParams.fee) {
             uint256 toReturn = _extractedAmount - params.amount - params.feeParams.fee;
             IERC20(_token).safeTransfer(_market, toReturn);
             emit RebalancingReturnedToMarket(_market, toReturn, _extractedAmount);
@@ -177,6 +177,7 @@ contract EverclearBridge is BaseBridge, IBridge {
         return IntentParams(destinations, receiver, inputAsset, outputAsset, amount, maxFee, ttl, data, feeParams);
     }
 
+
     /**
      * @notice Extracts the nested `FeeParams` struct from ABI-encoded `intentData`.
      * @dev 
@@ -207,5 +208,7 @@ contract EverclearBridge is BaseBridge, IBridge {
         uint256 sigOffset = BytesLib.toUint256(intentData, feeParamsOffset + 64);
         uint256 sigLen = BytesLib.toUint256(intentData, feeParamsOffset + sigOffset);
         sig = BytesLib.slice(intentData, feeParamsOffset + sigOffset + 32, sigLen);
+
     }
 }
+
