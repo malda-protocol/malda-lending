@@ -114,6 +114,16 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         _;
     }
 
+    modifier liquidateChecks() {
+        require(!paused[OperationType.Liquidate], mTokenGateway_Paused(OperationType.Liquidate));
+        require(!paused[OperationType.AmountIn], mTokenGateway_Paused(OperationType.AmountIn));
+        if (whitelistEnabled) {
+            require(userWhitelisted[msg.sender], mTokenGateway_UserNotWhitelisted());
+        }
+        require (!blacklistOperator.isBlacklisted(msg.sender), mTokenGateway_UserBlacklisted());
+        _;
+    }
+
     // ----------- VIEW ------------
     /**
      * @inheritdoc ImTokenGateway
@@ -260,18 +270,16 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         );
     }
 
-        /**
+    /**
      * @inheritdoc ImTokenGateway
      */
     function liquidate(address userToLiquidate, uint256 liquidateAmount, address collateral, address receiver)
         external
         payable
         override
-        notPaused(OperationType.Liquidate)
-        notPaused(OperationType.AmountIn)
-        onlyAllowedUser(msg.sender)
-        ifNotBlacklisted(msg.sender)
+        liquidateChecks
         ifNotBlacklisted(receiver)
+        onlyFirewallApproved()
     {
         _takeIn(underlying, liquidateAmount, receiver);
 
