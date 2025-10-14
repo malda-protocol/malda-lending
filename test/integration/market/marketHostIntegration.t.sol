@@ -7,7 +7,7 @@ import {Vm} from "forge-std/Vm.sol";
 
 
 import { mErc20Host } from "src/mToken/host/mErc20Host.sol";
-import { JumpRateModelV5 } from "src/interest/JumpRateModelV5.sol";
+import { JumpRateModelV4 } from "src/interest/JumpRateModelV4.sol";
 
 import { mTokenConfiguration } from "src/mToken/mTokenConfiguration.sol";
 import { mTokenStorage } from "src/mToken/mTokenStorage.sol";
@@ -33,7 +33,7 @@ contract marketHostIntegration is Test {
     uint256 chainIdOnFork;
     address ownerOnChain;
 
-    JumpRateModelV5 newInterestModel;
+    JumpRateModelV4 newInterestModel;
     mErc20Host market18Decimals;
     IERC20 asset18Decimals;
 
@@ -46,7 +46,7 @@ contract marketHostIntegration is Test {
         asset18Decimals = IERC20(address(market18Decimals.underlying()));
         ownerOnChain = market18Decimals.admin(); // same owner for all markets
 
-        newInterestModel = new JumpRateModelV5(31536000, 0, 2219685438, 95129375951, 400000000000000000, address(this), "TEST"); // same owner for all markets (in test)
+        newInterestModel = new JumpRateModelV4(31536000, 0, 2219685438, 95129375951, 400000000000000000, address(this), "TEST"); // same owner for all markets (in test)
     }
 
     function test_marketHost18decimals_SetNewInterestModel_Failure() public {

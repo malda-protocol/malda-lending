@@ -3,12 +3,12 @@ pragma solidity =0.8.28;
 
 import {Script} from "forge-std/Script.sol";
 import {Deployer} from "src/utils/Deployer.sol";
-import {JumpRateModelV5} from "src/interest/JumpRateModelV5.sol";
+import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
 
 import "forge-std/console2.sol";
 
 /**
- * forge script script/deployment/interest/DeployJumpRateModelV5.s.sol:DeployJumpRateModelV5  \
+ * forge script script/deployment/interest/DeployJumpRateModelV4Updated.s.sol:DeployJumpRateModelV4Updated  \
  *     --slow \
  *     --verify \
  *     --verifier-url <url> \
@@ -17,7 +17,7 @@ import "forge-std/console2.sol";
  *     --sig "run((uint256,string,uint256,uint256,uint256,uint256))" "(750000000000000000,'ExampleName',2102400,20000000000000000,100000000000000000,500000000000000000)" \
  *     --broadcast
  */
-contract DeployJumpRateModelV5 is Script {
+contract DeployJumpRateModelV4Updated is Script {
     struct InterestData {
         uint256 kink;
         string name;
@@ -33,7 +33,7 @@ contract DeployJumpRateModelV5 is Script {
         Deployer deployer = Deployer(payable(0x8F91616F05b3D74A8Ae56e43C585F0972Ccb91Df));
         InterestData memory data = InterestData({
             kink: 400000000000000000,
-            name: "mwrsETH Interest Model",
+            name: "mwrsEth Interest Model",
             blocksPerYear: 31536000,
             baseRatePerYear: 0,
             multiplierPerYear: 2219685438,
@@ -56,7 +56,7 @@ contract DeployJumpRateModelV5 is Script {
             data.name
         );
         bytes memory creationCode = abi.encodePacked(
-            type(JumpRateModelV5).creationCode,
+            type(JumpRateModelV4).creationCode,
             constructorArgs
         );
         bytes memory callData = abi.encodeWithSelector(
