@@ -211,6 +211,7 @@ contract TransferReleaseOwnership is DeployBaseRelease {
                 setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("GUARDIAN_BRIDGE")), false);
 
                 setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("REBALANCER_EOA")), false);
+                setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("PROOF_FORWARDER")), false);
             } else {
                 console.log(" EXTENSION");
                 console.log(" -- for all extension markets ", securityMultisig);
@@ -249,6 +250,7 @@ contract TransferReleaseOwnership is DeployBaseRelease {
                 setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("GUARDIAN_BORROW_CAP")), false);
                 setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("PAUSE_MANAGER")), false);
                 setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("REBALANCER_EOA")), false);
+                setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("PROOF_FORWARDER")), false);
 
             }
 
