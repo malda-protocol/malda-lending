@@ -180,22 +180,31 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="irewarddistributordata"><a class="header" href="#irewarddistributordata">IRewardDistributorData</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/interfaces/IRewardDistributor.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/interfaces/IRewardDistributor.sol">Git Source</a></p>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
 <h3 id="rewardmarketstate"><a class="header" href="#rewardmarketstate">RewardMarketState</a></h3>
 <pre><code class="language-solidity">struct RewardMarketState {
+    /// @notice The supply speed for each market
     uint256 supplySpeed;
+    /// @notice The supply index for each market
     uint224 supplyIndex;
+    /// @notice The last block timestamp that Reward accrued for supply
     uint32 supplyBlock;
+    /// @notice The borrow speed for each market
     uint256 borrowSpeed;
+    /// @notice The borrow index for each market
     uint224 borrowIndex;
+    /// @notice The last block timestamp that Reward accrued for borrow
     uint32 borrowBlock;
 }
 </code></pre>
 <h3 id="rewardaccountstate"><a class="header" href="#rewardaccountstate">RewardAccountState</a></h3>
 <pre><code class="language-solidity">struct RewardAccountState {
+    /// @notice The supply index for each market as of the last time the account accrued Reward
     mapping(address =&gt; uint256) supplierIndex;
+    /// @notice The borrow index for each market as of the last time the account accrued Reward
     mapping(address =&gt; uint256) borrowerIndex;
+    /// @notice Accrued Reward but not yet transferred
     uint256 rewardAccrued;
 }
 </code></pre>

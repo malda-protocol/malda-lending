@@ -180,31 +180,32 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="hypernativefirewallprotected"><a class="header" href="#hypernativefirewallprotected">HypernativeFirewallProtected</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/libraries/HypernativeFirewallProtected.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/libraries/HypernativeFirewallProtected.sol">Git Source</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="hypernative_oracle_storage_slot"><a class="header" href="#hypernative_oracle_storage_slot">HYPERNATIVE_ORACLE_STORAGE_SLOT</a></h3>
 <pre><code class="language-solidity">bytes32 private constant HYPERNATIVE_ORACLE_STORAGE_SLOT =
-    bytes32(uint256(keccak256(&quot;eip1967.hypernative.firewall&quot;)) - 1);
+    bytes32(uint256(keccak256(&quot;eip1967.hypernative.firewall&quot;)) - 1)
 </code></pre>
 <h3 id="hypernative_admin_storage_slot"><a class="header" href="#hypernative_admin_storage_slot">HYPERNATIVE_ADMIN_STORAGE_SLOT</a></h3>
-<pre><code class="language-solidity">bytes32 private constant HYPERNATIVE_ADMIN_STORAGE_SLOT = bytes32(uint256(keccak256(&quot;eip1967.hypernative.admin&quot;)) - 1);
+<pre><code class="language-solidity">bytes32 private constant HYPERNATIVE_ADMIN_STORAGE_SLOT =
+    bytes32(uint256(keccak256(&quot;eip1967.hypernative.admin&quot;)) - 1)
 </code></pre>
 <h3 id="hypernative_mode_storage_slot"><a class="header" href="#hypernative_mode_storage_slot">HYPERNATIVE_MODE_STORAGE_SLOT</a></h3>
 <pre><code class="language-solidity">bytes32 private constant HYPERNATIVE_MODE_STORAGE_SLOT =
-    bytes32(uint256(keccak256(&quot;eip1967.hypernative.is_strict_mode&quot;)) - 1);
+    bytes32(uint256(keccak256(&quot;eip1967.hypernative.is_strict_mode&quot;)) - 1)
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="onlyfirewallapproved"><a class="header" href="#onlyfirewallapproved">onlyFirewallApproved</a></h3>
-<pre><code class="language-solidity">modifier onlyFirewallApproved();
+<pre><code class="language-solidity">modifier onlyFirewallApproved() ;
 </code></pre>
 <h3 id="onlyfirewallapprovedalloweoa"><a class="header" href="#onlyfirewallapprovedalloweoa">onlyFirewallApprovedAllowEOA</a></h3>
-<pre><code class="language-solidity">modifier onlyFirewallApprovedAllowEOA();
+<pre><code class="language-solidity">modifier onlyFirewallApprovedAllowEOA() ;
 </code></pre>
 <h3 id="onlynotblacklistedeoa"><a class="header" href="#onlynotblacklistedeoa">onlyNotBlacklistedEOA</a></h3>
-<pre><code class="language-solidity">modifier onlyNotBlacklistedEOA();
+<pre><code class="language-solidity">modifier onlyNotBlacklistedEOA() ;
 </code></pre>
 <h3 id="onlyfirewalladmin"><a class="header" href="#onlyfirewalladmin">onlyFirewallAdmin</a></h3>
-<pre><code class="language-solidity">modifier onlyFirewallAdmin();
+<pre><code class="language-solidity">modifier onlyFirewallAdmin() ;
 </code></pre>
 <h3 id="_inithypernativefirewall"><a class="header" href="#_inithypernativefirewall">_initHypernativeFirewall</a></h3>
 <pre><code class="language-solidity">function _initHypernativeFirewall(address _firewall, address _admin) internal;
@@ -213,7 +214,7 @@
 <pre><code class="language-solidity">function firewallRegister(address _account) public virtual;
 </code></pre>
 <h3 id="setfirewall"><a class="header" href="#setfirewall">setFirewall</a></h3>
-<p><em>Admin only function, sets new firewall admin. set to address(0) to revoke firewall</em></p>
+<p>Admin only function, sets new firewall admin. set to address(0) to revoke firewall</p>
 <pre><code class="language-solidity">function setFirewall(address _firewall) public onlyFirewallAdmin;
 </code></pre>
 <h3 id="setisstrictmode"><a class="header" href="#setisstrictmode">setIsStrictMode</a></h3>
@@ -248,10 +249,10 @@
 </code></pre>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="firewalladminchanged"><a class="header" href="#firewalladminchanged">FirewallAdminChanged</a></h3>
-<pre><code class="language-solidity">event FirewallAdminChanged(address indexed previousAdmin, address indexed newAdmin);
+<pre><code class="language-solidity">event FirewallAdminChanged(address indexed previousAdmin, address indexed newAdmin)
 </code></pre>
 <h3 id="firewalladdresschanged"><a class="header" href="#firewalladdresschanged">FirewallAddressChanged</a></h3>
-<pre><code class="language-solidity">event FirewallAddressChanged(address indexed previousFirewall, address indexed newFirewall);
+<pre><code class="language-solidity">event FirewallAddressChanged(address indexed previousFirewall, address indexed newFirewall)
 </code></pre>
 
                     </main>

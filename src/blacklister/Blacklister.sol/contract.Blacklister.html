@@ -180,30 +180,30 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="blacklister"><a class="header" href="#blacklister">Blacklister</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/blacklister/Blacklister.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/blacklister/Blacklister.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-OwnableUpgradeable, <a href="/src/interfaces/IBlacklister.sol/interface.IBlacklister.html">IBlacklister</a></p>
+OwnableUpgradeable, <a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/interfaces/IBlacklister.sol/interface.IBlacklister.html">IBlacklister</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="isblacklisted"><a class="header" href="#isblacklisted">isBlacklisted</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; bool) public isBlacklisted;
+<pre><code class="language-solidity">mapping(address =&gt; bool) public isBlacklisted
 </code></pre>
 <h3 id="_blacklistedlist"><a class="header" href="#_blacklistedlist">_blacklistedList</a></h3>
-<pre><code class="language-solidity">address[] private _blacklistedList;
+<pre><code class="language-solidity">address[] private _blacklistedList
 </code></pre>
 <h3 id="rolesoperator"><a class="header" href="#rolesoperator">rolesOperator</a></h3>
-<pre><code class="language-solidity">IRoles public rolesOperator;
+<pre><code class="language-solidity">IRoles public rolesOperator
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
 <p><strong>Note:</strong>
 oz-upgrades-unsafe-allow: constructor</p>
-<pre><code class="language-solidity">constructor();
+<pre><code class="language-solidity">constructor() ;
 </code></pre>
 <h3 id="initialize"><a class="header" href="#initialize">initialize</a></h3>
 <pre><code class="language-solidity">function initialize(address payable _owner, address _roles) external initializer;
 </code></pre>
 <h3 id="onlyownerorguardian"><a class="header" href="#onlyownerorguardian">onlyOwnerOrGuardian</a></h3>
-<pre><code class="language-solidity">modifier onlyOwnerOrGuardian();
+<pre><code class="language-solidity">modifier onlyOwnerOrGuardian() ;
 </code></pre>
 <h3 id="getblacklistedaddresses"><a class="header" href="#getblacklistedaddresses">getBlacklistedAddresses</a></h3>
 <pre><code class="language-solidity">function getBlacklistedAddresses() external view returns (address[] memory);
@@ -228,13 +228,13 @@ oz-upgrades-unsafe-allow: constructor</p>
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="blacklister_alreadyblacklisted"><a class="header" href="#blacklister_alreadyblacklisted">Blacklister_AlreadyBlacklisted</a></h3>
-<pre><code class="language-solidity">error Blacklister_AlreadyBlacklisted();
+<pre><code class="language-solidity">error Blacklister_AlreadyBlacklisted()
 </code></pre>
 <h3 id="blacklister_notblacklisted"><a class="header" href="#blacklister_notblacklisted">Blacklister_NotBlacklisted</a></h3>
-<pre><code class="language-solidity">error Blacklister_NotBlacklisted();
+<pre><code class="language-solidity">error Blacklister_NotBlacklisted()
 </code></pre>
 <h3 id="blacklister_notallowed"><a class="header" href="#blacklister_notallowed">Blacklister_NotAllowed</a></h3>
-<pre><code class="language-solidity">error Blacklister_NotAllowed();
+<pre><code class="language-solidity">error Blacklister_NotAllowed()
 </code></pre>
 
                     </main>

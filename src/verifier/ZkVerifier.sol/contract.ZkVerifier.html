@@ -180,15 +180,15 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="zkverifier"><a class="header" href="#zkverifier">ZkVerifier</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/verifier/ZkVerifier.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/verifier/ZkVerifier.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-Ownable, <a href="/src/verifier/ZkVerifier.sol/interface.IZkVerifier.html">IZkVerifier</a></p>
+Ownable, <a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/verifier/ZkVerifier.sol/interface.IZkVerifier.html">IZkVerifier</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="verifier"><a class="header" href="#verifier">verifier</a></h3>
-<pre><code class="language-solidity">IRiscZeroVerifier public verifier;
+<pre><code class="language-solidity">IRiscZeroVerifier public verifier
 </code></pre>
 <h3 id="imageid"><a class="header" href="#imageid">imageId</a></h3>
-<pre><code class="language-solidity">bytes32 public imageId;
+<pre><code class="language-solidity">bytes32 public imageId
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
@@ -196,7 +196,7 @@ Ownable, <a href="/src/verifier/ZkVerifier.sol/interface.IZkVerifier.html">IZkVe
 </code></pre>
 <h3 id="setverifier"><a class="header" href="#setverifier">setVerifier</a></h3>
 <p>Sets the _risc0Verifier address</p>
-<p><em>Admin check is needed on the external method</em></p>
+<p>Admin check is needed on the external method</p>
 <pre><code class="language-solidity">function setVerifier(address _risc0Verifier) external onlyOwner;
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -206,7 +206,7 @@ Ownable, <a href="/src/verifier/ZkVerifier.sol/interface.IZkVerifier.html">IZkVe
 </div>
 <h3 id="setimageid"><a class="header" href="#setimageid">setImageId</a></h3>
 <p>Sets the image id</p>
-<p><em>Admin check is needed on the external method</em></p>
+<p>Admin check is needed on the external method</p>
 <pre><code class="language-solidity">function setImageId(bytes32 _imageId) external onlyOwner;
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -232,20 +232,20 @@ Ownable, <a href="/src/verifier/ZkVerifier.sol/interface.IZkVerifier.html">IZkVe
 </code></pre>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="imageset"><a class="header" href="#imageset">ImageSet</a></h3>
-<pre><code class="language-solidity">event ImageSet(bytes32 _imageId);
+<pre><code class="language-solidity">event ImageSet(bytes32 _imageId)
 </code></pre>
 <h3 id="verifierset"><a class="header" href="#verifierset">VerifierSet</a></h3>
-<pre><code class="language-solidity">event VerifierSet(address indexed oldVerifier, address indexed newVerifier);
+<pre><code class="language-solidity">event VerifierSet(address indexed oldVerifier, address indexed newVerifier)
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="zkverifier_imagenotvalid"><a class="header" href="#zkverifier_imagenotvalid">ZkVerifier_ImageNotValid</a></h3>
-<pre><code class="language-solidity">error ZkVerifier_ImageNotValid();
+<pre><code class="language-solidity">error ZkVerifier_ImageNotValid()
 </code></pre>
 <h3 id="zkverifier_inputnotvalid"><a class="header" href="#zkverifier_inputnotvalid">ZkVerifier_InputNotValid</a></h3>
-<pre><code class="language-solidity">error ZkVerifier_InputNotValid();
+<pre><code class="language-solidity">error ZkVerifier_InputNotValid()
 </code></pre>
 <h3 id="zkverifier_verifiernotset"><a class="header" href="#zkverifier_verifiernotset">ZkVerifier_VerifierNotSet</a></h3>
-<pre><code class="language-solidity">error ZkVerifier_VerifierNotSet();
+<pre><code class="language-solidity">error ZkVerifier_VerifierNotSet()
 </code></pre>
 
                     </main>

@@ -180,20 +180,20 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="deployer"><a class="header" href="#deployer">Deployer</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/utils/Deployer.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/utils/Deployer.sol">Git Source</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="admin"><a class="header" href="#admin">admin</a></h3>
-<pre><code class="language-solidity">address public admin;
+<pre><code class="language-solidity">address public admin
 </code></pre>
 <h3 id="pendingadmin"><a class="header" href="#pendingadmin">pendingAdmin</a></h3>
-<pre><code class="language-solidity">address public pendingAdmin;
+<pre><code class="language-solidity">address public pendingAdmin
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="onlyadmin"><a class="header" href="#onlyadmin">onlyAdmin</a></h3>
-<pre><code class="language-solidity">modifier onlyAdmin();
+<pre><code class="language-solidity">modifier onlyAdmin() ;
 </code></pre>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<pre><code class="language-solidity">constructor(address _admin);
+<pre><code class="language-solidity">constructor(address _admin) ;
 </code></pre>
 <h3 id="receive"><a class="header" href="#receive">receive</a></h3>
 <pre><code class="language-solidity">receive() external payable;
@@ -218,17 +218,17 @@
 </code></pre>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="adminset"><a class="header" href="#adminset">AdminSet</a></h3>
-<pre><code class="language-solidity">event AdminSet(address indexed _admin);
+<pre><code class="language-solidity">event AdminSet(address indexed _admin)
 </code></pre>
 <h3 id="pendingadminset"><a class="header" href="#pendingadminset">PendingAdminSet</a></h3>
-<pre><code class="language-solidity">event PendingAdminSet(address indexed _admin);
+<pre><code class="language-solidity">event PendingAdminSet(address indexed _admin)
 </code></pre>
 <h3 id="adminaccepted"><a class="header" href="#adminaccepted">AdminAccepted</a></h3>
-<pre><code class="language-solidity">event AdminAccepted(address indexed _admin);
+<pre><code class="language-solidity">event AdminAccepted(address indexed _admin)
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="notauthorized"><a class="header" href="#notauthorized">NotAuthorized</a></h3>
-<pre><code class="language-solidity">error NotAuthorized(address admin, address sender);
+<pre><code class="language-solidity">error NotAuthorized(address admin, address sender)
 </code></pre>
 
                     </main>

@@ -180,97 +180,97 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="mtokenstorage"><a class="header" href="#mtokenstorage">mTokenStorage</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/mToken/mTokenStorage.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/mToken/mTokenStorage.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-<a href="/src/interfaces/ImToken.sol/interface.ImToken.html">ImToken</a>, <a href="/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a></p>
+<a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/interfaces/ImToken.sol/interface.ImToken.html">ImToken</a>, <a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="admin"><a class="header" href="#admin">admin</a></h3>
 <p>Administrator for this contract</p>
-<pre><code class="language-solidity">address payable public admin;
+<pre><code class="language-solidity">address payable public admin
 </code></pre>
 <h3 id="pendingadmin"><a class="header" href="#pendingadmin">pendingAdmin</a></h3>
 <p>Pending administrator for this contract</p>
-<pre><code class="language-solidity">address payable public pendingAdmin;
+<pre><code class="language-solidity">address payable public pendingAdmin
 </code></pre>
 <h3 id="operator"><a class="header" href="#operator">operator</a></h3>
 <p>Contract which oversees inter-mToken operations</p>
-<pre><code class="language-solidity">address public operator;
+<pre><code class="language-solidity">address public operator
 </code></pre>
 <h3 id="rolesoperator"><a class="header" href="#rolesoperator">rolesOperator</a></h3>
 <p>Roles manager</p>
-<pre><code class="language-solidity">IRoles public rolesOperator;
+<pre><code class="language-solidity">IRoles public rolesOperator
 </code></pre>
 <h3 id="name"><a class="header" href="#name">name</a></h3>
 <p>EIP-20 token name for this token</p>
-<pre><code class="language-solidity">string public name;
+<pre><code class="language-solidity">string public name
 </code></pre>
 <h3 id="symbol"><a class="header" href="#symbol">symbol</a></h3>
 <p>EIP-20 token symbol for this token</p>
-<pre><code class="language-solidity">string public symbol;
+<pre><code class="language-solidity">string public symbol
 </code></pre>
 <h3 id="decimals"><a class="header" href="#decimals">decimals</a></h3>
 <p>EIP-20 token decimals for this token</p>
-<pre><code class="language-solidity">uint8 public decimals;
+<pre><code class="language-solidity">uint8 public decimals
 </code></pre>
 <h3 id="interestratemodel"><a class="header" href="#interestratemodel">interestRateModel</a></h3>
 <p>Model which tells what the current interest rate should be</p>
-<pre><code class="language-solidity">address public interestRateModel;
+<pre><code class="language-solidity">address public interestRateModel
 </code></pre>
 <h3 id="reservefactormantissa"><a class="header" href="#reservefactormantissa">reserveFactorMantissa</a></h3>
 <p>Fraction of interest currently set aside for reserves</p>
-<pre><code class="language-solidity">uint256 public reserveFactorMantissa;
+<pre><code class="language-solidity">uint256 public reserveFactorMantissa
 </code></pre>
 <h3 id="accrualblocktimestamp"><a class="header" href="#accrualblocktimestamp">accrualBlockTimestamp</a></h3>
 <p>Block timestamp that interest was last accrued at</p>
-<pre><code class="language-solidity">uint256 public accrualBlockTimestamp;
+<pre><code class="language-solidity">uint256 public accrualBlockTimestamp
 </code></pre>
 <h3 id="borrowindex"><a class="header" href="#borrowindex">borrowIndex</a></h3>
 <p>Accumulator of the total earned interest rate since the opening of the market</p>
-<pre><code class="language-solidity">uint256 public borrowIndex;
+<pre><code class="language-solidity">uint256 public borrowIndex
 </code></pre>
 <h3 id="totalborrows"><a class="header" href="#totalborrows">totalBorrows</a></h3>
 <p>Total amount of outstanding borrows of the underlying in this market</p>
-<pre><code class="language-solidity">uint256 public totalBorrows;
+<pre><code class="language-solidity">uint256 public totalBorrows
 </code></pre>
 <h3 id="totalreserves"><a class="header" href="#totalreserves">totalReserves</a></h3>
 <p>Total amount of reserves of the underlying held in this market</p>
-<pre><code class="language-solidity">uint256 public totalReserves;
+<pre><code class="language-solidity">uint256 public totalReserves
 </code></pre>
 <h3 id="totalsupply"><a class="header" href="#totalsupply">totalSupply</a></h3>
 <p>Returns the value of tokens in existence.</p>
-<pre><code class="language-solidity">uint256 public totalSupply;
+<pre><code class="language-solidity">uint256 public totalSupply
 </code></pre>
 <h3 id="totalunderlying"><a class="header" href="#totalunderlying">totalUnderlying</a></h3>
 <p>Returns the amount of underlying tokens</p>
-<pre><code class="language-solidity">uint256 public totalUnderlying;
+<pre><code class="language-solidity">uint256 public totalUnderlying
 </code></pre>
 <h3 id="borrowratemaxmantissa"><a class="header" href="#borrowratemaxmantissa">borrowRateMaxMantissa</a></h3>
 <p>Maximum borrow rate that can ever be applied</p>
-<pre><code class="language-solidity">uint256 public borrowRateMaxMantissa = 0.0005e16;
+<pre><code class="language-solidity">uint256 public borrowRateMaxMantissa = 0.0005e16
 </code></pre>
 <h3 id="accountborrows"><a class="header" href="#accountborrows">accountBorrows</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; BorrowSnapshot) internal accountBorrows;
+<pre><code class="language-solidity">mapping(address =&gt; BorrowSnapshot) internal accountBorrows
 </code></pre>
 <h3 id="accounttokens"><a class="header" href="#accounttokens">accountTokens</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; uint256) internal accountTokens;
+<pre><code class="language-solidity">mapping(address =&gt; uint256) internal accountTokens
 </code></pre>
 <h3 id="transferallowances"><a class="header" href="#transferallowances">transferAllowances</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; mapping(address =&gt; uint256)) internal transferAllowances;
+<pre><code class="language-solidity">mapping(address =&gt; mapping(address =&gt; uint256)) internal transferAllowances
 </code></pre>
 <h3 id="initialexchangeratemantissa"><a class="header" href="#initialexchangeratemantissa">initialExchangeRateMantissa</a></h3>
 <p>Initial exchange rate used when minting the first mTokens (used when totalSupply = 0)</p>
-<pre><code class="language-solidity">uint256 internal initialExchangeRateMantissa;
+<pre><code class="language-solidity">uint256 internal initialExchangeRateMantissa
 </code></pre>
 <h3 id="reserve_factor_max_mantissa"><a class="header" href="#reserve_factor_max_mantissa">RESERVE_FACTOR_MAX_MANTISSA</a></h3>
 <p>Maximum fraction of interest that can be set aside for reserves</p>
-<pre><code class="language-solidity">uint256 internal constant RESERVE_FACTOR_MAX_MANTISSA = 1e18;
+<pre><code class="language-solidity">uint256 internal constant RESERVE_FACTOR_MAX_MANTISSA = 1e18
 </code></pre>
 <h3 id="protocol_seize_share_mantissa"><a class="header" href="#protocol_seize_share_mantissa">PROTOCOL_SEIZE_SHARE_MANTISSA</a></h3>
 <p>Share of seized collateral that is added to reserves</p>
-<pre><code class="language-solidity">uint256 internal constant PROTOCOL_SEIZE_SHARE_MANTISSA = 2.8e16;
+<pre><code class="language-solidity">uint256 internal constant PROTOCOL_SEIZE_SHARE_MANTISSA = 2.8e16
 </code></pre>
 <h3 id="__gap"><a class="header" href="#__gap">__gap</a></h3>
-<pre><code class="language-solidity">uint256[50] private __gap;
+<pre><code class="language-solidity">uint256[50] private __gap
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="accrueinterest"><a class="header" href="#accrueinterest">accrueInterest</a></h3>
@@ -278,15 +278,15 @@
 <pre><code class="language-solidity">function accrueInterest() external virtual;
 </code></pre>
 <h3 id="_getblocktimestamp"><a class="header" href="#_getblocktimestamp">_getBlockTimestamp</a></h3>
-<p><em>Function to simply retrieve block timestamp
-This exists mainly for inheriting test contracts to stub this result.</em></p>
+<p>Function to simply retrieve block timestamp
+This exists mainly for inheriting test contracts to stub this result.</p>
 <pre><code class="language-solidity">function _getBlockTimestamp() internal view virtual returns (uint256);
 </code></pre>
 <h3 id="_exchangeratestored"><a class="header" href="#_exchangeratestored">_exchangeRateStored</a></h3>
 <p>Calculates the exchange rate from the underlying to the MToken</p>
-<p><em>This function does not accrue interest before calculating the exchange rate
+<p>This function does not accrue interest before calculating the exchange rate
 Can generate issues if inflated by an attacker when market is created
-Solution: use 0 collateral factor initially</em></p>
+Solution: use 0 collateral factor initially</p>
 <pre><code class="language-solidity">function _exchangeRateStored() internal view virtual returns (uint256);
 </code></pre>
 <p><strong>Returns</strong></p>
@@ -296,7 +296,7 @@ Solution: use 0 collateral factor initially</em></p>
 </div>
 <h3 id="_getcashprior"><a class="header" href="#_getcashprior">_getCashPrior</a></h3>
 <p>Gets balance of this contract in terms of the underlying</p>
-<p><em>This excludes the value of the current message, if any</em></p>
+<p>This excludes the value of the current message, if any</p>
 <pre><code class="language-solidity">function _getCashPrior() internal view virtual returns (uint256);
 </code></pre>
 <p><strong>Returns</strong></p>
@@ -305,14 +305,14 @@ Solution: use 0 collateral factor initially</em></p>
 </tbody></table>
 </div>
 <h3 id="_dotransferin"><a class="header" href="#_dotransferin">_doTransferIn</a></h3>
-<p><em>Performs a transfer in, reverting upon failure. Returns the amount actually transferred to the protocol, in case of a fee.
-This may revert due to insufficient balance or insufficient allowance.</em></p>
+<p>Performs a transfer in, reverting upon failure. Returns the amount actually transferred to the protocol, in case of a fee.
+This may revert due to insufficient balance or insufficient allowance.</p>
 <pre><code class="language-solidity">function _doTransferIn(address from, uint256 amount) internal virtual returns (uint256);
 </code></pre>
 <h3 id="_dotransferout"><a class="header" href="#_dotransferout">_doTransferOut</a></h3>
-<p><em>Performs a transfer out, ideally returning an explanatory error code upon failure rather than reverting.
+<p>Performs a transfer out, ideally returning an explanatory error code upon failure rather than reverting.
 If caller has not called checked protocol's balance, may revert due to insufficient cash held in the contract.
-If caller has checked protocol's balance, and verified it is &gt;= amount, this should not revert in normal conditions.</em></p>
+If caller has checked protocol's balance, and verified it is &gt;= amount, this should not revert in normal conditions.</p>
 <pre><code class="language-solidity">function _doTransferOut(address payable to, uint256 amount) internal virtual;
 </code></pre>
 <h3 id="_accrueinterest"><a class="header" href="#_accrueinterest">_accrueInterest</a></h3>
@@ -321,41 +321,45 @@ If caller has checked protocol's balance, and verified it is &gt;= amount, this 
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="newrolesoperator"><a class="header" href="#newrolesoperator">NewRolesOperator</a></h3>
 <p>Event emitted when rolesOperator is changed</p>
-<pre><code class="language-solidity">event NewRolesOperator(address indexed oldRoles, address indexed newRoles);
+<pre><code class="language-solidity">event NewRolesOperator(address indexed oldRoles, address indexed newRoles)
 </code></pre>
 <h3 id="newoperator"><a class="header" href="#newoperator">NewOperator</a></h3>
 <p>Event emitted when Operator is changed</p>
-<pre><code class="language-solidity">event NewOperator(address indexed oldOperator, address indexed newOperator);
+<pre><code class="language-solidity">event NewOperator(address indexed oldOperator, address indexed newOperator)
 </code></pre>
 <h3 id="transfer"><a class="header" href="#transfer">Transfer</a></h3>
 <p>EIP20 Transfer event</p>
-<pre><code class="language-solidity">event Transfer(address indexed from, address indexed to, uint256 amount);
+<pre><code class="language-solidity">event Transfer(address indexed from, address indexed to, uint256 amount)
 </code></pre>
 <h3 id="approval"><a class="header" href="#approval">Approval</a></h3>
 <p>EIP20 Approval event</p>
-<pre><code class="language-solidity">event Approval(address indexed owner, address indexed spender, uint256 amount);
+<pre><code class="language-solidity">event Approval(address indexed owner, address indexed spender, uint256 amount)
 </code></pre>
 <h3 id="accrueinterest-1"><a class="header" href="#accrueinterest-1">AccrueInterest</a></h3>
 <p>Event emitted when interest is accrued</p>
-<pre><code class="language-solidity">event AccrueInterest(uint256 cashPrior, uint256 interestAccumulated, uint256 borrowIndex, uint256 totalBorrows);
+<pre><code class="language-solidity">event AccrueInterest(uint256 cashPrior, uint256 interestAccumulated, uint256 borrowIndex, uint256 totalBorrows)
 </code></pre>
 <h3 id="mint"><a class="header" href="#mint">Mint</a></h3>
 <p>Event emitted when tokens are minted</p>
-<pre><code class="language-solidity">event Mint(address indexed minter, address indexed receiver, uint256 mintAmount, uint256 mintTokens);
+<pre><code class="language-solidity">event Mint(address indexed minter, address indexed receiver, uint256 mintAmount, uint256 mintTokens)
 </code></pre>
 <h3 id="redeem"><a class="header" href="#redeem">Redeem</a></h3>
 <p>Event emitted when tokens are redeemed</p>
-<pre><code class="language-solidity">event Redeem(address indexed redeemer, uint256 redeemAmount, uint256 redeemTokens);
+<pre><code class="language-solidity">event Redeem(address indexed redeemer, uint256 redeemAmount, uint256 redeemTokens)
 </code></pre>
 <h3 id="borrow"><a class="header" href="#borrow">Borrow</a></h3>
 <p>Event emitted when underlying is borrowed</p>
-<pre><code class="language-solidity">event Borrow(address indexed borrower, uint256 borrowAmount, uint256 accountBorrows, uint256 totalBorrows);
+<pre><code class="language-solidity">event Borrow(address indexed borrower, uint256 borrowAmount, uint256 accountBorrows, uint256 totalBorrows)
 </code></pre>
 <h3 id="repayborrow"><a class="header" href="#repayborrow">RepayBorrow</a></h3>
 <p>Event emitted when a borrow is repaid</p>
 <pre><code class="language-solidity">event RepayBorrow(
-    address indexed payer, address indexed borrower, uint256 repayAmount, uint256 accountBorrows, uint256 totalBorrows
-);
+    address indexed payer,
+    address indexed borrower,
+    uint256 repayAmount,
+    uint256 accountBorrows,
+    uint256 totalBorrows
+)
 </code></pre>
 <h3 id="liquidateborrow"><a class="header" href="#liquidateborrow">LiquidateBorrow</a></h3>
 <p>Event emitted when a borrow is liquidated</p>
@@ -365,93 +369,93 @@ If caller has checked protocol's balance, and verified it is &gt;= amount, this 
     uint256 repayAmount,
     address indexed mTokenCollateral,
     uint256 seizeTokens
-);
+)
 </code></pre>
 <h3 id="newmarketinterestratemodel"><a class="header" href="#newmarketinterestratemodel">NewMarketInterestRateModel</a></h3>
 <p>Event emitted when interestRateModel is changed</p>
-<pre><code class="language-solidity">event NewMarketInterestRateModel(address indexed oldInterestRateModel, address indexed newInterestRateModel);
+<pre><code class="language-solidity">event NewMarketInterestRateModel(address indexed oldInterestRateModel, address indexed newInterestRateModel)
 </code></pre>
 <h3 id="newreservefactor"><a class="header" href="#newreservefactor">NewReserveFactor</a></h3>
 <p>Event emitted when the reserve factor is changed</p>
-<pre><code class="language-solidity">event NewReserveFactor(uint256 oldReserveFactorMantissa, uint256 newReserveFactorMantissa);
+<pre><code class="language-solidity">event NewReserveFactor(uint256 oldReserveFactorMantissa, uint256 newReserveFactorMantissa)
 </code></pre>
 <h3 id="reservesadded"><a class="header" href="#reservesadded">ReservesAdded</a></h3>
 <p>Event emitted when the reserves are added</p>
-<pre><code class="language-solidity">event ReservesAdded(address indexed benefactor, uint256 addAmount, uint256 newTotalReserves);
+<pre><code class="language-solidity">event ReservesAdded(address indexed benefactor, uint256 addAmount, uint256 newTotalReserves)
 </code></pre>
 <h3 id="reservesreduced"><a class="header" href="#reservesreduced">ReservesReduced</a></h3>
 <p>Event emitted when the reserves are reduced</p>
-<pre><code class="language-solidity">event ReservesReduced(address indexed admin, uint256 reduceAmount, uint256 newTotalReserves);
+<pre><code class="language-solidity">event ReservesReduced(address indexed admin, uint256 reduceAmount, uint256 newTotalReserves)
 </code></pre>
 <h3 id="newborrowratemaxmantissa"><a class="header" href="#newborrowratemaxmantissa">NewBorrowRateMaxMantissa</a></h3>
 <p>Event emitted when the borrow max mantissa is updated</p>
-<pre><code class="language-solidity">event NewBorrowRateMaxMantissa(uint256 oldVal, uint256 maxMantissa);
+<pre><code class="language-solidity">event NewBorrowRateMaxMantissa(uint256 oldVal, uint256 maxMantissa)
 </code></pre>
 <h3 id="samechainflowstateupdated"><a class="header" href="#samechainflowstateupdated">SameChainFlowStateUpdated</a></h3>
 <p>Event emitted when same chain flow state is enabled or disabled</p>
-<pre><code class="language-solidity">event SameChainFlowStateUpdated(address indexed sender, bool _oldState, bool _newState);
+<pre><code class="language-solidity">event SameChainFlowStateUpdated(address indexed sender, bool _oldState, bool _newState)
 </code></pre>
 <h3 id="zkverifierupdated"><a class="header" href="#zkverifierupdated">ZkVerifierUpdated</a></h3>
 <p>Event emitted when same chain flow state is enabled or disabled</p>
-<pre><code class="language-solidity">event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+<pre><code class="language-solidity">event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier)
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="mt_onlyadmin"><a class="header" href="#mt_onlyadmin">mt_OnlyAdmin</a></h3>
-<pre><code class="language-solidity">error mt_OnlyAdmin();
+<pre><code class="language-solidity">error mt_OnlyAdmin()
 </code></pre>
 <h3 id="mt_redeemempty"><a class="header" href="#mt_redeemempty">mt_RedeemEmpty</a></h3>
-<pre><code class="language-solidity">error mt_RedeemEmpty();
+<pre><code class="language-solidity">error mt_RedeemEmpty()
 </code></pre>
 <h3 id="mt_invalidinput"><a class="header" href="#mt_invalidinput">mt_InvalidInput</a></h3>
-<pre><code class="language-solidity">error mt_InvalidInput();
+<pre><code class="language-solidity">error mt_InvalidInput()
 </code></pre>
 <h3 id="mt_onlyadminorrole"><a class="header" href="#mt_onlyadminorrole">mt_OnlyAdminOrRole</a></h3>
-<pre><code class="language-solidity">error mt_OnlyAdminOrRole();
+<pre><code class="language-solidity">error mt_OnlyAdminOrRole()
 </code></pre>
 <h3 id="mt_pricefetchfailed"><a class="header" href="#mt_pricefetchfailed">mt_PriceFetchFailed</a></h3>
-<pre><code class="language-solidity">error mt_PriceFetchFailed();
+<pre><code class="language-solidity">error mt_PriceFetchFailed()
 </code></pre>
 <h3 id="mt_transfernotvalid"><a class="header" href="#mt_transfernotvalid">mt_TransferNotValid</a></h3>
-<pre><code class="language-solidity">error mt_TransferNotValid();
+<pre><code class="language-solidity">error mt_TransferNotValid()
 </code></pre>
 <h3 id="mt_minamountnotvalid"><a class="header" href="#mt_minamountnotvalid">mt_MinAmountNotValid</a></h3>
-<pre><code class="language-solidity">error mt_MinAmountNotValid();
+<pre><code class="language-solidity">error mt_MinAmountNotValid()
 </code></pre>
 <h3 id="mt_borrowratetoohigh"><a class="header" href="#mt_borrowratetoohigh">mt_BorrowRateTooHigh</a></h3>
-<pre><code class="language-solidity">error mt_BorrowRateTooHigh();
+<pre><code class="language-solidity">error mt_BorrowRateTooHigh()
 </code></pre>
 <h3 id="mt_alreadyinitialized"><a class="header" href="#mt_alreadyinitialized">mt_AlreadyInitialized</a></h3>
-<pre><code class="language-solidity">error mt_AlreadyInitialized();
+<pre><code class="language-solidity">error mt_AlreadyInitialized()
 </code></pre>
 <h3 id="mt_reservefactortoohigh"><a class="header" href="#mt_reservefactortoohigh">mt_ReserveFactorTooHigh</a></h3>
-<pre><code class="language-solidity">error mt_ReserveFactorTooHigh();
+<pre><code class="language-solidity">error mt_ReserveFactorTooHigh()
 </code></pre>
 <h3 id="mt_exchangeratenotvalid"><a class="header" href="#mt_exchangeratenotvalid">mt_ExchangeRateNotValid</a></h3>
-<pre><code class="language-solidity">error mt_ExchangeRateNotValid();
+<pre><code class="language-solidity">error mt_ExchangeRateNotValid()
 </code></pre>
 <h3 id="mt_marketmethodnotvalid"><a class="header" href="#mt_marketmethodnotvalid">mt_MarketMethodNotValid</a></h3>
-<pre><code class="language-solidity">error mt_MarketMethodNotValid();
+<pre><code class="language-solidity">error mt_MarketMethodNotValid()
 </code></pre>
 <h3 id="mt_liquidateseizetoomuch"><a class="header" href="#mt_liquidateseizetoomuch">mt_LiquidateSeizeTooMuch</a></h3>
-<pre><code class="language-solidity">error mt_LiquidateSeizeTooMuch();
+<pre><code class="language-solidity">error mt_LiquidateSeizeTooMuch()
 </code></pre>
 <h3 id="mt_redeemcashnotavailable"><a class="header" href="#mt_redeemcashnotavailable">mt_RedeemCashNotAvailable</a></h3>
-<pre><code class="language-solidity">error mt_RedeemCashNotAvailable();
+<pre><code class="language-solidity">error mt_RedeemCashNotAvailable()
 </code></pre>
 <h3 id="mt_borrowcashnotavailable"><a class="header" href="#mt_borrowcashnotavailable">mt_BorrowCashNotAvailable</a></h3>
-<pre><code class="language-solidity">error mt_BorrowCashNotAvailable();
+<pre><code class="language-solidity">error mt_BorrowCashNotAvailable()
 </code></pre>
 <h3 id="mt_reservecashnotavailable"><a class="header" href="#mt_reservecashnotavailable">mt_ReserveCashNotAvailable</a></h3>
-<pre><code class="language-solidity">error mt_ReserveCashNotAvailable();
+<pre><code class="language-solidity">error mt_ReserveCashNotAvailable()
 </code></pre>
 <h3 id="mt_redeemtransferoutnotpossible"><a class="header" href="#mt_redeemtransferoutnotpossible">mt_RedeemTransferOutNotPossible</a></h3>
-<pre><code class="language-solidity">error mt_RedeemTransferOutNotPossible();
+<pre><code class="language-solidity">error mt_RedeemTransferOutNotPossible()
 </code></pre>
 <h3 id="mt_samechainoperationsaredisabled"><a class="header" href="#mt_samechainoperationsaredisabled">mt_SameChainOperationsAreDisabled</a></h3>
-<pre><code class="language-solidity">error mt_SameChainOperationsAreDisabled();
+<pre><code class="language-solidity">error mt_SameChainOperationsAreDisabled()
 </code></pre>
 <h3 id="mt_collateralblocktimestampnotvalid"><a class="header" href="#mt_collateralblocktimestampnotvalid">mt_CollateralBlockTimestampNotValid</a></h3>
-<pre><code class="language-solidity">error mt_CollateralBlockTimestampNotValid();
+<pre><code class="language-solidity">error mt_CollateralBlockTimestampNotValid()
 </code></pre>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
 <h3 id="borrowsnapshot"><a class="header" href="#borrowsnapshot">BorrowSnapshot</a></h3>

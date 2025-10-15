@@ -180,17 +180,17 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="ilayerzerooft"><a class="header" href="#ilayerzerooft">ILayerZeroOFT</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol">Git Source</a></p>
-<p><em>Interface for the OftChain (OFT) token.</em></p>
-<p><em>Does not inherit ERC20 to accommodate usage by OFTAdapter as well.</em></p>
-<p><em>This specific interface ID is '0x02e49c2c'.</em></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol">Git Source</a></p>
+<p>Interface for the OftChain (OFT) token.</p>
+<p>Does not inherit ERC20 to accommodate usage by OFTAdapter as well.</p>
+<p>This specific interface ID is '0x02e49c2c'.</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="oftversion"><a class="header" href="#oftversion">oftVersion</a></h3>
 <p>Retrieves interfaceID and the version of the OFT.</p>
-<p><em>interfaceId: This specific interface ID is '0x02e49c2c'.</em></p>
-<p><em>version: Indicates a cross-chain compatible msg encoding with other OFTs.</em></p>
-<p><em>If a new feature is added to the OFT cross-chain msg encoding, the version will be incremented.
-ie. localOFT version(x,1) CAN send messages to remoteOFT version(x,1)</em></p>
+<p>interfaceId: This specific interface ID is '0x02e49c2c'.</p>
+<p>version: Indicates a cross-chain compatible msg encoding with other OFTs.</p>
+<p>If a new feature is added to the OFT cross-chain msg encoding, the version will be incremented.
+ie. localOFT version(x,1) CAN send messages to remoteOFT version(x,1)</p>
 <pre><code class="language-solidity">function oftVersion() external view returns (bytes4 interfaceId, uint64 version);
 </code></pre>
 <p><strong>Returns</strong></p>
@@ -210,8 +210,8 @@ ie. localOFT version(x,1) CAN send messages to remoteOFT version(x,1)</em></p>
 </div>
 <h3 id="approvalrequired"><a class="header" href="#approvalrequired">approvalRequired</a></h3>
 <p>Indicates whether the OFT contract requires approval of the 'token()' to send.</p>
-<p><em>Allows things like wallet implementers to determine integration requirements,
-without understanding the underlying token implementation.</em></p>
+<p>Allows things like wallet implementers to determine integration requirements,
+without understanding the underlying token implementation.</p>
 <pre><code class="language-solidity">function approvalRequired() external view returns (bool);
 </code></pre>
 <p><strong>Returns</strong></p>
@@ -249,10 +249,10 @@ without understanding the underlying token implementation.</em></p>
 </div>
 <h3 id="quotesend"><a class="header" href="#quotesend">quoteSend</a></h3>
 <p>Provides a quote for the send() operation.</p>
-<p>*MessagingFee: LayerZero msg fee</p>
+<p>MessagingFee: LayerZero msg fee</p>
 <ul>
 <li>nativeFee: The native fee.</li>
-<li>lzTokenFee: The lzToken fee.*</li>
+<li>lzTokenFee: The lzToken fee.</li>
 </ul>
 <pre><code class="language-solidity">function quoteSend(SendParam calldata _sendParam, bool _payInLzToken) external view returns (MessagingFee memory);
 </code></pre>
@@ -269,11 +269,11 @@ without understanding the underlying token implementation.</em></p>
 </div>
 <h3 id="send"><a class="header" href="#send">send</a></h3>
 <p>Executes the send() operation.</p>
-<p>*MessagingReceipt: LayerZero msg receipt</p>
+<p>MessagingReceipt: LayerZero msg receipt</p>
 <ul>
 <li>guid: The unique identifier for the sent message.</li>
 <li>nonce: The nonce of the sent message.</li>
-<li>fee: The LayerZero fee incurred for the message.*</li>
+<li>fee: The LayerZero fee incurred for the message.</li>
 </ul>
 <pre><code class="language-solidity">function send(SendParam calldata _sendParam, MessagingFee calldata _fee, address _refundAddress)
     external
@@ -295,19 +295,35 @@ without understanding the underlying token implementation.</em></p>
 </div>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="oftsent"><a class="header" href="#oftsent">OFTSent</a></h3>
-<pre><code class="language-solidity">event OFTSent(
-    bytes32 indexed guid, uint32 dstEid, address indexed fromAddress, uint256 amountSentLD, uint256 amountReceivedLD
-);
+<pre><code class="language-solidity">event OFTSent( // GUID of the OFT message.
+    // Destination Endpoint ID.
+    // Address of the sender on the src chain.
+    // Amount of tokens sent in local decimals.
+    // Amount of tokens received in local decimals.
+    bytes32 indexed guid,
+    uint32 dstEid,
+    address indexed fromAddress,
+    uint256 amountSentLD,
+    uint256 amountReceivedLD
+)
 </code></pre>
 <h3 id="oftreceived"><a class="header" href="#oftreceived">OFTReceived</a></h3>
-<pre><code class="language-solidity">event OFTReceived(bytes32 indexed guid, uint32 srcEid, address indexed toAddress, uint256 amountReceivedLD);
+<pre><code class="language-solidity">event OFTReceived( // GUID of the OFT message.
+    // Source Endpoint ID.
+    // Address of the recipient on the dst chain.
+    // Amount of tokens received in local decimals.
+    bytes32 indexed guid,
+    uint32 srcEid,
+    address indexed toAddress,
+    uint256 amountReceivedLD
+)
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="invalidlocaldecimals"><a class="header" href="#invalidlocaldecimals">InvalidLocalDecimals</a></h3>
-<pre><code class="language-solidity">error InvalidLocalDecimals();
+<pre><code class="language-solidity">error InvalidLocalDecimals()
 </code></pre>
 <h3 id="slippageexceeded"><a class="header" href="#slippageexceeded">SlippageExceeded</a></h3>
-<pre><code class="language-solidity">error SlippageExceeded(uint256 amountLD, uint256 minAmountLD);
+<pre><code class="language-solidity">error SlippageExceeded(uint256 amountLD, uint256 minAmountLD)
 </code></pre>
 
                     </main>

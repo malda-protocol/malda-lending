@@ -180,12 +180,12 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="everclearbridge"><a class="header" href="#everclearbridge">EverclearBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/rebalancer/bridges/EverclearBridge.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/rebalancer/bridges/EverclearBridge.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-<a href="/src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.html">BaseBridge</a>, <a href="/src/interfaces/IBridge.sol/interface.IBridge.html">IBridge</a></p>
+<a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.html">BaseBridge</a>, <a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/interfaces/IBridge.sol/interface.IBridge.html">IBridge</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="everclearfeeadapter"><a class="header" href="#everclearfeeadapter">everclearFeeAdapter</a></h3>
-<pre><code class="language-solidity">IFeeAdapter public everclearFeeAdapter;
+<pre><code class="language-solidity">IFeeAdapter public everclearFeeAdapter
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
@@ -209,14 +209,11 @@
     uint32 _dstChainId,
     address _token,
     bytes memory _message,
-    bytes memory
+    bytes memory // unused
 ) external payable onlyRebalancer;
 </code></pre>
 <h3 id="_decodeintent"><a class="header" href="#_decodeintent">_decodeIntent</a></h3>
 <p>Decodes an intent message returned by the Everclear intents API into structured parameters.</p>
-<ul>
-<li></li>
-</ul>
 <ul>
 <li>The input <code>message</code> is the raw ABI-encoded calldata of a <code>FeeAdapter.newIntent</code> call.</li>
 <li>The first 4 bytes are the function selector, which are skipped.</li>
@@ -236,7 +233,7 @@ data (bytes)              @ offset 0xe0
 feeParams (FeeParams)     @ offset 0x100 (9th arg → pointer)
 </code></pre>
 <p>Since each static argument occupies a 32-byte slot, the pointer to <code>feeParams</code>
-lives at offset <code>0x100</code> (256 bytes) after the selector is removed.*</p>
+lives at offset <code>0x100</code> (256 bytes) after the selector is removed.</p>
 <pre><code class="language-solidity">function _decodeIntent(bytes memory message) internal pure returns (IntentParams memory);
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -252,9 +249,6 @@ lives at offset <code>0x100</code> (256 bytes) after the selector is removed.*</
 <h3 id="_extractfeeparams"><a class="header" href="#_extractfeeparams">_extractFeeParams</a></h3>
 <p>Extracts the nested <code>FeeParams</code> struct from ABI-encoded <code>intentData</code>.</p>
 <ul>
-<li></li>
-</ul>
-<ul>
 <li><code>FeeParams</code> is the 9th parameter of <code>FeeAdapter.newIntent</code> and therefore stored as a pointer at offset <code>0x100</code>.</li>
 <li>The selector has already been removed, so the pointer is read at byte position <code>0x100</code> (256 bytes).</li>
 <li>The pointer gives the offset to the start of the <code>FeeParams</code> struct relative to the start of intentData.</li>
@@ -266,7 +260,7 @@ sig      (bytes)   @ +0x40 (stored as offset → length → data)
 </code></pre>
 <ul>
 <li>The <code>sig</code> field is dynamic, so we read its offset (at +0x40) relative to the <code>FeeParams</code> base,
-then read the length at that offset, then slice out the actual signature bytes.*</li>
+then read the length at that offset, then slice out the actual signature bytes.</li>
 </ul>
 <pre><code class="language-solidity">function _extractFeeParams(bytes memory intentData)
     private
@@ -287,29 +281,29 @@ then read the length at that offset, then slice out the actual signature bytes.*
 </div>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="msgsent"><a class="header" href="#msgsent">MsgSent</a></h3>
-<pre><code class="language-solidity">event MsgSent(uint256 indexed dstChainId, address indexed market, uint256 amountLD, bytes32 id);
+<pre><code class="language-solidity">event MsgSent(uint256 indexed dstChainId, address indexed market, uint256 amountLD, bytes32 id)
 </code></pre>
 <h3 id="rebalancingreturnedtomarket"><a class="header" href="#rebalancingreturnedtomarket">RebalancingReturnedToMarket</a></h3>
-<pre><code class="language-solidity">event RebalancingReturnedToMarket(address indexed market, uint256 toReturn, uint256 extracted);
+<pre><code class="language-solidity">event RebalancingReturnedToMarket(address indexed market, uint256 toReturn, uint256 extracted)
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="everclear_tokenmismatch"><a class="header" href="#everclear_tokenmismatch">Everclear_TokenMismatch</a></h3>
-<pre><code class="language-solidity">error Everclear_TokenMismatch();
+<pre><code class="language-solidity">error Everclear_TokenMismatch()
 </code></pre>
 <h3 id="everclear_notimplemented"><a class="header" href="#everclear_notimplemented">Everclear_NotImplemented</a></h3>
-<pre><code class="language-solidity">error Everclear_NotImplemented();
+<pre><code class="language-solidity">error Everclear_NotImplemented()
 </code></pre>
 <h3 id="everclear_maxfeeexceeded"><a class="header" href="#everclear_maxfeeexceeded">Everclear_MaxFeeExceeded</a></h3>
-<pre><code class="language-solidity">error Everclear_MaxFeeExceeded();
+<pre><code class="language-solidity">error Everclear_MaxFeeExceeded()
 </code></pre>
 <h3 id="everclear_addressnotvalid"><a class="header" href="#everclear_addressnotvalid">Everclear_AddressNotValid</a></h3>
-<pre><code class="language-solidity">error Everclear_AddressNotValid();
+<pre><code class="language-solidity">error Everclear_AddressNotValid()
 </code></pre>
 <h3 id="everclear_destinationnotvalid"><a class="header" href="#everclear_destinationnotvalid">Everclear_DestinationNotValid</a></h3>
-<pre><code class="language-solidity">error Everclear_DestinationNotValid();
+<pre><code class="language-solidity">error Everclear_DestinationNotValid()
 </code></pre>
 <h3 id="everclear_destinationslengthmismatch"><a class="header" href="#everclear_destinationslengthmismatch">Everclear_DestinationsLengthMismatch</a></h3>
-<pre><code class="language-solidity">error Everclear_DestinationsLengthMismatch();
+<pre><code class="language-solidity">error Everclear_DestinationsLengthMismatch()
 </code></pre>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
 <h3 id="intentparams"><a class="header" href="#intentparams">IntentParams</a></h3>

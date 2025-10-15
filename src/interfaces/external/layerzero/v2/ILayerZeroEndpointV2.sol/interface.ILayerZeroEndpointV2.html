@@ -180,9 +180,9 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="ilayerzeroendpointv2"><a class="header" href="#ilayerzeroendpointv2">ILayerZeroEndpointV2</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-<a href="/src/interfaces/external/layerzero/v2/IMessageLibManager.sol/interface.IMessageLibManager.html">IMessageLibManager</a>, <a href="/src/interfaces/external/layerzero/v2/IMessagingComposer.sol/interface.IMessagingComposer.html">IMessagingComposer</a>, <a href="/src/interfaces/external/layerzero/v2/IMessagingChannel.sol/interface.IMessagingChannel.html">IMessagingChannel</a>, <a href="/src/interfaces/external/layerzero/v2/IMessagingContext.sol/interface.IMessagingContext.html">IMessagingContext</a></p>
+<a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/interfaces/external/layerzero/v2/IMessageLibManager.sol/interface.IMessageLibManager.html">IMessageLibManager</a>, <a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/interfaces/external/layerzero/v2/IMessagingComposer.sol/interface.IMessagingComposer.html">IMessagingComposer</a>, <a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/interfaces/external/layerzero/v2/IMessagingChannel.sol/interface.IMessagingChannel.html">IMessagingChannel</a>, <a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/interfaces/external/layerzero/v2/IMessagingContext.sol/interface.IMessagingContext.html">IMessagingContext</a></p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="quote"><a class="header" href="#quote">quote</a></h3>
 <pre><code class="language-solidity">function quote(MessagingParams calldata _params, address _sender) external view returns (MessagingFee memory);
@@ -228,13 +228,13 @@
 </code></pre>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="packetsent"><a class="header" href="#packetsent">PacketSent</a></h3>
-<pre><code class="language-solidity">event PacketSent(bytes encodedPayload, bytes options, address sendLibrary);
+<pre><code class="language-solidity">event PacketSent(bytes encodedPayload, bytes options, address sendLibrary)
 </code></pre>
 <h3 id="packetverified"><a class="header" href="#packetverified">PacketVerified</a></h3>
-<pre><code class="language-solidity">event PacketVerified(Origin origin, address receiver, bytes32 payloadHash);
+<pre><code class="language-solidity">event PacketVerified(Origin origin, address receiver, bytes32 payloadHash)
 </code></pre>
 <h3 id="packetdelivered"><a class="header" href="#packetdelivered">PacketDelivered</a></h3>
-<pre><code class="language-solidity">event PacketDelivered(Origin origin, address receiver);
+<pre><code class="language-solidity">event PacketDelivered(Origin origin, address receiver)
 </code></pre>
 <h3 id="lzreceivealert"><a class="header" href="#lzreceivealert">LzReceiveAlert</a></h3>
 <pre><code class="language-solidity">event LzReceiveAlert(
@@ -247,13 +247,13 @@
     bytes message,
     bytes extraData,
     bytes reason
-);
+)
 </code></pre>
 <h3 id="lztokenset"><a class="header" href="#lztokenset">LzTokenSet</a></h3>
-<pre><code class="language-solidity">event LzTokenSet(address token);
+<pre><code class="language-solidity">event LzTokenSet(address token)
 </code></pre>
 <h3 id="delegateset"><a class="header" href="#delegateset">DelegateSet</a></h3>
-<pre><code class="language-solidity">event DelegateSet(address sender, address delegate);
+<pre><code class="language-solidity">event DelegateSet(address sender, address delegate)
 </code></pre>
 
                     </main>

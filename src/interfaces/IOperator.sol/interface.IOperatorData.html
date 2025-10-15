@@ -180,12 +180,17 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="ioperatordata"><a class="header" href="#ioperatordata">IOperatorData</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/interfaces/IOperator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/interfaces/IOperator.sol">Git Source</a></p>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
 <h3 id="market"><a class="header" href="#market">Market</a></h3>
 <pre><code class="language-solidity">struct Market {
+    // Whether or not this market is listed
     bool isListed;
+    //  Multiplier representing the most one can borrow against their collateral in this market.
+    //  For instance, 0.9 to allow borrowing 90% of collateral value.
+    //  Must be between 0 and 1, and stored as a mantissa.
     uint256 collateralFactorMantissa;
+    // Per-market mapping of &quot;accounts in this asset&quot;
     mapping(address =&gt; bool) accountMembership;
 }
 </code></pre>

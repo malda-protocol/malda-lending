@@ -180,34 +180,34 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="jumpratemodelv4"><a class="header" href="#jumpratemodelv4">JumpRateModelV4</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/interest/JumpRateModelV4.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/interest/JumpRateModelV4.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-<a href="/src/interfaces/IInterestRateModel.sol/interface.IInterestRateModel.html">IInterestRateModel</a>, Ownable</p>
+<a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/interfaces/IInterestRateModel.sol/interface.IInterestRateModel.html">IInterestRateModel</a>, Ownable</p>
 <p>Implementation of the IInterestRateModel interface for calculating interest rates</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="blocksperyear"><a class="header" href="#blocksperyear">blocksPerYear</a></h3>
 <p>The approximate number of blocks per year that is assumed by the interest rate model</p>
-<pre><code class="language-solidity">uint256 public override blocksPerYear;
+<pre><code class="language-solidity">uint256 public override blocksPerYear
 </code></pre>
 <h3 id="multiplierperblock"><a class="header" href="#multiplierperblock">multiplierPerBlock</a></h3>
 <p>The multiplier of utilization rate that gives the slope of the interest rate</p>
-<pre><code class="language-solidity">uint256 public override multiplierPerBlock;
+<pre><code class="language-solidity">uint256 public override multiplierPerBlock
 </code></pre>
 <h3 id="baserateperblock"><a class="header" href="#baserateperblock">baseRatePerBlock</a></h3>
 <p>The base interest rate which is the y-intercept when utilization rate is 0</p>
-<pre><code class="language-solidity">uint256 public override baseRatePerBlock;
+<pre><code class="language-solidity">uint256 public override baseRatePerBlock
 </code></pre>
 <h3 id="jumpmultiplierperblock"><a class="header" href="#jumpmultiplierperblock">jumpMultiplierPerBlock</a></h3>
 <p>The multiplierPerBlock after hitting a specified utilization point</p>
-<pre><code class="language-solidity">uint256 public override jumpMultiplierPerBlock;
+<pre><code class="language-solidity">uint256 public override jumpMultiplierPerBlock
 </code></pre>
 <h3 id="kink"><a class="header" href="#kink">kink</a></h3>
 <p>The utilization point at which the jump multiplier is applied</p>
-<pre><code class="language-solidity">uint256 public override kink;
+<pre><code class="language-solidity">uint256 public override kink
 </code></pre>
 <h3 id="name"><a class="header" href="#name">name</a></h3>
 <p>A name for user-friendliness, e.g. WBTC</p>
-<pre><code class="language-solidity">string public override name;
+<pre><code class="language-solidity">string public override name
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
@@ -360,10 +360,10 @@
 </div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="jumpratemodelv4_multipliernotvalid"><a class="header" href="#jumpratemodelv4_multipliernotvalid">JumpRateModelV4_MultiplierNotValid</a></h3>
-<pre><code class="language-solidity">error JumpRateModelV4_MultiplierNotValid();
+<pre><code class="language-solidity">error JumpRateModelV4_MultiplierNotValid()
 </code></pre>
 <h3 id="jumpratemodelv4_inputnotvalid"><a class="header" href="#jumpratemodelv4_inputnotvalid">JumpRateModelV4_InputNotValid</a></h3>
-<pre><code class="language-solidity">error JumpRateModelV4_InputNotValid();
+<pre><code class="language-solidity">error JumpRateModelV4_InputNotValid()
 </code></pre>
 
                     </main>

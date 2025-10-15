@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="iacrossspokepoolv3"><a class="header" href="#iacrossspokepoolv3">IAcrossSpokePoolV3</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/interfaces/external/across/IAcrossSpokePoolV3.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/interfaces/external/across/IAcrossSpokePoolV3.sol">Git Source</a></p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="depositv3"><a class="header" href="#depositv3">depositV3</a></h3>
 <p>FUNCTIONS             *</p>
@@ -261,7 +261,7 @@
     address recipient,
     address exclusiveRelayer,
     bytes message
-);
+)
 </code></pre>
 <h3 id="requestedspeedupv3deposit"><a class="header" href="#requestedspeedupv3deposit">RequestedSpeedUpV3Deposit</a></h3>
 <pre><code class="language-solidity">event RequestedSpeedUpV3Deposit(
@@ -271,7 +271,7 @@
     address updatedRecipient,
     bytes updatedMessage,
     bytes depositorSignature
-);
+)
 </code></pre>
 <h3 id="filledv3relay"><a class="header" href="#filledv3relay">FilledV3Relay</a></h3>
 <pre><code class="language-solidity">event FilledV3Relay(
@@ -290,7 +290,7 @@
     address recipient,
     bytes message,
     V3RelayExecutionEventInfo relayExecutionInfo
-);
+)
 </code></pre>
 <h3 id="requestedv3slowfill"><a class="header" href="#requestedv3slowfill">RequestedV3SlowFill</a></h3>
 <pre><code class="language-solidity">event RequestedV3SlowFill(
@@ -306,76 +306,88 @@
     address depositor,
     address recipient,
     bytes message
-);
+)
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="disabledroute"><a class="header" href="#disabledroute">DisabledRoute</a></h3>
 <p>ERRORS                *</p>
-<pre><code class="language-solidity">error DisabledRoute();
+<pre><code class="language-solidity">error DisabledRoute()
 </code></pre>
 <h3 id="invalidquotetimestamp"><a class="header" href="#invalidquotetimestamp">InvalidQuoteTimestamp</a></h3>
-<pre><code class="language-solidity">error InvalidQuoteTimestamp();
+<pre><code class="language-solidity">error InvalidQuoteTimestamp()
 </code></pre>
 <h3 id="invalidfilldeadline"><a class="header" href="#invalidfilldeadline">InvalidFillDeadline</a></h3>
-<pre><code class="language-solidity">error InvalidFillDeadline();
+<pre><code class="language-solidity">error InvalidFillDeadline()
 </code></pre>
 <h3 id="invalidexclusiverelayer"><a class="header" href="#invalidexclusiverelayer">InvalidExclusiveRelayer</a></h3>
-<pre><code class="language-solidity">error InvalidExclusiveRelayer();
+<pre><code class="language-solidity">error InvalidExclusiveRelayer()
 </code></pre>
 <h3 id="msgvaluedoesnotmatchinputamount"><a class="header" href="#msgvaluedoesnotmatchinputamount">MsgValueDoesNotMatchInputAmount</a></h3>
-<pre><code class="language-solidity">error MsgValueDoesNotMatchInputAmount();
+<pre><code class="language-solidity">error MsgValueDoesNotMatchInputAmount()
 </code></pre>
 <h3 id="notexclusiverelayer"><a class="header" href="#notexclusiverelayer">NotExclusiveRelayer</a></h3>
-<pre><code class="language-solidity">error NotExclusiveRelayer();
+<pre><code class="language-solidity">error NotExclusiveRelayer()
 </code></pre>
 <h3 id="noslowfillsinexclusivitywindow"><a class="header" href="#noslowfillsinexclusivitywindow">NoSlowFillsInExclusivityWindow</a></h3>
-<pre><code class="language-solidity">error NoSlowFillsInExclusivityWindow();
+<pre><code class="language-solidity">error NoSlowFillsInExclusivityWindow()
 </code></pre>
 <h3 id="relayfilled"><a class="header" href="#relayfilled">RelayFilled</a></h3>
-<pre><code class="language-solidity">error RelayFilled();
+<pre><code class="language-solidity">error RelayFilled()
 </code></pre>
 <h3 id="invalidslowfillrequest"><a class="header" href="#invalidslowfillrequest">InvalidSlowFillRequest</a></h3>
-<pre><code class="language-solidity">error InvalidSlowFillRequest();
+<pre><code class="language-solidity">error InvalidSlowFillRequest()
 </code></pre>
 <h3 id="expiredfilldeadline"><a class="header" href="#expiredfilldeadline">ExpiredFillDeadline</a></h3>
-<pre><code class="language-solidity">error ExpiredFillDeadline();
+<pre><code class="language-solidity">error ExpiredFillDeadline()
 </code></pre>
 <h3 id="invalidmerkleproof"><a class="header" href="#invalidmerkleproof">InvalidMerkleProof</a></h3>
-<pre><code class="language-solidity">error InvalidMerkleProof();
+<pre><code class="language-solidity">error InvalidMerkleProof()
 </code></pre>
 <h3 id="invalidchainid"><a class="header" href="#invalidchainid">InvalidChainId</a></h3>
-<pre><code class="language-solidity">error InvalidChainId();
+<pre><code class="language-solidity">error InvalidChainId()
 </code></pre>
 <h3 id="invalidmerkleleaf"><a class="header" href="#invalidmerkleleaf">InvalidMerkleLeaf</a></h3>
-<pre><code class="language-solidity">error InvalidMerkleLeaf();
+<pre><code class="language-solidity">error InvalidMerkleLeaf()
 </code></pre>
 <h3 id="claimedmerkleleaf"><a class="header" href="#claimedmerkleleaf">ClaimedMerkleLeaf</a></h3>
-<pre><code class="language-solidity">error ClaimedMerkleLeaf();
+<pre><code class="language-solidity">error ClaimedMerkleLeaf()
 </code></pre>
 <h3 id="invalidpayoutadjustmentpct"><a class="header" href="#invalidpayoutadjustmentpct">InvalidPayoutAdjustmentPct</a></h3>
-<pre><code class="language-solidity">error InvalidPayoutAdjustmentPct();
+<pre><code class="language-solidity">error InvalidPayoutAdjustmentPct()
 </code></pre>
 <h3 id="wrongerc7683orderid"><a class="header" href="#wrongerc7683orderid">WrongERC7683OrderId</a></h3>
-<pre><code class="language-solidity">error WrongERC7683OrderId();
+<pre><code class="language-solidity">error WrongERC7683OrderId()
 </code></pre>
 <h3 id="lowlevelcallfailed"><a class="header" href="#lowlevelcallfailed">LowLevelCallFailed</a></h3>
-<pre><code class="language-solidity">error LowLevelCallFailed(bytes data);
+<pre><code class="language-solidity">error LowLevelCallFailed(bytes data)
 </code></pre>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
 <h3 id="v3relaydata"><a class="header" href="#v3relaydata">V3RelayData</a></h3>
 <p>STRUCTS               *</p>
 <pre><code class="language-solidity">struct V3RelayData {
+    // The address that made the deposit on the origin chain.
     address depositor;
+    // The recipient address on the destination chain.
     address recipient;
+    // This is the exclusive relayer who can fill the deposit before the exclusivity deadline.
     address exclusiveRelayer;
+    // Token that is deposited on origin chain by depositor.
     address inputToken;
+    // Token that is received on destination chain by recipient.
     address outputToken;
+    // The amount of input token deposited by depositor.
     uint256 inputAmount;
+    // The amount of output token to be received by recipient.
     uint256 outputAmount;
+    // Origin chain id.
     uint256 originChainId;
+    // The id uniquely identifying this deposit on the origin chain.
     uint32 depositId;
+    // The timestamp on the destination chain after which this deposit can no longer be filled.
     uint32 fillDeadline;
+    // The timestamp on the destination chain after which any relayer can fill the deposit.
     uint32 exclusivityDeadline;
+    // Data that is forwarded to the recipient.
     bytes message;
 }
 </code></pre>
@@ -416,7 +428,11 @@
 <h3 id="filltype"><a class="header" href="#filltype">FillType</a></h3>
 <pre><code class="language-solidity">enum FillType {
     FastFill,
+    // Fast fills are normal fills that do not replace a slow fill request.
     ReplacedSlowFill,
+    // Replaced slow fills are fast fills that replace a slow fill request. This type is used by the Dataworker
+    // to know when to send excess funds from the SpokePool to the HubPool because they can no longer be used
+    // for a slow fill execution.
     SlowFill
 }
 </code></pre>

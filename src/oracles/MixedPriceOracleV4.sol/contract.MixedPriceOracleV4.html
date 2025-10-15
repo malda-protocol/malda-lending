@@ -180,34 +180,34 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="mixedpriceoraclev4"><a class="header" href="#mixedpriceoraclev4">MixedPriceOracleV4</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/oracles/MixedPriceOracleV4.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/oracles/MixedPriceOracleV4.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-<a href="/src/interfaces/IOracleOperator.sol/interface.IOracleOperator.html">IOracleOperator</a></p>
+<a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/interfaces/IOracleOperator.sol/interface.IOracleOperator.html">IOracleOperator</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="staleness_period"><a class="header" href="#staleness_period">STALENESS_PERIOD</a></h3>
-<pre><code class="language-solidity">uint256 public immutable STALENESS_PERIOD;
+<pre><code class="language-solidity">uint256 public immutable STALENESS_PERIOD
 </code></pre>
 <h3 id="configs"><a class="header" href="#configs">configs</a></h3>
-<pre><code class="language-solidity">mapping(string =&gt; PriceConfig) public configs;
+<pre><code class="language-solidity">mapping(string =&gt; PriceConfig) public configs
 </code></pre>
 <h3 id="stalenesspersymbol"><a class="header" href="#stalenesspersymbol">stalenessPerSymbol</a></h3>
-<pre><code class="language-solidity">mapping(string =&gt; uint256) public stalenessPerSymbol;
+<pre><code class="language-solidity">mapping(string =&gt; uint256) public stalenessPerSymbol
 </code></pre>
 <h3 id="deltapersymbol"><a class="header" href="#deltapersymbol">deltaPerSymbol</a></h3>
-<pre><code class="language-solidity">mapping(string =&gt; uint256) public deltaPerSymbol;
+<pre><code class="language-solidity">mapping(string =&gt; uint256) public deltaPerSymbol
 </code></pre>
 <h3 id="maxpricedelta"><a class="header" href="#maxpricedelta">maxPriceDelta</a></h3>
-<pre><code class="language-solidity">uint256 public maxPriceDelta = 1.5e3;
+<pre><code class="language-solidity">uint256 public maxPriceDelta = 1.5e3
 </code></pre>
 <h3 id="price_delta_exp"><a class="header" href="#price_delta_exp">PRICE_DELTA_EXP</a></h3>
-<pre><code class="language-solidity">uint256 public constant PRICE_DELTA_EXP = 1e5;
+<pre><code class="language-solidity">uint256 public constant PRICE_DELTA_EXP = 1e5
 </code></pre>
 <h3 id="roles"><a class="header" href="#roles">roles</a></h3>
-<pre><code class="language-solidity">IRoles public immutable roles;
+<pre><code class="language-solidity">IRoles public immutable roles
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<pre><code class="language-solidity">constructor(string[] memory symbols_, PriceConfig[] memory configs_, address roles_, uint256 stalenessPeriod_);
+<pre><code class="language-solidity">constructor(string[] memory symbols_, PriceConfig[] memory configs_, address roles_, uint256 stalenessPeriod_) ;
 </code></pre>
 <h3 id="setstaleness"><a class="header" href="#setstaleness">setStaleness</a></h3>
 <pre><code class="language-solidity">function setStaleness(string memory symbol, uint256 val) external;
@@ -247,38 +247,38 @@
 </code></pre>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="configset"><a class="header" href="#configset">ConfigSet</a></h3>
-<pre><code class="language-solidity">event ConfigSet(string symbol, PriceConfig config);
+<pre><code class="language-solidity">event ConfigSet(string symbol, PriceConfig config)
 </code></pre>
 <h3 id="stalenessupdated"><a class="header" href="#stalenessupdated">StalenessUpdated</a></h3>
-<pre><code class="language-solidity">event StalenessUpdated(string symbol, uint256 val);
+<pre><code class="language-solidity">event StalenessUpdated(string symbol, uint256 val)
 </code></pre>
 <h3 id="pricedeltaupdated"><a class="header" href="#pricedeltaupdated">PriceDeltaUpdated</a></h3>
-<pre><code class="language-solidity">event PriceDeltaUpdated(uint256 oldVal, uint256 newVal);
+<pre><code class="language-solidity">event PriceDeltaUpdated(uint256 oldVal, uint256 newVal)
 </code></pre>
 <h3 id="pricesymboldeltaupdated"><a class="header" href="#pricesymboldeltaupdated">PriceSymbolDeltaUpdated</a></h3>
-<pre><code class="language-solidity">event PriceSymbolDeltaUpdated(uint256 oldVal, uint256 newVal, string symbol);
+<pre><code class="language-solidity">event PriceSymbolDeltaUpdated(uint256 oldVal, uint256 newVal, string symbol)
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="mixedpriceoracle_unauthorized"><a class="header" href="#mixedpriceoracle_unauthorized">MixedPriceOracle_Unauthorized</a></h3>
-<pre><code class="language-solidity">error MixedPriceOracle_Unauthorized();
+<pre><code class="language-solidity">error MixedPriceOracle_Unauthorized()
 </code></pre>
 <h3 id="mixedpriceoracle_apiv3staleprice"><a class="header" href="#mixedpriceoracle_apiv3staleprice">MixedPriceOracle_ApiV3StalePrice</a></h3>
-<pre><code class="language-solidity">error MixedPriceOracle_ApiV3StalePrice();
+<pre><code class="language-solidity">error MixedPriceOracle_ApiV3StalePrice()
 </code></pre>
 <h3 id="mixedpriceoracle_eoraclestaleprice"><a class="header" href="#mixedpriceoracle_eoraclestaleprice">MixedPriceOracle_eOracleStalePrice</a></h3>
-<pre><code class="language-solidity">error MixedPriceOracle_eOracleStalePrice();
+<pre><code class="language-solidity">error MixedPriceOracle_eOracleStalePrice()
 </code></pre>
 <h3 id="mixedpriceoracle_invalidprice"><a class="header" href="#mixedpriceoracle_invalidprice">MixedPriceOracle_InvalidPrice</a></h3>
-<pre><code class="language-solidity">error MixedPriceOracle_InvalidPrice();
+<pre><code class="language-solidity">error MixedPriceOracle_InvalidPrice()
 </code></pre>
 <h3 id="mixedpriceoracle_invalidconfig"><a class="header" href="#mixedpriceoracle_invalidconfig">MixedPriceOracle_InvalidConfig</a></h3>
-<pre><code class="language-solidity">error MixedPriceOracle_InvalidConfig();
+<pre><code class="language-solidity">error MixedPriceOracle_InvalidConfig()
 </code></pre>
 <h3 id="mixedpriceoracle_deltatoohigh"><a class="header" href="#mixedpriceoracle_deltatoohigh">MixedPriceOracle_DeltaTooHigh</a></h3>
-<pre><code class="language-solidity">error MixedPriceOracle_DeltaTooHigh();
+<pre><code class="language-solidity">error MixedPriceOracle_DeltaTooHigh()
 </code></pre>
 <h3 id="mixedpriceoracle_missingfeed"><a class="header" href="#mixedpriceoracle_missingfeed">MixedPriceOracle_MissingFeed</a></h3>
-<pre><code class="language-solidity">error MixedPriceOracle_MissingFeed();
+<pre><code class="language-solidity">error MixedPriceOracle_MissingFeed()
 </code></pre>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
 <h3 id="priceconfig"><a class="header" href="#priceconfig">PriceConfig</a></h3>

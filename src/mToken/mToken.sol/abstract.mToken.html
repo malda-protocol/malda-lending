@@ -180,12 +180,12 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="mtoken"><a class="header" href="#mtoken">mToken</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/mToken/mToken.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/mToken/mToken.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-<a href="/src/mToken/mTokenConfiguration.sol/abstract.mTokenConfiguration.html">mTokenConfiguration</a>, ReentrancyGuard</p>
+<a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/mToken/mTokenConfiguration.sol/abstract.mTokenConfiguration.html">mTokenConfiguration</a>, ReentrancyGuard</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<pre><code class="language-solidity">constructor();
+<pre><code class="language-solidity">constructor() ;
 </code></pre>
 <h3 id="_initializemtoken"><a class="header" href="#_initializemtoken">_initializeMToken</a></h3>
 <p>Initialize the money market</p>
@@ -392,8 +392,8 @@
 </div>
 <h3 id="seize"><a class="header" href="#seize">seize</a></h3>
 <p>Transfers collateral tokens (this market) to the liquidator.</p>
-<p><em>Will fail unless called by another mToken during the process of liquidation.
-Its absolutely critical to use msg.sender as the borrowed mToken and not a parameter.</em></p>
+<p>Will fail unless called by another mToken during the process of liquidation.
+Its absolutely critical to use msg.sender as the borrowed mToken and not a parameter.</p>
 <pre><code class="language-solidity">function seize(address liquidator, address borrower, uint256 seizeTokens) external override nonReentrant;
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -428,7 +428,7 @@ Its absolutely critical to use msg.sender as the borrowed mToken and not a param
 </div>
 <h3 id="_mint"><a class="header" href="#_mint">_mint</a></h3>
 <p>Sender supplies assets into the market and receives mTokens in exchange</p>
-<p><em>Accrues interest whether or not the operation succeeds, unless reverted</em></p>
+<p>Accrues interest whether or not the operation succeeds, unless reverted</p>
 <pre><code class="language-solidity">function _mint(address user, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer)
     internal
     nonReentrant;
@@ -444,7 +444,7 @@ Its absolutely critical to use msg.sender as the borrowed mToken and not a param
 </div>
 <h3 id="_redeem"><a class="header" href="#_redeem">_redeem</a></h3>
 <p>Sender redeems mTokens in exchange for the underlying asset</p>
-<p><em>Accrues interest whether or not the operation succeeds, unless reverted</em></p>
+<p>Accrues interest whether or not the operation succeeds, unless reverted</p>
 <pre><code class="language-solidity">function _redeem(address user, uint256 redeemTokens, bool doTransfer)
     internal
     nonReentrant
@@ -459,7 +459,7 @@ Its absolutely critical to use msg.sender as the borrowed mToken and not a param
 </div>
 <h3 id="_redeemunderlying"><a class="header" href="#_redeemunderlying">_redeemUnderlying</a></h3>
 <p>Sender redeems mTokens in exchange for a specified amount of underlying asset</p>
-<p><em>Accrues interest whether or not the operation succeeds, unless reverted</em></p>
+<p>Accrues interest whether or not the operation succeeds, unless reverted</p>
 <pre><code class="language-solidity">function _redeemUnderlying(address user, uint256 redeemAmount, bool doTransfer) internal nonReentrant;
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -503,7 +503,10 @@ Its absolutely critical to use msg.sender as the borrowed mToken and not a param
 </div>
 <h3 id="_repaybehalf"><a class="header" href="#_repaybehalf">_repayBehalf</a></h3>
 <p>Sender repays a borrow belonging to borrower</p>
-<pre><code class="language-solidity">function _repayBehalf(address borrower, uint256 repayAmount, bool doTransfer) internal nonReentrant returns (uint256);
+<pre><code class="language-solidity">function _repayBehalf(address borrower, uint256 repayAmount, bool doTransfer)
+    internal
+    nonReentrant
+    returns (uint256);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -534,8 +537,8 @@ The collateral seized is transferred to the liquidator.</p>
 </div>
 <h3 id="_seize"><a class="header" href="#_seize">_seize</a></h3>
 <p>Transfers collateral tokens (this market) to the liquidator.</p>
-<p><em>Called only during an in-kind liquidation, or by liquidateBorrow during the liquidation of another mToken.
-Its absolutely critical to use msg.sender as the seizer mToken and not a parameter.</em></p>
+<p>Called only during an in-kind liquidation, or by liquidateBorrow during the liquidation of another mToken.
+Its absolutely critical to use msg.sender as the seizer mToken and not a parameter.</p>
 <pre><code class="language-solidity">function _seize(address seizerToken, address liquidator, address borrower, uint256 seizeTokens) internal;
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -595,7 +598,8 @@ The collateral seized is transferred to the liquidator.</p>
 </div>
 <h3 id="__borrow"><a class="header" href="#__borrow">__borrow</a></h3>
 <p>Users borrow assets from the protocol to their own address</p>
-<pre><code class="language-solidity">function __borrow(address payable borrower, address payable receiver, uint256 borrowAmount, bool doTransfer) private;
+<pre><code class="language-solidity">function __borrow(address payable borrower, address payable receiver, uint256 borrowAmount, bool doTransfer)
+    private;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -612,8 +616,9 @@ The collateral seized is transferred to the liquidator.</p>
 </code></pre>
 <h3 id="__mint"><a class="header" href="#__mint">__mint</a></h3>
 <p>User supplies assets into the market and receives mTokens in exchange</p>
-<p><em>Assumes interest has already been accrued up to the current block</em></p>
-<pre><code class="language-solidity">function __mint(address minter, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer) private;
+<p>Assumes interest has already been accrued up to the current block</p>
+<pre><code class="language-solidity">function __mint(address minter, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer)
+    private;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -626,7 +631,7 @@ The collateral seized is transferred to the liquidator.</p>
 </div>
 <h3 id="_transfertokens"><a class="header" href="#_transfertokens">_transferTokens</a></h3>
 <p>Transfer <code>tokens</code> tokens from <code>src</code> to <code>dst</code> by <code>spender</code></p>
-<p><em>Called by both <code>transfer</code> and <code>transferFrom</code> internally</em></p>
+<p>Called by both <code>transfer</code> and <code>transferFrom</code> internally</p>
 <pre><code class="language-solidity">function _transferTokens(address spender, address src, address dst, uint256 tokens) private;
 </code></pre>
 <p><strong>Parameters</strong></p>

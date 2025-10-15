@@ -180,54 +180,54 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="roles"><a class="header" href="#roles">Roles</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/Roles.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/Roles.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-Ownable, <a href="/src/interfaces/IRoles.sol/interface.IRoles.html">IRoles</a></p>
+Ownable, <a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/interfaces/IRoles.sol/interface.IRoles.html">IRoles</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="_roles"><a class="header" href="#_roles">_roles</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; mapping(bytes32 =&gt; bool)) private _roles;
+<pre><code class="language-solidity">mapping(address =&gt; mapping(bytes32 =&gt; bool)) private _roles
 </code></pre>
 <h3 id="rebalancer"><a class="header" href="#rebalancer">REBALANCER</a></h3>
-<pre><code class="language-solidity">bytes32 public constant REBALANCER = keccak256(&quot;REBALANCER&quot;);
+<pre><code class="language-solidity">bytes32 public constant REBALANCER = keccak256(&quot;REBALANCER&quot;)
 </code></pre>
 <h3 id="pause_manager"><a class="header" href="#pause_manager">PAUSE_MANAGER</a></h3>
-<pre><code class="language-solidity">bytes32 public constant PAUSE_MANAGER = keccak256(&quot;PAUSE_MANAGER&quot;);
+<pre><code class="language-solidity">bytes32 public constant PAUSE_MANAGER = keccak256(&quot;PAUSE_MANAGER&quot;)
 </code></pre>
 <h3 id="rebalancer_eoa"><a class="header" href="#rebalancer_eoa">REBALANCER_EOA</a></h3>
-<pre><code class="language-solidity">bytes32 public constant REBALANCER_EOA = keccak256(&quot;REBALANCER_EOA&quot;);
+<pre><code class="language-solidity">bytes32 public constant REBALANCER_EOA = keccak256(&quot;REBALANCER_EOA&quot;)
 </code></pre>
 <h3 id="guardian_pause"><a class="header" href="#guardian_pause">GUARDIAN_PAUSE</a></h3>
-<pre><code class="language-solidity">bytes32 public constant GUARDIAN_PAUSE = keccak256(&quot;GUARDIAN_PAUSE&quot;);
+<pre><code class="language-solidity">bytes32 public constant GUARDIAN_PAUSE = keccak256(&quot;GUARDIAN_PAUSE&quot;)
 </code></pre>
 <h3 id="chains_manager"><a class="header" href="#chains_manager">CHAINS_MANAGER</a></h3>
-<pre><code class="language-solidity">bytes32 public constant CHAINS_MANAGER = keccak256(&quot;CHAINS_MANAGER&quot;);
+<pre><code class="language-solidity">bytes32 public constant CHAINS_MANAGER = keccak256(&quot;CHAINS_MANAGER&quot;)
 </code></pre>
 <h3 id="proof_forwarder"><a class="header" href="#proof_forwarder">PROOF_FORWARDER</a></h3>
-<pre><code class="language-solidity">bytes32 public constant PROOF_FORWARDER = keccak256(&quot;PROOF_FORWARDER&quot;);
+<pre><code class="language-solidity">bytes32 public constant PROOF_FORWARDER = keccak256(&quot;PROOF_FORWARDER&quot;)
 </code></pre>
 <h3 id="proof_batch_forwarder"><a class="header" href="#proof_batch_forwarder">PROOF_BATCH_FORWARDER</a></h3>
-<pre><code class="language-solidity">bytes32 public constant PROOF_BATCH_FORWARDER = keccak256(&quot;PROOF_BATCH_FORWARDER&quot;);
+<pre><code class="language-solidity">bytes32 public constant PROOF_BATCH_FORWARDER = keccak256(&quot;PROOF_BATCH_FORWARDER&quot;)
 </code></pre>
 <h3 id="sequencer"><a class="header" href="#sequencer">SEQUENCER</a></h3>
-<pre><code class="language-solidity">bytes32 public constant SEQUENCER = keccak256(&quot;SEQUENCER&quot;);
+<pre><code class="language-solidity">bytes32 public constant SEQUENCER = keccak256(&quot;SEQUENCER&quot;)
 </code></pre>
 <h3 id="guardian_bridge"><a class="header" href="#guardian_bridge">GUARDIAN_BRIDGE</a></h3>
-<pre><code class="language-solidity">bytes32 public constant GUARDIAN_BRIDGE = keccak256(&quot;GUARDIAN_BRIDGE&quot;);
+<pre><code class="language-solidity">bytes32 public constant GUARDIAN_BRIDGE = keccak256(&quot;GUARDIAN_BRIDGE&quot;)
 </code></pre>
 <h3 id="guardian_oracle"><a class="header" href="#guardian_oracle">GUARDIAN_ORACLE</a></h3>
-<pre><code class="language-solidity">bytes32 public constant GUARDIAN_ORACLE = keccak256(&quot;GUARDIAN_ORACLE&quot;);
+<pre><code class="language-solidity">bytes32 public constant GUARDIAN_ORACLE = keccak256(&quot;GUARDIAN_ORACLE&quot;)
 </code></pre>
 <h3 id="guardian_reserve"><a class="header" href="#guardian_reserve">GUARDIAN_RESERVE</a></h3>
-<pre><code class="language-solidity">bytes32 public constant GUARDIAN_RESERVE = keccak256(&quot;GUARDIAN_RESERVE&quot;);
+<pre><code class="language-solidity">bytes32 public constant GUARDIAN_RESERVE = keccak256(&quot;GUARDIAN_RESERVE&quot;)
 </code></pre>
 <h3 id="guardian_borrow_cap"><a class="header" href="#guardian_borrow_cap">GUARDIAN_BORROW_CAP</a></h3>
-<pre><code class="language-solidity">bytes32 public constant GUARDIAN_BORROW_CAP = keccak256(&quot;GUARDIAN_BORROW_CAP&quot;);
+<pre><code class="language-solidity">bytes32 public constant GUARDIAN_BORROW_CAP = keccak256(&quot;GUARDIAN_BORROW_CAP&quot;)
 </code></pre>
 <h3 id="guardian_supply_cap"><a class="header" href="#guardian_supply_cap">GUARDIAN_SUPPLY_CAP</a></h3>
-<pre><code class="language-solidity">bytes32 public constant GUARDIAN_SUPPLY_CAP = keccak256(&quot;GUARDIAN_SUPPLY_CAP&quot;);
+<pre><code class="language-solidity">bytes32 public constant GUARDIAN_SUPPLY_CAP = keccak256(&quot;GUARDIAN_SUPPLY_CAP&quot;)
 </code></pre>
 <h3 id="guardian_blacklist"><a class="header" href="#guardian_blacklist">GUARDIAN_BLACKLIST</a></h3>
-<pre><code class="language-solidity">bytes32 public constant GUARDIAN_BLACKLIST = keccak256(&quot;GUARDIAN_BLACKLIST&quot;);
+<pre><code class="language-solidity">bytes32 public constant GUARDIAN_BLACKLIST = keccak256(&quot;GUARDIAN_BLACKLIST&quot;)
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
@@ -250,7 +250,7 @@ Ownable, <a href="/src/interfaces/IRoles.sol/interface.IRoles.html">IRoles</a></
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="allowed"><a class="header" href="#allowed">Allowed</a></h3>
 <p>emitted when role is set</p>
-<pre><code class="language-solidity">event Allowed(address indexed _contract, bytes32 indexed _role, bool _allowed);
+<pre><code class="language-solidity">event Allowed(address indexed _contract, bytes32 indexed _role, bool _allowed)
 </code></pre>
 
                     </main>

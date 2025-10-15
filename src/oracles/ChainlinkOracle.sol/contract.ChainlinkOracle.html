@@ -180,22 +180,22 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="chainlinkoracle"><a class="header" href="#chainlinkoracle">ChainlinkOracle</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/oracles/ChainlinkOracle.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/oracles/ChainlinkOracle.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-<a href="/src/interfaces/IOracleOperator.sol/interface.IOracleOperator.html">IOracleOperator</a></p>
+<a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/interfaces/IOracleOperator.sol/interface.IOracleOperator.html">IOracleOperator</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="pricefeeds"><a class="header" href="#pricefeeds">priceFeeds</a></h3>
-<pre><code class="language-solidity">mapping(string =&gt; IAggregatorV3) public priceFeeds;
+<pre><code class="language-solidity">mapping(string =&gt; IAggregatorV3) public priceFeeds
 </code></pre>
 <h3 id="baseunits"><a class="header" href="#baseunits">baseUnits</a></h3>
-<pre><code class="language-solidity">mapping(string =&gt; uint256) public baseUnits;
+<pre><code class="language-solidity">mapping(string =&gt; uint256) public baseUnits
 </code></pre>
 <h3 id="decimals"><a class="header" href="#decimals">DECIMALS</a></h3>
-<pre><code class="language-solidity">uint8 public constant DECIMALS = 18;
+<pre><code class="language-solidity">uint8 public constant DECIMALS = 18
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<pre><code class="language-solidity">constructor(string[] memory symbols_, IAggregatorV3[] memory feeds_, uint256[] memory baseUnits_);
+<pre><code class="language-solidity">constructor(string[] memory symbols_, IAggregatorV3[] memory feeds_, uint256[] memory baseUnits_) ;
 </code></pre>
 <h3 id="getprice"><a class="header" href="#getprice">getPrice</a></h3>
 <p>Get the price of a mToken asset</p>
@@ -230,10 +230,10 @@
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="chainlinkoracle_nopricefeed"><a class="header" href="#chainlinkoracle_nopricefeed">ChainlinkOracle_NoPriceFeed</a></h3>
-<pre><code class="language-solidity">error ChainlinkOracle_NoPriceFeed();
+<pre><code class="language-solidity">error ChainlinkOracle_NoPriceFeed()
 </code></pre>
 <h3 id="chainlinkoracle_zeroprice"><a class="header" href="#chainlinkoracle_zeroprice">ChainlinkOracle_ZeroPrice</a></h3>
-<pre><code class="language-solidity">error ChainlinkOracle_ZeroPrice();
+<pre><code class="language-solidity">error ChainlinkOracle_ZeroPrice()
 </code></pre>
 
                     </main>

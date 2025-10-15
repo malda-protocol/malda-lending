@@ -180,41 +180,41 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="rewarddistributor"><a class="header" href="#rewarddistributor">RewardDistributor</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/1b5c94cf9a73c9078108ca3852c5775388fe28a3/src/rewards/RewardDistributor.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/a2f2f4eff1134b4d02021da278ec0c7a799833b0/src/rewards/RewardDistributor.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-<a href="/src/interfaces/IRewardDistributor.sol/interface.IRewardDistributor.html">IRewardDistributor</a>, <a href="/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a>, Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable</p>
+<a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/interfaces/IRewardDistributor.sol/interface.IRewardDistributor.html">IRewardDistributor</a>, <a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a>, Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="reward_initial_index"><a class="header" href="#reward_initial_index">REWARD_INITIAL_INDEX</a></h3>
-<pre><code class="language-solidity">uint224 public constant REWARD_INITIAL_INDEX = 1e36;
+<pre><code class="language-solidity">uint224 public constant REWARD_INITIAL_INDEX = 1e36
 </code></pre>
 <h3 id="operator"><a class="header" href="#operator">operator</a></h3>
 <p>The operator that rewards are distributed to</p>
-<pre><code class="language-solidity">address public operator;
+<pre><code class="language-solidity">address public operator
 </code></pre>
 <h3 id="rewardmarketstate"><a class="header" href="#rewardmarketstate">rewardMarketState</a></h3>
 <p>The Reward state for each reward token for each market</p>
-<pre><code class="language-solidity">mapping(address =&gt; mapping(address =&gt; IRewardDistributorData.RewardMarketState)) public rewardMarketState;
+<pre><code class="language-solidity">mapping(address =&gt; mapping(address =&gt; IRewardDistributorData.RewardMarketState)) public rewardMarketState
 </code></pre>
 <h3 id="rewardaccountstate"><a class="header" href="#rewardaccountstate">rewardAccountState</a></h3>
 <p>The Reward state for each reward token for each account</p>
-<pre><code class="language-solidity">mapping(address =&gt; mapping(address =&gt; IRewardDistributorData.RewardAccountState)) public rewardAccountState;
+<pre><code class="language-solidity">mapping(address =&gt; mapping(address =&gt; IRewardDistributorData.RewardAccountState)) public rewardAccountState
 </code></pre>
 <h3 id="rewardtokens"><a class="header" href="#rewardtokens">rewardTokens</a></h3>
 <p>Added reward tokens</p>
-<pre><code class="language-solidity">address[] public rewardTokens;
+<pre><code class="language-solidity">address[] public rewardTokens
 </code></pre>
 <h3 id="isrewardtoken"><a class="header" href="#isrewardtoken">isRewardToken</a></h3>
 <p>Flag to check if reward token added before</p>
-<pre><code class="language-solidity">mapping(address =&gt; bool) public isRewardToken;
+<pre><code class="language-solidity">mapping(address =&gt; bool) public isRewardToken
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="onlyoperator"><a class="header" href="#onlyoperator">onlyOperator</a></h3>
-<pre><code class="language-solidity">modifier onlyOperator();
+<pre><code class="language-solidity">modifier onlyOperator() ;
 </code></pre>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
 <p><strong>Note:</strong>
 oz-upgrades-unsafe-allow: constructor</p>
-<pre><code class="language-solidity">constructor();
+<pre><code class="language-solidity">constructor() ;
 </code></pre>
 <h3 id="claim"><a class="header" href="#claim">claim</a></h3>
 <pre><code class="language-solidity">function claim(address[] memory holders) public override nonReentrant;
@@ -286,25 +286,25 @@ oz-upgrades-unsafe-allow: constructor</p>
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="rewarddistributor_onlyoperator"><a class="header" href="#rewarddistributor_onlyoperator">RewardDistributor_OnlyOperator</a></h3>
-<pre><code class="language-solidity">error RewardDistributor_OnlyOperator();
+<pre><code class="language-solidity">error RewardDistributor_OnlyOperator()
 </code></pre>
 <h3 id="rewarddistributor_transferfailed"><a class="header" href="#rewarddistributor_transferfailed">RewardDistributor_TransferFailed</a></h3>
-<pre><code class="language-solidity">error RewardDistributor_TransferFailed();
+<pre><code class="language-solidity">error RewardDistributor_TransferFailed()
 </code></pre>
 <h3 id="rewarddistributor_rewardnotvalid"><a class="header" href="#rewarddistributor_rewardnotvalid">RewardDistributor_RewardNotValid</a></h3>
-<pre><code class="language-solidity">error RewardDistributor_RewardNotValid();
+<pre><code class="language-solidity">error RewardDistributor_RewardNotValid()
 </code></pre>
 <h3 id="rewarddistributor_addressnotvalid"><a class="header" href="#rewarddistributor_addressnotvalid">RewardDistributor_AddressNotValid</a></h3>
-<pre><code class="language-solidity">error RewardDistributor_AddressNotValid();
+<pre><code class="language-solidity">error RewardDistributor_AddressNotValid()
 </code></pre>
 <h3 id="rewarddistributor_addressalreadyregistered"><a class="header" href="#rewarddistributor_addressalreadyregistered">RewardDistributor_AddressAlreadyRegistered</a></h3>
-<pre><code class="language-solidity">error RewardDistributor_AddressAlreadyRegistered();
+<pre><code class="language-solidity">error RewardDistributor_AddressAlreadyRegistered()
 </code></pre>
 <h3 id="rewarddistributor_supplyspeedarraylengthmismatch"><a class="header" href="#rewarddistributor_supplyspeedarraylengthmismatch">RewardDistributor_SupplySpeedArrayLengthMismatch</a></h3>
-<pre><code class="language-solidity">error RewardDistributor_SupplySpeedArrayLengthMismatch();
+<pre><code class="language-solidity">error RewardDistributor_SupplySpeedArrayLengthMismatch()
 </code></pre>
 <h3 id="rewarddistributor_borrowspeedarraylengthmismatch"><a class="header" href="#rewarddistributor_borrowspeedarraylengthmismatch">RewardDistributor_BorrowSpeedArrayLengthMismatch</a></h3>
-<pre><code class="language-solidity">error RewardDistributor_BorrowSpeedArrayLengthMismatch();
+<pre><code class="language-solidity">error RewardDistributor_BorrowSpeedArrayLengthMismatch()
 </code></pre>
 
                     </main>
