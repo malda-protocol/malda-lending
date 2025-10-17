@@ -1,6 +1,5 @@
 # Proof of Concept Suite — Utilization Overflow & Interest Model Fix
- 
-**Context:** Addressed the *utilization overflow → borrow-rate explosion → undercollateralization* class of issues observed during Sherlock finding #66–#76.  
+
 **Target Contract:** `mToken (18 decimals)`  
 **New Behavior Validated:** Capped utilization at `1e18`, improved stability of borrow rate math, protection against first-borrower insolvency and thin-liquidity exploits.
 
