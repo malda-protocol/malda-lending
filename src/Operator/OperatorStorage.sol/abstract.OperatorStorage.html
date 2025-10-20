@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="operatorstorage"><a class="header" href="#operatorstorage">OperatorStorage</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/7a272edf8d2786ab85ab5f841fbe16a162c6b3d8/src/Operator/OperatorStorage.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/b72b7e181d3fd7d5878281f222bc3d45b618de88/src/Operator/OperatorStorage.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/interfaces/IOperator.sol/interface.IOperator.html">IOperator</a>, <a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/interfaces/IOperator.sol/interface.IOperatorDefender.html">IOperatorDefender</a>, <a href="/home/runner/work/malda-lending/malda-lending/docs/src/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
@@ -270,156 +270,156 @@
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="userwhitelisted-1"><a class="header" href="#userwhitelisted-1">UserWhitelisted</a></h3>
 <p>Emitted when user whitelist status is changed</p>
-<pre><code class="language-solidity">event UserWhitelisted(address indexed user, bool state)
+<pre><code class="language-solidity">event UserWhitelisted(address indexed user, bool state);
 </code></pre>
 <h3 id="whitelistenabled-1"><a class="header" href="#whitelistenabled-1">WhitelistEnabled</a></h3>
-<pre><code class="language-solidity">event WhitelistEnabled()
+<pre><code class="language-solidity">event WhitelistEnabled();
 </code></pre>
 <h3 id="whitelistdisabled"><a class="header" href="#whitelistdisabled">WhitelistDisabled</a></h3>
-<pre><code class="language-solidity">event WhitelistDisabled()
+<pre><code class="language-solidity">event WhitelistDisabled();
 </code></pre>
 <h3 id="actionpaused"><a class="header" href="#actionpaused">ActionPaused</a></h3>
 <p>Emitted when pause status is changed</p>
-<pre><code class="language-solidity">event ActionPaused(address indexed mToken, ImTokenOperationTypes.OperationType _type, bool state)
+<pre><code class="language-solidity">event ActionPaused(address indexed mToken, ImTokenOperationTypes.OperationType _type, bool state);
 </code></pre>
 <h3 id="newborrowcap"><a class="header" href="#newborrowcap">NewBorrowCap</a></h3>
 <p>Emitted when borrow cap for a mToken is changed</p>
-<pre><code class="language-solidity">event NewBorrowCap(address indexed mToken, uint256 newBorrowCap)
+<pre><code class="language-solidity">event NewBorrowCap(address indexed mToken, uint256 newBorrowCap);
 </code></pre>
 <h3 id="newsupplycap"><a class="header" href="#newsupplycap">NewSupplyCap</a></h3>
 <p>Emitted when supply cap for a mToken is changed</p>
-<pre><code class="language-solidity">event NewSupplyCap(address indexed mToken, uint256 newBorrowCap)
+<pre><code class="language-solidity">event NewSupplyCap(address indexed mToken, uint256 newBorrowCap);
 </code></pre>
 <h3 id="marketlisted"><a class="header" href="#marketlisted">MarketListed</a></h3>
 <p>Emitted when an admin supports a market</p>
-<pre><code class="language-solidity">event MarketListed(address mToken)
+<pre><code class="language-solidity">event MarketListed(address mToken);
 </code></pre>
 <h3 id="marketentered"><a class="header" href="#marketentered">MarketEntered</a></h3>
 <p>Emitted when an account enters a market</p>
-<pre><code class="language-solidity">event MarketEntered(address indexed mToken, address indexed account)
+<pre><code class="language-solidity">event MarketEntered(address indexed mToken, address indexed account);
 </code></pre>
 <h3 id="marketexited"><a class="header" href="#marketexited">MarketExited</a></h3>
 <p>Emitted when an account exits a market</p>
-<pre><code class="language-solidity">event MarketExited(address indexed mToken, address indexed account)
+<pre><code class="language-solidity">event MarketExited(address indexed mToken, address indexed account);
 </code></pre>
 <h3 id="newclosefactor"><a class="header" href="#newclosefactor">NewCloseFactor</a></h3>
 <p>Emitted Emitted when close factor is changed by admin</p>
-<pre><code class="language-solidity">event NewCloseFactor(uint256 oldCloseFactorMantissa, uint256 newCloseFactorMantissa)
+<pre><code class="language-solidity">event NewCloseFactor(uint256 oldCloseFactorMantissa, uint256 newCloseFactorMantissa);
 </code></pre>
 <h3 id="newcollateralfactor"><a class="header" href="#newcollateralfactor">NewCollateralFactor</a></h3>
 <p>Emitted when a collateral factor is changed by admin</p>
 <pre><code class="language-solidity">event NewCollateralFactor(
     address indexed mToken, uint256 oldCollateralFactorMantissa, uint256 newCollateralFactorMantissa
-)
+);
 </code></pre>
 <h3 id="newliquidationincentive"><a class="header" href="#newliquidationincentive">NewLiquidationIncentive</a></h3>
 <p>Emitted when liquidation incentive is changed by admin</p>
 <pre><code class="language-solidity">event NewLiquidationIncentive(
     address market, uint256 oldLiquidationIncentiveMantissa, uint256 newLiquidationIncentiveMantissa
-)
+);
 </code></pre>
 <h3 id="newpriceoracle"><a class="header" href="#newpriceoracle">NewPriceOracle</a></h3>
 <p>Emitted when price oracle is changed</p>
-<pre><code class="language-solidity">event NewPriceOracle(address indexed oldPriceOracle, address indexed newPriceOracle)
+<pre><code class="language-solidity">event NewPriceOracle(address indexed oldPriceOracle, address indexed newPriceOracle);
 </code></pre>
 <h3 id="newrolesoperator"><a class="header" href="#newrolesoperator">NewRolesOperator</a></h3>
 <p>Event emitted when rolesOperator is changed</p>
-<pre><code class="language-solidity">event NewRolesOperator(address indexed oldRoles, address indexed newRoles)
+<pre><code class="language-solidity">event NewRolesOperator(address indexed oldRoles, address indexed newRoles);
 </code></pre>
 <h3 id="outflowlimitupdated"><a class="header" href="#outflowlimitupdated">OutflowLimitUpdated</a></h3>
 <p>Event emitted when outflow limit is updated</p>
-<pre><code class="language-solidity">event OutflowLimitUpdated(address indexed sender, uint256 oldLimit, uint256 newLimit)
+<pre><code class="language-solidity">event OutflowLimitUpdated(address indexed sender, uint256 oldLimit, uint256 newLimit);
 </code></pre>
 <h3 id="outflowtimewindowupdated"><a class="header" href="#outflowtimewindowupdated">OutflowTimeWindowUpdated</a></h3>
 <p>Event emitted when outflow reset time window is updated</p>
-<pre><code class="language-solidity">event OutflowTimeWindowUpdated(uint256 oldWindow, uint256 newWindow)
+<pre><code class="language-solidity">event OutflowTimeWindowUpdated(uint256 oldWindow, uint256 newWindow);
 </code></pre>
 <h3 id="outflowvolumereset"><a class="header" href="#outflowvolumereset">OutflowVolumeReset</a></h3>
 <p>Event emitted when outflow volume has been reset</p>
-<pre><code class="language-solidity">event OutflowVolumeReset()
+<pre><code class="language-solidity">event OutflowVolumeReset();
 </code></pre>
 <h3 id="minborrowsizeset"><a class="header" href="#minborrowsizeset">MinBorrowSizeSet</a></h3>
 <p>Event emitted when min borrow size set for markets</p>
-<pre><code class="language-solidity">event MinBorrowSizeSet(address[] markets, uint256[] amounts)
+<pre><code class="language-solidity">event MinBorrowSizeSet(address[] markets, uint256[] amounts);
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="operator_paused"><a class="header" href="#operator_paused">Operator_Paused</a></h3>
-<pre><code class="language-solidity">error Operator_Paused()
+<pre><code class="language-solidity">error Operator_Paused();
 </code></pre>
 <h3 id="operator_mismatch"><a class="header" href="#operator_mismatch">Operator_Mismatch</a></h3>
-<pre><code class="language-solidity">error Operator_Mismatch()
+<pre><code class="language-solidity">error Operator_Mismatch();
 </code></pre>
 <h3 id="operator_onlyadmin"><a class="header" href="#operator_onlyadmin">Operator_OnlyAdmin</a></h3>
-<pre><code class="language-solidity">error Operator_OnlyAdmin()
+<pre><code class="language-solidity">error Operator_OnlyAdmin();
 </code></pre>
 <h3 id="operator_emptyprice"><a class="header" href="#operator_emptyprice">Operator_EmptyPrice</a></h3>
-<pre><code class="language-solidity">error Operator_EmptyPrice()
+<pre><code class="language-solidity">error Operator_EmptyPrice();
 </code></pre>
 <h3 id="operator_wrongmarket"><a class="header" href="#operator_wrongmarket">Operator_WrongMarket</a></h3>
-<pre><code class="language-solidity">error Operator_WrongMarket()
+<pre><code class="language-solidity">error Operator_WrongMarket();
 </code></pre>
 <h3 id="operator_invalidinput"><a class="header" href="#operator_invalidinput">Operator_InvalidInput</a></h3>
-<pre><code class="language-solidity">error Operator_InvalidInput()
+<pre><code class="language-solidity">error Operator_InvalidInput();
 </code></pre>
 <h3 id="operator_assetnotfound"><a class="header" href="#operator_assetnotfound">Operator_AssetNotFound</a></h3>
-<pre><code class="language-solidity">error Operator_AssetNotFound()
+<pre><code class="language-solidity">error Operator_AssetNotFound();
 </code></pre>
 <h3 id="operator_repayingtoomuch"><a class="header" href="#operator_repayingtoomuch">Operator_RepayingTooMuch</a></h3>
-<pre><code class="language-solidity">error Operator_RepayingTooMuch()
+<pre><code class="language-solidity">error Operator_RepayingTooMuch();
 </code></pre>
 <h3 id="operator_onlyadminorrole"><a class="header" href="#operator_onlyadminorrole">Operator_OnlyAdminOrRole</a></h3>
-<pre><code class="language-solidity">error Operator_OnlyAdminOrRole()
+<pre><code class="language-solidity">error Operator_OnlyAdminOrRole();
 </code></pre>
 <h3 id="operator_marketnotlisted"><a class="header" href="#operator_marketnotlisted">Operator_MarketNotListed</a></h3>
-<pre><code class="language-solidity">error Operator_MarketNotListed()
+<pre><code class="language-solidity">error Operator_MarketNotListed();
 </code></pre>
 <h3 id="operator_userblacklisted"><a class="header" href="#operator_userblacklisted">Operator_UserBlacklisted</a></h3>
-<pre><code class="language-solidity">error Operator_UserBlacklisted()
+<pre><code class="language-solidity">error Operator_UserBlacklisted();
 </code></pre>
 <h3 id="operator_pricefetchfailed"><a class="header" href="#operator_pricefetchfailed">Operator_PriceFetchFailed</a></h3>
-<pre><code class="language-solidity">error Operator_PriceFetchFailed()
+<pre><code class="language-solidity">error Operator_PriceFetchFailed();
 </code></pre>
 <h3 id="operator_sendermustbetoken"><a class="header" href="#operator_sendermustbetoken">Operator_SenderMustBeToken</a></h3>
-<pre><code class="language-solidity">error Operator_SenderMustBeToken()
+<pre><code class="language-solidity">error Operator_SenderMustBeToken();
 </code></pre>
 <h3 id="operator_usernotwhitelisted"><a class="header" href="#operator_usernotwhitelisted">Operator_UserNotWhitelisted</a></h3>
-<pre><code class="language-solidity">error Operator_UserNotWhitelisted()
+<pre><code class="language-solidity">error Operator_UserNotWhitelisted();
 </code></pre>
 <h3 id="operator_marketsupplyreached"><a class="header" href="#operator_marketsupplyreached">Operator_MarketSupplyReached</a></h3>
-<pre><code class="language-solidity">error Operator_MarketSupplyReached()
+<pre><code class="language-solidity">error Operator_MarketSupplyReached();
 </code></pre>
 <h3 id="operator_repayamountnotvalid"><a class="header" href="#operator_repayamountnotvalid">Operator_RepayAmountNotValid</a></h3>
-<pre><code class="language-solidity">error Operator_RepayAmountNotValid()
+<pre><code class="language-solidity">error Operator_RepayAmountNotValid();
 </code></pre>
 <h3 id="operator_marketalreadylisted"><a class="header" href="#operator_marketalreadylisted">Operator_MarketAlreadyListed</a></h3>
-<pre><code class="language-solidity">error Operator_MarketAlreadyListed()
+<pre><code class="language-solidity">error Operator_MarketAlreadyListed();
 </code></pre>
 <h3 id="operator_outflowvolumereached"><a class="header" href="#operator_outflowvolumereached">Operator_OutflowVolumeReached</a></h3>
-<pre><code class="language-solidity">error Operator_OutflowVolumeReached()
+<pre><code class="language-solidity">error Operator_OutflowVolumeReached();
 </code></pre>
 <h3 id="operator_invalidrolesoperator"><a class="header" href="#operator_invalidrolesoperator">Operator_InvalidRolesOperator</a></h3>
-<pre><code class="language-solidity">error Operator_InvalidRolesOperator()
+<pre><code class="language-solidity">error Operator_InvalidRolesOperator();
 </code></pre>
 <h3 id="operator_insufficientliquidity"><a class="header" href="#operator_insufficientliquidity">Operator_InsufficientLiquidity</a></h3>
-<pre><code class="language-solidity">error Operator_InsufficientLiquidity()
+<pre><code class="language-solidity">error Operator_InsufficientLiquidity();
 </code></pre>
 <h3 id="operator_marketborrowsizenotmet"><a class="header" href="#operator_marketborrowsizenotmet">Operator_MarketBorrowSizeNotMet</a></h3>
-<pre><code class="language-solidity">error Operator_MarketBorrowSizeNotMet()
+<pre><code class="language-solidity">error Operator_MarketBorrowSizeNotMet();
 </code></pre>
 <h3 id="operator_marketborrowcapreached"><a class="header" href="#operator_marketborrowcapreached">Operator_MarketBorrowCapReached</a></h3>
-<pre><code class="language-solidity">error Operator_MarketBorrowCapReached()
+<pre><code class="language-solidity">error Operator_MarketBorrowCapReached();
 </code></pre>
 <h3 id="operator_invalidcollateralfactor"><a class="header" href="#operator_invalidcollateralfactor">Operator_InvalidCollateralFactor</a></h3>
-<pre><code class="language-solidity">error Operator_InvalidCollateralFactor()
+<pre><code class="language-solidity">error Operator_InvalidCollateralFactor();
 </code></pre>
 <h3 id="operator_invalidblacklistoperator"><a class="header" href="#operator_invalidblacklistoperator">Operator_InvalidBlacklistOperator</a></h3>
-<pre><code class="language-solidity">error Operator_InvalidBlacklistOperator()
+<pre><code class="language-solidity">error Operator_InvalidBlacklistOperator();
 </code></pre>
 <h3 id="operator_oracleunderlyingfetcherror"><a class="header" href="#operator_oracleunderlyingfetcherror">Operator_OracleUnderlyingFetchError</a></h3>
-<pre><code class="language-solidity">error Operator_OracleUnderlyingFetchError()
+<pre><code class="language-solidity">error Operator_OracleUnderlyingFetchError();
 </code></pre>
 <h3 id="operator_deactivate_marketbalanceowed"><a class="header" href="#operator_deactivate_marketbalanceowed">Operator_Deactivate_MarketBalanceOwed</a></h3>
-<pre><code class="language-solidity">error Operator_Deactivate_MarketBalanceOwed()
+<pre><code class="language-solidity">error Operator_Deactivate_MarketBalanceOwed();
 </code></pre>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
 <h3 id="accountliquiditylocalvars"><a class="header" href="#accountliquiditylocalvars">AccountLiquidityLocalVars</a></h3>

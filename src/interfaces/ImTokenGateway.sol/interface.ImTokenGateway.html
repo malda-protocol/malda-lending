@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="imtokengateway"><a class="header" href="#imtokengateway">ImTokenGateway</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/7a272edf8d2786ab85ab5f841fbe16a162c6b3d8/src/interfaces/ImTokenGateway.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/b72b7e181d3fd7d5878281f222bc3d45b618de88/src/interfaces/ImTokenGateway.sol">Git Source</a></p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="rolesoperator"><a class="header" href="#rolesoperator">rolesOperator</a></h3>
 <p>Roles</p>
@@ -294,7 +294,7 @@
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="allowedcallerupdated"><a class="header" href="#allowedcallerupdated">AllowedCallerUpdated</a></h3>
 <p>Emitted when a user updates allowed callers</p>
-<pre><code class="language-solidity">event AllowedCallerUpdated(address indexed sender, address indexed caller, bool status)
+<pre><code class="language-solidity">event AllowedCallerUpdated(address indexed sender, address indexed caller, bool status);
 </code></pre>
 <h3 id="mtokengateway_supplied"><a class="header" href="#mtokengateway_supplied">mTokenGateway_Supplied</a></h3>
 <p>Emitted when a supply operation is initiated</p>
@@ -307,7 +307,7 @@
     uint32 srcChainId,
     uint32 dstChainId,
     bytes4 lineaMethodSelector
-)
+);
 </code></pre>
 <h3 id="mtokengateway_liquidate"><a class="header" href="#mtokengateway_liquidate">mTokenGateway_Liquidate</a></h3>
 <p>Emitted when a liquidate operation is initiated</p>
@@ -319,7 +319,7 @@
     uint32 dstChainId,
     address userToLiquidate,
     address collateral
-)
+);
 </code></pre>
 <h3 id="mtokengateway_extracted"><a class="header" href="#mtokengateway_extracted">mTokenGateway_Extracted</a></h3>
 <p>Emitted when an extract was finalized</p>
@@ -332,7 +332,7 @@
     uint256 amount,
     uint32 srcChainId,
     uint32 dstChainId
-)
+);
 </code></pre>
 <h3 id="mtokengateway_skipped"><a class="header" href="#mtokengateway_skipped">mTokenGateway_Skipped</a></h3>
 <p>Emitted when a proof was skipped</p>
@@ -345,87 +345,87 @@
     uint256 amount,
     uint32 srcChainId,
     uint32 dstChainId
-)
+);
 </code></pre>
 <h3 id="mtokengateway_gasfeeupdated"><a class="header" href="#mtokengateway_gasfeeupdated">mTokenGateway_GasFeeUpdated</a></h3>
 <p>Emitted when the gas fee is updated</p>
-<pre><code class="language-solidity">event mTokenGateway_GasFeeUpdated(uint256 amount)
+<pre><code class="language-solidity">event mTokenGateway_GasFeeUpdated(uint256 amount);
 </code></pre>
 <h3 id="mtokengateway_pausedstate"><a class="header" href="#mtokengateway_pausedstate">mTokenGateway_PausedState</a></h3>
-<pre><code class="language-solidity">event mTokenGateway_PausedState(ImTokenOperationTypes.OperationType indexed _type, bool _status)
+<pre><code class="language-solidity">event mTokenGateway_PausedState(ImTokenOperationTypes.OperationType indexed _type, bool _status);
 </code></pre>
 <h3 id="zkverifierupdated"><a class="header" href="#zkverifierupdated">ZkVerifierUpdated</a></h3>
-<pre><code class="language-solidity">event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier)
+<pre><code class="language-solidity">event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
 </code></pre>
 <h3 id="mtokengateway_userwhitelisted"><a class="header" href="#mtokengateway_userwhitelisted">mTokenGateway_UserWhitelisted</a></h3>
-<pre><code class="language-solidity">event mTokenGateway_UserWhitelisted(address indexed user, bool status)
+<pre><code class="language-solidity">event mTokenGateway_UserWhitelisted(address indexed user, bool status);
 </code></pre>
 <h3 id="mtokengateway_whitelistenabled"><a class="header" href="#mtokengateway_whitelistenabled">mTokenGateway_WhitelistEnabled</a></h3>
-<pre><code class="language-solidity">event mTokenGateway_WhitelistEnabled()
+<pre><code class="language-solidity">event mTokenGateway_WhitelistEnabled();
 </code></pre>
 <h3 id="mtokengateway_whitelistdisabled"><a class="header" href="#mtokengateway_whitelistdisabled">mTokenGateway_WhitelistDisabled</a></h3>
-<pre><code class="language-solidity">event mTokenGateway_WhitelistDisabled()
+<pre><code class="language-solidity">event mTokenGateway_WhitelistDisabled();
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="mtokengateway_chainnotvalid"><a class="header" href="#mtokengateway_chainnotvalid">mTokenGateway_ChainNotValid</a></h3>
 <p>Thrown when the chain id is not LINEA</p>
-<pre><code class="language-solidity">error mTokenGateway_ChainNotValid()
+<pre><code class="language-solidity">error mTokenGateway_ChainNotValid();
 </code></pre>
 <h3 id="mtokengateway_addressnotvalid"><a class="header" href="#mtokengateway_addressnotvalid">mTokenGateway_AddressNotValid</a></h3>
 <p>Thrown when the address is not valid</p>
-<pre><code class="language-solidity">error mTokenGateway_AddressNotValid()
+<pre><code class="language-solidity">error mTokenGateway_AddressNotValid();
 </code></pre>
 <h3 id="mtokengateway_amountnotvalid"><a class="header" href="#mtokengateway_amountnotvalid">mTokenGateway_AmountNotValid</a></h3>
 <p>Thrown when the amount specified is invalid (e.g., zero)</p>
-<pre><code class="language-solidity">error mTokenGateway_AmountNotValid()
+<pre><code class="language-solidity">error mTokenGateway_AmountNotValid();
 </code></pre>
 <h3 id="mtokengateway_journalnotvalid"><a class="header" href="#mtokengateway_journalnotvalid">mTokenGateway_JournalNotValid</a></h3>
 <p>Thrown when the journal data provided is invalid</p>
-<pre><code class="language-solidity">error mTokenGateway_JournalNotValid()
+<pre><code class="language-solidity">error mTokenGateway_JournalNotValid();
 </code></pre>
 <h3 id="mtokengateway_amounttoobig"><a class="header" href="#mtokengateway_amounttoobig">mTokenGateway_AmountTooBig</a></h3>
 <p>Thrown when there is insufficient cash to release the specified amount</p>
-<pre><code class="language-solidity">error mTokenGateway_AmountTooBig()
+<pre><code class="language-solidity">error mTokenGateway_AmountTooBig();
 </code></pre>
 <h3 id="mtokengateway_releasecashnotavailable"><a class="header" href="#mtokengateway_releasecashnotavailable">mTokenGateway_ReleaseCashNotAvailable</a></h3>
 <p>Thrown when there is insufficient cash to release the specified amount</p>
-<pre><code class="language-solidity">error mTokenGateway_ReleaseCashNotAvailable()
+<pre><code class="language-solidity">error mTokenGateway_ReleaseCashNotAvailable();
 </code></pre>
 <h3 id="mtokengateway_nontransferable"><a class="header" href="#mtokengateway_nontransferable">mTokenGateway_NonTransferable</a></h3>
 <p>Thrown when token is tranferred</p>
-<pre><code class="language-solidity">error mTokenGateway_NonTransferable()
+<pre><code class="language-solidity">error mTokenGateway_NonTransferable();
 </code></pre>
 <h3 id="mtokengateway_callernotallowed"><a class="header" href="#mtokengateway_callernotallowed">mTokenGateway_CallerNotAllowed</a></h3>
 <p>Thrown when caller is not allowed</p>
-<pre><code class="language-solidity">error mTokenGateway_CallerNotAllowed()
+<pre><code class="language-solidity">error mTokenGateway_CallerNotAllowed();
 </code></pre>
 <h3 id="mtokengateway_paused"><a class="header" href="#mtokengateway_paused">mTokenGateway_Paused</a></h3>
 <p>Thrown when market is paused for operation type</p>
-<pre><code class="language-solidity">error mTokenGateway_Paused(ImTokenOperationTypes.OperationType _type)
+<pre><code class="language-solidity">error mTokenGateway_Paused(ImTokenOperationTypes.OperationType _type);
 </code></pre>
 <h3 id="mtokengateway_notrebalancer"><a class="header" href="#mtokengateway_notrebalancer">mTokenGateway_NotRebalancer</a></h3>
 <p>Thrown when caller is not rebalancer</p>
-<pre><code class="language-solidity">error mTokenGateway_NotRebalancer()
+<pre><code class="language-solidity">error mTokenGateway_NotRebalancer();
 </code></pre>
 <h3 id="mtokengateway_lengthnotvalid"><a class="header" href="#mtokengateway_lengthnotvalid">mTokenGateway_LengthNotValid</a></h3>
 <p>Thrown when length is not valid</p>
-<pre><code class="language-solidity">error mTokenGateway_LengthNotValid()
+<pre><code class="language-solidity">error mTokenGateway_LengthNotValid();
 </code></pre>
 <h3 id="mtokengateway_notenoughgasfee"><a class="header" href="#mtokengateway_notenoughgasfee">mTokenGateway_NotEnoughGasFee</a></h3>
 <p>Thrown when not enough gas fee was received</p>
-<pre><code class="language-solidity">error mTokenGateway_NotEnoughGasFee()
+<pre><code class="language-solidity">error mTokenGateway_NotEnoughGasFee();
 </code></pre>
 <h3 id="mtokengateway_l1inclusionrequired"><a class="header" href="#mtokengateway_l1inclusionrequired">mTokenGateway_L1InclusionRequired</a></h3>
 <p>Thrown when L1 inclusion is required</p>
-<pre><code class="language-solidity">error mTokenGateway_L1InclusionRequired()
+<pre><code class="language-solidity">error mTokenGateway_L1InclusionRequired();
 </code></pre>
 <h3 id="mtokengateway_usernotwhitelisted"><a class="header" href="#mtokengateway_usernotwhitelisted">mTokenGateway_UserNotWhitelisted</a></h3>
 <p>Thrown when user is not whitelisted</p>
-<pre><code class="language-solidity">error mTokenGateway_UserNotWhitelisted()
+<pre><code class="language-solidity">error mTokenGateway_UserNotWhitelisted();
 </code></pre>
 <h3 id="mtokengateway_userblacklisted"><a class="header" href="#mtokengateway_userblacklisted">mTokenGateway_UserBlacklisted</a></h3>
 <p>Thrown when user is blacklisted</p>
-<pre><code class="language-solidity">error mTokenGateway_UserBlacklisted()
+<pre><code class="language-solidity">error mTokenGateway_UserBlacklisted();
 </code></pre>
 
                     </main>

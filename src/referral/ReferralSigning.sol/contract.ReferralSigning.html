@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="referralsigning"><a class="header" href="#referralsigning">ReferralSigning</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/7a272edf8d2786ab85ab5f841fbe16a162c6b3d8/src/referral/ReferralSigning.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/b72b7e181d3fd7d5878281f222bc3d45b618de88/src/referral/ReferralSigning.sol">Git Source</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="referredbyregistry"><a class="header" href="#referredbyregistry">referredByRegistry</a></h3>
 <pre><code class="language-solidity">mapping(address referredBy =&gt; mapping(address user =&gt; bool wasReferred)) public referredByRegistry
@@ -209,23 +209,23 @@
 </code></pre>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="referralclaimed"><a class="header" href="#referralclaimed">ReferralClaimed</a></h3>
-<pre><code class="language-solidity">event ReferralClaimed(address indexed referred, address indexed referrer)
+<pre><code class="language-solidity">event ReferralClaimed(address indexed referred, address indexed referrer);
 </code></pre>
 <h3 id="referralrejected"><a class="header" href="#referralrejected">ReferralRejected</a></h3>
-<pre><code class="language-solidity">event ReferralRejected(address indexed referred, address indexed referrer, string reason)
+<pre><code class="language-solidity">event ReferralRejected(address indexed referred, address indexed referrer, string reason);
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="referralsigning_sameuser"><a class="header" href="#referralsigning_sameuser">ReferralSigning_SameUser</a></h3>
-<pre><code class="language-solidity">error ReferralSigning_SameUser()
+<pre><code class="language-solidity">error ReferralSigning_SameUser();
 </code></pre>
 <h3 id="referralsigning_invalidsignature"><a class="header" href="#referralsigning_invalidsignature">ReferralSigning_InvalidSignature</a></h3>
-<pre><code class="language-solidity">error ReferralSigning_InvalidSignature()
+<pre><code class="language-solidity">error ReferralSigning_InvalidSignature();
 </code></pre>
 <h3 id="referralsigning_useralreadyreferred"><a class="header" href="#referralsigning_useralreadyreferred">ReferralSigning_UserAlreadyReferred</a></h3>
-<pre><code class="language-solidity">error ReferralSigning_UserAlreadyReferred()
+<pre><code class="language-solidity">error ReferralSigning_UserAlreadyReferred();
 </code></pre>
 <h3 id="referralsigning_contractreferrernotallowed"><a class="header" href="#referralsigning_contractreferrernotallowed">ReferralSigning_ContractReferrerNotAllowed</a></h3>
-<pre><code class="language-solidity">error ReferralSigning_ContractReferrerNotAllowed()
+<pre><code class="language-solidity">error ReferralSigning_ContractReferrerNotAllowed();
 </code></pre>
 
                     </main>

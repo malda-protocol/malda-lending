@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="imerc20host"><a class="header" href="#imerc20host">ImErc20Host</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/7a272edf8d2786ab85ab5f841fbe16a162c6b3d8/src/interfaces/ImErc20Host.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/b72b7e181d3fd7d5878281f222bc3d45b618de88/src/interfaces/ImErc20Host.sol">Git Source</a></p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="getproofdata"><a class="header" href="#getproofdata">getProofData</a></h3>
 <p>Returns the proof data journal</p>
@@ -290,11 +290,11 @@
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="allowedcallerupdated"><a class="header" href="#allowedcallerupdated">AllowedCallerUpdated</a></h3>
 <p>Emitted when a user updates allowed callers</p>
-<pre><code class="language-solidity">event AllowedCallerUpdated(address indexed sender, address indexed caller, bool status)
+<pre><code class="language-solidity">event AllowedCallerUpdated(address indexed sender, address indexed caller, bool status);
 </code></pre>
 <h3 id="merc20host_chainstatusupdated"><a class="header" href="#merc20host_chainstatusupdated">mErc20Host_ChainStatusUpdated</a></h3>
 <p>Emitted when a chain id whitelist status is updated</p>
-<pre><code class="language-solidity">event mErc20Host_ChainStatusUpdated(uint32 indexed chainId, bool status)
+<pre><code class="language-solidity">event mErc20Host_ChainStatusUpdated(uint32 indexed chainId, bool status);
 </code></pre>
 <h3 id="merc20host_liquidateexternal"><a class="header" href="#merc20host_liquidateexternal">mErc20Host_LiquidateExternal</a></h3>
 <p>Emitted when a liquidate operation is executed</p>
@@ -306,102 +306,102 @@
     address indexed collateral,
     uint32 srcChainId,
     uint256 amount
-)
+);
 </code></pre>
 <h3 id="merc20host_mintexternal"><a class="header" href="#merc20host_mintexternal">mErc20Host_MintExternal</a></h3>
 <p>Emitted when a mint operation is executed</p>
 <pre><code class="language-solidity">event mErc20Host_MintExternal(
     address indexed msgSender, address indexed srcSender, address indexed receiver, uint32 chainId, uint256 amount
-)
+);
 </code></pre>
 <h3 id="merc20host_borrowexternal"><a class="header" href="#merc20host_borrowexternal">mErc20Host_BorrowExternal</a></h3>
 <p>Emitted when a borrow operation is executed</p>
 <pre><code class="language-solidity">event mErc20Host_BorrowExternal(
     address indexed msgSender, address indexed srcSender, uint32 indexed chainId, uint256 amount
-)
+);
 </code></pre>
 <h3 id="merc20host_repayexternal"><a class="header" href="#merc20host_repayexternal">mErc20Host_RepayExternal</a></h3>
 <p>Emitted when a repay operation is executed</p>
 <pre><code class="language-solidity">event mErc20Host_RepayExternal(
     address indexed msgSender, address indexed srcSender, address indexed position, uint32 chainId, uint256 amount
-)
+);
 </code></pre>
 <h3 id="merc20host_withdrawexternal"><a class="header" href="#merc20host_withdrawexternal">mErc20Host_WithdrawExternal</a></h3>
 <p>Emitted when a withdrawal is executed</p>
 <pre><code class="language-solidity">event mErc20Host_WithdrawExternal(
     address indexed msgSender, address indexed srcSender, uint32 indexed chainId, uint256 amount
-)
+);
 </code></pre>
 <h3 id="merc20host_borrowonextensionchain"><a class="header" href="#merc20host_borrowonextensionchain">mErc20Host_BorrowOnExtensionChain</a></h3>
 <p>Emitted when a borrow operation is triggered for an extension chain</p>
-<pre><code class="language-solidity">event mErc20Host_BorrowOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount)
+<pre><code class="language-solidity">event mErc20Host_BorrowOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount);
 </code></pre>
 <h3 id="merc20host_withdrawonextensionchain"><a class="header" href="#merc20host_withdrawonextensionchain">mErc20Host_WithdrawOnExtensionChain</a></h3>
 <p>Emitted when a withdraw operation is triggered for an extension chain</p>
-<pre><code class="language-solidity">event mErc20Host_WithdrawOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount)
+<pre><code class="language-solidity">event mErc20Host_WithdrawOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount);
 </code></pre>
 <h3 id="merc20host_gasfeeupdated"><a class="header" href="#merc20host_gasfeeupdated">mErc20Host_GasFeeUpdated</a></h3>
 <p>Emitted when gas fees are updated for a dst chain</p>
-<pre><code class="language-solidity">event mErc20Host_GasFeeUpdated(uint32 indexed dstChainId, uint256 amount)
+<pre><code class="language-solidity">event mErc20Host_GasFeeUpdated(uint32 indexed dstChainId, uint256 amount);
 </code></pre>
 <h3 id="merc20host_mintmigration"><a class="header" href="#merc20host_mintmigration">mErc20Host_MintMigration</a></h3>
-<pre><code class="language-solidity">event mErc20Host_MintMigration(address indexed receiver, uint256 amount)
+<pre><code class="language-solidity">event mErc20Host_MintMigration(address indexed receiver, uint256 amount);
 </code></pre>
 <h3 id="merc20host_borrowmigration"><a class="header" href="#merc20host_borrowmigration">mErc20Host_BorrowMigration</a></h3>
-<pre><code class="language-solidity">event mErc20Host_BorrowMigration(address indexed borrower, uint256 amount)
+<pre><code class="language-solidity">event mErc20Host_BorrowMigration(address indexed borrower, uint256 amount);
 </code></pre>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="merc20host_proofgenerationinputnotvalid"><a class="header" href="#merc20host_proofgenerationinputnotvalid">mErc20Host_ProofGenerationInputNotValid</a></h3>
 <p>Thrown when the chain id is not LINEA</p>
-<pre><code class="language-solidity">error mErc20Host_ProofGenerationInputNotValid()
+<pre><code class="language-solidity">error mErc20Host_ProofGenerationInputNotValid();
 </code></pre>
 <h3 id="merc20host_dstchainnotvalid"><a class="header" href="#merc20host_dstchainnotvalid">mErc20Host_DstChainNotValid</a></h3>
 <p>Thrown when the dst chain id is not current chain</p>
-<pre><code class="language-solidity">error mErc20Host_DstChainNotValid()
+<pre><code class="language-solidity">error mErc20Host_DstChainNotValid();
 </code></pre>
 <h3 id="merc20host_chainnotvalid"><a class="header" href="#merc20host_chainnotvalid">mErc20Host_ChainNotValid</a></h3>
 <p>Thrown when the chain id is not LINEA</p>
-<pre><code class="language-solidity">error mErc20Host_ChainNotValid()
+<pre><code class="language-solidity">error mErc20Host_ChainNotValid();
 </code></pre>
 <h3 id="merc20host_addressnotvalid"><a class="header" href="#merc20host_addressnotvalid">mErc20Host_AddressNotValid</a></h3>
 <p>Thrown when the address is not valid</p>
-<pre><code class="language-solidity">error mErc20Host_AddressNotValid()
+<pre><code class="language-solidity">error mErc20Host_AddressNotValid();
 </code></pre>
 <h3 id="merc20host_amounttoobig"><a class="header" href="#merc20host_amounttoobig">mErc20Host_AmountTooBig</a></h3>
 <p>Thrown when the amount provided is bigger than the available amount`</p>
-<pre><code class="language-solidity">error mErc20Host_AmountTooBig()
+<pre><code class="language-solidity">error mErc20Host_AmountTooBig();
 </code></pre>
 <h3 id="merc20host_amountnotvalid"><a class="header" href="#merc20host_amountnotvalid">mErc20Host_AmountNotValid</a></h3>
 <p>Thrown when the amount specified is invalid (e.g., zero)</p>
-<pre><code class="language-solidity">error mErc20Host_AmountNotValid()
+<pre><code class="language-solidity">error mErc20Host_AmountNotValid();
 </code></pre>
 <h3 id="merc20host_journalnotvalid"><a class="header" href="#merc20host_journalnotvalid">mErc20Host_JournalNotValid</a></h3>
 <p>Thrown when the journal data provided is invalid or corrupted</p>
-<pre><code class="language-solidity">error mErc20Host_JournalNotValid()
+<pre><code class="language-solidity">error mErc20Host_JournalNotValid();
 </code></pre>
 <h3 id="merc20host_callernotallowed"><a class="header" href="#merc20host_callernotallowed">mErc20Host_CallerNotAllowed</a></h3>
 <p>Thrown when caller is not allowed</p>
-<pre><code class="language-solidity">error mErc20Host_CallerNotAllowed()
+<pre><code class="language-solidity">error mErc20Host_CallerNotAllowed();
 </code></pre>
 <h3 id="merc20host_notrebalancer"><a class="header" href="#merc20host_notrebalancer">mErc20Host_NotRebalancer</a></h3>
 <p>Thrown when caller is not rebalancer</p>
-<pre><code class="language-solidity">error mErc20Host_NotRebalancer()
+<pre><code class="language-solidity">error mErc20Host_NotRebalancer();
 </code></pre>
 <h3 id="merc20host_lengthmismatch"><a class="header" href="#merc20host_lengthmismatch">mErc20Host_LengthMismatch</a></h3>
 <p>Thrown when length of array is not valid</p>
-<pre><code class="language-solidity">error mErc20Host_LengthMismatch()
+<pre><code class="language-solidity">error mErc20Host_LengthMismatch();
 </code></pre>
 <h3 id="merc20host_notenoughgasfee"><a class="header" href="#merc20host_notenoughgasfee">mErc20Host_NotEnoughGasFee</a></h3>
 <p>Thrown when not enough gas fee was received</p>
-<pre><code class="language-solidity">error mErc20Host_NotEnoughGasFee()
+<pre><code class="language-solidity">error mErc20Host_NotEnoughGasFee();
 </code></pre>
 <h3 id="merc20host_l1inclusionrequired"><a class="header" href="#merc20host_l1inclusionrequired">mErc20Host_L1InclusionRequired</a></h3>
 <p>Thrown when L1 inclusion is required</p>
-<pre><code class="language-solidity">error mErc20Host_L1InclusionRequired()
+<pre><code class="language-solidity">error mErc20Host_L1InclusionRequired();
 </code></pre>
 <h3 id="merc20host_actionnotavailable"><a class="header" href="#merc20host_actionnotavailable">mErc20Host_ActionNotAvailable</a></h3>
 <p>Thrown when extension action is not valid</p>
-<pre><code class="language-solidity">error mErc20Host_ActionNotAvailable()
+<pre><code class="language-solidity">error mErc20Host_ActionNotAvailable();
 </code></pre>
 
                     </main>
