@@ -2,7 +2,7 @@
 pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
-import {LZBridge} from "src/rebalancer/bridges/LZBridge.sol";
+import {LZUnifiedBridge} from "src/rebalancer/bridges/LZUnifiedBridge.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 
 /**
@@ -17,13 +17,13 @@ import {Deployer} from "src/utils/Deployer.sol";
  */
 contract DeployLZBridge is Script {
     function run(address roles, Deployer deployer) public returns (address) {
-        bytes32 salt = getSalt("LZBridgeV1.0");
+        bytes32 salt = getSalt("LZUnifiedBridgeV1.0");
 
         vm.startBroadcast(vm.envUint("OWNER_PRIVATE_KEY"));
-        address created = deployer.create(salt, abi.encodePacked(type(LZBridge).creationCode, abi.encode(roles)));
+        address created = deployer.create(salt, abi.encodePacked(type(LZUnifiedBridge).creationCode, abi.encode(roles)));
         vm.stopBroadcast();
 
-        console.log(" LZBridge deployed at: %s", created);
+        console.log(" LZUnifiedBridge deployed at: %s", created);
         return created;
     }
 
