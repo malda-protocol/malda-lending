@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="hypernativefirewallprotected"><a class="header" href="#hypernativefirewallprotected">HypernativeFirewallProtected</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/9d22297d02702f5e6abd1f60586bd12a2f074f37/src/libraries/HypernativeFirewallProtected.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/6e7d2c6a0b2fff30411a595cc0cb83d13e0951da/src/libraries/HypernativeFirewallProtected.sol">Git Source</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="hypernative_oracle_storage_slot"><a class="header" href="#hypernative_oracle_storage_slot">HYPERNATIVE_ORACLE_STORAGE_SLOT</a></h3>
 <pre><code class="language-solidity">bytes32 private constant HYPERNATIVE_ORACLE_STORAGE_SLOT =
@@ -195,20 +195,14 @@
     bytes32(uint256(keccak256(&quot;eip1967.hypernative.is_strict_mode&quot;)) - 1)
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
-<h3 id="onlyfirewallapproved"><a class="header" href="#onlyfirewallapproved">onlyFirewallApproved</a></h3>
-<pre><code class="language-solidity">modifier onlyFirewallApproved() ;
+<h3 id="onlyfirewalladmin"><a class="header" href="#onlyfirewalladmin">onlyFirewallAdmin</a></h3>
+<pre><code class="language-solidity">modifier onlyFirewallAdmin() ;
 </code></pre>
 <h3 id="onlyfirewallapprovedalloweoa"><a class="header" href="#onlyfirewallapprovedalloweoa">onlyFirewallApprovedAllowEOA</a></h3>
 <pre><code class="language-solidity">modifier onlyFirewallApprovedAllowEOA() ;
 </code></pre>
-<h3 id="onlynotblacklistedeoa"><a class="header" href="#onlynotblacklistedeoa">onlyNotBlacklistedEOA</a></h3>
-<pre><code class="language-solidity">modifier onlyNotBlacklistedEOA() ;
-</code></pre>
-<h3 id="onlyfirewalladmin"><a class="header" href="#onlyfirewalladmin">onlyFirewallAdmin</a></h3>
-<pre><code class="language-solidity">modifier onlyFirewallAdmin() ;
-</code></pre>
-<h3 id="_inithypernativefirewall"><a class="header" href="#_inithypernativefirewall">_initHypernativeFirewall</a></h3>
-<pre><code class="language-solidity">function _initHypernativeFirewall(address _firewall, address _admin) internal;
+<h3 id="hypernativefirewalladmin"><a class="header" href="#hypernativefirewalladmin">hypernativeFirewallAdmin</a></h3>
+<pre><code class="language-solidity">function hypernativeFirewallAdmin() public view returns (address);
 </code></pre>
 <h3 id="firewallregister"><a class="header" href="#firewallregister">firewallRegister</a></h3>
 <pre><code class="language-solidity">function firewallRegister(address _account) public virtual;
@@ -223,17 +217,20 @@
 <h3 id="changefirewalladmin"><a class="header" href="#changefirewalladmin">changeFirewallAdmin</a></h3>
 <pre><code class="language-solidity">function changeFirewallAdmin(address _newAdmin) public onlyFirewallAdmin;
 </code></pre>
+<h3 id="_firewallgate"><a class="header" href="#_firewallgate">_firewallGate</a></h3>
+<pre><code class="language-solidity">function _firewallGate(address sender) internal;
+</code></pre>
+<h3 id="_inithypernativefirewall"><a class="header" href="#_inithypernativefirewall">_initHypernativeFirewall</a></h3>
+<pre><code class="language-solidity">function _initHypernativeFirewall(address _firewall, address _admin) internal;
+</code></pre>
 <h3 id="_changefirewalladmin"><a class="header" href="#_changefirewalladmin">_changeFirewallAdmin</a></h3>
 <pre><code class="language-solidity">function _changeFirewallAdmin(address _newAdmin) internal;
 </code></pre>
 <h3 id="_setaddressbyslot"><a class="header" href="#_setaddressbyslot">_setAddressBySlot</a></h3>
-<pre><code class="language-solidity">function _setAddressBySlot(bytes32 slot, address newAddress) internal;
+<pre><code class="language-solidity">function _setAddressBySlot(bytes32 slot, address newAddress) private;
 </code></pre>
 <h3 id="_setvaluebyslot"><a class="header" href="#_setvaluebyslot">_setValueBySlot</a></h3>
-<pre><code class="language-solidity">function _setValueBySlot(bytes32 _slot, uint256 _value) internal;
-</code></pre>
-<h3 id="hypernativefirewalladmin"><a class="header" href="#hypernativefirewalladmin">hypernativeFirewallAdmin</a></h3>
-<pre><code class="language-solidity">function hypernativeFirewallAdmin() public view returns (address);
+<pre><code class="language-solidity">function _setValueBySlot(bytes32 _slot, uint256 _value) private;
 </code></pre>
 <h3 id="_hypernativefirewallisstrictmode"><a class="header" href="#_hypernativefirewallisstrictmode">_hypernativeFirewallIsStrictMode</a></h3>
 <pre><code class="language-solidity">function _hypernativeFirewallIsStrictMode() private view returns (bool);
@@ -253,6 +250,13 @@
 </code></pre>
 <h3 id="firewalladdresschanged"><a class="header" href="#firewalladdresschanged">FirewallAddressChanged</a></h3>
 <pre><code class="language-solidity">event FirewallAddressChanged(address indexed previousFirewall, address indexed newFirewall);
+</code></pre>
+<h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
+<h3 id="hypernativefirewallprotected_notadmin"><a class="header" href="#hypernativefirewallprotected_notadmin">HypernativeFirewallProtected_NotAdmin</a></h3>
+<pre><code class="language-solidity">error HypernativeFirewallProtected_NotAdmin();
+</code></pre>
+<h3 id="hypernativefirewallprotected_notvalid"><a class="header" href="#hypernativefirewallprotected_notvalid">HypernativeFirewallProtected_NotValid</a></h3>
+<pre><code class="language-solidity">error HypernativeFirewallProtected_NotValid();
 </code></pre>
 
                     </main>
