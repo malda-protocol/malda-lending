@@ -72,7 +72,25 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
     }
 
     // ----------- OWNER METHODS ------------
-    function setAllowedTokens(address bridge, address[] memory tokens, bool status) external onlyFirewallApproved() {
+    function initFirewall(address _firewall) external {
+        if (msg.sender != admin) revert Rebalancer_NotAuthorized();
+
+        _initHypernativeFirewall(_firewall, admin);
+    }   
+
+    function setAdmin(address _account) external { 
+        if (msg.sender != admin) revert Rebalancer_NotAuthorized();
+
+        admin = _account;
+        emit NewAdmin(_account);
+    }
+
+    function setSaveAddress(address _save) external {
+        if (msg.sender != admin) revert Rebalancer_NotAuthorized();
+        saveAddress = _save;
+    }
+
+    function setAllowedTokens(address bridge, address[] memory tokens, bool status) external onlyFirewallApprovedAllowEOA {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
 
         uint256 len = tokens.length;
@@ -82,7 +100,7 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         emit AllowedTokensUpdated(bridge, status, tokens);
     }
 
-    function setMarketStatus(address[] calldata list, bool status) external onlyFirewallApproved() {
+    function setMarketStatus(address[] calldata list, bool status) external onlyFirewallApprovedAllowEOA {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
 
         uint256 len = list.length;
@@ -93,7 +111,7 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
 
     }
 
-    function setAllowList(address[] calldata list, bool status) external onlyFirewallApproved() {
+    function setAllowList(address[] calldata list, bool status) external onlyFirewallApprovedAllowEOA {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
 
         uint256 len = list.length;
@@ -103,20 +121,20 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         emit AllowedListUpdated(list, status);
     }
 
-    function setWhitelistedBridgeStatus(address _bridge, bool _status) external onlyFirewallApproved() {
+    function setWhitelistedBridgeStatus(address _bridge, bool _status) external onlyFirewallApprovedAllowEOA {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
         require(_bridge != address(0), Rebalancer_AddressNotValid());
         whitelistedBridges[_bridge] = _status;
         emit BridgeWhitelistedStatusUpdated(_bridge, _status);
     }
 
-    function setWhitelistedDestination(uint32 _dstId, bool _status) external onlyFirewallApproved() {
+    function setWhitelistedDestination(uint32 _dstId, bool _status) external onlyFirewallApprovedAllowEOA {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
         emit DestinationWhitelistedStatusUpdated(_dstId, _status);
         whitelistedDestinations[_dstId] = _status;
     }
 
-    function saveEth() external onlyFirewallApproved() {
+    function saveEth() external onlyFirewallApprovedAllowEOA {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
 
         uint256 amount = address(this).balance;
@@ -137,14 +155,13 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         emit TokensSaved(token, market, amount);
     }
 
-    function setMinTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external onlyFirewallApproved() {
-
+    function setMinTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external onlyFirewallApprovedAllowEOA {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
         minTransferSizes[_dstChainId][_token] = _limit;
         emit MinTransferSizeUpdated(_dstChainId, _token, _limit);
     }
 
-    function setMaxTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external onlyFirewallApproved() {
+    function setMaxTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external onlyFirewallApprovedAllowEOA {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
         maxTransferSizes[_dstChainId][_token] = _limit;
         emit MaxTransferSizeUpdated(_dstChainId, _token, _limit);
@@ -180,17 +197,8 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
     /**
      * @inheritdoc IRebalancer
      */
-    function sendMsg(address _bridge, address _market, uint256 _amount, Msg calldata _msg) external payable onlyFirewallApproved() {
-        // checks
-        if (!roles.isAllowedFor(msg.sender, roles.REBALANCER_EOA())) revert Rebalancer_NotAuthorized();
-        require(whitelistedBridges[_bridge], Rebalancer_BridgeNotWhitelisted());
-        require(whitelistedDestinations[_msg.dstChainId], Rebalancer_DestinationNotWhitelisted());
-        address _underlying = ImTokenMinimal(_market).underlying();
-        require(_underlying == _msg.token, Rebalancer_RequestNotValid());
-        require(allowedTokensPerBridge[_bridge][_underlying], Rebalancer_UnderlyingNotAllowedForBridge());
-
-        // min transfer size check
-        require(_amount > minTransferSizes[_msg.dstChainId][_msg.token], Rebalancer_TransferSizeMinNotMet());
+    function sendMsg(address _bridge, address _market, uint256 _amount, Msg calldata _msg) external payable onlyFirewallApprovedAllowEOA {
+        _sendMsgPreChecks(_bridge, _market, _amount, _msg);
 
         // max transfer size checks
         TransferInfo storage transferInfo = currentTransferSize[_msg.dstChainId][_msg.token];
@@ -226,5 +234,18 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         );
 
         emit MsgSent(_bridge, _msg.dstChainId, _msg.token, _msg.message, _msg.bridgeData);
+    }
+
+    function _sendMsgPreChecks(address _bridge, address _market, uint256 _amount, Msg calldata _msg) internal {
+         // checks
+        if (!roles.isAllowedFor(msg.sender, roles.REBALANCER_EOA())) revert Rebalancer_NotAuthorized();
+        require(whitelistedBridges[_bridge], Rebalancer_BridgeNotWhitelisted());
+        require(whitelistedDestinations[_msg.dstChainId], Rebalancer_DestinationNotWhitelisted());
+        address _underlying = ImTokenMinimal(_market).underlying();
+        require(_underlying == _msg.token, Rebalancer_RequestNotValid());
+        require(allowedTokensPerBridge[_bridge][_underlying], Rebalancer_UnderlyingNotAllowedForBridge());
+
+        // min transfer size check
+        require(_amount > minTransferSizes[_msg.dstChainId][_msg.token], Rebalancer_TransferSizeMinNotMet());
     }
 }

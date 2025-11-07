@@ -32,8 +32,9 @@ import {IOracleOperator} from "src/interfaces/IOracleOperator.sol";
 // contracts
 import {mTokenConfiguration} from "./mTokenConfiguration.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {HypernativeFirewallProtected} from "src/libraries/HypernativeFirewallProtected.sol";
 
-abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
+abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFirewallProtected {
     constructor() {
         borrowRateMaxMantissa = 0.0005e16;
     }
@@ -144,7 +145,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     /**
      * @inheritdoc ImToken
      */
-    function transfer(address dst, uint256 amount) external override nonReentrant returns (bool) {
+    function transfer(address dst, uint256 amount) external override nonReentrant onlyFirewallApprovedAllowEOA returns (bool) {
         _transferTokens(msg.sender, msg.sender, dst, amount);
 
         return true;
@@ -153,7 +154,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     /**
      * @inheritdoc ImToken
      */
-    function transferFrom(address src, address dst, uint256 amount) external override nonReentrant returns (bool) {
+    function transferFrom(address src, address dst, uint256 amount) external override onlyFirewallApprovedAllowEOA nonReentrant returns (bool) {
         _transferTokens(msg.sender, src, dst, amount);
 
         return true;
@@ -469,7 +470,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         uint256 repayAmount,
         address mTokenCollateral,
         bool doTransfer
-    ) internal {
+    ) internal  {
         require(borrower != liquidator, mt_InvalidInput());
         require(repayAmount > 0 && repayAmount != type(uint256).max, mt_InvalidInput());
 
@@ -534,7 +535,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param repayAmount the amount of underlying tokens being returned, or `type(uint256).max` for the full outstanding amount
      * @param doTransfer If an actual transfer should be performed
      */
-    function __repay(address payer, address borrower, uint256 repayAmount, bool doTransfer) private returns (uint256) {
+    function __repay(address payer, address borrower, uint256 repayAmount, bool doTransfer) private  returns (uint256) {
         IOperatorDefender(operator).beforeMTokenRepay(address(this), borrower);
 
         /* We fetch the amount the borrower owes, with accumulated interest */
@@ -581,7 +582,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param borrowAmount The amount of the underlying asset to borrow
      */
     function __borrow(address payable borrower, address payable receiver, uint256 borrowAmount, bool doTransfer)
-        private
+        private 
     {
         IOperatorDefender(operator).beforeMTokenBorrow(address(this), borrower, borrowAmount);
 
@@ -625,6 +626,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
 
     function __redeem(address payable redeemer, uint256 redeemTokensIn, uint256 redeemAmountIn, bool doTransfer)
         private
+        
         returns (uint256 redeemAmount)
     {
         require(redeemTokensIn == 0 || redeemAmountIn == 0, mt_InvalidInput());
@@ -694,6 +696,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
 
     function __mint(address minter, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer)
         private
+        
     {
         IOperatorDefender(operator).beforeMTokenMint(address(this), minter, receiver);
 
@@ -759,7 +762,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param dst The address of the destination account
      * @param tokens The number of tokens to transfer
      */
-    function _transferTokens(address spender, address src, address dst, uint256 tokens) private {
+    function _transferTokens(address spender, address src, address dst, uint256 tokens) private  {
         IOperatorDefender(operator).beforeMTokenTransfer(address(this), src, dst, tokens);
 
         require(src != dst, mt_TransferNotValid());

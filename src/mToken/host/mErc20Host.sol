@@ -123,6 +123,10 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     }
 
     // ----------- OWNER ------------
+    function initFirewall(address _firewall) external onlyAdmin {
+        _initHypernativeFirewall(_firewall, admin);
+    }   
+
     /**
      * @notice Updates an allowed chain status
      * @param _chainId the chain id
@@ -138,7 +142,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     /**
      * @inheritdoc ImErc20Host
      */
-    function extractForRebalancing(uint256 amount) external {
+    function extractForRebalancing(uint256 amount) external onlyFirewallApprovedAllowEOA {
         IOperatorDefender(operator).beforeRebalancing(address(this));
 
         if (!_isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mErc20Host_NotRebalancer();
@@ -203,7 +207,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         uint256[] calldata liquidateAmount,
         address[] calldata collateral,
         address receiver
-    ) external override {
+    ) external override onlyFirewallApprovedAllowEOA {
         // verify received data
         if (!_isAllowedFor(msg.sender, _getBatchProofForwarderRole())) {
             _verifyProof(journalData, seal);
@@ -232,7 +236,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         uint256[] calldata mintAmount,
         uint256[] calldata minAmountsOut,
         address receiver
-    ) external override {
+    ) external override onlyFirewallApprovedAllowEOA {
         if (!_isAllowedFor(msg.sender, _getBatchProofForwarderRole())) {
             _verifyProof(journalData, seal);
         }
@@ -259,7 +263,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         bytes calldata seal,
         uint256[] calldata repayAmount,
         address receiver
-    ) external override {
+    ) external override onlyFirewallApprovedAllowEOA {
         if (!_isAllowedFor(msg.sender, _getBatchProofForwarderRole())) {
             _verifyProof(journalData, seal);
         }
@@ -281,7 +285,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     /**
      * @inheritdoc ImErc20Host
      */
-    function performExtensionCall(uint256 actionType, uint256 amount, uint32 dstChainId) external payable override {
+    function performExtensionCall(uint256 actionType, uint256 amount, uint32 dstChainId) external payable onlyFirewallApprovedAllowEOA override {
         //actionType:
         // 1 - withdraw
         // 2 - borrow
@@ -307,6 +311,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     function mintOrBorrowMigration(bool mint, uint256 amount, address receiver, address borrower, uint256 minAmount)
         external
         onlyMigrator
+        onlyFirewallApprovedAllowEOA
     {
         require(amount > 0, mErc20Host_AmountNotValid());
 

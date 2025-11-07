@@ -49,8 +49,9 @@ interface IRebalancer {
     event AllowedListUpdated(address[] list, bool status);
     event TokensSaved(address indexed token, address indexed market, uint256 amount);
     event AllowedTokensUpdated(address indexed bridge, bool status, address[] list);
-
     event MarketListUpdated(address[] list, bool status);
+    event NewAdmin(address indexed acc);
+    event NewSaveAddress(address indexed save);
 
 
     // ----------- ERRORS ------------

@@ -13,63 +13,29 @@ abstract contract HypernativeFirewallProtected {
     bytes32 private constant HYPERNATIVE_ADMIN_STORAGE_SLOT = bytes32(uint256(keccak256("eip1967.hypernative.admin")) - 1);
     bytes32 private constant HYPERNATIVE_MODE_STORAGE_SLOT = bytes32(uint256(keccak256("eip1967.hypernative.is_strict_mode")) - 1);
     
+    // ----------- EVENTS ------------
     event FirewallAdminChanged(address indexed previousAdmin, address indexed newAdmin);
     event FirewallAddressChanged(address indexed previousFirewall, address indexed newFirewall);
 
+    error HypernativeFirewallProtected_NotAdmin();
+    error HypernativeFirewallProtected_NotValid();
 
-    modifier onlyFirewallApproved() {
-        address firewallAddress = _hypernativeFirewall();
-        if (firewallAddress == address(0)) {
-            _;
-            return;
-        }
-        
-        IHypernativeFirewall firewall = IHypernativeFirewall(firewallAddress);
-        firewall.validateForbiddenContextInteraction(tx.origin, msg.sender);
+    modifier onlyFirewallAdmin() {
+        require(msg.sender == hypernativeFirewallAdmin(), HypernativeFirewallProtected_NotAdmin());
         _;
     }
 
     modifier onlyFirewallApprovedAllowEOA() {
-        address firewallAddress = _hypernativeFirewall();
-        if (firewallAddress == address(0)) {
-            _;
-            return;
-        }
-        IHypernativeFirewall firewall = IHypernativeFirewall(firewallAddress);
-        firewall.validateBlacklistedAccountInteraction(msg.sender);
-        if (tx.origin == msg.sender && msg.sender.code.length == 0) {
-            _;
-            return;
-        }
-        
-        firewall.validateForbiddenContextInteraction(tx.origin, msg.sender);
+        _firewallGate(msg.sender);
         _;
     }
-
-    modifier onlyNotBlacklistedEOA() {
-        address firewallAddress = _hypernativeFirewall();
-        if (firewallAddress == address(0)) {
-            _;
-            return;
-        }
-
-        IHypernativeFirewall firewall = IHypernativeFirewall(firewallAddress);
-        require(msg.sender == tx.origin && msg.sender.code.length == 0, "FirewallProtected: caller is not EOA");
-        firewall.validateBlacklistedAccountInteraction(msg.sender);
-        _;
+ 
+    // ----------- VIEW ------------
+    function hypernativeFirewallAdmin() public view returns (address) {
+        return _getAddressBySlot(HYPERNATIVE_ADMIN_STORAGE_SLOT);
     }
 
-    modifier onlyFirewallAdmin() {
-        require(msg.sender == hypernativeFirewallAdmin(), "FirewallProtected: caller is not the firewall admin");
-        _;
-    }
-
-    function _initHypernativeFirewall(address _firewall, address _admin) internal {
-        _changeFirewallAdmin(_admin);
-        require(_firewall != address(0), "Firewall address cannot be initialized to 0");
-        setFirewall(_firewall); 
-    }
-
+    // ----------- PUBLIC ------------
     function firewallRegister(address _account) public virtual {
         address firewallAddress = _hypernativeFirewall();
         bool isStrictMode = _hypernativeFirewallIsStrictMode();
@@ -91,8 +57,26 @@ abstract contract HypernativeFirewallProtected {
     }
 
     function changeFirewallAdmin(address _newAdmin) public onlyFirewallAdmin() {
-        require(_newAdmin != address(0), "Firewall admin cannot be set to 0");
+        require(_newAdmin != address(0), HypernativeFirewallProtected_NotValid());
         _changeFirewallAdmin(_newAdmin);
+    }
+
+  
+    // ----------- INTERNAL ------------
+    function _firewallGate(address sender) internal {
+        address fw = _hypernativeFirewall();
+        if (fw == address(0)) return;
+
+        IHypernativeFirewall firewall = IHypernativeFirewall(fw);
+        firewall.validateBlacklistedAccountInteraction(sender);
+        if (tx.origin == sender && sender.code.length == 0) return;
+        firewall.validateForbiddenContextInteraction(tx.origin, sender);
+    }
+
+    function _initHypernativeFirewall(address _firewall, address _admin) internal {
+        _changeFirewallAdmin(_admin);
+        require(_firewall != address(0), HypernativeFirewallProtected_NotValid());
+        setFirewall(_firewall); 
     }
 
     function _changeFirewallAdmin(address _newAdmin) internal {
@@ -102,20 +86,17 @@ abstract contract HypernativeFirewallProtected {
     }
 
 
-    function _setAddressBySlot(bytes32 slot, address newAddress) internal {
+    // ----------- PRIVATE ------------
+    function _setAddressBySlot(bytes32 slot, address newAddress) private {
         assembly {
             sstore(slot, newAddress)
         }
     }
 
-    function _setValueBySlot(bytes32 _slot, uint256 _value) internal {
+    function _setValueBySlot(bytes32 _slot, uint256 _value) private {
         assembly {
             sstore(_slot, _value)
         }
-    }
-
-    function hypernativeFirewallAdmin() public view returns (address) {
-        return _getAddressBySlot(HYPERNATIVE_ADMIN_STORAGE_SLOT);
     }
 
     function _hypernativeFirewallIsStrictMode() private view returns (bool) {
