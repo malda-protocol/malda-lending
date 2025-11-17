@@ -52,6 +52,7 @@ contract EverclearBridge is BaseBridge, IBridge {
     // ----------- EVENTS ------------
     event MsgSent(uint256 indexed dstChainId, address indexed market, uint256 amountLD, bytes32 id);
     event RebalancingReturnedToMarket(address indexed market, uint256 toReturn, uint256 extracted);
+    event EverclearFeeAdapterUpdated(address indexed oldAdapter, address indexed newAdapter);
 
     // ----------- ERRORS ------------
     error Everclear_TokenMismatch();
@@ -65,6 +66,13 @@ contract EverclearBridge is BaseBridge, IBridge {
         require(_feeAdapter != address(0), Everclear_AddressNotValid());
 
         everclearFeeAdapter = IFeeAdapter(_feeAdapter);
+    }
+    // ----------- ADMIN ------------
+    function setEverclearFeeAdapter(address _feeAdapter) external onlyBridgeConfigurator {
+        if (_feeAdapter == address(0)) revert Everclear_AddressNotValid();
+        address old = address(everclearFeeAdapter);
+        everclearFeeAdapter = IFeeAdapter(_feeAdapter);
+        emit EverclearFeeAdapterUpdated(old, _feeAdapter);
     }
 
     // ----------- VIEW ------------

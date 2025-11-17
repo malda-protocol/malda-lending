@@ -4,6 +4,22 @@ pragma solidity ^0.8.20;
 
 import {MessagingReceipt, MessagingFee} from "src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol";
 
+interface ILayerZeroOFTWrapper {
+    /// @dev The address of the alternative RsETH token
+    /// mapping(address allowedToken => bool isAllowed) public allowedTokens;
+    function allowedTokens(address token) external view returns (bool);
+
+    /// @dev Deposit altRsETH for wrsETH
+    /// @param asset The address of the token to deposit
+    ///@param _amount The amount of tokens to deposit
+    function deposit(address asset, uint256 _amount) external;
+
+    /// @dev Withdraw altRseth tokens from wrsETH
+    /// @param asset The address of the token to withdraw
+    /// @param _amount The amount of tokens to withdraw
+    function withdraw(address asset, uint256 _amount) external;
+}
+
 /**
  * @dev Struct representing token parameters for the OFT send() operation.
  */
