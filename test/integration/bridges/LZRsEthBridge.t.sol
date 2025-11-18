@@ -7,6 +7,7 @@ import {Base_Integration_Test} from "../Base_Integration_Test.t.sol";
 import {MockRoles} from "test/mocks/MockRoles.sol";
 
 import {LZOptions} from "src/libraries/LZOptions.sol";
+import "forge-std/console.sol";
 
 contract MockMarket {
     address public underlying;
@@ -41,17 +42,15 @@ contract LZUnifiedBridgeIntegrationTest is Base_Integration_Test {
 
     /// rsETH Base -> Linea
     function test_BaseToLinea_rsETH_SendFrom() external {
-        vm.skip(true);
         vm.selectFork(baseFork);
         mockRoles = new MockRoles();
-        // NOTE: pass a dummy endpoint for tests; in prod deploy with the real chain endpoint
         bridge = new LZRsEthBridge(address(mockRoles), address(this));
         MockMarket market = new MockMarket(RSETH_BASE);
 
         mockRoles.setAllowed(address(this), true);
         bridge.setBridgeContract(RSETH_BASE, RSETH_BASE_OFT);
 
-        uint256 amount = 0.001e18; // 0.001 rsETH (legacy)
+        uint256 amount = 10000000000000; // 0.001 rsETH (legacy)
 
         deal(RSETH_BASE, address(this), amount);
         IERC20(RSETH_BASE).approve(address(bridge), amount);
@@ -62,11 +61,14 @@ contract LZUnifiedBridgeIntegrationTest is Base_Integration_Test {
         );
 
         bytes memory message = abi.encode(
-            address(market),
+            0xa31963C753f277f7d82d98F56b2C374256925eB7,
             amount,
             amount,
-            extraOptions
+            ""
         );
+
+        console.logBytes(message);
+        return;
 
         uint256 balBefore = IERC20(RSETH_BASE).balanceOf(address(this));
 

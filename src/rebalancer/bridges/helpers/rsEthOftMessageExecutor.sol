@@ -36,14 +36,14 @@ contract rsEthOftMessageExecutor is BaseOftMessageExecutor {
         _pullFromRebalancer(underlying, params.amountLD, rebalancer);
 
         if (bridgeContract != underlying) {
-            try ILayerZeroOFTWrapper(bridgeContract).allowedTokens(underlying) returns (bool ok) {
+            try ILayerZeroOFTWrapper(underlying).allowedTokens(bridgeContract) returns (bool ok) {
                 if (!ok) revert Executor_DifferentInnerToken();
             } catch {
                 revert Executor_NoOft();
             }
 
             _approve(underlying, bridgeContract, params.amountLD);
-            ILayerZeroOFTWrapper(bridgeContract).deposit(underlying, params.amountLD);
+            ILayerZeroOFTWrapper(underlying).withdraw(bridgeContract, params.amountLD);
 
             _verifyMinted(bridgeContract, params.amountLD);
         }

@@ -94,7 +94,8 @@ abstract contract BaseOftMessageExecutor is IOftMessageExecutor {
         uint256 oftBal = IERC20(bridgeContract).balanceOf(address(this));
         if (oftBal == 0) return;
 
-        ILayerZeroOFTWrapper(bridgeContract).withdraw(underlying, oftBal);
+        _approve(bridgeContract, underlying, oftBal);
+        ILayerZeroOFTWrapper(underlying).deposit(bridgeContract, oftBal);
 
         uint256 uBal = IERC20(underlying).balanceOf(address(this));
         IERC20(underlying).safeTransfer(market, uBal);
