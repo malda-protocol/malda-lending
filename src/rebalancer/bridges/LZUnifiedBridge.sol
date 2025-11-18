@@ -19,7 +19,7 @@ import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {IOftMessageExecutor} from "src/interfaces/IOftMessageExecutor.sol";
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 
-contract LZUnifiedBridgeV2 is BaseBridge, IBridge {
+contract LZUnifiedBridge is BaseBridge, IBridge {
     using SafeERC20 for IERC20;
 
     address public immutable endpoint;
@@ -43,7 +43,6 @@ contract LZUnifiedBridgeV2 is BaseBridge, IBridge {
     event MsgSent(
         uint32 indexed dstChainId, address indexed market, uint256 amountLD, uint256 minAmountLD, bytes32 guid
     );
-
     event BridgeContractSet(address indexed underlying, address indexed bridgeContract);
     event OftExecutorSet(address indexed underlying, address indexed executor);
 

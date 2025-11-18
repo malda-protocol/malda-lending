@@ -2,7 +2,7 @@
 pragma solidity =0.8.28;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {LZUnifiedBridgeV2} from "src/rebalancer/bridges/LZUnifiedBridgeV2.sol";
+import {LZUnifiedBridge} from "src/rebalancer/bridges/LZUnifiedBridge.sol";
 import {Base_Integration_Test} from "../Base_Integration_Test.t.sol";
 import {weEthOftMessageExecutor} from "src/rebalancer/bridges/helpers/weEthOftMessageExecutor.sol";
 import {MockRoles} from "test/mocks/MockRoles.sol";
@@ -17,7 +17,7 @@ contract MockMarket {
 }
 
 contract LZUnifiedBridgeIntegrationTest is Base_Integration_Test {
-    LZUnifiedBridgeV2 bridge;
+    LZUnifiedBridge bridge;
     MockRoles mockRoles;
     weEthOftMessageExecutor executor;
 
@@ -45,7 +45,7 @@ contract LZUnifiedBridgeIntegrationTest is Base_Integration_Test {
     function test_LineaToBase_weETH_SendFrom() external {
         vm.selectFork(lineaFork);
         mockRoles = new MockRoles();
-        bridge = new LZUnifiedBridgeV2(address(mockRoles), address(this));
+        bridge = new LZUnifiedBridge(address(mockRoles), address(this));
         MockMarket market = new MockMarket(WEETH_LINEA);
         executor = new weEthOftMessageExecutor();
 
@@ -92,7 +92,7 @@ contract LZUnifiedBridgeIntegrationTest is Base_Integration_Test {
         // vm.etch(lzEndpoint, stub);
 
         mockRoles = new MockRoles();
-        bridge = new LZUnifiedBridgeV2(address(mockRoles), address(this));
+        bridge = new LZUnifiedBridge(address(mockRoles), address(this));
         MockMarket market = new MockMarket(WEETH_BASE);
         executor = new weEthOftMessageExecutor();
 
@@ -130,7 +130,7 @@ contract LZUnifiedBridgeIntegrationTest is Base_Integration_Test {
     function test_EthToLinea_weETH_SendFrom() external {
         vm.selectFork(ethFork);
         mockRoles = new MockRoles();
-        bridge = new LZUnifiedBridgeV2(address(mockRoles), address(this));
+        bridge = new LZUnifiedBridge(address(mockRoles), address(this));
         MockMarket market = new MockMarket(WEETH_ETH);
         executor = new weEthOftMessageExecutor();
 

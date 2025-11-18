@@ -20,7 +20,7 @@ import {SafeApprove} from "src/libraries/SafeApprove.sol";
 
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 
-contract LZUnifiedBridge is BaseBridge, IBridge {
+contract LZUnifiedBridge_Deprecated is BaseBridge, IBridge {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE ------------
