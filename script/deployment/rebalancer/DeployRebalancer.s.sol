@@ -16,21 +16,22 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployRebalancer is Script {
-    function run(address roles, address saveAddress, address admin, Deployer deployer) public returns (address) {
-        //function run() public returns (address) {
+    //function run() public returns (address) {
+    function run(address roles, address saveAddress, address admin, Deployer deployer, bytes memory initData) public returns (address) {
         uint256 key = vm.envUint("PRIVATE_KEY");
-        bytes32 salt = getSalt("RebalancerV1.0");
+        bytes32 salt = getSalt("RebalancerV1.0.5");
 
-        //address roles = 0x3dc52279175EE96b6A60f6870ec4DfA417c916E3;
-        //address saveAddress = 0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00;
-        //Deployer deployer = Deployer(payable(0x7775C52aeA3780944aE69b389c23c9de325ce29B));
+        // address roles = 0xB97bB519743A5096505E4d3e6507a189Fa2B39f9;
+        // address saveAddress = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
+        // Deployer deployer = Deployer(payable(0x8F91616F05b3D74A8Ae56e43C585F0972Ccb91Df));
+        // address admin = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
 
         address created = deployer.precompute(salt);
         // Deploy only if not already deployed
         if (created.code.length == 0) {
             vm.startBroadcast(key);
             created =
-                deployer.create(salt, abi.encodePacked(type(Rebalancer).creationCode, abi.encode(roles, saveAddress, admin)));
+                deployer.create(salt, abi.encodePacked(type(Rebalancer).creationCode, abi.encode(roles, saveAddress, admin, initData)));
             vm.stopBroadcast();
             console.log("Rebalancer deployed at:", created);
         } else {

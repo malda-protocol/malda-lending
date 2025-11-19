@@ -16,16 +16,37 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployEverclearBridge is Script {
-    function run(address roles, address feeAdapter, Deployer deployer) public returns (address) {
-        bytes32 salt = getSalt("EverclearBridgeV1.0");
+    //function run(address roles, address feeAdapter, Deployer deployer) public returns (address) {
+    function run() public returns (address) {
+        bytes32 salt = getSalt("EverclearBridgeV1.0.5");
 
+         Deployer deployer = Deployer(payable(0x8F91616F05b3D74A8Ae56e43C585F0972Ccb91Df));
+         address roles = 0xB97bB519743A5096505E4d3e6507a189Fa2B39f9;
+         address feeAdapter = 0xd0185bfb8107c5b2336bC73cE3fdd9Bfb504540e;
+        
         address created = deployer.precompute(salt);
+
+        
         // Deploy only if not already deployed
         if (created.code.length == 0) {
-            vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
-            created =
-                deployer.create(salt, abi.encodePacked(type(EverclearBridge).creationCode, abi.encode(roles, feeAdapter)));
-            vm.stopBroadcast();
+
+            bytes memory creationCode = abi.encodePacked(
+                type(EverclearBridge).creationCode,
+                abi.encode(roles, feeAdapter)
+            );
+
+            bytes memory data = abi.encodeWithSelector(
+                deployer.create.selector,
+                salt,
+                creationCode
+            );
+
+            console.log("========================================");
+            console.log("To (Deployer):", address(deployer));
+            console.log("Value: 0");
+            console.log("Data (Deployer.create):");
+            console.logBytes(data);
+            console.log("========================================");
 
             console.log(" EverclearBridge deployed at: %s", created);
         } else {

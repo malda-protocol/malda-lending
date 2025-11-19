@@ -54,13 +54,25 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         uint256 timestamp;
     }
 
+    struct InitInfo {
+        BridgeTokens[] bridgeTokens;
+        address[] markets;
+        address[] bridges;
+        uint32[] destinations;
+    }
+
+    struct BridgeTokens {
+        address bridge;
+        address[] tokens;
+    }
+
     mapping(uint32 => mapping(address => uint256)) public maxTransferSizes;
     mapping(uint32 => mapping(address => uint256)) public minTransferSizes;
     mapping(uint32 => mapping(address => TransferInfo)) public currentTransferSize;
     mapping(address => bool) public whitelistedMarkets;
     uint256 public transferTimeWindow;
 
-    constructor(address _roles, address _saveAddress, address _admin) {
+    constructor(address _roles, address _saveAddress, address _admin, bytes memory initData) {
         require(_roles != address(0), Rebalancer_AddressNotValid());
         require(_saveAddress != address(0), Rebalancer_AddressNotValid());
         require(_admin != address(0), Rebalancer_AddressNotValid());
@@ -69,6 +81,33 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         transferTimeWindow = 86400;
         saveAddress = _saveAddress;
         admin = _admin;
+
+        if (initData.length > 0) {
+            InitInfo memory info = abi.decode(initData, (InitInfo));
+            
+            if (info.markets.length > 0) {
+                _setMarketStatus(info.markets, true);
+                _setAllowList(info.markets, true);
+            }
+
+            if (info.bridges.length > 0) {
+                for (uint256 i; i < info.bridges.length; ++i) {
+                    _setWhitelistedBridgeStatus(info.bridges[i], true);
+                }
+            }
+
+            if (info.destinations.length > 0) {
+                for (uint256 i; i < info.destinations.length; ++i) {
+                    _setWhitelistedDestination(info.destinations[i], true);
+                }
+            }
+
+            if (info.bridgeTokens.length > 0) {
+                for (uint256 i; i < info.bridgeTokens.length; ++i) {
+                    _setAllowedTokens(info.bridgeTokens[i].bridge, info.bridgeTokens[i].tokens, true);
+                }
+            }
+        }
     }
 
     // ----------- OWNER METHODS ------------
@@ -93,45 +132,29 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
     function setAllowedTokens(address bridge, address[] memory tokens, bool status) external onlyFirewallApprovedAllowEOA {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
 
-        uint256 len = tokens.length;
-        for (uint256 i; i < len; i++) {
-            allowedTokensPerBridge[bridge][tokens[i]] = status;
-        }
-        emit AllowedTokensUpdated(bridge, status, tokens);
+        _setAllowedTokens(bridge, tokens, status);
     }
 
-    function setMarketStatus(address[] calldata list, bool status) external onlyFirewallApprovedAllowEOA {
+    function setMarketStatus(address[] memory list, bool status) public onlyFirewallApprovedAllowEOA {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
 
-        uint256 len = list.length;
-        for (uint256 i; i < len; i++) {
-            whitelistedMarkets[list[i]] = status;
-        }
-        emit MarketListUpdated(list, status);
-
+        _setMarketStatus(list, status);
     }
 
-    function setAllowList(address[] calldata list, bool status) external onlyFirewallApprovedAllowEOA {
+    function setAllowList(address[] memory list, bool status) external onlyFirewallApprovedAllowEOA {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
 
-        uint256 len = list.length;
-        for (uint256 i; i < len; i++) {
-            allowedList[list[i]] = status;
-        }
-        emit AllowedListUpdated(list, status);
+        _setAllowList(list, status);
     }
 
     function setWhitelistedBridgeStatus(address _bridge, bool _status) external onlyFirewallApprovedAllowEOA {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
-        require(_bridge != address(0), Rebalancer_AddressNotValid());
-        whitelistedBridges[_bridge] = _status;
-        emit BridgeWhitelistedStatusUpdated(_bridge, _status);
+        _setWhitelistedBridgeStatus(_bridge, _status);
     }
 
     function setWhitelistedDestination(uint32 _dstId, bool _status) external onlyFirewallApprovedAllowEOA {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
-        emit DestinationWhitelistedStatusUpdated(_dstId, _status);
-        whitelistedDestinations[_dstId] = _status;
+        _setWhitelistedDestination(_dstId, _status);
     }
 
     function saveEth() external onlyFirewallApprovedAllowEOA {
@@ -236,6 +259,7 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         emit MsgSent(_bridge, _msg.dstChainId, _msg.token, _msg.message, _msg.bridgeData);
     }
 
+    // ----------- INTERNAL METHODS ------------
     function _sendMsgPreChecks(address _bridge, address _market, uint256 _amount, Msg calldata _msg) internal {
          // checks
         if (!roles.isAllowedFor(msg.sender, roles.REBALANCER_EOA())) revert Rebalancer_NotAuthorized();
@@ -247,5 +271,40 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
 
         // min transfer size check
         require(_amount > minTransferSizes[_msg.dstChainId][_msg.token], Rebalancer_TransferSizeMinNotMet());
+    }
+
+     function _setMarketStatus(address[] memory list, bool status) internal {
+        uint256 len = list.length;
+        for (uint256 i; i < len; i++) {
+            whitelistedMarkets[list[i]] = status;
+        }
+        emit MarketListUpdated(list, status);
+    }
+
+    function _setAllowList(address[] memory list, bool status) internal {
+        uint256 len = list.length;
+        for (uint256 i; i < len; i++) {
+            allowedList[list[i]] = status;
+        }
+        emit AllowedListUpdated(list, status);
+    }
+
+    function _setWhitelistedBridgeStatus(address _bridge, bool _status) internal {
+        require(_bridge != address(0), Rebalancer_AddressNotValid());
+        whitelistedBridges[_bridge] = _status;
+        emit BridgeWhitelistedStatusUpdated(_bridge, _status);
+    }
+
+    function _setWhitelistedDestination(uint32 _dstId, bool _status) internal {
+        emit DestinationWhitelistedStatusUpdated(_dstId, _status);
+        whitelistedDestinations[_dstId] = _status;
+    }
+
+    function _setAllowedTokens(address bridge, address[] memory tokens, bool status) internal {
+        uint256 len = tokens.length;
+        for (uint256 i; i < len; i++) {
+            allowedTokensPerBridge[bridge][tokens[i]] = status;
+        }
+        emit AllowedTokensUpdated(bridge, status, tokens);
     }
 }
