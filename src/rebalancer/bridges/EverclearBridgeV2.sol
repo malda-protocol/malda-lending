@@ -118,7 +118,7 @@ contract EverclearBridgeV2 is BaseBridge, IBridge {
     }
 
     // ----------- ADMIN ------------
-        function setEverclearFeeAdapter(address _feeAdapter) external onlyBridgeConfigurator {
+    function setEverclearFeeAdapter(address _feeAdapter) external onlyBridgeConfigurator {
         if (_feeAdapter == address(0)) revert Everclear_AddressNotValid();
         address old = address(everclearFeeAdapter);
         everclearFeeAdapter = IFeeAdapterV2(_feeAdapter);
