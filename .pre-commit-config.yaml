@@ -1,0 +1,37 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: mixed-line-ending
+        name: Mixed Line Ending (convert to LF)
+        args: ["--fix=lf"]
+        description: Forces to replace line ending by the UNIX 'lf' character.
+        exclude: "^docs/"
+
+  - repo: local
+    hooks:
+      - id: format
+        name: Format Solidity code
+        description: Format solidity code with `make lint`
+        language: system
+        entry: make lint
+        exclude: "^lib/"
+        types: [solidity]
+        pass_filenames: false
+
+      - id: slither
+        name: Run Slither
+        description: Run Slither with `make slither`
+        language: system
+        entry: make slither
+        exclude: "^lib/|^test/|^script/|^docs/"
+        types: [solidity]
+        pass_filenames: false
+
+      - id: test
+        name: Run tests
+        description: Run tests with `make test`
+        language: system
+        entry: make test
+        types: [solidity]
+        pass_filenames: false
