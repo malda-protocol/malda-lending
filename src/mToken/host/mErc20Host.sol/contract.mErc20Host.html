@@ -180,33 +180,45 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="merc20host"><a class="header" href="#merc20host">mErc20Host</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/5664a100133f18c2b3d0a941535dbf61809faeef/src/mToken/host/mErc20Host.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ccecbab9a15e069e6b0d9dc3aeebd0c797006f08/src/mToken/host/mErc20Host.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/mToken/mErc20Upgradable.sol/abstract.mErc20Upgradable.html">mErc20Upgradable</a>, <a href="/src/interfaces/ImErc20Host.sol/interface.ImErc20Host.html">ImErc20Host</a>, <a href="/src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.html">ImTokenOperationTypes</a></p>
+<p><strong>Title:</strong>
+mErc20Host</p>
+<p><strong>Author:</strong>
+Merge Layers Inc.</p>
+<p>Host contract for mErc20 tokens</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
+<h3 id="acc"><a class="header" href="#acc">acc</a></h3>
+<p>Mapping of chain IDs to accumulated amounts</p>
+<pre><code class="language-solidity">mapping(uint32 chainId =&gt; Accumulated accumulated) internal acc
+</code></pre>
+<h3 id="allowedcallers"><a class="header" href="#allowedcallers">allowedCallers</a></h3>
+<p>Mapping of allowed callers</p>
+<pre><code class="language-solidity">mapping(address caller =&gt; mapping(address target =&gt; bool allowed)) public allowedCallers
+</code></pre>
+<h3 id="allowedchains"><a class="header" href="#allowedchains">allowedChains</a></h3>
+<p>Mapping of allowed chains</p>
+<pre><code class="language-solidity">mapping(uint32 chainId =&gt; bool allowed) public allowedChains
+</code></pre>
+<h3 id="verifier"><a class="header" href="#verifier">verifier</a></h3>
+<p>The ZkVerifier contract</p>
+<pre><code class="language-solidity">IZkVerifier public verifier
+</code></pre>
+<h3 id="gashelper"><a class="header" href="#gashelper">gasHelper</a></h3>
+<p>The gas fees helper contract</p>
+<pre><code class="language-solidity">IGasFeesHelper public gasHelper
+</code></pre>
 <h3 id="migrator"><a class="header" href="#migrator">migrator</a></h3>
+<p>Migrator address</p>
 <pre><code class="language-solidity">address public migrator
 </code></pre>
 <h3 id="__gap"><a class="header" href="#__gap">__gap</a></h3>
 <pre><code class="language-solidity">uint256[50] private __gap
 </code></pre>
-<h3 id="acc"><a class="header" href="#acc">acc</a></h3>
-<pre><code class="language-solidity">mapping(uint32 =&gt; Accumulated) internal acc
-</code></pre>
-<h3 id="allowedcallers"><a class="header" href="#allowedcallers">allowedCallers</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; mapping(address =&gt; bool)) public allowedCallers
-</code></pre>
-<h3 id="allowedchains"><a class="header" href="#allowedchains">allowedChains</a></h3>
-<pre><code class="language-solidity">mapping(uint32 =&gt; bool) public allowedChains
-</code></pre>
-<h3 id="verifier"><a class="header" href="#verifier">verifier</a></h3>
-<pre><code class="language-solidity">IZkVerifier public verifier
-</code></pre>
-<h3 id="gashelper"><a class="header" href="#gashelper">gasHelper</a></h3>
-<pre><code class="language-solidity">IGasFeesHelper public gasHelper
-</code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="onlymigrator"><a class="header" href="#onlymigrator">onlyMigrator</a></h3>
+<p>Modifier to restrict access to migrator only</p>
 <pre><code class="language-solidity">modifier onlyMigrator() ;
 </code></pre>
 <h3 id="initialize"><a class="header" href="#initialize">initialize</a></h3>
@@ -216,6 +228,7 @@
     address operator_,
     address interestRateModel_,
     uint256 initialExchangeRateMantissa_,
+    // note: these have to remain as 'memory' to avoid stack-depth issues
     string memory name_,
     string memory symbol_,
     uint8 decimals_,
@@ -235,13 +248,9 @@
 <tr><td><code>decimals_</code></td><td><code>uint8</code></td><td>ERC-20 decimal precision of this token</td></tr>
 <tr><td><code>admin_</code></td><td><code>address payable</code></td><td>Address of the administrator of this token</td></tr>
 <tr><td><code>zkVerifier_</code></td><td><code>address</code></td><td>The IZkVerifier address</td></tr>
-<tr><td><code>roles_</code></td><td><code>address</code></td><td></td></tr>
+<tr><td><code>roles_</code></td><td><code>address</code></td><td>The IRoles address</td></tr>
 </tbody></table>
 </div>
-<h3 id="getproofdata"><a class="header" href="#getproofdata">getProofData</a></h3>
-<p>Returns the proof data journal</p>
-<pre><code class="language-solidity">function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
-</code></pre>
 <h3 id="updateallowedchain"><a class="header" href="#updateallowedchain">updateAllowedChain</a></h3>
 <p>Updates an allowed chain status</p>
 <pre><code class="language-solidity">function updateAllowedChain(uint32 _chainId, bool status_) external;
@@ -390,43 +399,24 @@
 <tr><td><code>minAmount</code></td><td><code>uint256</code></td><td>The min amount of underlying to be accounted for</td></tr>
 </tbody></table>
 </div>
-<h3 id="_onlyadminorrole"><a class="header" href="#_onlyadminorrole">_onlyAdminOrRole</a></h3>
-<pre><code class="language-solidity">function _onlyAdminOrRole(bytes32 _role) internal view;
+<h3 id="getproofdata"><a class="header" href="#getproofdata">getProofData</a></h3>
+<p>Returns the proof data journal</p>
+<pre><code class="language-solidity">function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
 </code></pre>
-<h3 id="_decodejournals"><a class="header" href="#_decodejournals">_decodeJournals</a></h3>
-<pre><code class="language-solidity">function _decodeJournals(bytes calldata data) internal pure returns (bytes[] memory);
-</code></pre>
-<h3 id="_checkoutflow"><a class="header" href="#_checkoutflow">_checkOutflow</a></h3>
-<pre><code class="language-solidity">function _checkOutflow(uint256 amount) internal;
-</code></pre>
-<h3 id="_checkproofcall"><a class="header" href="#_checkproofcall">_checkProofCall</a></h3>
-<pre><code class="language-solidity">function _checkProofCall(uint32 dstChainId, uint32 chainId, address market, address sender) internal view;
-</code></pre>
-<h3 id="_checksender"><a class="header" href="#_checksender">_checkSender</a></h3>
-<pre><code class="language-solidity">function _checkSender(address msgSender, address srcSender) internal view;
-</code></pre>
-<h3 id="_getgasfees"><a class="header" href="#_getgasfees">_getGasFees</a></h3>
-<pre><code class="language-solidity">function _getGasFees(uint32 dstChain) internal view returns (uint256);
-</code></pre>
-<h3 id="_isallowedfor"><a class="header" href="#_isallowedfor">_isAllowedFor</a></h3>
-<pre><code class="language-solidity">function _isAllowedFor(address _sender, bytes32 role) internal view returns (bool);
-</code></pre>
-<h3 id="_getchainsmanagerrole"><a class="header" href="#_getchainsmanagerrole">_getChainsManagerRole</a></h3>
-<pre><code class="language-solidity">function _getChainsManagerRole() internal view returns (bytes32);
-</code></pre>
-<h3 id="_getproofforwarderrole"><a class="header" href="#_getproofforwarderrole">_getProofForwarderRole</a></h3>
-<pre><code class="language-solidity">function _getProofForwarderRole() internal view returns (bytes32);
-</code></pre>
-<h3 id="_getbatchproofforwarderrole"><a class="header" href="#_getbatchproofforwarderrole">_getBatchProofForwarderRole</a></h3>
-<pre><code class="language-solidity">function _getBatchProofForwarderRole() internal view returns (bytes32);
-</code></pre>
-<h3 id="_getsequencerrole"><a class="header" href="#_getsequencerrole">_getSequencerRole</a></h3>
-<pre><code class="language-solidity">function _getSequencerRole() internal view returns (bytes32);
-</code></pre>
-<h3 id="_verifyproof"><a class="header" href="#_verifyproof">_verifyProof</a></h3>
-<pre><code class="language-solidity">function _verifyProof(bytes calldata journalData, bytes calldata seal) internal view;
-</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>user</code></td><td><code>address</code></td><td>The user address for the proof</td></tr>
+<tr><td><code>dstId</code></td><td><code>uint32</code></td><td>The destination chain identifier</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>dataRoot The proof data root</td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>journalHash The proof journal hash</td></tr>
+</tbody></table>
+</div>
 <h3 id="_liquidateexternal"><a class="header" href="#_liquidateexternal">_liquidateExternal</a></h3>
+<p>Processes a single liquidateExternal call from decoded journal</p>
 <pre><code class="language-solidity">function _liquidateExternal(
     bytes memory singleJournal,
     address userToLiquidate,
@@ -435,18 +425,160 @@
     address receiver
 ) internal;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>singleJournal</code></td><td><code>bytes</code></td><td>Encoded journal entry</td></tr>
+<tr><td><code>userToLiquidate</code></td><td><code>address</code></td><td>Account to be liquidated</td></tr>
+<tr><td><code>liquidateAmount</code></td><td><code>uint256</code></td><td>Amount to liquidate</td></tr>
+<tr><td><code>collateral</code></td><td><code>address</code></td><td>Collateral address to seize</td></tr>
+<tr><td><code>receiver</code></td><td><code>address</code></td><td>Receiver of seized collateral</td></tr>
+</tbody></table>
+</div>
 <h3 id="_mintexternal"><a class="header" href="#_mintexternal">_mintExternal</a></h3>
+<p>Processes a single mintExternal call from decoded journal</p>
 <pre><code class="language-solidity">function _mintExternal(bytes memory singleJournal, uint256 mintAmount, uint256 minAmountOut, address receiver)
     internal;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>singleJournal</code></td><td><code>bytes</code></td><td>Encoded journal entry</td></tr>
+<tr><td><code>mintAmount</code></td><td><code>uint256</code></td><td>Amount to mint</td></tr>
+<tr><td><code>minAmountOut</code></td><td><code>uint256</code></td><td>Minimum amount out allowed</td></tr>
+<tr><td><code>receiver</code></td><td><code>address</code></td><td>Receiver address</td></tr>
+</tbody></table>
+</div>
 <h3 id="_repayexternal"><a class="header" href="#_repayexternal">_repayExternal</a></h3>
+<p>Processes a single repayExternal call from decoded journal</p>
 <pre><code class="language-solidity">function _repayExternal(bytes memory singleJournal, uint256 repayAmount, address receiver) internal;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>singleJournal</code></td><td><code>bytes</code></td><td>Encoded journal entry</td></tr>
+<tr><td><code>repayAmount</code></td><td><code>uint256</code></td><td>Amount to repay</td></tr>
+<tr><td><code>receiver</code></td><td><code>address</code></td><td>Receiver address</td></tr>
+</tbody></table>
+</div>
+<h3 id="_checkoutflow"><a class="header" href="#_checkoutflow">_checkOutflow</a></h3>
+<p>Validates outflow limits via defender</p>
+<pre><code class="language-solidity">function _checkOutflow(uint256 amount) internal;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>Amount to check</td></tr>
+</tbody></table>
+</div>
+<h3 id="_onlyadminorrole"><a class="header" href="#_onlyadminorrole">_onlyAdminOrRole</a></h3>
+<p>Ensures caller is admin or has specific role</p>
+<pre><code class="language-solidity">function _onlyAdminOrRole(bytes32 _role) internal view;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_role</code></td><td><code>bytes32</code></td><td>Role identifier to check</td></tr>
+</tbody></table>
+</div>
+<h3 id="_checkproofcall"><a class="header" href="#_checkproofcall">_checkProofCall</a></h3>
+<p>Performs basic proof call checks</p>
+<pre><code class="language-solidity">function _checkProofCall(uint32 dstChainId, uint32 chainId, address market, address sender) internal view;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>dstChainId</code></td><td><code>uint32</code></td><td>Destination chain id</td></tr>
+<tr><td><code>chainId</code></td><td><code>uint32</code></td><td>Source chain id</td></tr>
+<tr><td><code>market</code></td><td><code>address</code></td><td>Market address encoded in proof</td></tr>
+<tr><td><code>sender</code></td><td><code>address</code></td><td>Sender extracted from proof</td></tr>
+</tbody></table>
+</div>
+<h3 id="_checksender"><a class="header" href="#_checksender">_checkSender</a></h3>
+<p>Ensures message sender matches source sender or has permission</p>
+<pre><code class="language-solidity">function _checkSender(address msgSender, address srcSender) internal view;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>msgSender</code></td><td><code>address</code></td><td>The current msg.sender</td></tr>
+<tr><td><code>srcSender</code></td><td><code>address</code></td><td>Sender encoded in proof</td></tr>
+</tbody></table>
+</div>
+<h3 id="_isallowedfor"><a class="header" href="#_isallowedfor">_isAllowedFor</a></h3>
+<p>Checks if sender has specified role</p>
+<pre><code class="language-solidity">function _isAllowedFor(address _sender, bytes32 role) internal view returns (bool);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_sender</code></td><td><code>address</code></td><td>Address to check</td></tr>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>Role identifier</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>True if allowed</td></tr>
+</tbody></table>
+</div>
+<h3 id="_getchainsmanagerrole"><a class="header" href="#_getchainsmanagerrole">_getChainsManagerRole</a></h3>
+<p>Retrieves chains manager role id</p>
+<pre><code class="language-solidity">function _getChainsManagerRole() internal view returns (bytes32);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bytes32</code></td><td>Role identifier</td></tr>
+</tbody></table>
+</div>
+<h3 id="_getproofforwarderrole"><a class="header" href="#_getproofforwarderrole">_getProofForwarderRole</a></h3>
+<p>Retrieves proof forwarder role id</p>
+<pre><code class="language-solidity">function _getProofForwarderRole() internal view returns (bytes32);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bytes32</code></td><td>Role identifier</td></tr>
+</tbody></table>
+</div>
+<h3 id="_getbatchproofforwarderrole"><a class="header" href="#_getbatchproofforwarderrole">_getBatchProofForwarderRole</a></h3>
+<p>Retrieves batch proof forwarder role id</p>
+<pre><code class="language-solidity">function _getBatchProofForwarderRole() internal view returns (bytes32);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bytes32</code></td><td>Role identifier</td></tr>
+</tbody></table>
+</div>
+<h3 id="_getsequencerrole"><a class="header" href="#_getsequencerrole">_getSequencerRole</a></h3>
+<p>Retrieves sequencer role id</p>
+<pre><code class="language-solidity">function _getSequencerRole() internal view returns (bytes32);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bytes32</code></td><td>Role identifier</td></tr>
+</tbody></table>
+</div>
+<h3 id="_verifyproof"><a class="header" href="#_verifyproof">_verifyProof</a></h3>
+<p>Verifies proof data and checks inclusion constraints</p>
+<pre><code class="language-solidity">function _verifyProof(bytes calldata journalData, bytes calldata seal) internal view;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>journalData</code></td><td><code>bytes</code></td><td>Encoded journal data</td></tr>
+<tr><td><code>seal</code></td><td><code>bytes</code></td><td>Zk proof seal</td></tr>
+</tbody></table>
+</div>
+<h3 id="_decodejournals"><a class="header" href="#_decodejournals">_decodeJournals</a></h3>
+<p>Decodes encoded journals data</p>
+<pre><code class="language-solidity">function _decodeJournals(bytes calldata data) internal pure returns (bytes[] memory);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>data</code></td><td><code>bytes</code></td><td>Encoded journal data</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bytes[]</code></td><td>Decoded journals array</td></tr>
+</tbody></table>
+</div>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
 <h3 id="accumulated"><a class="header" href="#accumulated">Accumulated</a></h3>
+<p>Struct for accumulated amounts per chain</p>
 <pre><code class="language-solidity">struct Accumulated {
-    mapping(address =&gt; uint256) inPerChain;
-    mapping(address =&gt; uint256) outPerChain;
+    mapping(address chain =&gt; uint256 amount) inPerChain;
+    mapping(address chain =&gt; uint256 amount) outPerChain;
 }
 </code></pre>
 

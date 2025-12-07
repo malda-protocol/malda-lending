@@ -180,46 +180,141 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="migrator"><a class="header" href="#migrator">Migrator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/5664a100133f18c2b3d0a941535dbf61809faeef/src/migration/Migrator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ccecbab9a15e069e6b0d9dc3aeebd0c797006f08/src/migration/Migrator.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a></p>
+<p><strong>Title:</strong>
+Migrator</p>
+<p><strong>Author:</strong>
+Merge Layers Inc.</p>
+<p>Contract for migrating positions from Mendi to Malda</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
-<h3 id="allowedmarkets"><a class="header" href="#allowedmarkets">allowedMarkets</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; bool) public allowedMarkets
-</code></pre>
 <h3 id="mendi_comptroller"><a class="header" href="#mendi_comptroller">MENDI_COMPTROLLER</a></h3>
+<p>Mendi Comptroller address</p>
 <pre><code class="language-solidity">address public constant MENDI_COMPTROLLER = 0x1b4d3b0421dDc1eB216D230Bc01527422Fb93103
 </code></pre>
 <h3 id="malda_operator"><a class="header" href="#malda_operator">MALDA_OPERATOR</a></h3>
+<p>Malda Operator address</p>
 <pre><code class="language-solidity">address public immutable MALDA_OPERATOR
+</code></pre>
+<h3 id="allowedmarkets"><a class="header" href="#allowedmarkets">allowedMarkets</a></h3>
+<p>Mapping of allowed markets</p>
+<pre><code class="language-solidity">mapping(address market =&gt; bool allowed) public allowedMarkets
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
+<p>Initializes the migrator with the operator address</p>
 <pre><code class="language-solidity">constructor(address _operator) ;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_operator</code></td><td><code>address</code></td><td>Address of the Malda operator</td></tr>
+</tbody></table>
+</div>
+<h3 id="getallpositions"><a class="header" href="#getallpositions">getAllPositions</a></h3>
+<p>Get all <code>migratable</code> positions from Mendi to Malda for <code>user</code></p>
+<pre><code class="language-solidity">function getAllPositions(address user) external returns (Position[] memory positions);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>user</code></td><td><code>address</code></td><td>The user address</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>positions</code></td><td><code>Position[]</code></td><td>Array of positions</td></tr>
+</tbody></table>
+</div>
+<h3 id="migrateallpositions"><a class="header" href="#migrateallpositions">migrateAllPositions</a></h3>
+<p>Migrates all positions from Mendi to Malda</p>
+<pre><code class="language-solidity">function migrateAllPositions() external;
 </code></pre>
 <h3 id="getallcollateralmarkets"><a class="header" href="#getallcollateralmarkets">getAllCollateralMarkets</a></h3>
 <p>Get all markets where <code>user</code> has collateral in on Mendi</p>
 <pre><code class="language-solidity">function getAllCollateralMarkets(address user) external view returns (address[] memory markets);
 </code></pre>
-<h3 id="getallpositions"><a class="header" href="#getallpositions">getAllPositions</a></h3>
-<p>Get all <code>migratable</code> positions from Mendi to Malda for <code>user</code></p>
-<pre><code class="language-solidity">function getAllPositions(address user) external returns (Position[] memory positions);
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>user</code></td><td><code>address</code></td><td>The user address</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>markets</code></td><td><code>address[]</code></td><td>Array of market addresses</td></tr>
+</tbody></table>
+</div>
+<h3 id="_mintall"><a class="header" href="#_mintall">_mintAll</a></h3>
+<p>Mints in v2 markets for all positions with collateral</p>
+<pre><code class="language-solidity">function _mintAll(Position[] memory positions) private;
 </code></pre>
-<h3 id="migrateallpositions"><a class="header" href="#migrateallpositions">migrateAllPositions</a></h3>
-<p>Migrates all positions from Mendi to Malda</p>
-<pre><code class="language-solidity">function migrateAllPositions() external;
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>positions</code></td><td><code>Position[]</code></td><td>Positions to process</td></tr>
+</tbody></table>
+</div>
+<h3 id="_borrowall"><a class="header" href="#_borrowall">_borrowAll</a></h3>
+<p>Borrows in v2 markets for all positions requiring debt</p>
+<pre><code class="language-solidity">function _borrowAll(Position[] memory positions) private;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>positions</code></td><td><code>Position[]</code></td><td>Positions to process</td></tr>
+</tbody></table>
+</div>
+<h3 id="_repayall"><a class="header" href="#_repayall">_repayAll</a></h3>
+<p>Repays debts in v1 markets for all positions</p>
+<pre><code class="language-solidity">function _repayAll(Position[] memory positions) private;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>positions</code></td><td><code>Position[]</code></td><td>Positions to process</td></tr>
+</tbody></table>
+</div>
+<h3 id="_withdrawall"><a class="header" href="#_withdrawall">_withdrawAll</a></h3>
+<p>Withdraws collateral from v1 and transfers to v2 for all positions</p>
+<pre><code class="language-solidity">function _withdrawAll(Position[] memory positions) private;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>positions</code></td><td><code>Position[]</code></td><td>Positions to process</td></tr>
+</tbody></table>
+</div>
 <h3 id="_collectmendipositions"><a class="header" href="#_collectmendipositions">_collectMendiPositions</a></h3>
 <p>Collects all user positions from Mendi</p>
 <pre><code class="language-solidity">function _collectMendiPositions(address user) private returns (Position[] memory);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>user</code></td><td><code>address</code></td><td>The user address</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>Position[]</code></td><td>Array of positions</td></tr>
+</tbody></table>
+</div>
 <h3 id="_getmaldamarket"><a class="header" href="#_getmaldamarket">_getMaldaMarket</a></h3>
 <p>Gets corresponding Malda market for a given underlying</p>
 <pre><code class="language-solidity">function _getMaldaMarket(address underlying) private view returns (address);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>underlying</code></td><td><code>address</code></td><td>The underlying token address</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>address</code></td><td>The Malda market address</td></tr>
+</tbody></table>
+</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="migrator_addressnotvalid"><a class="header" href="#migrator_addressnotvalid">Migrator_AddressNotValid</a></h3>
+<p>Error thrown when address is not valid</p>
 <pre><code class="language-solidity">error Migrator_AddressNotValid();
+</code></pre>
+<h3 id="migrator_redeemamountnotvalid"><a class="header" href="#migrator_redeemamountnotvalid">Migrator_RedeemAmountNotValid</a></h3>
+<p>Error thrown when redeem amount is not valid</p>
+<pre><code class="language-solidity">error Migrator_RedeemAmountNotValid();
 </code></pre>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
 <h3 id="position"><a class="header" href="#position">Position</a></h3>

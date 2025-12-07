@@ -180,29 +180,47 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="pauser"><a class="header" href="#pauser">Pauser</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/5664a100133f18c2b3d0a941535dbf61809faeef/src/pauser/Pauser.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ccecbab9a15e069e6b0d9dc3aeebd0c797006f08/src/pauser/Pauser.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable, <a href="/src/interfaces/IPauser.sol/interface.IPauser.html">IPauser</a></p>
+<p><strong>Title:</strong>
+Pauser</p>
+<p><strong>Author:</strong>
+Merge Layers Inc.</p>
+<p>Manages pausing operations across deployed markets</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="roles"><a class="header" href="#roles">ROLES</a></h3>
+<p>Roles contract reference</p>
 <pre><code class="language-solidity">IRoles public immutable ROLES
 </code></pre>
 <h3 id="operator"><a class="header" href="#operator">OPERATOR</a></h3>
+<p>Operator contract reference</p>
 <pre><code class="language-solidity">IOperator public immutable OPERATOR
 </code></pre>
 <h3 id="pausablecontracts"><a class="header" href="#pausablecontracts">pausableContracts</a></h3>
+<p>List of contracts that can be paused</p>
 <pre><code class="language-solidity">PausableContract[] public pausableContracts
 </code></pre>
 <h3 id="registeredcontracts"><a class="header" href="#registeredcontracts">registeredContracts</a></h3>
+<p>Tracks whether a contract is registered as pausable</p>
 <pre><code class="language-solidity">mapping(address _contract =&gt; bool _registered) public registeredContracts
 </code></pre>
 <h3 id="contracttypes"><a class="header" href="#contracttypes">contractTypes</a></h3>
+<p>Contract type for each registered market</p>
 <pre><code class="language-solidity">mapping(address _contract =&gt; PausableType _type) public contractTypes
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
+<p>Sets initial configuration for roles, operator, and owner</p>
 <pre><code class="language-solidity">constructor(address _roles, address _operator, address owner_) Ownable(owner_);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_roles</code></td><td><code>address</code></td><td>Address of the roles contract</td></tr>
+<tr><td><code>_operator</code></td><td><code>address</code></td><td>Address of the operator contract</td></tr>
+<tr><td><code>owner_</code></td><td><code>address</code></td><td>Owner address of the pauser contract</td></tr>
+</tbody></table>
+</div>
 <h3 id="addpausablemarket"><a class="header" href="#addpausablemarket">addPausableMarket</a></h3>
 <p>add pauable contract</p>
 <pre><code class="language-solidity">function addPausableMarket(address _contract, PausableType _contractType) external onlyOwner;
@@ -223,7 +241,7 @@ Ownable, <a href="/src/interfaces/IPauser.sol/interface.IPauser.html">IPauser</a
 </tbody></table>
 </div>
 <h3 id="emergencypausemarket"><a class="header" href="#emergencypausemarket">emergencyPauseMarket</a></h3>
-<p>pauses all operations for a market</p>
+<p>Pauses all operations for a market</p>
 <pre><code class="language-solidity">function emergencyPauseMarket(address _market) external;
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -235,22 +253,52 @@ Ownable, <a href="/src/interfaces/IPauser.sol/interface.IPauser.html">IPauser</a
 <pre><code class="language-solidity">function emergencyPauseMarketFor(address _market, ImTokenOperationTypes.OperationType _pauseType) external;
 </code></pre>
 <h3 id="emergencypauseall"><a class="header" href="#emergencypauseall">emergencyPauseAll</a></h3>
-<p>pauses all operations for all registered markets</p>
+<p>Pauses all operations for all registered markets</p>
 <pre><code class="language-solidity">function emergencyPauseAll() external;
 </code></pre>
 <h3 id="_pauseallmarketoperations"><a class="header" href="#_pauseallmarketoperations">_pauseAllMarketOperations</a></h3>
+<p>Pauses all market operations for a given market</p>
 <pre><code class="language-solidity">function _pauseAllMarketOperations(address _market) private;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_market</code></td><td><code>address</code></td><td>The market to pause</td></tr>
+</tbody></table>
+</div>
 <h3 id="_pausemarketoperation"><a class="header" href="#_pausemarketoperation">_pauseMarketOperation</a></h3>
+<p>Pauses a specific market operation type</p>
 <pre><code class="language-solidity">function _pauseMarketOperation(address _market, ImTokenOperationTypes.OperationType _pauseType) private;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_market</code></td><td><code>address</code></td><td>The market to pause</td></tr>
+<tr><td><code>_pauseType</code></td><td><code>ImTokenOperationTypes.OperationType</code></td><td>The operation type to pause</td></tr>
+</tbody></table>
+</div>
 <h3 id="_pause"><a class="header" href="#_pause">_pause</a></h3>
+<p>Performs pause logic depending on contract type</p>
 <pre><code class="language-solidity">function _pause(address _market, ImTokenOperationTypes.OperationType _pauseType) private;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_market</code></td><td><code>address</code></td><td>The market address to pause</td></tr>
+<tr><td><code>_pauseType</code></td><td><code>ImTokenOperationTypes.OperationType</code></td><td>The operation type to pause</td></tr>
+</tbody></table>
+</div>
 <h3 id="_findindex"><a class="header" href="#_findindex">_findIndex</a></h3>
+<p>Finds the index of a market within the pausableContracts array</p>
 <pre><code class="language-solidity">function _findIndex(address _address) private view returns (uint256);
 </code></pre>
-
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_address</code></td><td><code>address</code></td><td>The market address to search for</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>index The index of the market</td></tr>
+</tbody></table>
+</div>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

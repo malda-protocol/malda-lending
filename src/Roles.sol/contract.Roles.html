@@ -180,62 +180,85 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="roles"><a class="header" href="#roles">Roles</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/5664a100133f18c2b3d0a941535dbf61809faeef/src/Roles.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/ccecbab9a15e069e6b0d9dc3aeebd0c797006f08/src/Roles.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable, <a href="/src/interfaces/IRoles.sol/interface.IRoles.html">IRoles</a></p>
+<p><strong>Title:</strong>
+Role registry</p>
+<p><strong>Author:</strong>
+Malda Protocol</p>
+<p>Ownable registry for assigning protocol roles to contracts.</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
-<h3 id="_roles"><a class="header" href="#_roles">_roles</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; mapping(bytes32 =&gt; bool)) private _roles
-</code></pre>
 <h3 id="rebalancer"><a class="header" href="#rebalancer">REBALANCER</a></h3>
+<p>Rebalancer role</p>
 <pre><code class="language-solidity">bytes32 public constant REBALANCER = keccak256(&quot;REBALANCER&quot;)
 </code></pre>
 <h3 id="pause_manager"><a class="header" href="#pause_manager">PAUSE_MANAGER</a></h3>
+<p>Pause manager role</p>
 <pre><code class="language-solidity">bytes32 public constant PAUSE_MANAGER = keccak256(&quot;PAUSE_MANAGER&quot;)
 </code></pre>
 <h3 id="rebalancer_eoa"><a class="header" href="#rebalancer_eoa">REBALANCER_EOA</a></h3>
+<p>Rebalancer EOA role</p>
 <pre><code class="language-solidity">bytes32 public constant REBALANCER_EOA = keccak256(&quot;REBALANCER_EOA&quot;)
 </code></pre>
 <h3 id="guardian_pause"><a class="header" href="#guardian_pause">GUARDIAN_PAUSE</a></h3>
+<p>Guardian pause role</p>
 <pre><code class="language-solidity">bytes32 public constant GUARDIAN_PAUSE = keccak256(&quot;GUARDIAN_PAUSE&quot;)
 </code></pre>
 <h3 id="chains_manager"><a class="header" href="#chains_manager">CHAINS_MANAGER</a></h3>
+<p>Chains manager role</p>
 <pre><code class="language-solidity">bytes32 public constant CHAINS_MANAGER = keccak256(&quot;CHAINS_MANAGER&quot;)
 </code></pre>
 <h3 id="proof_forwarder"><a class="header" href="#proof_forwarder">PROOF_FORWARDER</a></h3>
+<p>Proof forwarder role</p>
 <pre><code class="language-solidity">bytes32 public constant PROOF_FORWARDER = keccak256(&quot;PROOF_FORWARDER&quot;)
 </code></pre>
 <h3 id="proof_batch_forwarder"><a class="header" href="#proof_batch_forwarder">PROOF_BATCH_FORWARDER</a></h3>
+<p>Proof batch forwarder role</p>
 <pre><code class="language-solidity">bytes32 public constant PROOF_BATCH_FORWARDER = keccak256(&quot;PROOF_BATCH_FORWARDER&quot;)
 </code></pre>
 <h3 id="sequencer"><a class="header" href="#sequencer">SEQUENCER</a></h3>
+<p>Sequencer role</p>
 <pre><code class="language-solidity">bytes32 public constant SEQUENCER = keccak256(&quot;SEQUENCER&quot;)
 </code></pre>
 <h3 id="guardian_bridge"><a class="header" href="#guardian_bridge">GUARDIAN_BRIDGE</a></h3>
+<p>Bridge guardian role</p>
 <pre><code class="language-solidity">bytes32 public constant GUARDIAN_BRIDGE = keccak256(&quot;GUARDIAN_BRIDGE&quot;)
 </code></pre>
 <h3 id="guardian_oracle"><a class="header" href="#guardian_oracle">GUARDIAN_ORACLE</a></h3>
+<p>Oracle guardian role</p>
 <pre><code class="language-solidity">bytes32 public constant GUARDIAN_ORACLE = keccak256(&quot;GUARDIAN_ORACLE&quot;)
 </code></pre>
 <h3 id="guardian_reserve"><a class="header" href="#guardian_reserve">GUARDIAN_RESERVE</a></h3>
+<p>Reserve guardian role</p>
 <pre><code class="language-solidity">bytes32 public constant GUARDIAN_RESERVE = keccak256(&quot;GUARDIAN_RESERVE&quot;)
 </code></pre>
 <h3 id="guardian_borrow_cap"><a class="header" href="#guardian_borrow_cap">GUARDIAN_BORROW_CAP</a></h3>
+<p>Borrow cap guardian role</p>
 <pre><code class="language-solidity">bytes32 public constant GUARDIAN_BORROW_CAP = keccak256(&quot;GUARDIAN_BORROW_CAP&quot;)
 </code></pre>
 <h3 id="guardian_supply_cap"><a class="header" href="#guardian_supply_cap">GUARDIAN_SUPPLY_CAP</a></h3>
+<p>Supply cap guardian role</p>
 <pre><code class="language-solidity">bytes32 public constant GUARDIAN_SUPPLY_CAP = keccak256(&quot;GUARDIAN_SUPPLY_CAP&quot;)
 </code></pre>
 <h3 id="guardian_blacklist"><a class="header" href="#guardian_blacklist">GUARDIAN_BLACKLIST</a></h3>
+<p>Blacklist guardian role</p>
 <pre><code class="language-solidity">bytes32 public constant GUARDIAN_BLACKLIST = keccak256(&quot;GUARDIAN_BLACKLIST&quot;)
+</code></pre>
+<h3 id="_roles"><a class="header" href="#_roles">_roles</a></h3>
+<p>Role assignment mapping: contract =&gt; role =&gt; allowed</p>
+<pre><code class="language-solidity">mapping(address contractAddress =&gt; mapping(bytes32 roleIdentifier =&gt; bool allowed)) private _roles
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
+<p>Initializes the role registry</p>
 <pre><code class="language-solidity">constructor(address owner_) Ownable(owner_);
 </code></pre>
-<h3 id="isallowedfor"><a class="header" href="#isallowedfor">isAllowedFor</a></h3>
-<pre><code class="language-solidity">function isAllowedFor(address _contract, bytes32 _role) external view override returns (bool);
-</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>owner_</code></td><td><code>address</code></td><td>Owner address</td></tr>
+</tbody></table>
+</div>
 <h3 id="allowfor"><a class="header" href="#allowfor">allowFor</a></h3>
 <p>Abiltity to allow a contract for a role or not</p>
 <pre><code class="language-solidity">function allowFor(address _contract, bytes32 _role, bool _allowed) external onlyOwner;
@@ -247,12 +270,33 @@ Ownable, <a href="/src/interfaces/IRoles.sol/interface.IRoles.html">IRoles</a></
 <tr><td><code>_allowed</code></td><td><code>bool</code></td><td>the new status.</td></tr>
 </tbody></table>
 </div>
+<h3 id="isallowedfor"><a class="header" href="#isallowedfor">isAllowedFor</a></h3>
+<p>Checks if a contract has a given role</p>
+<pre><code class="language-solidity">function isAllowedFor(address _contract, bytes32 _role) external view override returns (bool);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_contract</code></td><td><code>address</code></td><td>Contract address</td></tr>
+<tr><td><code>_role</code></td><td><code>bytes32</code></td><td>Role identifier</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>True if allowed</td></tr>
+</tbody></table>
+</div>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="allowed"><a class="header" href="#allowed">Allowed</a></h3>
-<p>emitted when role is set</p>
+<p>Emitted when role allowance is updated</p>
 <pre><code class="language-solidity">event Allowed(address indexed _contract, bytes32 indexed _role, bool _allowed);
 </code></pre>
-
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_contract</code></td><td><code>address</code></td><td>The contract being updated</td></tr>
+<tr><td><code>_role</code></td><td><code>bytes32</code></td><td>The role identifier</td></tr>
+<tr><td><code>_allowed</code></td><td><code>bool</code></td><td>New allowance status</td></tr>
+</tbody></table>
+</div>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
