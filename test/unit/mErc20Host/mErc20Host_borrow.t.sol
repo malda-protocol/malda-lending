@@ -2,7 +2,6 @@
 pragma solidity =0.8.28;
 
 // interfaces
-import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts

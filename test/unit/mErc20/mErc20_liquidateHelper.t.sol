@@ -10,9 +10,9 @@ import {LiquidationHelper} from "src/utils/LiquidationHelper.sol";
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
 contract mErc20_liquidateHelper is mToken_Unit_Shared {
-    LiquidationHelper helper;
+    LiquidationHelper internal helper;
 
-    address borrower = address(0x123);
+    address internal borrower = address(0x123);
 
     function setUp() public virtual override {
         super.setUp();

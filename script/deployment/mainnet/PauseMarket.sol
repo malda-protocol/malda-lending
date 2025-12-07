@@ -37,7 +37,7 @@ contract PauseMarket is DeployBaseRelease {
                 forks[network] = vm.createSelectFork(network);
 
                 vm.startBroadcast(key);
-                Pauser(pauserContract).emergencyPauseMarket(marketToPause);
+                Pauser(pauserContract).emergencyPauseMarket(MARKET_TO_PAUSE);
                 vm.stopBroadcast();
             }
 

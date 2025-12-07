@@ -9,7 +9,7 @@ import {Operator} from "src/Operator/Operator.sol";
 
 contract MockChainlinkOracle {
     uint256 public decimals;
-    uint256 price;
+    uint256 public price;
 
     constructor(uint256 _price, uint256 _decimals) {
         price = _price;
@@ -48,29 +48,29 @@ contract DummyMToken {
 }
 
 contract MixedPriceOracleV3_Test is Operator, Test {
-    MixedPriceOracleV3 mixedPriceOracle;
+    MixedPriceOracleV3 internal mixedPriceOracle;
 
-    DummyToken BTC;
-    DummyMToken mBTC;
-    uint256 usdPerBitcoin = 70_000;
-    uint256 bitcoinDecimals = 8;
+    DummyToken internal BTC;
+    DummyMToken internal mBTC;
+    uint256 internal usdPerBitcoin = 70_000;
+    uint256 internal bitcoinDecimals = 8;
 
-    DummyToken ETH;
-    DummyMToken mETH;
-    uint256 usdPerEth = 2_500;
-    uint256 ethDecimals = 18;
+    DummyToken internal ETH;
+    DummyMToken internal mETH;
+    uint256 internal usdPerEth = 2_500;
+    uint256 internal ethDecimals = 18;
 
-    DummyToken USDC;
-    DummyMToken mUSDC;
-    uint256 usdPerUsdc = 1;
-    uint256 usdcDecimals = 6;
+    DummyToken internal USDC;
+    DummyMToken internal mUSDC;
+    uint256 internal usdPerUsdc = 1;
+    uint256 internal usdcDecimals = 6;
 
-    DummyToken LargeDecimalsToken;
-    DummyMToken mLargeDecimalsToken;
-    uint256 usdPerLargeToken = 1;
-    uint256 largeTokenDecimals = 30;
+    DummyToken internal LargeDecimalsToken;
+    DummyMToken internal mLargeDecimalsToken;
+    uint256 internal usdPerLargeToken = 1;
+    uint256 internal largeTokenDecimals = 30;
 
-    uint256 feedDecimals = 8; //chainlink returns answers in 8 decimals
+    uint256 internal feedDecimals = 8; //chainlink returns answers in 8 decimals
 
     function newUSDOracle(uint256 usdPerToken) public returns (MockChainlinkOracle) {
         uint256 decimals = feedDecimals;

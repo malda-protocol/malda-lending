@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.24;
+pragma solidity =0.8.28;
 
-import "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {ReferralSigning} from "src/referral/ReferralSigning.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract ReferralSigningTest is Test {
-    ReferralSigning referral;
+    ReferralSigning internal referral;
 
-    address referrer;
-    address referred;
-    uint256 referrerKey;
-    uint256 referredKey;
+    address internal referrer;
+    address internal referred;
+    uint256 internal referrerKey;
+    uint256 internal referredKey;
 
     function setUp() public {
         (referrer, referrerKey) = makeAddrAndKey("referrer");

@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-import {IRebalancer, IRebalanceMarket} from "src/interfaces/IRebalancer.sol";
+import {IRebalancer} from "src/interfaces/IRebalancer.sol";
 import {Rebalancer_Unit_Shared} from "../shared/Rebalancer_Unit_Shared.t.sol";
 import {BytesLib} from "src/libraries/BytesLib.sol";
-
-import "forge-std/console2.sol";
+import {console} from "forge-std/console.sol";
 
 contract Rebalancer_methods is Rebalancer_Unit_Shared {
     function setUp() public override {
@@ -31,8 +30,8 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
 
         (uint256 fee, uint256 deadline,) = _extractFeeParams(msge);
 
-        console2.log("Fee:", fee);
-        console2.log("Deadline:", deadline);
+        console.log("Fee:", fee);
+        console.log("Deadline:", deadline);
     }
 
     function _extractFeeParams(bytes memory msge)

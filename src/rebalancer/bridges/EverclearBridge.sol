@@ -97,13 +97,7 @@ contract EverclearBridge is BaseBridge, IBridge {
     }
 
     // ----------- EXTERNAL ------------
-    /// @notice Sends a cross-chain message via Everclear
-    /// @param _extractedAmount Amount extracted from the market
-    /// @param _market Market address
-    /// @param _dstChainId Destination chain ID
-    /// @param _token Token address
-    /// @param _message Encoded intent parameters
-    /// @param _bridgeData Bridge data (unused)
+    /// @inheritdoc IBridge
     function sendMsg(
         uint256 _extractedAmount,
         address _market,

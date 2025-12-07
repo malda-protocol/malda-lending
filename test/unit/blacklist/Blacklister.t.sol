@@ -7,11 +7,11 @@ import {Blacklister} from "src/blacklister/Blacklister.sol";
 import {MockRoles} from "test/mocks/MockRoles.sol";
 
 contract BlacklisterTest is Test {
-    Blacklister blacklister;
-    MockRoles roles;
-    address owner = address(0xABCD);
-    address guardian = address(0xBEEF);
-    address user = address(0xCAFE);
+    Blacklister internal blacklister;
+    MockRoles internal roles;
+    address internal owner = address(0xABCD);
+    address internal guardian = address(0xBEEF);
+    address internal user = address(0xCAFE);
 
     function setUp() public {
         roles = new MockRoles();

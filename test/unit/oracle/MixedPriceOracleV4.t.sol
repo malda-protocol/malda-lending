@@ -23,7 +23,7 @@ contract MockAdapter {
 }
 
 contract MockRoles {
-    mapping(address => bool) public allowed;
+    mapping(address account => bool allowed) public allowed;
 
     function GUARDIAN_ORACLE() external pure returns (bytes32) {
         return keccak256("GUARDIAN_ORACLE");
@@ -52,11 +52,11 @@ contract MockToken {
 }
 
 contract MixedPriceOracleV4Test is Test {
-    MixedPriceOracleV4 oracle;
-    MockAdapter api3;
-    MockAdapter eOracle;
-    MockRoles roles;
-    MockToken token;
+    MixedPriceOracleV4 internal oracle;
+    MockAdapter internal api3;
+    MockAdapter internal eOracle;
+    MockRoles internal roles;
+    MockToken internal token;
 
     function setUp() public {
         api3 = new MockAdapter();

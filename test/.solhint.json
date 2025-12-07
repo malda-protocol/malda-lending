@@ -12,10 +12,10 @@
     "var-name-mixedcase": "off",
     "one-contract-per-file": "off",
     "named-parameters-mapping": "warn",
-    "func-param-name-mixedcase": "error",
-    "modifier-name-mixedcase": "error",
+    "modifier-name-mixedcase": "off",
+    "func-param-name-mixedcase": "off",
     "func-name-mixedcase": "off",
-    "foundry-test-functions": "warn",
+    "foundry-test-functions": "off",
     "gas-custom-errors": "off",
     "private-vars-leading-underscore": [
       "off",
@@ -41,6 +41,8 @@
     "gas-increment-by-one": "off",
     "gas-struct-packing": "off",
     "function-max-lines": "off",
-    "gas-small-strings": "off"
+    "gas-small-strings": "off",
+    "contract-name-capwords": "off",
+    "max-states-count": "off"
   }
 }

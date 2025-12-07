@@ -6,7 +6,6 @@ import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
-import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
 import {WrapAndSupply} from "src/utils/WrapAndSupply.sol";
 
 // tests

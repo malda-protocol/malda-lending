@@ -14,8 +14,6 @@ import {Risc0VerifierMock} from "../../mocks/Risc0VerifierMock.sol";
 import {OracleMock} from "../../mocks/OracleMock.sol";
 import {ImToken, ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
-import {ImToken} from "src/interfaces/ImToken.sol";
-
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract MigrationTests is Base_Integration_Test {

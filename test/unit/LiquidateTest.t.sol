@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-import "forge-std/Test.sol";
-
 // contracts
 import {Operator} from "src/Operator/Operator.sol";
 import {mToken_Unit_Shared} from "test/unit/shared/mToken_Unit_Shared.t.sol";
 import {OracleMockPerToken} from "test/mocks/OracleMockPerToken.sol";
 
+import {console} from "forge-std/console.sol";
+
 contract LiquidationTest is mToken_Unit_Shared {
-    address borrower = address(0x1);
-    address liquidator = address(0x2);
+    address internal borrower = address(0x1);
+    address internal liquidator = address(0x2);
 
     function setUp() public virtual override {
         super.setUp();
