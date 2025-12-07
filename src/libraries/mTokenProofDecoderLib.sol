@@ -19,10 +19,10 @@ pragma solidity =0.8.28;
 import {BytesLib} from "src/libraries/BytesLib.sol";
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 library mTokenProofDecoderLib {

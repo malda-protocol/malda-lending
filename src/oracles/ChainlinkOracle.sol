@@ -13,10 +13,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
@@ -72,8 +72,7 @@ contract ChainlinkOracle is IOracleOperator {
     function _getLatestPrice(string memory symbol) internal view returns (uint256, uint256) {
         require(address(priceFeeds[symbol]) != address(0), ChainlinkOracle_NoPriceFeed());
 
-        (
-            ,
+        (,
             //uint80 roundID
             int256 price, //uint256 startedAt
             ,

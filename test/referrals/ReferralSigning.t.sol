@@ -88,5 +88,6 @@ contract ReferralSigningTest is Test {
 }
 
 contract DummyReferrer {
-// Just a dummy contract used to simulate contract referrer
-}
+    // Just a dummy contract used to simulate contract referrer
+
+    }

@@ -9,13 +9,15 @@ interface IHypernativeFirewall {
 }
 
 abstract contract HypernativeFirewallProtected {
-    bytes32 private constant HYPERNATIVE_ORACLE_STORAGE_SLOT = bytes32(uint256(keccak256("eip1967.hypernative.firewall")) - 1);
-    bytes32 private constant HYPERNATIVE_ADMIN_STORAGE_SLOT = bytes32(uint256(keccak256("eip1967.hypernative.admin")) - 1);
-    bytes32 private constant HYPERNATIVE_MODE_STORAGE_SLOT = bytes32(uint256(keccak256("eip1967.hypernative.is_strict_mode")) - 1);
-    
+    bytes32 private constant HYPERNATIVE_ORACLE_STORAGE_SLOT =
+        bytes32(uint256(keccak256("eip1967.hypernative.firewall")) - 1);
+    bytes32 private constant HYPERNATIVE_ADMIN_STORAGE_SLOT =
+        bytes32(uint256(keccak256("eip1967.hypernative.admin")) - 1);
+    bytes32 private constant HYPERNATIVE_MODE_STORAGE_SLOT =
+        bytes32(uint256(keccak256("eip1967.hypernative.is_strict_mode")) - 1);
+
     event FirewallAdminChanged(address indexed previousAdmin, address indexed newAdmin);
     event FirewallAddressChanged(address indexed previousFirewall, address indexed newFirewall);
-
 
     modifier onlyFirewallApproved() {
         address firewallAddress = _hypernativeFirewall();
@@ -23,7 +25,7 @@ abstract contract HypernativeFirewallProtected {
             _;
             return;
         }
-        
+
         IHypernativeFirewall firewall = IHypernativeFirewall(firewallAddress);
         firewall.validateForbiddenContextInteraction(tx.origin, msg.sender);
         _;
@@ -41,7 +43,7 @@ abstract contract HypernativeFirewallProtected {
             _;
             return;
         }
-        
+
         firewall.validateForbiddenContextInteraction(tx.origin, msg.sender);
         _;
     }
@@ -67,7 +69,7 @@ abstract contract HypernativeFirewallProtected {
     function _initHypernativeFirewall(address _firewall, address _admin) internal {
         _changeFirewallAdmin(_admin);
         require(_firewall != address(0), "Firewall address cannot be initialized to 0");
-        setFirewall(_firewall); 
+        setFirewall(_firewall);
     }
 
     function firewallRegister(address _account) public virtual {
@@ -80,17 +82,17 @@ abstract contract HypernativeFirewallProtected {
     /**
      * @dev Admin only function, sets new firewall admin. set to address(0) to revoke firewall
      */
-    function setFirewall(address _firewall) public onlyFirewallAdmin() {
+    function setFirewall(address _firewall) public onlyFirewallAdmin {
         address oldFirewall = _hypernativeFirewall();
         _setAddressBySlot(HYPERNATIVE_ORACLE_STORAGE_SLOT, _firewall);
         emit FirewallAddressChanged(oldFirewall, _firewall);
     }
 
-    function setIsStrictMode(bool _mode) public onlyFirewallAdmin() {
+    function setIsStrictMode(bool _mode) public onlyFirewallAdmin {
         _setValueBySlot(HYPERNATIVE_MODE_STORAGE_SLOT, _mode ? 1 : 0);
     }
 
-    function changeFirewallAdmin(address _newAdmin) public onlyFirewallAdmin() {
+    function changeFirewallAdmin(address _newAdmin) public onlyFirewallAdmin {
         require(_newAdmin != address(0), "Firewall admin cannot be set to 0");
         _changeFirewallAdmin(_newAdmin);
     }
@@ -98,9 +100,8 @@ abstract contract HypernativeFirewallProtected {
     function _changeFirewallAdmin(address _newAdmin) internal {
         address oldAdmin = hypernativeFirewallAdmin();
         _setAddressBySlot(HYPERNATIVE_ADMIN_STORAGE_SLOT, _newAdmin);
-        emit FirewallAdminChanged(oldAdmin,  _newAdmin);
+        emit FirewallAdminChanged(oldAdmin, _newAdmin);
     }
-
 
     function _setAddressBySlot(bytes32 slot, address newAddress) internal {
         assembly {

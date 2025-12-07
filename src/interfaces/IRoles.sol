@@ -17,10 +17,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 interface IRoles {
@@ -90,7 +90,7 @@ interface IRoles {
      * @notice Returns GUARDIAN_ORACLE role
      */
     function GUARDIAN_ORACLE() external view returns (bytes32);
-    
+
     /**
      * @notice Returns GUARDIAN_BLACKLIST role
      */

@@ -6,10 +6,10 @@ import {Script, console} from "forge-std/Script.sol";
 interface IGasFeeExtension {
     function setGasFee(uint256 amount) external;
 }
+
 contract SetGasFeesOnExtension is Script {
     function run() public virtual {
         uint256 key = vm.envUint("PRIVATE_KEY");
-
 
         uint256 amount = 71428571428571; //linea
         address[] memory markets = new address[](4);

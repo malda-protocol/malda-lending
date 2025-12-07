@@ -17,10 +17,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 // interfaces
@@ -91,7 +91,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     mapping(address => uint256) public minBorrowSize;
 
     /**
-    /**
+     **
      * @inheritdoc IOperator
      */
     uint256 public limitPerTimePeriod;
@@ -148,7 +148,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     // No collateralFactorMantissa may exceed this value
     uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18; // 0.95
 
-    uint256[50] private __gap;  
+    uint256[50] private __gap;
 
     // ----------- ERRORS ------------
     error Operator_Paused();

@@ -13,21 +13,20 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {IBlacklister} from "src/interfaces/IBlacklister.sol";
 
-
 contract Blacklister is OwnableUpgradeable, IBlacklister {
     // ----------- STORAGE -----------
     mapping(address => bool) public isBlacklisted;
-    
+
     address[] private _blacklistedList;
 
     IRoles public rolesOperator;
@@ -42,16 +41,16 @@ contract Blacklister is OwnableUpgradeable, IBlacklister {
         _disableInitializers();
     }
 
-    function initialize(address payable _owner, address _roles)
-        external
-        initializer
-    {
+    function initialize(address payable _owner, address _roles) external initializer {
         __Ownable_init(_owner);
         rolesOperator = IRoles(_roles);
     }
 
     modifier onlyOwnerOrGuardian() {
-        require(msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_BLACKLIST()), Blacklister_NotAllowed());
+        require(
+            msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_BLACKLIST()),
+            Blacklister_NotAllowed()
+        );
         _;
     }
 
@@ -59,7 +58,7 @@ contract Blacklister is OwnableUpgradeable, IBlacklister {
     function getBlacklistedAddresses() external view returns (address[] memory) {
         return _blacklistedList;
     }
-    
+
     // ----------- OWNER ------------
     function blacklist(address user) external override onlyOwnerOrGuardian {
         if (isBlacklisted[user]) revert Blacklister_AlreadyBlacklisted();
@@ -73,21 +72,20 @@ contract Blacklister is OwnableUpgradeable, IBlacklister {
         emit Unblacklisted(user);
     }
 
-    function unblacklist(address user, uint256 index) external override onlyOwnerOrGuardian { 
+    function unblacklist(address user, uint256 index) external override onlyOwnerOrGuardian {
         if (!isBlacklisted[user]) revert Blacklister_NotBlacklisted();
         isBlacklisted[user] = false;
         _removeFromBlacklistList(user, index);
         emit Unblacklisted(user);
     }
 
-   
     // ----------- INTERNAL ------------
     function _addToBlacklist(address user) internal {
         isBlacklisted[user] = true;
         _blacklistedList.push(user);
         emit Blacklisted(user);
     }
-    
+
     function _removeFromBlacklistList(address user) internal {
         uint256 len = _blacklistedList.length;
         for (uint256 i; i < len; ++i) {
@@ -101,11 +99,11 @@ contract Blacklister is OwnableUpgradeable, IBlacklister {
 
     function _removeFromBlacklistList(address user, uint256 index) internal {
         uint256 len = _blacklistedList.length;
-        if (_blacklistedList[index] == user) {  
-            _blacklistedList[index] = _blacklistedList[len - 1];  
-            _blacklistedList.pop();  
-        } else {  
-            revert Blacklister_NotBlacklisted();  
-        }  
+        if (_blacklistedList[index] == user) {
+            _blacklistedList[index] = _blacklistedList[len - 1];
+            _blacklistedList.pop();
+        } else {
+            revert Blacklister_NotBlacklisted();
+        }
     }
 }

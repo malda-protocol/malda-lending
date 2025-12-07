@@ -17,10 +17,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 interface IRebalanceMarket {
@@ -52,7 +52,6 @@ interface IRebalancer {
 
     event MarketListUpdated(address[] list, bool status);
 
-
     // ----------- ERRORS ------------
     error Rebalancer_NotAuthorized();
     error Rebalancer_MarketNotValid();
@@ -80,7 +79,7 @@ interface IRebalancer {
      */
     function isDestinationWhitelisted(uint32 dstId) external view returns (bool);
 
-     /**
+    /**
      * @notice returns if a market is whitelisted
      */
     function isMarketWhitelisted(address market) external view returns (bool);

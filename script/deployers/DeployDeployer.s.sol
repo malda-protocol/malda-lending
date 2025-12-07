@@ -57,9 +57,10 @@ contract DeployDeployer is Script {
     }
 
     function getSalt(string memory name) internal view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
-        );
+        return
+            keccak256(
+                abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+            );
     }
 
     function _verifyChain(uint32 expectedChainId) internal view {

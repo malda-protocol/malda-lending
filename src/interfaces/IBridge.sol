@@ -17,10 +17,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 interface IBridge {
@@ -30,10 +30,7 @@ interface IBridge {
      * @param _message operation message data
      * @param _bridgeData specific bridge data
      */
-    function getFee(uint32 _dstChainId, bytes memory _message, bytes memory _bridgeData)
-        external
-        view
-        returns (uint256);
+    function getFee(uint32 _dstChainId, bytes memory _message, bytes memory _bridgeData) external view returns (uint256);
 
     /**
      * @notice rebalance through bridge

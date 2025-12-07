@@ -17,10 +17,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|                          
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {IRoles} from "./IRoles.sol";
@@ -210,12 +210,12 @@ interface ImTokenGateway {
      * @notice Returns the proof data journal
      */
     function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
-    
+
     /**
      * @notice Returns the gas fee for Linea
      */
     function gasFee() external view returns (uint256);
-    
+
     // ----------- PUBLIC -----------
     /**
      * @notice Extract amount to be used for rebalancing operation
@@ -245,7 +245,6 @@ interface ImTokenGateway {
      */
     function supplyOnHost(uint256 amount, address receiver, bytes4 lineaSelector) external payable;
 
-
     /**
      * @notice Liquidate a user
      * @param userToLiquidate The user to liquidate
@@ -253,7 +252,9 @@ interface ImTokenGateway {
      * @param collateral The collateral address
      * @param receiver The receiver address
      */
-    function liquidate(address userToLiquidate, uint256 liquidateAmount, address collateral, address receiver) external payable;
+    function liquidate(address userToLiquidate, uint256 liquidateAmount, address collateral, address receiver)
+        external
+        payable;
 
     /**
      * @notice Extract tokens

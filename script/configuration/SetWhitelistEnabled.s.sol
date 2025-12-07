@@ -12,19 +12,19 @@ contract SetWhitelistEnabled is Script {
         vm.startBroadcast(key);
         Operator(operator).setWhitelistStatus(true);
         vm.stopBroadcast();
-        
+
         // set whitelisted users
         address[] memory users = new address[](25);
-        users[0]  = 0xf20a8950c368Ec48323092D6e4acF90aADf2BdC6;
-        users[1]  = 0x8E72a24221517E51502f20f387415a06b27A5b51;
-        users[2]  = 0x50d8Deadd2b3140B151CaB2C4FB76F1f59b236F8;
-        users[3]  = 0x574582C44e3f1EF2cB29a7131B057FebBCC8244E;
-        users[4]  = 0x281567fe62b587EC1755f6F33b80160F544Dc5d0;
-        users[5]  = 0x2705f6A8F01bd4A805D9FC73151DBe37BB8d1edE;
-        users[6]  = 0xc9C9693b6A445D05Add0043662fad9Ac600Ad088;
-        users[7]  = 0x7EfE40B2E6dA8b28AaB6Bd2D622B9Cd7f5fE077c;
-        users[8]  = 0xa22DCB8F0A2848289124086F35ae9dB2a0006962;
-        users[9]  = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
+        users[0] = 0xf20a8950c368Ec48323092D6e4acF90aADf2BdC6;
+        users[1] = 0x8E72a24221517E51502f20f387415a06b27A5b51;
+        users[2] = 0x50d8Deadd2b3140B151CaB2C4FB76F1f59b236F8;
+        users[3] = 0x574582C44e3f1EF2cB29a7131B057FebBCC8244E;
+        users[4] = 0x281567fe62b587EC1755f6F33b80160F544Dc5d0;
+        users[5] = 0x2705f6A8F01bd4A805D9FC73151DBe37BB8d1edE;
+        users[6] = 0xc9C9693b6A445D05Add0043662fad9Ac600Ad088;
+        users[7] = 0x7EfE40B2E6dA8b28AaB6Bd2D622B9Cd7f5fE077c;
+        users[8] = 0xa22DCB8F0A2848289124086F35ae9dB2a0006962;
+        users[9] = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
         users[10] = 0x40282d3Cf4890D9806BC1853e97a59C93D813653;
         users[11] = 0xB5b901F1BB86421301138b5c45C1D3Fe96663161;
         users[12] = 0xBAec8904499dcdee770c60df15b0C37EAC84Fb62;
@@ -48,6 +48,5 @@ contract SetWhitelistEnabled is Script {
             vm.stopBroadcast();
         }
         console.log("Users set");
-
     }
 }

@@ -18,10 +18,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {IRoles} from "./IRoles.sol";
@@ -114,8 +114,7 @@ interface IOperatorDefender {
      * @param mTokenBorrowed Asset which was borrowed by the borrower
      * @param liquidator The address repaying the borrow and seizing the collateral
      */
-    function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator)
-        external view;
+    function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator) external view;
 
     /**
      * @notice Checks if new used amount is within the limits of the outflow volume limit
@@ -168,7 +167,6 @@ interface IOperator {
      * @notice Blacklist
      */
     function blacklistOperator() external view returns (IBlacklister);
-
 
     /**
      * @notice Oracle which gives the price of any given asset

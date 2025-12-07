@@ -76,11 +76,7 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
 
-    function test_WhenParametersAreRight(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        givenMarketIsNotPaused
-    {
+    function test_WhenParametersAreRight(uint256 amount) external inRange(amount, SMALL, LARGE) givenMarketIsNotPaused {
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethExtension), amount);
 
         _getTokens(weth, address(mWethExtension), amount);
