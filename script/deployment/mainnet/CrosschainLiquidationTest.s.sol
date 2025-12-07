@@ -9,12 +9,12 @@ import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 contract CrosschainLiquidationTest is DeployBaseRelease {
     using stdJson for string;
 
-    address[] marketList;
+    address internal constant LIQUIDATOR = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
+    address internal constant BORROWER = 0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00;
+    address internal constant MARKET = 0x6AECeD8e67964Eb6d0Ae7B159D27eF07F6c11b99; //weth
+    address internal constant OPERATOR = 0x4bbd2B599425026b8A504816D8A043636e2D7Ec7;
 
-    address constant LIQUIDATOR = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
-    address constant BORROWER = 0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00;
-    address constant MARKET = 0x6AECeD8e67964Eb6d0Ae7B159D27eF07F6c11b99; //weth
-    address constant OPERATOR = 0x4bbd2B599425026b8A504816D8A043636e2D7Ec7;
+    address[] internal marketList;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";

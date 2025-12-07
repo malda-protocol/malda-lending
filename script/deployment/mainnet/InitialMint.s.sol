@@ -11,9 +11,8 @@ import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 contract InitialMint is DeployBaseRelease {
     using stdJson for string;
 
-    address[] marketList;
-
-    address constant RECEIVER = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
+    address internal constant RECEIVER = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
+    address[] internal marketList;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";

@@ -4,8 +4,6 @@ pragma solidity =0.8.28;
 import {Script, console} from "forge-std/Script.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 import {Operator} from "src/Operator/Operator.sol";
-import {Deployer} from "src/utils/Deployer.sol";
-import {Script, console} from "forge-std/Script.sol";
 
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 

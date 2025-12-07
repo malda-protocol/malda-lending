@@ -10,10 +10,10 @@ import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 contract PauseMarket is DeployBaseRelease {
     using stdJson for string;
 
-    address constant RECEIVER = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
-    address marketToPause = 0xe79a5f1E2E5619dF1cbb089Db3B11ff9E4dA5aff;
+    address internal constant RECEIVER = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
+    address internal constant MARKET_TO_PAUSE = 0xe79a5f1E2E5619dF1cbb089Db3B11ff9E4dA5aff;
 
-    address pauserContract;
+    address internal pauserContract;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";

@@ -10,11 +10,11 @@ import {SetWhitelistedUsersOnGateway} from "../../configuration/SetWhitelistedUs
 contract SetWhitelist is DeployBaseRelease {
     using stdJson for string;
 
-    address[] marketList;
-    address operator;
+    address[] internal marketList;
+    address internal operator;
 
-    SetWhitelistEnabled setWhitelistEnabled;
-    SetWhitelistedUsersOnGateway setWhitelistEnabledOnExtension;
+    SetWhitelistEnabled internal setWhitelistEnabled;
+    SetWhitelistedUsersOnGateway internal setWhitelistEnabledOnExtension;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";

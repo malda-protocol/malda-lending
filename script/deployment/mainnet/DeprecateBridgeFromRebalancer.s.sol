@@ -10,13 +10,13 @@ import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 contract DeprecateBridgeFromRebalancer is DeployBaseRelease {
     using stdJson for string;
 
-    address rebalancerContract;
-    address bridgeContract;
+    address internal rebalancerContract;
+    address internal bridgeContract;
 
-    address[] marketList;
+    address[] internal marketList;
 
-    uint32[] whitelistChains;
-    mapping(uint32 => address[]) tokens;
+    uint32[] internal whitelistChains;
+    mapping(uint32 chainId => address[] tokenList) internal tokens;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";

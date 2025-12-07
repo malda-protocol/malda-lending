@@ -3,7 +3,6 @@ pragma solidity =0.8.28;
 
 import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
-import {console} from "forge-std/console.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {IPauser} from "src/interfaces/IPauser.sol";
 import {Pauser} from "src/pauser/Pauser.sol";
@@ -45,53 +44,53 @@ import {console} from "forge-std/console.sol";
 contract DeployProtocolRelease is DeployBaseRelease {
     using stdJson for string;
 
-    error UnsupportedOracleType();
-
-    address marketAddress;
-    address[] marketAddresses;
-    address[] extensionMarketAddresses;
-    address owner;
+    address internal marketAddress;
+    address[] internal marketAddresses;
+    address[] internal extensionMarketAddresses;
+    address internal owner;
 
     // Track deployed implementations
     address public mTokenHostImplementation;
     address public mTokenGatewayImplementation;
 
-    mapping(string => uint256) public collateralFactors;
-    mapping(string => uint256) public reserveFactors;
-    mapping(string => uint256) public liquidationBonuses;
-    mapping(string => uint256) public borrowCaps;
+    mapping(string assetSymbol => uint256 collateralFactor) public collateralFactors;
+    mapping(string assetSymbol => uint256 reserveFactor) public reserveFactors;
+    mapping(string assetSymbol => uint256 liquidationBonus) public liquidationBonuses;
+    mapping(string assetSymbol => uint256 borrowCap) public borrowCaps;
 
-    mapping(string => MarketRelease) public fullConfigs;
+    mapping(string assetSymbol => MarketRelease fullConfig) public fullConfigs;
 
     address public batchSubmitter;
 
-    Deployer deployer;
+    Deployer internal deployer;
 
-    DeployDeployer deployDeployer;
-    DeployRbac deployRbac;
-    DeployBatchSubmitter deployBatchSubmitter;
-    DeployJumpRateModelV4 deployInterest;
-    DeployOperator deployOperator;
-    DeployPauser deployPauser;
-    DeployMixedPriceOracleV3 deployOracle;
-    DeployRewardDistributor deployReward;
-    DeployHostMarket deployHost;
-    DeployExtensionMarket deployExt;
-    SetOperatorInRewardDistributor setOperatorInRewardDistributor;
-    SetRole setRole;
-    SupportMarket supportMarket;
-    SetCollateralFactor setCollateralFactor;
-    SetReserveFactor setReserveFactor;
-    SetLiquidationBonus setLiquidationBonus;
-    SetBorrowRateMaxMantissa setBorrowRateMaxMantissa;
-    SetBorrowCap setBorrowCap;
-    SetSupplyCap setSupplyCap;
-    UpdateAllowedChains updateAllowedChains;
-    DeployRebalancer deployRebalancer;
-    DeployAcrossBridge deployAcrossBridge;
-    DeployEverclearBridge deployEverclearBridge;
-    DeployZkVerifier deployZkVerifier;
-    DeployTimelockController deployTimelockController;
+    DeployDeployer internal deployDeployer;
+    DeployRbac internal deployRbac;
+    DeployBatchSubmitter internal deployBatchSubmitter;
+    DeployJumpRateModelV4 internal deployInterest;
+    DeployOperator internal deployOperator;
+    DeployPauser internal deployPauser;
+    DeployMixedPriceOracleV3 internal deployOracle;
+    DeployRewardDistributor internal deployReward;
+    DeployHostMarket internal deployHost;
+    DeployExtensionMarket internal deployExt;
+    SetOperatorInRewardDistributor internal setOperatorInRewardDistributor;
+    SetRole internal setRole;
+    SupportMarket internal supportMarket;
+    SetCollateralFactor internal setCollateralFactor;
+    SetReserveFactor internal setReserveFactor;
+    SetLiquidationBonus internal setLiquidationBonus;
+    SetBorrowRateMaxMantissa internal setBorrowRateMaxMantissa;
+    SetBorrowCap internal setBorrowCap;
+    SetSupplyCap internal setSupplyCap;
+    UpdateAllowedChains internal updateAllowedChains;
+    DeployRebalancer internal deployRebalancer;
+    DeployAcrossBridge internal deployAcrossBridge;
+    DeployEverclearBridge internal deployEverclearBridge;
+    DeployZkVerifier internal deployZkVerifier;
+    DeployTimelockController internal deployTimelockController;
+
+    error UnsupportedOracleType();
 
     function setUp() public override {
         configPath = "deployment-config-release.json";

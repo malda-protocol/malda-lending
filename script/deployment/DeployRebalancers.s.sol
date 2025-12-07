@@ -13,12 +13,12 @@ import {RebalancersDeployConfig} from "../deployers/Types.sol";
 contract DeployRebalancers is Script {
     using stdJson for string;
 
-    DeployRebalancer deployRebalancer;
-    DeployEverclearBridge deployEverclearBridge;
+    DeployRebalancer public deployRebalancer;
+    DeployEverclearBridge public deployEverclearBridge;
 
     string[] public networks;
     string public configPath = "deployment-rebalancer-config.json";
-    mapping(string => RebalancersDeployConfig) public configs;
+    mapping(string network => RebalancersDeployConfig config) public configs;
 
     function setUp() public {
         networks = vm.parseJsonKeys(vm.readFile(configPath), ".networks");

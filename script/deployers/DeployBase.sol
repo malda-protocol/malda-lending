@@ -8,11 +8,11 @@ import {DeployConfig, Market, Role, DeployerConfig} from "./Types.sol";
 contract DeployBase is Script {
     using stdJson for string;
 
-    mapping(string => DeployConfig) public configs;
+    mapping(string network => DeployConfig config) public configs;
     string public configPath;
     string[] public networks;
     uint256 public key;
-    mapping(string => uint256) public forks;
+    mapping(string network => uint256 forkId) public forks;
 
     function setUp() public virtual {
         key = vm.envUint("PRIVATE_KEY");

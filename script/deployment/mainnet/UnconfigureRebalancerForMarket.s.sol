@@ -11,14 +11,14 @@ import {SetRole} from "../../configuration/SetRole.s.sol";
 contract UnconfigureRebalancerForMarket is DeployBaseRelease {
     using stdJson for string;
 
-    address rolesContract;
-    address rebalancerContract;
-    address acrossContract;
-    address everclearContract;
+    address internal rolesContract;
+    address internal rebalancerContract;
+    address internal acrossContract;
+    address internal everclearContract;
 
-    SetRole setRole;
+    SetRole internal setRole;
 
-    address marketToRemove = 0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F;
+    address internal marketToRemove = 0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";

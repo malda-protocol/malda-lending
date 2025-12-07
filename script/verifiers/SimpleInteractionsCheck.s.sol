@@ -2,21 +2,21 @@
 pragma solidity =0.8.28;
 
 import {Script} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {Operator} from "src/Operator/Operator.sol";
-import {Script, console} from "forge-std/Script.sol";
 
 // 0x7c907cC2D7Dc9f2b8b815d4D0c9271Bcf609240D
 contract SimpleInteractionsCheck is Script {
-    uint256 amount;
-    address USER;
+    uint256 public amount;
+    address public user;
 
     function run(address _market) public virtual {
         uint256 key = vm.envUint("PRIVATE_KEY");
-        USER = vm.envAddress("PUBLIC_KEY");
+        user = vm.envAddress("PUBLIC_KEY");
 
         vm.startBroadcast(key);
 
@@ -31,7 +31,7 @@ contract SimpleInteractionsCheck is Script {
         amount = 1 * (10 ** decimals) / 200;
         console.log("Supply amount:  %s", amount);
 
-        uint256 balanceOfUser = IERC20(underlying).balanceOf(USER);
+        uint256 balanceOfUser = IERC20(underlying).balanceOf(user);
 
         if (!checkUserBalance(balanceOfUser, amount)) return;
 
@@ -51,22 +51,14 @@ contract SimpleInteractionsCheck is Script {
         vm.stopBroadcast();
     }
 
-    function checkUserBalance(uint256 balanceOfUser, uint256 factoredAmount) private pure returns (bool) {
-        if (balanceOfUser < factoredAmount) {
-            console.log("User doesn't have enough balance. Needed: %s, Available: %s", factoredAmount, balanceOfUser);
-            return false;
-        }
-        return true;
-    }
-
     function supplyToMarket(mErc20Host market, address underlying, uint256 factoredAmount) private returns (bool) {
         console.log("Approving underlying for supply %s", underlying);
         IERC20(underlying).approve(address(market), factoredAmount);
 
         console.log("Supplying to market");
-        market.mint(factoredAmount, USER, factoredAmount - 1000);
+        market.mint(factoredAmount, user, factoredAmount - 1000);
 
-        uint256 suppliedAmount = market.balanceOf(USER);
+        uint256 suppliedAmount = market.balanceOf(user);
         console.log("Supply amount %s", suppliedAmount);
         // if (suppliedAmount != factoredAmount) {
         //     console.log("Supply operation failed. Expected: %s, Available: %s", factoredAmount, suppliedAmount);
@@ -97,9 +89,9 @@ contract SimpleInteractionsCheck is Script {
         }
 
         console.log("Borrowing from market, amount: %s", borrowAmount);
-        uint256 debtBalanceBefore = IERC20(underlying).balanceOf(USER);
+        uint256 debtBalanceBefore = IERC20(underlying).balanceOf(user);
         market.borrow(borrowAmount);
-        uint256 debtBalanceAfter = IERC20(underlying).balanceOf(USER);
+        uint256 debtBalanceAfter = IERC20(underlying).balanceOf(user);
         uint256 debtBalance = debtBalanceAfter - debtBalanceBefore;
 
         if (debtBalance < borrowAmount) {
@@ -117,7 +109,7 @@ contract SimpleInteractionsCheck is Script {
         console.log("Repaying borrowed amount");
         market.repay(borrowAmount);
 
-        uint256 remainingDebt = market.borrowBalanceCurrent(USER);
+        uint256 remainingDebt = market.borrowBalanceCurrent(user);
         if (remainingDebt != 0) {
             console.log("Repay operation failed. Remaining debt: %s", remainingDebt);
             return false;
@@ -127,13 +119,13 @@ contract SimpleInteractionsCheck is Script {
     }
 
     function redeemFromMarket(mErc20Host market) private returns (bool) {
-        uint256 suppliedAmount = market.balanceOf(USER);
+        uint256 suppliedAmount = market.balanceOf(user);
         uint256 redeemAmount = suppliedAmount / 2;
 
         console.log("Redeeming from market, amount: %s", redeemAmount);
         market.redeem(redeemAmount);
 
-        uint256 remainingSupply = market.balanceOf(USER);
+        uint256 remainingSupply = market.balanceOf(user);
         if (remainingSupply != suppliedAmount - redeemAmount) {
             console.log(
                 "Redeem operation failed. Expected remaining supply: %s, Actual: %s",
@@ -143,6 +135,14 @@ contract SimpleInteractionsCheck is Script {
             return false;
         }
 
+        return true;
+    }
+
+    function checkUserBalance(uint256 balanceOfUser, uint256 factoredAmount) private pure returns (bool) {
+        if (balanceOfUser < factoredAmount) {
+            console.log("User doesn't have enough balance. Needed: %s, Available: %s", factoredAmount, balanceOfUser);
+            return false;
+        }
         return true;
     }
 }

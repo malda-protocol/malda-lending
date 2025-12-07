@@ -18,21 +18,21 @@ import {DeployExtensionMarket} from "../markets/extension/DeployExtensionMarket.
 contract DeployMarketsTestnet is DeployBaseRelease {
     using stdJson for string;
 
-    address marketAddress;
-    address owner;
+    address internal marketAddress;
+    address internal owner;
 
-    Deployer deployer;
-    address rolesContract;
-    address zkVerifier;
-    address operator;
-    address interestModel;
-    address oracle;
-    address pauser;
-    address blacklister;
+    Deployer internal deployer;
+    address internal rolesContract;
+    address internal zkVerifier;
+    address internal operator;
+    address internal interestModel;
+    address internal oracle;
+    address internal pauser;
+    address internal blacklister;
 
-    DeployHostMarket deployHost;
-    DeployExtensionMarket deployExt;
-    DeployJumpRateModelV4 deployInterest;
+    DeployHostMarket internal deployHost;
+    DeployExtensionMarket internal deployExt;
+    DeployJumpRateModelV4 internal deployInterest;
 
     error ADDRESSES_NOT_SET();
 

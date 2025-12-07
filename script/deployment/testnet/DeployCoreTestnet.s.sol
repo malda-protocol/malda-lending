@@ -27,21 +27,21 @@ import {SetRole} from "../../configuration/SetRole.s.sol";
 contract DeployCoreTestnet is DeployBaseRelease {
     using stdJson for string;
 
-    address owner;
-    Deployer deployer;
+    address internal owner;
+    Deployer internal deployer;
 
-    DeployDeployer deployDeployer;
-    DeployRbac deployRbac;
-    DeployBatchSubmitter deployBatchSubmitter;
-    DeployJumpRateModelV4 deployInterest;
-    DeployOperator deployOperator;
-    DeployPauser deployPauser;
-    DeployMixedPriceOracleV4 deployOracle;
-    DeployRewardDistributor deployReward;
-    DeployZkVerifier deployZkVerifier;
-    DeployBlacklister deployBlacklister;
-    DeployGasHelper deployGasHelper;
-    SetRole setRole;
+    DeployDeployer internal deployDeployer;
+    DeployRbac internal deployRbac;
+    DeployBatchSubmitter internal deployBatchSubmitter;
+    DeployJumpRateModelV4 internal deployInterest;
+    DeployOperator internal deployOperator;
+    DeployPauser internal deployPauser;
+    DeployMixedPriceOracleV4 internal deployOracle;
+    DeployRewardDistributor internal deployReward;
+    DeployZkVerifier internal deployZkVerifier;
+    DeployBlacklister internal deployBlacklister;
+    DeployGasHelper internal deployGasHelper;
+    SetRole internal setRole;
 
     function setUp() public override {
         configPath = "deployment-config-testnet.json";

@@ -32,6 +32,9 @@
     "import-path-check": "off",
     "gas-increment-by-one": "off",
     "gas-small-strings": "off",
-    "function-max-lines": "off"
+    "function-max-lines": "off",
+    "gas-struct-packing": "off",
+    "gas-custom-errors": "off",
+    "max-states-count": "off"
   }
 }

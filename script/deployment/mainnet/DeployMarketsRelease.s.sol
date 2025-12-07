@@ -20,30 +20,30 @@ import {SetGasHelper} from "../../configuration/SetGasHelper.s.sol";
 contract DeployMarketsRelease is DeployBaseRelease {
     using stdJson for string;
 
+    address internal marketAddress;
+    address[] internal marketAddresses;
+    address[] internal extensionMarketAddresses;
+    address internal owner;
+
+    mapping(string assetSymbol => MarketRelease fullConfig) public fullConfigs;
+
+    address internal rolesContract;
+    address internal zkVerifier;
+    address internal operator;
+    address internal oracle;
+    address internal pauser;
+    address internal gasHelper;
+    address internal blacklister;
+
+    Deployer internal deployer;
+
+    DeployJumpRateModelV4 internal deployInterest;
+    DeployHostMarket internal deployHost;
+    DeployExtensionMarket internal deployExt;
+    UpdateAllowedChains internal updateAllowedChains;
+    SetGasHelper internal setGasHelper;
+
     error UnsupportedOracleType();
-
-    address marketAddress;
-    address[] marketAddresses;
-    address[] extensionMarketAddresses;
-    address owner;
-
-    mapping(string => MarketRelease) public fullConfigs;
-
-    address rolesContract;
-    address zkVerifier;
-    address operator;
-    address oracle;
-    address pauser;
-    address gasHelper;
-    address blacklister;
-
-    Deployer deployer;
-
-    DeployJumpRateModelV4 deployInterest;
-    DeployHostMarket deployHost;
-    DeployExtensionMarket deployExt;
-    UpdateAllowedChains updateAllowedChains;
-    SetGasHelper setGasHelper;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";
@@ -268,7 +268,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
         for (uint256 i; i < marketAddresses.length; ++i) {
             address addr = marketAddresses[i];
 
-            string memory obj = string(abi.encodePacked('{"address":"', vm.toString(addr), '"}'));
+            string memory obj = string(abi.encodePacked("{\"address\":\"", vm.toString(addr), "\"}"));
 
             json = string(abi.encodePacked(json, obj));
             if (i < marketAddresses.length - 1) {

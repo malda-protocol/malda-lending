@@ -14,13 +14,13 @@ interface IAcrossBridge {
 contract AddBridgeToRebalancer is DeployBaseRelease {
     using stdJson for string;
 
-    address rebalancerContract;
-    address bridgeContract;
+    address public rebalancerContract;
+    address public bridgeContract;
 
-    address[] marketList;
+    address[] public marketList;
 
-    uint32[] whitelistChains;
-    mapping(uint32 => address[]) tokens;
+    uint32[] public whitelistChains;
+    mapping(uint32 chainId => address[] tokenList) public tokens;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";

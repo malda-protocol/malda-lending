@@ -25,27 +25,27 @@ import {SetLiquidationBonus} from "../../configuration/SetLiquidationBonus.s.sol
 contract ConfigureTestnet is DeployBaseRelease {
     using stdJson for string;
 
-    address[] marketAddresses;
-    uint256[] reserveFactors;
-    uint256[] liquidationBonuses;
-    address owner;
-    Deployer deployer;
-    address rolesContract;
-    address zkVerifier;
-    address operator;
-    address oracle;
-    address pauser;
+    address[] internal marketAddresses;
+    uint256[] internal reserveFactors;
+    uint256[] internal liquidationBonuses;
+    address internal owner;
+    Deployer internal deployer;
+    address internal rolesContract;
+    address internal zkVerifier;
+    address internal operator;
+    address internal oracle;
+    address internal pauser;
 
-    SetRole setRole;
-    SupportMarket supportMarket;
-    SetCollateralFactor setCollateralFactor;
-    SetBorrowRateMaxMantissa setBorrowRateMaxMantissa;
-    SetBorrowCap setBorrowCap;
-    SetSupplyCap setSupplyCap;
-    SetReserveFactor setReserveFactor;
-    SetOperatorInRewardDistributor setOperatorInRewardDistributor;
-    SetPriceFeedOnOracleV4 setFeed;
-    SetLiquidationBonus setLiquidationBonus;
+    SetRole internal setRole;
+    SupportMarket internal supportMarket;
+    SetCollateralFactor internal setCollateralFactor;
+    SetBorrowRateMaxMantissa internal setBorrowRateMaxMantissa;
+    SetBorrowCap internal setBorrowCap;
+    SetSupplyCap internal setSupplyCap;
+    SetReserveFactor internal setReserveFactor;
+    SetOperatorInRewardDistributor internal setOperatorInRewardDistributor;
+    SetPriceFeedOnOracleV4 internal setFeed;
+    SetLiquidationBonus internal setLiquidationBonus;
 
     error ADDRESSES_NOT_SET();
     error MARKET_ADDRESSES_NOT_SET();

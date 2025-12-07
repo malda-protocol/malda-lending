@@ -20,25 +20,25 @@ interface ISafeModule {
 contract TransferReleaseOwnership is DeployBaseRelease {
     using stdJson for string;
 
-    SetRole setRole;
+    SetRole internal setRole;
 
-    address[] marketList;
-    address pauser;
-    address batchSubmitter;
-    address timelockController;
-    address rewardDistributor;
-    address zkVerifier;
-    address rebalancer;
-    address acrossBridge;
-    address everclearBridge;
-    address rolesContract;
-    address oracle;
-    address operator;
-    address deployer;
-    address gasHelper;
-    address safeModule = 0x923B1e0e129fAc8949d6d0C8C2f932Be4B055637;
+    address[] internal marketList;
+    address internal pauser;
+    address internal batchSubmitter;
+    address internal timelockController;
+    address internal rewardDistributor;
+    address internal zkVerifier;
+    address internal rebalancer;
+    address internal acrossBridge;
+    address internal everclearBridge;
+    address internal rolesContract;
+    address internal oracle;
+    address internal operator;
+    address internal deployer;
+    address internal gasHelper;
+    address internal safeModule = 0x923B1e0e129fAc8949d6d0C8C2f932Be4B055637;
 
-    address[] interesteModels;
+    address[] internal interesteModels;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";

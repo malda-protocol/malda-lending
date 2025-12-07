@@ -9,13 +9,13 @@ import {SetRole} from "../../configuration/SetRole.s.sol";
 contract UpdateRoles is DeployBaseRelease {
     using stdJson for string;
 
-    address rolesContract;
-    SetRole setRole;
-
     struct RoleData {
         bytes32 role;
         address account;
     }
+
+    address internal rolesContract;
+    SetRole internal setRole;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";

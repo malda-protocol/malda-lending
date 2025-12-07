@@ -30,26 +30,26 @@ import {SetOperatorInRewardDistributor} from "../../configuration/SetOperatorInR
 contract DeployCoreRelease is DeployBaseRelease {
     using stdJson for string;
 
-    address owner;
-    Deployer deployer;
+    address internal owner;
+    Deployer internal deployer;
 
-    DeployDeployer deployDeployer;
-    DeployRbac deployRbac;
-    DeployBatchSubmitter deployBatchSubmitter;
-    DeployJumpRateModelV4 deployInterest;
-    DeployBlacklister deployBlacklister;
-    DeployOperator deployOperator;
-    DeployPauser deployPauser;
-    DeployMixedPriceOracleV4 deployOracle;
-    DeployRewardDistributor deployReward;
-    DeployRebalancer deployRebalancer;
-    DeployAcrossBridge deployAcrossBridge;
-    DeployEverclearBridge deployEverclearBridge;
-    DeployZkVerifier deployZkVerifier;
-    DeployTimelockController deployTimelockController;
-    DeployGasHelper deployGasHelper;
-    SetRole setRole;
-    SetOperatorInRewardDistributor setOperatorInRewardDistributor;
+    DeployDeployer internal deployDeployer;
+    DeployRbac internal deployRbac;
+    DeployBatchSubmitter internal deployBatchSubmitter;
+    DeployJumpRateModelV4 internal deployInterest;
+    DeployBlacklister internal deployBlacklister;
+    DeployOperator internal deployOperator;
+    DeployPauser internal deployPauser;
+    DeployMixedPriceOracleV4 internal deployOracle;
+    DeployRewardDistributor internal deployReward;
+    DeployRebalancer internal deployRebalancer;
+    DeployAcrossBridge internal deployAcrossBridge;
+    DeployEverclearBridge internal deployEverclearBridge;
+    DeployZkVerifier internal deployZkVerifier;
+    DeployTimelockController internal deployTimelockController;
+    DeployGasHelper internal deployGasHelper;
+    SetRole internal setRole;
+    SetOperatorInRewardDistributor internal setOperatorInRewardDistributor;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";

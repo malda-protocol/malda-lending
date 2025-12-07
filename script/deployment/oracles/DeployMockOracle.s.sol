@@ -15,7 +15,7 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --broadcast
  */
 contract DeployMockOracle is Script {
-    address constant OWNER = 0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00;
+    address internal constant OWNER = 0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00;
 
     function run(Deployer deployer) public returns (address) {
         bytes32 salt =

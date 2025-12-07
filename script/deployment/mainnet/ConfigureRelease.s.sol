@@ -25,33 +25,33 @@ import {SetWhitelistedUsersOnGateway} from "../../configuration/SetWhitelistedUs
 contract ConfigureRelease is DeployBaseRelease {
     using stdJson for string;
 
-    address[] marketList;
+    uint256 internal constant DEFAULT_CLOSE_FACTOR = 0.5e18; //50%
 
-    mapping(string => uint256) public collateralFactors;
-    mapping(string => uint256) public reserveFactors;
-    mapping(string => uint256) public liquidationBonuses;
-    mapping(string => uint256) public borrowCaps;
-    mapping(string => uint256) public minBorrowSize;
-    mapping(string => MarketRelease) public fullConfigs;
+    address[] internal marketList;
 
-    address oracle;
-    address operator;
-    address rolesContract;
-    SetRole setRole;
-    SupportMarket supportMarket;
-    SetCollateralFactor setCollateralFactor;
-    SetReserveFactor setReserveFactor;
-    SetLiquidationBonus setLiquidationBonus;
-    SetBorrowRateMaxMantissa setBorrowRateMaxMantissa;
-    SetBorrowCap setBorrowCap;
-    SetMinBorrowSize setMinBorrowSize;
-    SetSupplyCap setSupplyCap;
-    SetPriceFeedOnOracleV4 setFeed;
-    SetCloseFactor setCloseFactor;
-    SetWhitelistEnabled setWhitelistEnabled;
-    SetWhitelistedUsersOnGateway setWhitelistEnabledOnExtension;
+    mapping(string assetSymbol => uint256 collateralFactor) public collateralFactors;
+    mapping(string assetSymbol => uint256 reserveFactor) public reserveFactors;
+    mapping(string assetSymbol => uint256 liquidationBonus) public liquidationBonuses;
+    mapping(string assetSymbol => uint256 borrowCap) public borrowCaps;
+    mapping(string assetSymbol => uint256 minBorrowSize) public minBorrowSize;
+    mapping(string assetSymbol => MarketRelease fullConfig) public fullConfigs;
 
-    uint256 constant DEFAULT_CLOSE_FACTOR = 0.5e18; //50%
+    address internal oracle;
+    address internal operator;
+    address internal rolesContract;
+    SetRole internal setRole;
+    SupportMarket internal supportMarket;
+    SetCollateralFactor internal setCollateralFactor;
+    SetReserveFactor internal setReserveFactor;
+    SetLiquidationBonus internal setLiquidationBonus;
+    SetBorrowRateMaxMantissa internal setBorrowRateMaxMantissa;
+    SetBorrowCap internal setBorrowCap;
+    SetMinBorrowSize internal setMinBorrowSize;
+    SetSupplyCap internal setSupplyCap;
+    SetPriceFeedOnOracleV4 internal setFeed;
+    SetCloseFactor internal setCloseFactor;
+    SetWhitelistEnabled internal setWhitelistEnabled;
+    SetWhitelistedUsersOnGateway internal setWhitelistEnabledOnExtension;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";

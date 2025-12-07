@@ -11,17 +11,17 @@ import {SetRole} from "../../configuration/SetRole.s.sol";
 contract ConfigureRebalancer is DeployBaseRelease {
     using stdJson for string;
 
-    address rolesContract;
-    address rebalancerContract;
-    address acrossContract;
-    address everclearContract;
+    address internal rolesContract;
+    address internal rebalancerContract;
+    address internal acrossContract;
+    address internal everclearContract;
 
-    SetRole setRole;
-    address[] marketList;
+    SetRole internal setRole;
+    address[] internal marketList;
 
-    uint32[] whitelistChains;
-    mapping(uint32 => address[]) allowedAcrossTokens;
-    mapping(uint32 => address[]) allowedEverclearTokens;
+    uint32[] internal whitelistChains;
+    mapping(uint32 chainId => address[] tokenList) internal allowedAcrossTokens;
+    mapping(uint32 chainId => address[] tokenList) internal allowedEverclearTokens;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";

@@ -5,6 +5,7 @@ import {Script, console} from "forge-std/Script.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
 
+// solhint-disable max-line-length
 /**
  * forge script script/deployment/interest/DeployJumpRateModelV4.s.sol:DeployJumpRateModelV4  \
  *     --slow \
@@ -15,6 +16,7 @@ import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
  *     --sig "run((uint256,string,uint256,uint256,uint256,uint256))" "(750000000000000000,'ExampleName',2102400,20000000000000000,100000000000000000,500000000000000000)" \
  *     --broadcast
  */
+// solhint-enable max-line-length
 contract DeployJumpRateModelV4 is Script {
     struct InterestData {
         uint256 kink;

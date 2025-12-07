@@ -36,38 +36,38 @@ import {UpdateAllowedChains} from "../configuration/UpdateAllowedChains.s.sol";
 contract DeployProtocolUpdated is DeployBase {
     using stdJson for string;
 
-    error UnsupportedOracleType();
-
-    address marketAddress;
-    address[] marketAddresses;
-    address owner;
+    address public marketAddress;
+    address[] public marketAddresses;
+    address public owner;
 
     // Track deployed implementations
     address public mTokenHostImplementation;
     address public mTokenGatewayImplementation;
 
-    Deployer deployer;
+    Deployer public deployer;
 
-    DeployDeployer deployDeployer;
-    DeployRbac deployRbac;
-    DeployBatchSubmitter deployBatchSubmitter;
-    DeployJumpRateModelV4 deployInterest;
-    DeployOperator deployOperator;
-    DeployPauser deployPauser;
-    DeployMixedPriceOracleV3 deployOracle;
-    DeployMockOracle deployMockOracle;
-    DeployRewardDistributor deployReward;
-    DeployHostMarket deployHost;
-    DeployExtensionMarket deployExt;
-    SetOperatorInRewardDistributor setOperatorInRewardDistributor;
-    SetRole setRole;
-    SupportMarket supportMarket;
-    SetCollateralFactor setCollateralFactor;
-    SetBorrowRateMaxMantissa setBorrowRateMaxMantissa;
-    SetBorrowCap setBorrowCap;
-    SetSupplyCap setSupplyCap;
-    UpdateAllowedChains updateAllowedChains;
-    DeployZkVerifier deployZkVerifier;
+    DeployDeployer public deployDeployer;
+    DeployRbac public deployRbac;
+    DeployBatchSubmitter public deployBatchSubmitter;
+    DeployJumpRateModelV4 public deployInterest;
+    DeployOperator public deployOperator;
+    DeployPauser public deployPauser;
+    DeployMixedPriceOracleV3 public deployOracle;
+    DeployMockOracle public deployMockOracle;
+    DeployRewardDistributor public deployReward;
+    DeployHostMarket public deployHost;
+    DeployExtensionMarket public deployExt;
+    SetOperatorInRewardDistributor public setOperatorInRewardDistributor;
+    SetRole public setRole;
+    SupportMarket public supportMarket;
+    SetCollateralFactor public setCollateralFactor;
+    SetBorrowRateMaxMantissa public setBorrowRateMaxMantissa;
+    SetBorrowCap public setBorrowCap;
+    SetSupplyCap public setSupplyCap;
+    UpdateAllowedChains public updateAllowedChains;
+    DeployZkVerifier public deployZkVerifier;
+
+    error UnsupportedOracleType();
 
     function setUp() public override {
         configPath = "deployment-config-updated.json";
