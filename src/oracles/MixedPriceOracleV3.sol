@@ -17,29 +17,63 @@ import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {IOracleOperator} from "src/interfaces/IOracleOperator.sol";
 import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
 
+/// @title MixedPriceOracleV3
+/// @author Merge Layers Inc.
+/// @notice Mixed price oracle contract
 contract MixedPriceOracleV3 is IOracleOperator {
+    // ----------- IMMUTABLES ------------
+
+    /// @notice Staleness period
     uint256 public immutable STALENESS_PERIOD;
 
-    // ----------- STORAGE ------------
-    mapping(string => IDefaultAdapter.PriceConfig) public configs;
-    mapping(string => uint256) public stalenessPerSymbol;
+    /// @notice Roles contract
     IRoles public immutable ROLES;
 
-    error MixedPriceOracle_Unauthorized();
-    error MixedPriceOracle_StalePrice();
-    error MixedPriceOracle_InvalidPrice();
-    error MixedPriceOracle_InvalidRound();
-    error MixedPriceOracle_InvalidConfig();
+    // ----------- STORAGE ------------
 
+    /// @notice Mapping of symbols to price configs
+    mapping(string symbol => IDefaultAdapter.PriceConfig config) public configs;
+
+    /// @notice Mapping of symbols to staleness periods
+    mapping(string symbol => uint256 staleness) public stalenessPerSymbol;
+
+    /// @notice Emitted when a configuration is set for a symbol
+    /// @param symbol Symbol being configured
+    /// @param config Price configuration applied
     event ConfigSet(string symbol, IDefaultAdapter.PriceConfig config);
+
+    /// @notice Emitted when staleness is updated for a symbol
+    /// @param symbol Symbol being updated
+    /// @param val New staleness value
     event StalenessUpdated(string symbol, uint256 val);
 
+    /// @notice Error thrown when caller lacks required role
+    error MixedPriceOracle_Unauthorized();
+
+    /// @notice Error thrown when price is stale
+    error MixedPriceOracle_StalePrice();
+
+    /// @notice Error thrown when price returned is invalid
+    error MixedPriceOracle_InvalidPrice();
+
+    /// @notice Error thrown when price round is invalid
+    error MixedPriceOracle_InvalidRound();
+
+    /// @notice Error thrown when configuration is invalid
+    error MixedPriceOracle_InvalidConfig();
+
+    /// @notice Initializes the oracle with symbols, configs, roles, and default staleness
+    /// @param symbols_ Array of token symbols
+    /// @param configs_ Array of price configs for symbols
+    /// @param roles_ Roles contract address
+    /// @param stalenessPeriod_ Default staleness period
     constructor(
         string[] memory symbols_,
         IDefaultAdapter.PriceConfig[] memory configs_,
         address roles_,
         uint256 stalenessPeriod_
     ) {
+        // @audit-question zero checks?
         ROLES = IRoles(roles_);
         for (uint256 i = 0; i < symbols_.length; i++) {
             configs[symbols_[i]] = configs_[i];
@@ -47,7 +81,11 @@ contract MixedPriceOracleV3 is IOracleOperator {
         STALENESS_PERIOD = stalenessPeriod_;
     }
 
-    function setStaleness(string memory symbol, uint256 val) external {
+    /// @notice Sets a custom staleness period for a symbol
+    /// @param symbol Symbol to update
+    /// @param val New staleness value
+    function setStaleness(string calldata symbol, uint256 val) external {
+        // @audit use require instead of revert
         if (!ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE())) {
             revert MixedPriceOracle_Unauthorized();
         }
@@ -55,7 +93,11 @@ contract MixedPriceOracleV3 is IOracleOperator {
         emit StalenessUpdated(symbol, val);
     }
 
-    function setConfig(string memory symbol, IDefaultAdapter.PriceConfig memory config) external {
+    /// @notice Sets a price configuration for a symbol
+    /// @param symbol Symbol to configure
+    /// @param config Price configuration
+    function setConfig(string calldata symbol, IDefaultAdapter.PriceConfig calldata config) external {
+        // @audit use require instead of revert
         if (!ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE())) {
             revert MixedPriceOracle_Unauthorized();
         }
@@ -66,12 +108,9 @@ contract MixedPriceOracleV3 is IOracleOperator {
         emit ConfigSet(symbol, config);
     }
 
-    function getPrice(address mToken) public view returns (uint256) {
-        string memory symbol = ImTokenMinimal(mToken).symbol();
-        return _getPriceUSD(symbol);
-    }
-
-    // price is extended for operator usage based on decimals of exchangeRate
+    /// @notice Returns underlying price for an mToken
+    /// @param mToken Address of the mToken
+    /// @return Price denominated in USD with 18 decimals adjusted for underlying decimals
     function getUnderlyingPrice(address mToken) external view override returns (uint256) {
         // ImTokenMinimal cast is needed for `.symbol()` call. No need to import a different interface
         string memory symbol = ImTokenMinimal(ImTokenMinimal(mToken).underlying()).symbol();
@@ -80,6 +119,18 @@ contract MixedPriceOracleV3 is IOracleOperator {
         return priceUsd * 10 ** (18 - config.underlyingDecimals);
     }
 
+    /// @notice Returns price for an mToken
+    /// @param mToken Address of the mToken
+    /// @return Price denominated in USD with 18 decimals
+    function getPrice(address mToken) public view returns (uint256) {
+        string memory symbol = ImTokenMinimal(mToken).symbol();
+        return _getPriceUSD(symbol);
+    }
+
+    // price is extended for operator usage based on decimals of exchangeRate
+    /// @notice Returns the USD price for a symbol
+    /// @param symbol Token symbol
+    /// @return price Price denominated in USD with 18 decimals
     function _getPriceUSD(string memory symbol) internal view returns (uint256) {
         IDefaultAdapter.PriceConfig memory config = configs[symbol];
         (uint256 feedPrice, uint256 feedDecimals) = _getLatestPrice(symbol, config);
@@ -92,6 +143,11 @@ contract MixedPriceOracleV3 is IOracleOperator {
         return price;
     }
 
+    /// @notice Fetches the latest price from configured feeds
+    /// @param symbol Token symbol
+    /// @param config Price configuration for the symbol
+    /// @return price Latest price from feed
+    /// @return decimals Decimals returned by the feed
     function _getLatestPrice(string memory symbol, IDefaultAdapter.PriceConfig memory config)
         internal
         view
@@ -114,6 +170,9 @@ contract MixedPriceOracleV3 is IOracleOperator {
         return (uPrice, decimals);
     }
 
+    /// @notice Returns staleness for a symbol or default if not set
+    /// @param symbol Token symbol
+    /// @return Staleness period in seconds
     function _getStaleness(string memory symbol) internal view returns (uint256) {
         uint256 _registered = stalenessPerSymbol[symbol];
         return _registered > 0 ? _registered : STALENESS_PERIOD;

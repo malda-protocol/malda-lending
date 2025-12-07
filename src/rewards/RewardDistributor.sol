@@ -31,6 +31,9 @@ import {ImToken} from "src/interfaces/ImToken.sol";
 import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
 import {IRewardDistributor, IRewardDistributorData} from "src/interfaces/IRewardDistributor.sol";
 
+/// @title Reward distribution manager
+/// @author Malda Protocol
+/// @notice Distributes reward tokens to suppliers and borrowers across markets.
 contract RewardDistributor is
     IRewardDistributor,
     ExponentialNoError,
@@ -39,31 +42,32 @@ contract RewardDistributor is
     ReentrancyGuardUpgradeable
 {
     // ----------- STORAGE ------------
+    /// @notice Initial index used when starting accruals
     uint224 public constant REWARD_INITIAL_INDEX = 1e36;
 
-    /**
-     * @inheritdoc IRewardDistributor
-     */
+    /// @inheritdoc IRewardDistributor
     address public operator;
 
     /**
      * @notice The Reward state for each reward token for each market
      */
-    mapping(address => mapping(address => IRewardDistributorData.RewardMarketState)) public rewardMarketState;
+    mapping(address rewardToken => mapping(address mToken => IRewardDistributorData.RewardMarketState marketState))
+        public rewardMarketState;
+
     /**
      * @notice The Reward state for each reward token for each account
      */
-    mapping(address => mapping(address => IRewardDistributorData.RewardAccountState)) public rewardAccountState;
+    mapping(
+        address rewardToken => mapping(address account => IRewardDistributorData.RewardAccountState accountState)
+    ) public rewardAccountState;
 
     /**
      * @notice Added reward tokens
      */
     address[] public rewardTokens;
 
-    /**
-     * @inheritdoc IRewardDistributor
-     */
-    mapping(address => bool) public isRewardToken;
+    /// @inheritdoc IRewardDistributor
+    mapping(address rewardToken => bool status) public isRewardToken;
 
     error RewardDistributor_OnlyOperator();
     error RewardDistributor_TransferFailed();
@@ -80,11 +84,92 @@ contract RewardDistributor is
     }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
+    /// @notice Disable initializers for the implementation
     constructor() {
         _disableInitializers();
     }
 
+    // ----------- OWNER ------------
+    /**
+     * @notice Sets the operator allowed to notify indices
+     * @param _operator Operator address
+     */
+    function setOperator(address _operator) external onlyOwner {
+        require(_operator != address(0), RewardDistributor_AddressNotValid());
+        emit OperatorSet(operator, _operator);
+        operator = _operator;
+    }
+
+    // ----------- OPERATOR ------------
+    /// @inheritdoc IRewardDistributor
+    /**
+     * @notice Updates supply indices for all reward tokens on a market
+     * @param mToken Market address
+     */
+    function notifySupplyIndex(address mToken) external override onlyOperator {
+        address rewardToken;
+        uint256 rewardTokensLength = rewardTokens.length;
+        for (uint256 i = 0; i < rewardTokensLength; i++) {
+            rewardToken = rewardTokens[i];
+
+            _notifySupplyIndex(rewardToken, mToken);
+            emit SupplyIndexNotified(rewardToken, mToken);
+        }
+    }
+
+    /// @inheritdoc IRewardDistributor
+    /**
+     * @notice Updates borrow indices for all reward tokens on a market
+     * @param mToken Market address
+     */
+    function notifyBorrowIndex(address mToken) external override onlyOperator {
+        uint256 rewardTokensLength = rewardTokens.length;
+        for (uint256 i = 0; i < rewardTokensLength; i++) {
+            _notifyBorrowIndex(rewardTokens[i], mToken);
+
+            emit BorrowIndexNotified(rewardTokens[i], mToken);
+        }
+    }
+
+    /// @inheritdoc IRewardDistributor
+    /**
+     * @notice Accrues supplier rewards for all reward tokens on a market
+     * @param mToken Market address
+     * @param supplier Supplier address
+     */
+    function notifySupplier(address mToken, address supplier) external override onlyOperator {
+        uint256 rewardTokensLength = rewardTokens.length;
+        for (uint256 i = 0; i < rewardTokensLength; i++) {
+            _notifySupplier(rewardTokens[i], mToken, supplier);
+        }
+    }
+
+    /// @inheritdoc IRewardDistributor
+    /**
+     * @notice Accrues borrower rewards for all reward tokens on a market
+     * @param mToken Market address
+     * @param borrower Borrower address
+     */
+    function notifyBorrower(address mToken, address borrower) external override onlyOperator {
+        uint256 rewardTokensLength = rewardTokens.length;
+        for (uint256 i = 0; i < rewardTokensLength; i++) {
+            _notifyBorrower(rewardTokens[i], mToken, borrower);
+        }
+    }
+
+    /**
+     * @notice Initializes the upgradeable contract
+     * @param _owner Owner address
+     */
+    function initialize(address _owner) public initializer {
+        __Ownable_init(_owner);
+    }
+
     // ----------- PUBLIC ------------
+    /**
+     * @notice Claims rewards for a list of holders across all reward tokens
+     * @param holders Account list to claim for
+     */
     function claim(address[] memory holders) public override nonReentrant {
         for (uint256 i = 0; i < rewardTokens.length;) {
             _claim(rewardTokens[i], holders);
@@ -96,31 +181,9 @@ contract RewardDistributor is
     }
 
     /**
-     * @inheritdoc IRewardDistributor
+     * @notice Whitelists a new reward token
+     * @param rewardToken_ Reward token address
      */
-    function getBlockTimestamp() public view override returns (uint32) {
-        // needs to have a string error message
-        return safe32(block.timestamp, "block timestamp exceeds 32 bits");
-    }
-
-    /**
-     * @inheritdoc IRewardDistributor
-     */
-    function getRewardTokens() public view override returns (address[] memory) {
-        return rewardTokens;
-    }
-
-    // ----------- OWNER ------------
-    function initialize(address _owner) public initializer {
-        __Ownable_init(_owner);
-    }
-
-    function setOperator(address _operator) external onlyOwner {
-        require(_operator != address(0), RewardDistributor_AddressNotValid());
-        emit OperatorSet(operator, _operator);
-        operator = _operator;
-    }
-
     function whitelistToken(address rewardToken_) public onlyOwner {
         require(rewardToken_ != address(0), RewardDistributor_AddressNotValid());
         require(!isRewardToken[rewardToken_], RewardDistributor_AddressAlreadyRegistered());
@@ -131,6 +194,13 @@ contract RewardDistributor is
         emit WhitelistedToken(rewardToken_);
     }
 
+    /**
+     * @notice Updates reward speeds for multiple markets
+     * @param rewardToken_ Reward token address
+     * @param mTokens Market addresses
+     * @param supplySpeeds Supply speeds per market
+     * @param borrowSpeeds Borrow speeds per market
+     */
     function updateRewardSpeeds(
         address rewardToken_,
         address[] memory mTokens,
@@ -150,59 +220,58 @@ contract RewardDistributor is
         }
     }
 
-    function grantReward(address token, address user, uint256 amount) public onlyOwner {
-        require(isRewardToken[token], RewardDistributor_RewardNotValid());
-        _grantReward(token, user, amount);
+    // ----------- VIEW ------------
+    /// @inheritdoc IRewardDistributor
+    function getBlockTimestamp() public view override returns (uint32) {
+        // needs to have a string error message
+        return safe32(block.timestamp, "block timestamp exceeds 32 bits");
     }
 
-    // ----------- OPERATOR ------------
-    /**
-     * @inheritdoc IRewardDistributor
-     */
-    function notifySupplyIndex(address mToken) external override onlyOperator {
-        address rewardToken;
-        uint256 rewardTokensLength = rewardTokens.length;
-        for (uint256 i = 0; i < rewardTokensLength; i++) {
-            rewardToken = rewardTokens[i];
+    /// @inheritdoc IRewardDistributor
+    function getRewardTokens() public view override returns (address[] memory) {
+        return rewardTokens;
+    }
 
-            _notifySupplyIndex(rewardToken, mToken);
-            emit SupplyIndexNotified(rewardToken, mToken);
+    // ----------- INTERNAL ------------
+    /// @notice Claims rewards for holders for a given token
+    /// @param rewardToken Reward token address
+    /// @param holders Holder list
+    function _claim(address rewardToken, address[] memory holders) internal {
+        for (uint256 j = 0; j < holders.length;) {
+            IRewardDistributorData.RewardAccountState storage accountState = rewardAccountState[rewardToken][holders[j]];
+
+            accountState.rewardAccrued = _grantReward(rewardToken, holders[j], accountState.rewardAccrued);
+
+            unchecked {
+                ++j;
+            }
         }
     }
 
-    /**
-     * @inheritdoc IRewardDistributor
-     */
-    function notifyBorrowIndex(address mToken) external override onlyOperator {
-        uint256 rewardTokensLength = rewardTokens.length;
-        for (uint256 i = 0; i < rewardTokensLength; i++) {
-            _notifyBorrowIndex(rewardTokens[i], mToken);
+    /// @notice Transfers accrued rewards to a user
+    /// @param token Reward token
+    /// @param user Recipient address
+    /// @param amount Amount to grant
+    /// @return Remaining amount (if transfer not fully executed)
+    function _grantReward(address token, address user, uint256 amount) internal returns (uint256) {
+        uint256 remaining = ImToken(token).balanceOf(address(this));
+        if (amount > 0 && amount <= remaining) {
+            bool status = ImToken(token).transfer(user, amount);
+            require(status, RewardDistributor_TransferFailed());
 
-            emit BorrowIndexNotified(rewardTokens[i], mToken);
-        }
-    }
+            emit RewardGranted(token, user, amount);
 
-    /**
-     * @inheritdoc IRewardDistributor
-     */
-    function notifySupplier(address mToken, address supplier) external override onlyOperator {
-        uint256 rewardTokensLength = rewardTokens.length;
-        for (uint256 i = 0; i < rewardTokensLength; i++) {
-            _notifySupplier(rewardTokens[i], mToken, supplier);
+            return 0;
         }
-    }
-
-    /**
-     * @inheritdoc IRewardDistributor
-     */
-    function notifyBorrower(address mToken, address borrower) external override onlyOperator {
-        uint256 rewardTokensLength = rewardTokens.length;
-        for (uint256 i = 0; i < rewardTokensLength; i++) {
-            _notifyBorrower(rewardTokens[i], mToken, borrower);
-        }
+        return amount;
     }
 
     // ----------- PRIVATE ------------
+    /// @notice Updates supply/borrow speed and indexes for a market
+    /// @param rewardToken Reward token address
+    /// @param mToken Market address
+    /// @param supplySpeed New supply speed
+    /// @param borrowSpeed New borrow speed
     function _updateRewardSpeed(address rewardToken, address mToken, uint256 supplySpeed, uint256 borrowSpeed) private {
         IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
 
@@ -229,6 +298,9 @@ contract RewardDistributor is
         }
     }
 
+    /// @notice Updates supply index for a reward token/market pair
+    /// @param rewardToken Reward token address
+    /// @param mToken Market address
     function _notifySupplyIndex(address rewardToken, address mToken) private {
         IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
 
@@ -250,6 +322,9 @@ contract RewardDistributor is
         }
     }
 
+    /// @notice Updates borrow index for a reward token/market pair
+    /// @param rewardToken Reward token address
+    /// @param mToken Market address
     function _notifyBorrowIndex(address rewardToken, address mToken) private {
         Exp memory marketBorrowIndex = Exp({mantissa: ImToken(mToken).borrowIndex()});
 
@@ -273,6 +348,10 @@ contract RewardDistributor is
         }
     }
 
+    /// @notice Accrues supplier rewards for a market
+    /// @param rewardToken Reward token address
+    /// @param mToken Market address
+    /// @param supplier Supplier address
     function _notifySupplier(address rewardToken, address mToken, address supplier) private {
         IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
         IRewardDistributorData.RewardAccountState storage accountState = rewardAccountState[rewardToken][supplier];
@@ -300,6 +379,10 @@ contract RewardDistributor is
         emit RewardAccrued(rewardToken, supplier, supplierDelta, accountState.rewardAccrued);
     }
 
+    /// @notice Accrues borrower rewards for a market
+    /// @param rewardToken Reward token address
+    /// @param mToken Market address
+    /// @param borrower Borrower address
     function _notifyBorrower(address rewardToken, address mToken, address borrower) private {
         Exp memory marketBorrowIndex = Exp({mantissa: ImToken(mToken).borrowIndex()});
 
@@ -330,30 +413,5 @@ contract RewardDistributor is
         accountState.rewardAccrued = add_(accountState.rewardAccrued, borrowerDelta);
 
         emit RewardAccrued(rewardToken, borrower, borrowerDelta, accountState.rewardAccrued);
-    }
-
-    function _claim(address rewardToken, address[] memory holders) internal {
-        for (uint256 j = 0; j < holders.length;) {
-            IRewardDistributorData.RewardAccountState storage accountState = rewardAccountState[rewardToken][holders[j]];
-
-            accountState.rewardAccrued = _grantReward(rewardToken, holders[j], accountState.rewardAccrued);
-
-            unchecked {
-                ++j;
-            }
-        }
-    }
-
-    function _grantReward(address token, address user, uint256 amount) internal returns (uint256) {
-        uint256 remaining = ImToken(token).balanceOf(address(this));
-        if (amount > 0 && amount <= remaining) {
-            bool status = ImToken(token).transfer(user, amount);
-            require(status, RewardDistributor_TransferFailed());
-
-            emit RewardGranted(token, user, amount);
-
-            return 0;
-        }
-        return amount;
     }
 }

@@ -38,68 +38,53 @@ import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
 
 import {IZkVerifier} from "src/verifier/ZkVerifier.sol";
 
+/// @title mTokenGateway
+/// @author Merge Layers Inc.
+/// @notice Gateway contract for mToken operations
 contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTypes, HypernativeFirewallProtected {
     using SafeERC20 for IERC20;
 
-    // ----------- STORAGE -----------
-    /**
-     * @inheritdoc ImTokenGateway
-     */
-    IRoles public rolesOperator;
+    // ----------- CONSTANTS -----------
 
-    /**
-     * @inheritdoc ImTokenGateway
-     */
-    IBlacklister public blacklistOperator;
-
-    IZkVerifier public verifier;
-
-    mapping(OperationType => bool) public paused;
-
-    /**
-     * @inheritdoc ImTokenGateway
-     */
-    address public underlying;
-
-    mapping(address => uint256) public accAmountIn;
-    mapping(address => uint256) public accAmountOut;
-    mapping(address => mapping(address => bool)) public allowedCallers;
-    mapping(address => bool) public userWhitelisted;
-    bool public whitelistEnabled;
-
+    /// @notice Linea chain ID
     uint32 private constant LINEA_CHAIN_ID = 59144;
 
-    ///@dev gas fee for `supplyOnHost`
+    // ----------- STORAGE -----------
+    /// @inheritdoc ImTokenGateway
+    IRoles public rolesOperator;
+
+    /// @inheritdoc ImTokenGateway
+    IBlacklister public blacklistOperator;
+
+    /// @notice The ZkVerifier contract
+    IZkVerifier public verifier;
+
+    /// @notice Mapping of operation types to pause status
+    mapping(OperationType operationType => bool paused) public paused;
+
+    /// @inheritdoc ImTokenGateway
+    address public underlying;
+
+    /// @notice Mapping of accumulated amounts in
+    mapping(address account => uint256 amount) public accAmountIn;
+
+    /// @notice Mapping of accumulated amounts out
+    mapping(address account => uint256 amount) public accAmountOut;
+
+    /// @notice Mapping of allowed callers
+    mapping(address caller => mapping(address target => bool allowed)) public allowedCallers;
+
+    /// @notice Mapping of whitelisted users
+    mapping(address user => bool whitelisted) public userWhitelisted;
+
+    /// @notice Whether whitelist is enabled
+    bool public whitelistEnabled;
+
+    /// @notice Gas fee required for `supplyOnHost`
     uint256 public gasFee;
 
     // slither-disable-next-line unused-state
     uint256[50] private __gap;
-
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor() {
-        _disableInitializers();
-    }
-
-    function initialize(
-        address payable _owner,
-        address _underlying,
-        address _roles,
-        address _blacklister,
-        address zkVerifier_
-    ) external initializer {
-        __Ownable_init(_owner);
-        require(_roles != address(0), mTokenGateway_AddressNotValid());
-        require(zkVerifier_ != address(0), mTokenGateway_AddressNotValid());
-        require(_blacklister != address(0), mTokenGateway_AddressNotValid());
-        require(_underlying != address(0), mTokenGateway_AddressNotValid());
-        require(_roles != address(0), mTokenGateway_AddressNotValid());
-
-        underlying = _underlying;
-        rolesOperator = IRoles(_roles);
-        blacklistOperator = IBlacklister(_blacklister);
-
-        verifier = IZkVerifier(zkVerifier_);
-    }
 
     modifier notPaused(OperationType _type) {
         require(!paused[_type], mTokenGateway_Paused(_type));
@@ -128,59 +113,73 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         _;
     }
 
-    // ----------- VIEW ------------
-    /**
-     * @inheritdoc ImTokenGateway
-     */
-    function isPaused(OperationType _type) external view returns (bool) {
-        return paused[_type];
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    /// @notice Disables initializers on implementation
+    constructor() {
+        _disableInitializers();
     }
 
-    /**
-     * @inheritdoc ImTokenGateway
-     */
-    function getProofData(address user, uint32) external view returns (uint256, uint256) {
-        return (accAmountIn[user], accAmountOut[user]);
+    /// @notice Initializes the gateway
+    /// @param _owner Owner address
+    /// @param _underlying Underlying token
+    /// @param _roles Roles contract
+    /// @param _blacklister Blacklister contract
+    /// @param zkVerifier_ ZK verifier
+    function initialize(
+        address payable _owner,
+        address _underlying,
+        address _roles,
+        address _blacklister,
+        address zkVerifier_
+    ) external initializer {
+        __Ownable_init(_owner);
+        require(_roles != address(0), mTokenGateway_AddressNotValid());
+        require(zkVerifier_ != address(0), mTokenGateway_AddressNotValid());
+        require(_blacklister != address(0), mTokenGateway_AddressNotValid());
+        require(_underlying != address(0), mTokenGateway_AddressNotValid());
+        require(_roles != address(0), mTokenGateway_AddressNotValid());
+
+        underlying = _underlying;
+        rolesOperator = IRoles(_roles);
+        blacklistOperator = IBlacklister(_blacklister);
+
+        verifier = IZkVerifier(zkVerifier_);
     }
 
     // ----------- OWNER ------------
+    /// @notice Initializes the firewall configuration
+    /// @param _firewall Firewall address to set
     function initFirewall(address _firewall) external onlyOwner {
         _initHypernativeFirewall(_firewall, owner());
     }
 
+    /// @notice Sets the blacklister contract
+    /// @param _blacklister Address of the blacklister
     function setBlacklister(address _blacklister) external onlyOwner {
         blacklistOperator = IBlacklister(_blacklister);
     }
 
-    /**
-     * @notice Sets user whitelist status
-     * @param user The user address
-     * @param state The new staate
-     */
+    /// @notice Sets user whitelist status
+    /// @param user The user address
+    /// @param state The new state
     function setWhitelistedUser(address user, bool state) external onlyOwner {
         userWhitelisted[user] = state;
         emit mTokenGateway_UserWhitelisted(user, state);
     }
 
-    /**
-     * @notice Enable user whitelist
-     */
+    /// @notice Enable user whitelist
     function enableWhitelist() external onlyOwner {
         whitelistEnabled = true;
         emit mTokenGateway_WhitelistEnabled();
     }
 
-    /**
-     * @notice Disable user whitelist
-     */
+    /// @notice Disable user whitelist
     function disableWhitelist() external onlyOwner {
         whitelistEnabled = false;
         emit mTokenGateway_WhitelistDisabled();
     }
 
-    /**
-     * @inheritdoc ImTokenGateway
-     */
+    /// @inheritdoc ImTokenGateway
     function setPaused(OperationType _type, bool state) external override {
         if (state) {
             require(
@@ -195,27 +194,21 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         paused[_type] = state;
     }
 
-    /**
-     * @inheritdoc ImTokenGateway
-     */
+    /// @inheritdoc ImTokenGateway
     function extractForRebalancing(uint256 amount) external notPaused(OperationType.Rebalancing) {
         if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mTokenGateway_NotRebalancer();
         IERC20(underlying).safeTransfer(msg.sender, amount);
     }
 
-    /**
-     * @notice Sets the gas fee
-     * @param amount the new gas fee
-     */
+    /// @notice Sets the gas fee
+    /// @param amount the new gas fee
     function setGasFee(uint256 amount) external onlyOwner {
         gasFee = amount;
         emit mTokenGateway_GasFeeUpdated(amount);
     }
 
-    /**
-     * @notice Withdraw gas received so far
-     * @param receiver the receiver address
-     */
+    /// @notice Withdraw gas received so far
+    /// @param receiver the receiver address
     function withdrawGasFees(address payable receiver) external {
         if (msg.sender != owner() && !_isAllowedFor(msg.sender, _getSequencerRole())) {
             revert mTokenGateway_CallerNotAllowed();
@@ -225,32 +218,22 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         receiver.transfer(balance);
     }
 
-    /**
-     * @notice Updates IZkVerifier address
-     * @param _zkVerifier the verifier address
-     */
+    /// @notice Updates IZkVerifier address
+    /// @param _zkVerifier the verifier address
     function updateZkVerifier(address _zkVerifier) external onlyOwner {
         require(_zkVerifier != address(0), mTokenGateway_AddressNotValid());
         emit ZkVerifierUpdated(address(verifier), _zkVerifier);
         verifier = IZkVerifier(_zkVerifier);
     }
 
-    // ----------- PUBLIC ------------
-    function firewallRegister(address _account) public override(HypernativeFirewallProtected) {
-        super.firewallRegister(_account);
-    }
-
-    /**
-     * @inheritdoc ImTokenGateway
-     */
+    // ----------- EXTERNAL ------------
+    /// @inheritdoc ImTokenGateway
     function updateAllowedCallerStatus(address caller, bool status) external override {
         allowedCallers[msg.sender][caller] = status;
         emit AllowedCallerUpdated(msg.sender, caller, status);
     }
 
-    /**
-     * @inheritdoc ImTokenGateway
-     */
+    /// @inheritdoc ImTokenGateway
     function supplyOnHost(uint256 amount, address receiver, bytes4 lineaSelector)
         external
         payable
@@ -275,9 +258,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         );
     }
 
-    /**
-     * @inheritdoc ImTokenGateway
-     */
+    /// @inheritdoc ImTokenGateway
     function liquidate(address userToLiquidate, uint256 liquidateAmount, address collateral, address receiver)
         external
         payable
@@ -292,9 +273,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         );
     }
 
-    /**
-     * @inheritdoc ImTokenGateway
-     */
+    /// @inheritdoc ImTokenGateway
     function outHere(bytes calldata journalData, bytes calldata seal, uint256[] calldata amounts, address receiver)
         external
         notPaused(OperationType.AmountOutHere)
@@ -320,8 +299,28 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         }
     }
 
-    // ----------- PRIVATE ------------
+    // ----------- VIEW ------------
+    /// @inheritdoc ImTokenGateway
+    function isPaused(OperationType _type) external view returns (bool) {
+        return paused[_type];
+    }
 
+    /// @inheritdoc ImTokenGateway
+    function getProofData(address user, uint32) external view returns (uint256, uint256) {
+        return (accAmountIn[user], accAmountOut[user]);
+    }
+
+    /// @notice Registers an account in the firewall
+    /// @param _account Account to register
+    function firewallRegister(address _account) public override(HypernativeFirewallProtected) {
+        super.firewallRegister(_account);
+    }
+
+    // ----------- PRIVATE ------------
+    /// @notice Handles inbound transfers and accounting
+    /// @param asset Asset address
+    /// @param amount Amount to transfer
+    /// @param receiver Receiver address
     function _takeIn(address asset, uint256 amount, address receiver) private {
         // Requirements: the amount must be greater than 0
         require(amount > 0, mTokenGateway_AmountNotValid());
@@ -335,6 +334,10 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
     }
 
+    /// @notice Processes an outgoing transfer based on journal data
+    /// @param journalData Encoded journal payload
+    /// @param amount Amount to transfer
+    /// @param receiver Receiver address override
     function _outHere(bytes memory journalData, uint256 amount, address receiver) private {
         (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(journalData);
@@ -370,6 +373,9 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         );
     }
 
+    /// @notice Verifies proof data and inclusion constraints
+    /// @param journalData Encoded journals
+    /// @param seal Proof seal data
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
         require(journalData.length > 0, mTokenGateway_JournalNotValid());
 
@@ -382,8 +388,8 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
 
         if (!isSequencer) {
             for (uint256 i = 0; i < journals.length; i++) {
-                (,,,,,, bool L1Inclusion) = mTokenProofDecoderLib.decodeJournal(journals[i]);
-                if (!L1Inclusion) {
+                (,,,,,, bool l1Inclusion) = mTokenProofDecoderLib.decodeJournal(journals[i]);
+                if (!l1Inclusion) {
                     revert mTokenGateway_L1InclusionRequired();
                 }
             }
@@ -393,6 +399,9 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         verifier.verifyInput(journalData, seal);
     }
 
+    /// @notice Validates sender permissions for proof forwarding
+    /// @param msgSender Caller address
+    /// @param srcSender Source sender encoded in journal
     function _checkSender(address msgSender, address srcSender) private view {
         if (msgSender != srcSender) {
             require(
@@ -404,18 +413,28 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         }
     }
 
+    /// @notice Returns sequencer role identifier
+    /// @return Role id
     function _getSequencerRole() private view returns (bytes32) {
         return rolesOperator.SEQUENCER();
     }
 
+    /// @notice Returns batch proof forwarder role identifier
+    /// @return Role id
     function _getBatchProofForwarderRole() private view returns (bytes32) {
         return rolesOperator.PROOF_BATCH_FORWARDER();
     }
 
+    /// @notice Returns proof forwarder role identifier
+    /// @return Role id
     function _getProofForwarderRole() private view returns (bytes32) {
         return rolesOperator.PROOF_FORWARDER();
     }
 
+    /// @notice Checks if sender has a specific role
+    /// @param _sender Sender address
+    /// @param role Role to check
+    /// @return True if allowed
     function _isAllowedFor(address _sender, bytes32 role) private view returns (bool) {
         return rolesOperator.isAllowedFor(_sender, role);
     }

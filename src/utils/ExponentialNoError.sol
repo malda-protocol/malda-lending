@@ -16,6 +16,8 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
+/* solhint-disable func-name-mixedcase,use-natspec */
+
 /*
  _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
@@ -32,11 +34,6 @@ pragma solidity =0.8.28;
  */
 // slither-disable-start unused-state,dead-code
 abstract contract ExponentialNoError {
-    uint256 internal constant EXP_SCALE = 1e18;
-    uint256 internal constant DOUBLE_SCALE = 1e36;
-    uint256 internal constant HALF_EXP_SCALE = EXP_SCALE / 2;
-    uint256 internal constant MANTISSA_ONE = EXP_SCALE;
-
     struct Exp {
         uint256 mantissa;
     }
@@ -44,6 +41,11 @@ abstract contract ExponentialNoError {
     struct Double {
         uint256 mantissa;
     }
+
+    uint256 internal constant EXP_SCALE = 1e18;
+    uint256 internal constant DOUBLE_SCALE = 1e36;
+    uint256 internal constant HALF_EXP_SCALE = EXP_SCALE / 2;
+    uint256 internal constant MANTISSA_ONE = EXP_SCALE;
 
     /**
      * @dev Truncates the given exp to a whole number value.

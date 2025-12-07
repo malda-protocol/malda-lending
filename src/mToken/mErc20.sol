@@ -32,10 +32,9 @@ import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {mToken} from "./mToken.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-/**
- * @title Malda's mErc20 Contract
- * @notice mTokens which wrap an EIP-20 underlying
- */
+/// @title Malda's mErc20 Contract
+/// @author Merge Layers Inc.
+/// @notice mTokens which wrap an EIP-20 underlying
 abstract contract mErc20 is mToken, ImErc20 {
     using SafeERC20 for IERC20;
 
@@ -48,16 +47,67 @@ abstract contract mErc20 is mToken, ImErc20 {
     // ----------- ERRORS ------------
     error mErc20_TokenNotValid();
 
+    // ----------- OWNER ------------
     /**
-     * @notice Initialize the new money market
-     * @param underlying_ The address of the underlying asset
-     * @param operator_ The address of the Operator
-     * @param interestRateModel_ The address of the interest rate model
-     * @param initialExchangeRateMantissa_ The initial exchange rate, scaled by 1e18
-     * @param name_ ERC-20 name of this token
-     * @param symbol_ ERC-20 symbol of this token
-     * @param decimals_ ERC-20 decimal precision of this token
+     * @notice A public function to sweep accidental ERC-20 transfers to this contract. Tokens are sent to admin (timelock)
+     * @param token The address of the ERC-20 token to sweep
+     * @param amount The amount of tokens to sweep
      */
+    function sweepToken(IERC20 token, uint256 amount) external onlyAdmin {
+        require(address(token) != underlying, mErc20_TokenNotValid());
+        token.safeTransfer(admin, amount);
+    }
+
+    // ----------- MARKET PUBLIC ------------
+    /// @inheritdoc ImErc20
+    function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external {
+        _mint(msg.sender, receiver, mintAmount, minAmountOut, true);
+    }
+
+    /// @inheritdoc ImErc20
+    function redeem(uint256 redeemTokens) external {
+        _redeem(msg.sender, redeemTokens, true);
+    }
+
+    /// @inheritdoc ImErc20
+    function redeemUnderlying(uint256 redeemAmount) external {
+        _redeemUnderlying(msg.sender, redeemAmount, true);
+    }
+
+    /// @inheritdoc ImErc20
+    function borrow(uint256 borrowAmount) external {
+        _borrow(msg.sender, borrowAmount, true);
+    }
+
+    /// @inheritdoc ImErc20
+    function repay(uint256 repayAmount) external returns (uint256) {
+        return _repay(repayAmount, true);
+    }
+
+    /// @inheritdoc ImErc20
+    function repayBehalf(address borrower, uint256 repayAmount) external returns (uint256) {
+        return _repayBehalf(borrower, repayAmount, true);
+    }
+
+    /// @inheritdoc ImErc20
+    function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral) external {
+        _liquidate(msg.sender, borrower, repayAmount, mTokenCollateral, true);
+    }
+
+    /// @inheritdoc ImErc20
+    function addReserves(uint256 addAmount) external {
+        return _addReserves(addAmount);
+    }
+
+    // ----------- INTERNAL ------------
+    /// @notice Initialize the new money market
+    /// @param underlying_ The address of the underlying asset
+    /// @param operator_ The address of the Operator
+    /// @param interestRateModel_ The address of the interest rate model
+    /// @param initialExchangeRateMantissa_ The initial exchange rate, scaled by 1e18
+    /// @param name_ ERC-20 name of this token
+    /// @param symbol_ ERC-20 symbol of this token
+    /// @param decimals_ ERC-20 decimal precision of this token
     function _initializeMErc20(
         address underlying_,
         address operator_,
@@ -75,87 +125,10 @@ abstract contract mErc20 is mToken, ImErc20 {
         ImTokenMinimal(underlying).totalSupply();
     }
 
-    // ----------- OWNER ------------
-    /**
-     * @notice A public function to sweep accidental ERC-20 transfers to this contract. Tokens are sent to admin (timelock)
-     * @param token The address of the ERC-20 token to sweep
-     */
-    function sweepToken(IERC20 token, uint256 amount) external onlyAdmin {
-        require(address(token) != underlying, mErc20_TokenNotValid());
-        token.safeTransfer(admin, amount);
-    }
-
-    // ----------- MARKET PUBLIC ------------
-    /**
-     * @inheritdoc ImErc20
-     */
-    function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external {
-        _mint(msg.sender, receiver, mintAmount, minAmountOut, true);
-    }
-
-    /**
-     * @inheritdoc ImErc20
-     */
-    function redeem(uint256 redeemTokens) external {
-        _redeem(msg.sender, redeemTokens, true);
-    }
-
-    /**
-     * @inheritdoc ImErc20
-     */
-    function redeemUnderlying(uint256 redeemAmount) external {
-        _redeemUnderlying(msg.sender, redeemAmount, true);
-    }
-
-    /**
-     * @inheritdoc ImErc20
-     */
-    function borrow(uint256 borrowAmount) external {
-        _borrow(msg.sender, borrowAmount, true);
-    }
-
-    /**
-     * @inheritdoc ImErc20
-     */
-    function repay(uint256 repayAmount) external returns (uint256) {
-        return _repay(repayAmount, true);
-    }
-
-    /**
-     * @inheritdoc ImErc20
-     */
-    function repayBehalf(address borrower, uint256 repayAmount) external returns (uint256) {
-        return _repayBehalf(borrower, repayAmount, true);
-    }
-
-    /**
-     * @inheritdoc ImErc20
-     */
-    function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral) external {
-        _liquidate(msg.sender, borrower, repayAmount, mTokenCollateral, true);
-    }
-
-    /**
-     * @inheritdoc ImErc20
-     */
-    function addReserves(uint256 addAmount) external {
-        return _addReserves(addAmount);
-    }
-
-    // ----------- INTERNAL ------------
-    /**
-     * @notice Gets balance of this contract in terms of the underlying
-     * @dev This excludes the value of the current message, if any
-     * @return The quantity of underlying tokens owned by this contract
-     */
-    function _getCashPrior() internal view virtual override returns (uint256) {
-        return totalUnderlying;
-    }
-
-    /**
-     * @dev Performs a transfer in, reverting upon failure. Returns the amount actually transferred to the protocol, in case of a fee.
-     *  This may revert due to insufficient balance or insufficient allowance.
-     */
+    /// @notice Performs a transfer in, reverting upon failure
+    /// @param from Sender address
+    /// @param amount Amount to transfer
+    /// @return Amount actually transferred to the protocol
     function _doTransferIn(address from, uint256 amount) internal virtual override returns (uint256) {
         uint256 balanceBefore = IERC20(underlying).balanceOf(address(this));
         IERC20(underlying).safeTransferFrom(from, address(this), amount);
@@ -163,12 +136,19 @@ abstract contract mErc20 is mToken, ImErc20 {
         return balanceAfter - balanceBefore;
     }
 
-    /**
-     * @dev Performs a transfer out, ideally returning an explanatory error code upon failure rather than reverting.
-     *  If caller has not called checked protocol's balance, may revert due to insufficient cash held in the contract.
-     *  If caller has checked protocol's balance, and verified it is >= amount, this should not revert in normal conditions.
-     */
+    /// @notice Performs a transfer out to a recipient
+    /// @param to Recipient address
+    /// @param amount Amount to transfer
     function _doTransferOut(address payable to, uint256 amount) internal virtual override {
         IERC20(underlying).safeTransfer(to, amount);
+    }
+
+    /**
+     * @notice Gets balance of this contract in terms of the underlying
+     * @dev This excludes the value of the current message, if any
+     * @return The quantity of underlying tokens owned by this contract
+     */
+    function _getCashPrior() internal view virtual override returns (uint256) {
+        return totalUnderlying;
     }
 }

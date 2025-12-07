@@ -8,6 +8,7 @@ interface IHypernativeFirewall {
     function validateBlacklistedAccountInteraction(address sender) external;
 }
 
+// @audit-question is this our contract or hypernative contract? if its ours, we should format it properly
 abstract contract HypernativeFirewallProtected {
     bytes32 private constant HYPERNATIVE_ORACLE_STORAGE_SLOT =
         bytes32(uint256(keccak256("eip1967.hypernative.firewall")) - 1);

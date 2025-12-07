@@ -28,6 +28,9 @@ import {IRoles} from "./IRoles.sol";
 import {IBlacklister} from "./IBlacklister.sol";
 import {ImTokenOperationTypes} from "./ImToken.sol";
 
+/// @title Operator storage structures
+/// @author Merge Layers Inc.
+/// @notice Data definitions used by Operator contracts
 interface IOperatorData {
     struct Market {
         // Whether or not this market is listed
@@ -41,12 +44,30 @@ interface IOperatorData {
     }
 }
 
+/// @title Operator defender interface
+/// @author Merge Layers Inc.
+/// @notice Hooks for Operator validation logic
 interface IOperatorDefender {
     /**
      * @notice Checks if the account should be allowed to rebalance tokens
      * @param mToken The market to verify the transfer against
      */
     function beforeRebalancing(address mToken) external;
+
+    /**
+     * @notice Checks if the account should be allowed to borrow the underlying asset of the given market
+     * @param mToken The market to verify the borrow against
+     * @param borrower The account which would borrow the asset
+     * @param borrowAmount The amount of underlying the account would borrow
+     */
+    function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external;
+
+    /**
+     * @notice Checks if new used amount is within the limits of the outflow volume limit
+     * @dev Sender must be a listed market
+     * @param amount New amount
+     */
+    function checkOutflowVolumeLimit(uint256 amount) external;
 
     /**
      * @notice Checks if the account should be allowed to transfer tokens in the given market
@@ -58,34 +79,12 @@ interface IOperatorDefender {
     function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external;
 
     /**
-     * @notice Checks if the account should be allowed to mint tokens in the given market
-     * @param mToken The market to verify the mint against
-     * @param minter The account which would supplies the assets
-     * @param receiver The account which would get the minted tokens
-     */
-    function beforeMTokenMint(address mToken, address minter, address receiver) external view;
-
-    /**
-     * @notice Validates mint and reverts on rejection. May emit logs.
-     * @param mToken Asset being minted
-     */
-    function afterMTokenMint(address mToken) external view;
-
-    /**
      * @notice Checks if the account should be allowed to redeem tokens in the given market
      * @param mToken The market to verify the redeem against
      * @param redeemer The account which would redeem the tokens
      * @param redeemTokens The number of mTokens to exchange for the underlying asset in the market
      */
     function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external view;
-
-    /**
-     * @notice Checks if the account should be allowed to borrow the underlying asset of the given market
-     * @param mToken The market to verify the borrow against
-     * @param borrower The account which would borrow the asset
-     * @param borrowAmount The amount of underlying the account would borrow
-     */
-    function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external;
 
     /**
      * @notice Checks if the account should be allowed to repay a borrow in the given market
@@ -117,37 +116,53 @@ interface IOperatorDefender {
     function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator) external view;
 
     /**
-     * @notice Checks if new used amount is within the limits of the outflow volume limit
-     * @dev Sender must be a listed market
-     * @param amount New amount
+     * @notice Checks if the account should be allowed to mint tokens in the given market
+     * @param mToken The market to verify the mint against
+     * @param minter The account which would supplies the assets
+     * @param receiver The account which would get the minted tokens
      */
-    function checkOutflowVolumeLimit(uint256 amount) external;
+    function beforeMTokenMint(address mToken, address minter, address receiver) external view;
+
+    /**
+     * @notice Validates mint and reverts on rejection. May emit logs.
+     * @param mToken Asset being minted
+     */
+    function afterMTokenMint(address mToken) external view;
 }
 
+/// @title Operator interface
+/// @author Merge Layers Inc.
+/// @notice Core Operator contract surface
 interface IOperator {
     // ----------- VIEW ------------
     /**
      * @notice Returns true/false for user
+     * @param _user Address to check
+     * @return whitelisted True if user is whitelisted
      */
     function userWhitelisted(address _user) external view returns (bool);
 
     /**
      * @notice Should return outflow limit
+     * @return limit Outflow limit per period
      */
     function limitPerTimePeriod() external view returns (uint256);
 
     /**
      * @notice Should return outflow volume
+     * @return volume Current outflow volume
      */
     function cumulativeOutflowVolume() external view returns (uint256);
 
     /**
      * @notice Should return last reset time for outflow check
+     * @return lastReset Timestamp of last reset
      */
     function lastOutflowResetTimestamp() external view returns (uint256);
 
     /**
      * @notice Should return the outflow volume time window
+     * @return window Outflow window
      */
     function outflowResetTimeWindow() external view returns (uint256);
 
@@ -155,36 +170,45 @@ interface IOperator {
      * @notice Returns if operation is paused
      * @param mToken The mToken to check
      * @param _type the operation type
+     * @return paused True if paused
      */
     function isPaused(address mToken, ImTokenOperationTypes.OperationType _type) external view returns (bool);
 
     /**
      * @notice Roles
+     * @return roles Roles contract
      */
     function rolesOperator() external view returns (IRoles);
 
     /**
      * @notice Blacklist
+     * @return blacklister Blacklist operator
      */
     function blacklistOperator() external view returns (IBlacklister);
 
     /**
      * @notice Oracle which gives the price of any given asset
+     * @return oracle Oracle address
      */
     function oracleOperator() external view returns (address);
 
     /**
      * @notice Multiplier used to calculate the maximum repayAmount when liquidating a borrow
+     * @return closeFactor Close factor mantissa
      */
     function closeFactorMantissa() external view returns (uint256);
 
     /**
      * @notice Multiplier representing the discount on collateral that a liquidator receives
+     * @param market Market address
+     * @return incentive Discount mantissa
      */
     function liquidationIncentiveMantissa(address market) external view returns (uint256);
 
     /**
      * @notice Returns true/false
+     * @param market Market address
+     * @return listed True if market is listed
      */
     function isMarketListed(address market) external view returns (bool);
 
@@ -197,21 +221,31 @@ interface IOperator {
 
     /**
      * @notice A list of all markets
+     * @return mTokens List of markets
      */
     function getAllMarkets() external view returns (address[] memory mTokens);
 
     /**
-     * @notice Borrow caps enforced by borrowAllowed for each mToken address. Defaults to zero which corresponds to unlimited borrowing.
+     * @notice Borrow caps enforced by borrowAllowed for each mToken address.
+     * Defaults to zero which corresponds to unlimited borrowing.
+     * @param _mToken Market address
+     * @return cap Borrow cap
      */
     function borrowCaps(address _mToken) external view returns (uint256);
 
     /**
-     * @notice Supply caps enforced by supplyAllowed for each mToken address. Defaults to zero which corresponds to unlimited supplying.
+     * @notice Supply caps enforced by supplyAllowed for each mToken address.
+     * Defaults to zero which corresponds to unlimited supplying.
+     * @param _mToken Market address
+     * @return cap Supply cap
      */
     function supplyCaps(address _mToken) external view returns (uint256);
 
     /**
-     * @notice Supply caps enforced by supplyAllowed for each mToken address. Defaults to zero which corresponds to unlimited supplying.
+     * @notice Supply caps enforced by supplyAllowed for each mToken address.
+     * Defaults to zero which corresponds to unlimited supplying.
+     * @param _mToken Market address
+     * @return minimum Minimum borrow size
      */
     function minBorrowSize(address _mToken) external view returns (uint256);
 
@@ -225,22 +259,23 @@ interface IOperator {
 
     /**
      * @notice Determine what the account liquidity would be if the given amounts were redeemed/borrowed
-     * @param mTokenModify The market to hypothetically redeem/borrow in
      * @param account The account to determine liquidity for
+     * @param mTokenModify The market to hypothetically redeem/borrow in
      * @param redeemTokens The number of tokens to hypothetically redeem
      * @param borrowAmount The amount of underlying to hypothetically borrow
-     * @return hypothetical account liquidity in excess of collateral requirements,
-     *         hypothetical account shortfall below collateral requirements)
+     * @return liquidity Account liquidity in excess of collateral requirements
+     * @return shortfall Account shortfall below collateral requirements
      */
     function getHypotheticalAccountLiquidity(
         address account,
         address mTokenModify,
         uint256 redeemTokens,
         uint256 borrowAmount
-    ) external view returns (uint256, uint256);
+    ) external view returns (uint256 liquidity, uint256 shortfall);
 
     /**
      * @notice Returns USD value for all markets
+     * @return usdValue Total USD value
      */
     function getUSDValueForAllMarkets() external view returns (uint256);
 
@@ -248,10 +283,12 @@ interface IOperator {
      * @notice Returns true if the given mToken market has been deprecated
      * @dev All borrows in a deprecated mToken market can be immediately liquidated
      * @param mToken The market to check if deprecated
+     * @return deprecated True if deprecated
      */
     function isDeprecated(address mToken) external view returns (bool);
 
     // ----------- ACTIONS ------------
+    // solhint-disable ordering
     /**
      * @notice Set pause for a specific operation
      * @param mToken The market token address
@@ -259,6 +296,7 @@ interface IOperator {
      * @param state The pause operation status
      */
     function setPaused(address mToken, ImTokenOperationTypes.OperationType _type, bool state) external;
+    // solhint-enable ordering
 
     /**
      * @notice Add assets to be included in account liquidity calculation

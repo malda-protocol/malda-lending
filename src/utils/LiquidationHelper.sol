@@ -26,7 +26,17 @@ pragma solidity =0.8.28;
 import {ImToken, ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {IOperator} from "src/interfaces/IOperator.sol";
 
+/// @title Liquidation helper
+/// @author Malda Protocol
+/// @notice View helper that computes whether a borrower can be liquidated and the repay amount.
 contract LiquidationHelper {
+    /**
+     * @notice Computes liquidation eligibility for a borrower on a market
+     * @param borrower Address of the borrower
+     * @param market Market address implementing ImToken
+     * @return shouldLiquidate True if borrower is below collateral requirements
+     * @return repayAmount Max repay amount according to close factor
+     */
     function getBorrowerPosition(address borrower, address market)
         external
         view

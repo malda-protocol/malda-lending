@@ -26,22 +26,25 @@ pragma solidity =0.8.28;
 import {mErc20} from "./mErc20.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
+/// @title Upgradable mErc20
+/// @author Merge Layers Inc.
+/// @notice Upgradable flavor of mErc20 with initializer support
 abstract contract mErc20Upgradable is mErc20, Initializable {
+    /// @notice Disables initializers on deployment
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    /**
-     * @notice Initialize the new money market
-     * @param underlying_ The address of the underlying asset
-     * @param operator_ The address of the Operator
-     * @param interestRateModel_ The address of the interest rate model
-     * @param initialExchangeRateMantissa_ The initial exchange rate, scaled by 1e18
-     * @param name_ ERC-20 name of this token
-     * @param symbol_ ERC-20 symbol of this token
-     * @param decimals_ ERC-20 decimal precision of this token
-     */
+    /// @notice Initialize the new money market
+    /// @param underlying_ The address of the underlying asset
+    /// @param operator_ The address of the Operator
+    /// @param interestRateModel_ The address of the interest rate model
+    /// @param initialExchangeRateMantissa_ The initial exchange rate, scaled by 1e18
+    /// @param name_ ERC-20 name of this token
+    /// @param symbol_ ERC-20 symbol of this token
+    /// @param decimals_ ERC-20 decimal precision of this token
+    /// @param admin_ Address of the administrator
     function _proxyInitialize(
         address underlying_,
         address operator_,

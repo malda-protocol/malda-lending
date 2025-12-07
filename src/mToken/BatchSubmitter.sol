@@ -23,45 +23,22 @@ import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {IZkVerifier} from "src/verifier/ZkVerifier.sol";
 
+/// @title BatchSubmitter
+/// @author Merge Layers Inc.
+/// @notice Contract for batch processing multiple operations
 contract BatchSubmitter is Ownable {
-    error BatchSubmitter_CallerNotAllowed();
-    error BatchSubmitter_JournalNotValid();
-    error BatchSubmitter_InvalidSelector();
-    error BatchSubmitter_AddressNotValid();
-
-    event BatchProcessFailed(
-        bytes32 initHash,
-        address receiver,
-        address mToken,
-        uint256 amount,
-        uint256 minAmountOut,
-        bytes4 selector,
-        bytes reason
-    );
-    event BatchProcessSuccess(
-        bytes32 initHash, address receiver, address mToken, uint256 amount, uint256 minAmountOut, bytes4 selector
-    );
-    event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
-
-    /**
-     * @notice The roles contract for access control
-     */
-    IRoles public immutable ROLES_OPERATOR;
-
-    IZkVerifier public verifier;
-
-    /**
-     * receiver Funds receiver/performed on
-     * journalData The encoded journal data
-     * seal The seal data for verification
-     * mTokens Array of mToken addresses
-     * amounts Array of amounts for each operation
-     * selectors Array of function selectors for each operation
-     * startIndex Start index for processing journals
-     * endIndex End index for processing journals (exclusive)
-     * userToLiquidate Array of users to liquidate (for liquidateExternal operations)
-     * collateral Array of collateral addresses (for liquidateExternal operations)
-     */
+    /// @notice Parameters used to process a batch of operations
+    /// @param receivers Funds receivers
+    /// @param journalData Encoded journal data
+    /// @param seal Seal data for verification
+    /// @param mTokens Array of mToken addresses
+    /// @param amounts Array of amounts for each operation
+    /// @param minAmountsOut Array of minimum output amounts
+    /// @param selectors Array of function selectors for each operation
+    /// @param initHashes Array of initial hashes for journals
+    /// @param startIndex Start index for processing journals
+    /// @param userToLiquidate Array of users to liquidate (for liquidateExternal operations)
+    /// @param collateral Array of collateral addresses (for liquidateExternal operations)
     struct BatchProcessMsg {
         address[] receivers;
         bytes journalData;
@@ -82,6 +59,65 @@ contract BatchSubmitter is Ownable {
     bytes4 internal constant OUT_HERE_SELECTOR = ImTokenGateway.outHere.selector;
     bytes4 internal constant LIQUIDATE_SELECTOR = ImErc20Host.liquidateExternal.selector;
 
+    /// @notice The roles contract for access control
+    IRoles public immutable ROLES_OPERATOR;
+
+    /// @notice The ZkVerifier contract
+    IZkVerifier public verifier;
+
+    // ----------- EVENTS -----------
+    /// @notice Event emitted when batch process fails
+    /// @param initHash The initialization hash
+    /// @param receiver The receiver address
+    /// @param mToken The mToken address
+    /// @param amount The amount
+    /// @param minAmountOut The minimum amount out
+    /// @param selector The function selector
+    /// @param reason The failure reason
+    event BatchProcessFailed(
+        bytes32 initHash,
+        address receiver,
+        address mToken,
+        uint256 amount,
+        uint256 minAmountOut,
+        bytes4 selector,
+        bytes reason
+    );
+
+    /// @notice Event emitted when batch process succeeds
+    /// @param initHash The initialization hash
+    /// @param receiver The receiver address
+    /// @param mToken The mToken address
+    /// @param amount The amount
+    /// @param minAmountOut The minimum amount out
+    /// @param selector The function selector
+    event BatchProcessSuccess(
+        bytes32 initHash, address receiver, address mToken, uint256 amount, uint256 minAmountOut, bytes4 selector
+    );
+
+    /// @notice Event emitted when ZkVerifier is updated
+    /// @param oldVerifier The old verifier address
+    /// @param newVerifier The new verifier address
+    event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
+
+    // ----------- ERRORS -----------
+
+    /// @notice Error thrown when caller is not allowed
+    error BatchSubmitter_CallerNotAllowed();
+
+    /// @notice Error thrown when journal is not valid
+    error BatchSubmitter_JournalNotValid();
+
+    /// @notice Error thrown when selector is invalid
+    error BatchSubmitter_InvalidSelector();
+
+    /// @notice Error thrown when address is not valid
+    error BatchSubmitter_AddressNotValid();
+
+    /// @notice Constructor
+    /// @param _roles The roles contract address
+    /// @param _zkVerifier The ZkVerifier contract address
+    /// @param owner_ The owner address
     constructor(address _roles, address _zkVerifier, address owner_) Ownable(owner_) {
         require(_roles != address(0), BatchSubmitter_AddressNotValid());
         require(_zkVerifier != address(0), BatchSubmitter_AddressNotValid());
@@ -90,10 +126,8 @@ contract BatchSubmitter is Ownable {
     }
 
     // ----------- OWNER ------------
-    /**
-     * @notice Updates IZkVerifier address
-     * @param _zkVerifier the verifier address
-     */
+    /// @notice Updates IZkVerifier address
+    /// @param _zkVerifier the verifier address
     function updateZkVerifier(address _zkVerifier) external onlyOwner {
         require(_zkVerifier != address(0), BatchSubmitter_AddressNotValid());
         emit ZkVerifierUpdated(address(verifier), _zkVerifier);
@@ -101,10 +135,9 @@ contract BatchSubmitter is Ownable {
     }
 
     // ----------- PUBLIC ------------
-    /**
-     * @notice Execute multiple operations in a single transaction
-     */
-    // slither-disable-next-line cyclomatic-complexity
+    // slither-disable-start cyclomatic-complexity
+    /// @notice Execute multiple operations in a single transaction
+    /// @param data The batch process message data
     function batchProcess(BatchProcessMsg calldata data) external {
         if (!ROLES_OPERATOR.isAllowedFor(msg.sender, ROLES_OPERATOR.PROOF_FORWARDER())) {
             revert BatchSubmitter_CallerNotAllowed();
@@ -234,12 +267,13 @@ contract BatchSubmitter is Ownable {
         }
     }
 
-    /**
-     * @notice Verifies the proof using ZkVerifier
-     * @param journalData The journal data to verify
-     * @param seal The seal data for verification
-     */
+    // slither-disable-end cyclomatic-complexity
+
+    /// @notice Verifies the proof using ZkVerifier
+    /// @param journalData The journal data to verify
+    /// @param seal The seal data for verification
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
+        // @audit use require instead of revert
         if (journalData.length == 0) {
             revert BatchSubmitter_JournalNotValid();
         }

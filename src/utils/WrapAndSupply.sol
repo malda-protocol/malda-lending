@@ -29,25 +29,45 @@ import {ImErc20} from "src/interfaces/ImErc20.sol";
 import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
 
+/// @title Wrapped native token interface
+/// @author Malda Protocol
+/// @notice Minimal interface used to wrap/unwrap native tokens (e.g., WETH)
 interface IWrappedNative {
+    /// @notice Wraps native ETH into WETH
     function deposit() external payable;
+
+    /// @notice Transfers wrapped native tokens
+    /// @param to Receiver address
+    /// @param value Amount to transfer
+    /// @return Whether the transfer succeeded
     function transfer(address to, uint256 value) external returns (bool);
-    function withdraw(uint256) external;
+
+    /// @notice Unwraps wrapped native tokens back to the native coin
+    /// @param amount Amount to unwrap
+    function withdraw(uint256 amount) external;
 }
 
 /// @title WrapAndSupply
-/// @notice Wraps a native coin into its wrapped version and supplies on a host or extension market in a single function call.
+/// @author Malda Protocol
+/// @notice Wraps native coins and supplies to host or extension markets in a single call.
 contract WrapAndSupply {
     /// @notice The wrapped native coin contract
     IWrappedNative public immutable WRAPPED_NATIVE;
+
+    // ----------- EVENTS ------------
+    /// @notice Emitted when native assets are wrapped and supplied to a market
+    /// @param sender The caller providing native funds
+    /// @param receiver The account receiving the minted mTokens
+    /// @param market The market that received the wrapped assets
+    /// @param amount The amount of native coin wrapped and supplied
+    event WrappedAndSupplied(address indexed sender, address indexed receiver, address indexed market, uint256 amount);
 
     // ----------- ERRORS ------------
     error WrapAndSupply_AddressNotValid();
     error WrapAndSupply_AmountNotValid();
 
-    // ----------- EVENTS ------------
-    event WrappedAndSupplied(address indexed sender, address indexed receiver, address indexed market, uint256 amount);
-
+    /// @notice Initializes the helper with the wrapped native token address
+    /// @param _wrappedNative Wrapped native token (e.g., WETH) contract address
     constructor(address _wrappedNative) {
         // Requirements: wrapped native coin's address must not be zero
         require(_wrappedNative != address(0), WrapAndSupply_AddressNotValid());
@@ -61,6 +81,7 @@ contract WrapAndSupply {
      * @notice Wraps a native coin into its wrapped version and supplies on a host market
      * @param mToken The market address
      * @param receiver The mToken receiver
+     * @param minAmount The minimum amount of mTokens expected
      */
     function wrapAndSupplyOnHostMarket(address mToken, address receiver, uint256 minAmount) external payable {
         // Requirements: the underlying must be the wrapped native coin

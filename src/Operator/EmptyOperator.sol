@@ -23,7 +23,12 @@ pragma solidity =0.8.28;
 |_|_|_|__|__|_____|____/|__|__|
 */
 
+/// @title EmptyOperator
+/// @author Merge Layers Inc.
+/// @notice Empty operator contract
 contract EmptyOperator {
+    /// @notice Checks if the caller is an operator
+    /// @return True if the caller is an operator
     function isOperator() external pure returns (bool) {
         return true;
     }

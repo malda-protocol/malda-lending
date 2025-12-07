@@ -25,13 +25,31 @@ import {BytesLib} from "src/libraries/BytesLib.sol";
 |_|_|_|__|__|_____|____/|__|__|
 */
 
+/// @title mTokenProofDecoderLib
+/// @author Merge Layers Inc.
+/// @notice Utility library for encoding and decoding mToken journals
 library mTokenProofDecoderLib {
+    /// @notice Encoded journal entry size in bytes
     uint256 public constant ENTRY_SIZE = 113; // 112 + 1 for L1inclusion
 
+    /// @notice Thrown when chain is not found
     error mTokenProofDecoderLib_ChainNotFound();
+
+    /// @notice Thrown when journal length is invalid
     error mTokenProofDecoderLib_InvalidLength();
+
+    /// @notice Thrown when L1 inclusion flag is invalid
     error mTokenProofDecoderLib_InvalidInclusion();
 
+    /// @notice Decodes encoded journal data into fields
+    /// @param journalData Packed journal bytes
+    /// @return sender Journal sender
+    /// @return market Market address
+    /// @return accAmountIn Accumulated amount in
+    /// @return accAmountOut Accumulated amount out
+    /// @return chainId Source chain id
+    /// @return dstChainId Destination chain id
+    /// @return l1Inclusion Whether L1 inclusion is required
     function decodeJournal(bytes memory journalData)
         internal
         pure
@@ -42,7 +60,7 @@ library mTokenProofDecoderLib {
             uint256 accAmountOut,
             uint32 chainId,
             uint32 dstChainId,
-            bool L1inclusion
+            bool l1Inclusion
         )
     {
         require(journalData.length == ENTRY_SIZE, mTokenProofDecoderLib_InvalidLength());
@@ -56,7 +74,7 @@ library mTokenProofDecoderLib {
         // | 72     | 32      | uint256 accAmountOut   |
         // | 104    | 4       | uint32 chainId         |
         // | 108    | 4       | uint32 dstChainId      |
-        // | 112    | 1       | bool L1inclusion       |
+        // | 112    | 1       | bool l1Inclusion       |
         sender = BytesLib.toAddress(BytesLib.slice(journalData, 0, 20), 0);
         market = BytesLib.toAddress(BytesLib.slice(journalData, 20, 20), 0);
         accAmountIn = BytesLib.toUint256(BytesLib.slice(journalData, 40, 32), 0);
@@ -66,9 +84,18 @@ library mTokenProofDecoderLib {
 
         uint8 rawL1inclusion = BytesLib.toUint8(BytesLib.slice(journalData, 112, 1), 0);
         require(rawL1inclusion == 0 || rawL1inclusion == 1, mTokenProofDecoderLib_InvalidInclusion());
-        L1inclusion = rawL1inclusion == 1;
+        l1Inclusion = rawL1inclusion == 1;
     }
 
+    /// @notice Encodes journal fields into packed bytes
+    /// @param sender Journal sender
+    /// @param market Market address
+    /// @param accAmountIn Accumulated amount in
+    /// @param accAmountOut Accumulated amount out
+    /// @param chainId Source chain id
+    /// @param dstChainId Destination chain id
+    /// @param l1Inclusion Whether L1 inclusion is required
+    /// @return Packed journal bytes
     function encodeJournal(
         address sender,
         address market,
@@ -76,8 +103,8 @@ library mTokenProofDecoderLib {
         uint256 accAmountOut,
         uint32 chainId,
         uint32 dstChainId,
-        bool L1inclusion
+        bool l1Inclusion
     ) internal pure returns (bytes memory) {
-        return abi.encodePacked(sender, market, accAmountIn, accAmountOut, chainId, dstChainId, L1inclusion);
+        return abi.encodePacked(sender, market, accAmountIn, accAmountOut, chainId, dstChainId, l1Inclusion);
     }
 }

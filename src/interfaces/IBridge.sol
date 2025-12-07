@@ -16,37 +16,38 @@
 // SPDX-License-Identifier: AGPL-3.0
 pragma solidity =0.8.28;
 
-/*
- _____ _____ __    ____  _____
-|     |  _  |  |  |    \|  _  |
-| | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|
-*/
+//  _____ _____ __    ____  _____
+// |     |  _  |  |  |    \|  _  |
+// | | | |     |  |__|  |  |     |
+// |_|_|_|__|__|_____|____/|__|__|
 
+/// @title IBridge
+/// @author Merge Layers Inc.
+/// @notice Interface for rebalancing bridge implementations
 interface IBridge {
-    /**
-     * @notice computes fee for bridge operation
-     * @param _dstChainId destination chain id
-     * @param _message operation message data
-     * @param _bridgeData specific bridge data
-     */
-    function getFee(uint32 _dstChainId, bytes memory _message, bytes memory _bridgeData) external view returns (uint256);
-
-    /**
-     * @notice rebalance through bridge
-     * @param _extractedAmount extracted amount for rebalancing
-     * @param _dstChainId destination chain id
-     * @param _market destination address
-     * @param _token the token to rebalance
-     * @param _message operation message data
-     * @param _bridgeData specific bridge datas
-     */
+    /// @notice rebalance through bridge
+    /// @param _extractedAmount extracted amount for rebalancing
+    /// @param _market destination address
+    /// @param _dstChainId destination chain id
+    /// @param _token the token to rebalance
+    /// @param _message operation message data
+    /// @param _bridgeData specific bridge datas
     function sendMsg(
         uint256 _extractedAmount,
         address _market,
         uint32 _dstChainId,
         address _token,
-        bytes memory _message,
-        bytes memory _bridgeData
+        bytes calldata _message,
+        bytes calldata _bridgeData
     ) external payable;
+
+    /// @notice computes fee for bridge operation
+    /// @param _dstChainId destination chain id
+    /// @param _message operation message data
+    /// @param _bridgeData specific bridge data
+    /// @return fee Computed bridge fee
+    function getFee(uint32 _dstChainId, bytes calldata _message, bytes calldata _bridgeData)
+        external
+        view
+        returns (uint256);
 }

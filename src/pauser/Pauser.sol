@@ -33,15 +33,30 @@ import {IOperator} from "src/interfaces/IOperator.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
 
+/// @title Pauser
+/// @author Merge Layers Inc.
+/// @notice Manages pausing operations across deployed markets
 contract Pauser is Ownable, IPauser {
     // ----------- STORAGE ------------
+    /// @notice Roles contract reference
     IRoles public immutable ROLES;
+
+    /// @notice Operator contract reference
     IOperator public immutable OPERATOR;
 
+    /// @notice List of contracts that can be paused
     PausableContract[] public pausableContracts;
+
+    /// @notice Tracks whether a contract is registered as pausable
     mapping(address _contract => bool _registered) public registeredContracts;
+
+    /// @notice Contract type for each registered market
     mapping(address _contract => PausableType _type) public contractTypes;
 
+    /// @notice Sets initial configuration for roles, operator, and owner
+    /// @param _roles Address of the roles contract
+    /// @param _operator Address of the operator contract
+    /// @param owner_ Owner address of the pauser contract
     constructor(address _roles, address _operator, address owner_) Ownable(owner_) {
         require(_roles != address(0), Pauser_AddressNotValid());
         ROLES = IRoles(_roles);
@@ -76,25 +91,20 @@ contract Pauser is Ownable, IPauser {
         contractTypes[_contract] = PausableType.NonPausable;
         emit MarketRemoved(_contract);
     }
-    // ----------- PUBLIC ------------
-    /**
-     * @inheritdoc IPauser
-     */
 
+    // ----------- PUBLIC ------------
+
+    /// @inheritdoc IPauser
     function emergencyPauseMarket(address _market) external {
         _pauseAllMarketOperations(_market);
     }
 
-    /**
-     * @inheritdoc IPauser
-     */
+    /// @inheritdoc IPauser
     function emergencyPauseMarketFor(address _market, ImTokenOperationTypes.OperationType _pauseType) external {
         _pauseMarketOperation(_market, _pauseType);
     }
 
-    /**
-     * @inheritdoc IPauser
-     */
+    /// @inheritdoc IPauser
     function emergencyPauseAll() external {
         uint256 len = pausableContracts.length;
         for (uint256 i; i < len;) {
@@ -108,6 +118,8 @@ contract Pauser is Ownable, IPauser {
     }
 
     // ----------- PRIVATE ------------
+    /// @notice Pauses all market operations for a given market
+    /// @param _market The market to pause
     function _pauseAllMarketOperations(address _market) private {
         _pauseMarketOperation(_market, OperationType.AmountIn);
         _pauseMarketOperation(_market, OperationType.AmountOut);
@@ -124,11 +136,17 @@ contract Pauser is Ownable, IPauser {
         emit MarketPaused(_market);
     }
 
+    /// @notice Pauses a specific market operation type
+    /// @param _market The market to pause
+    /// @param _pauseType The operation type to pause
     function _pauseMarketOperation(address _market, ImTokenOperationTypes.OperationType _pauseType) private {
         _pause(_market, _pauseType);
         emit MarketPausedFor(_market, _pauseType);
     }
 
+    /// @notice Performs pause logic depending on contract type
+    /// @param _market The market address to pause
+    /// @param _pauseType The operation type to pause
     function _pause(address _market, ImTokenOperationTypes.OperationType _pauseType) private {
         require(ROLES.isAllowedFor(msg.sender, ROLES.PAUSE_MANAGER()), Pauser_NotAuthorized());
         PausableType _type = contractTypes[_market];
@@ -141,16 +159,13 @@ contract Pauser is Ownable, IPauser {
         }
     }
 
+    /// @notice Finds the index of a market within the pausableContracts array
+    /// @param _address The market address to search for
+    /// @return index The index of the market
     function _findIndex(address _address) private view returns (uint256) {
         uint256 len = pausableContracts.length;
-        for (uint256 i; i < len;) {
-            if (pausableContracts[i].market == _address) {
-                return i;
-            }
-
-            unchecked {
-                ++i;
-            }
+        for (uint256 i; i < len; i++) {
+            if (pausableContracts[i].market == _address) return i;
         }
         revert Pauser_EntryNotFound();
     }

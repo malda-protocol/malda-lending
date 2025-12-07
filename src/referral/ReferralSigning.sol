@@ -26,19 +26,41 @@ pragma solidity =0.8.28;
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
+/// @title Referral signing contract
+/// @author Malda Protocol
+/// @notice Manages user referrals with signature-based verification
 contract ReferralSigning {
     using ECDSA for bytes32;
 
     // ----------- STORAGE ------------
+    /// @notice Tracks if a user was referred by a specific referrer
     mapping(address referredBy => mapping(address user => bool wasReferred)) public referredByRegistry;
+
+    /// @notice Maps users to their referrer
     mapping(address user => address referredBy) public referralsForUserRegistry;
+
+    /// @notice Lists all users referred by a referrer
     mapping(address referredBy => address[] users) public referralRegistry;
+
+    /// @notice Total number of users referred by a referrer
     mapping(address referredBy => uint256 total) public totalReferred;
+
+    /// @notice Tracks if a user has been referred
     mapping(address user => bool wasReferred) public isUserReferred;
+
+    /// @notice Nonce for each user to prevent replay attacks
     mapping(address user => uint256 nonce) public nonces;
 
     // ----------- EVENTS ------------
+    /// @notice Emitted when a referral is successfully claimed
+    /// @param referred The referred user
+    /// @param referrer The referrer
     event ReferralClaimed(address indexed referred, address indexed referrer);
+
+    /// @notice Emitted when a referral claim is rejected
+    /// @param referred The referred user
+    /// @param referrer The referrer
+    /// @param reason Rejection reason
     event ReferralRejected(address indexed referred, address indexed referrer, string reason);
 
     // ----------- ERRORS ------------
@@ -57,6 +79,9 @@ contract ReferralSigning {
     }
 
     // ----------- PUBLIC ------------
+    /// @notice Claims a referral with signature verification
+    /// @param signature User's signature proving consent
+    /// @param referrer Address of the referrer
     function claimReferral(bytes calldata signature, address referrer) external onlyNewUser {
         if (msg.sender == referrer) {
             emit ReferralRejected(msg.sender, referrer, "Self-referral not allowed");

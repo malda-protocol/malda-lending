@@ -29,23 +29,46 @@ import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
 // contracts
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
+/// @title Zero-knowledge verifier interface
+/// @author Malda Protocol
+/// @notice Minimal interface to verify a Risc0 proof
 interface IZkVerifier {
+    /// @notice Verify the provided Risc0 journal/seal pair
+    /// @param journalEntry The Risc0 journal entry
+    /// @param seal The proof seal
     function verifyInput(bytes calldata journalEntry, bytes calldata seal) external view;
 }
 
+/// @title Zero-knowledge verifier wrapper
+/// @author Malda Protocol
+/// @notice Ownable wrapper around the Risc0 verifier with configurable imageId
 contract ZkVerifier is Ownable, IZkVerifier {
     // ----------- STORAGE ------------
+    /// @notice Current Risc0 verifier contract
     IRiscZeroVerifier public verifier;
 
+    /// @notice Current Risc0 image identifier
     bytes32 public imageId;
 
+    // ----------- EVENTS ------------
+    /// @notice Emitted when the imageId is updated
+    /// @param _imageId New image identifier
+    event ImageSet(bytes32 _imageId);
+
+    /// @notice Emitted when the verifier contract address is updated
+    /// @param oldVerifier Previous verifier address
+    /// @param newVerifier New verifier address
+    event VerifierSet(address indexed oldVerifier, address indexed newVerifier);
+
+    // ----------- ERRORS ------------
     error ZkVerifier_ImageNotValid();
     error ZkVerifier_InputNotValid();
     error ZkVerifier_VerifierNotSet();
 
-    event ImageSet(bytes32 _imageId);
-    event VerifierSet(address indexed oldVerifier, address indexed newVerifier);
-
+    /// @notice Initializes the verifier wrapper
+    /// @param owner_ Contract owner
+    /// @param _imageId Risc0 image identifier
+    /// @param _verifier Risc0 verifier contract address
     constructor(address owner_, bytes32 _imageId, address _verifier) Ownable(owner_) {
         require(_verifier != address(0), ZkVerifier_InputNotValid());
         require(_imageId != bytes32(0), ZkVerifier_InputNotValid());
@@ -91,10 +114,14 @@ contract ZkVerifier is Ownable, IZkVerifier {
     }
 
     // ----------- PRIVATE ------------
+    /// @notice Ensures verifier is configured
     function _checkAddresses() private view {
         require(address(verifier) != address(0), ZkVerifier_VerifierNotSet());
     }
 
+    /// @notice Internal verification against the configured image
+    /// @param journalEntry the Risc0 journal entry
+    /// @param seal the Risc0 seal
     function __verify(bytes calldata journalEntry, bytes calldata seal) private view {
         verifier.verify(seal, imageId, sha256(journalEntry));
     }

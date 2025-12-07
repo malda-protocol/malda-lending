@@ -23,6 +23,12 @@ pragma solidity =0.8.28;
 |_|_|_|__|__|_____|____/|__|__|
 */
 
+/// @title IGasFeesHelper
+/// @author Merge Layers Inc.
+/// @notice Interface for retrieving per-chain gas fee configuration
 interface IGasFeesHelper {
-    function gasFees(uint32 dstChainId) external view returns (uint256);
+    /// @notice Returns the gas fee for a destination chain
+    /// @param dstChainId Destination chain identifier
+    /// @return fee Gas fee amount
+    function gasFees(uint32 dstChainId) external view returns (uint256 fee);
 }

@@ -21,21 +21,21 @@ pragma solidity =0.8.28;
 
 import {IRoles} from "src/interfaces/IRoles.sol";
 
+/// @title Base bridge contract
+/// @author Malda Protocol
+/// @notice Abstract base for cross-chain bridge implementations with role-based access control
 abstract contract BaseBridge {
     // ----------- STORAGE ------------
+    /// @notice Roles contract for access control
     IRoles public roles;
 
+    // ----------- ERRORS ------------
     error BaseBridge_NotAuthorized();
     error BaseBridge_AmountMismatch();
     error BaseBridge_AmountNotValid();
     error BaseBridge_AddressNotValid();
 
-    constructor(address _roles) {
-        require(_roles != address(0), BaseBridge_AddressNotValid());
-
-        roles = IRoles(_roles);
-    }
-
+    // ----------- MODIFIERS ------------
     modifier onlyBridgeConfigurator() {
         if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert BaseBridge_NotAuthorized();
         _;
@@ -44,5 +44,13 @@ abstract contract BaseBridge {
     modifier onlyRebalancer() {
         if (!roles.isAllowedFor(msg.sender, roles.REBALANCER())) revert BaseBridge_NotAuthorized();
         _;
+    }
+
+    /// @notice Initializes the base bridge
+    /// @param _roles Roles contract address
+    constructor(address _roles) {
+        require(_roles != address(0), BaseBridge_AddressNotValid());
+
+        roles = IRoles(_roles);
     }
 }

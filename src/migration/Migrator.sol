@@ -14,7 +14,7 @@
 // for original license terms and attributions.
 
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.10;
+pragma solidity =0.8.28;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -27,15 +27,11 @@ import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
 
 import {IMendiMarket, IMendiComptroller} from "src/migration/IMigrator.sol";
 
+/// @title Migrator
+/// @author Merge Layers Inc.
+/// @notice Contract for migrating positions from Mendi to Malda
 contract Migrator is ExponentialNoError {
     using SafeERC20 for IERC20;
-
-    error Migrator_AddressNotValid();
-
-    mapping(address => bool) public allowedMarkets;
-
-    address public constant MENDI_COMPTROLLER = 0x1b4d3b0421dDc1eB216D230Bc01527422Fb93103;
-    address public immutable MALDA_OPERATOR;
 
     struct Position {
         address mendiMarket;
@@ -44,6 +40,25 @@ contract Migrator is ExponentialNoError {
         uint256 borrowAmount;
     }
 
+    /// @notice Mendi Comptroller address
+    address public constant MENDI_COMPTROLLER = 0x1b4d3b0421dDc1eB216D230Bc01527422Fb93103;
+
+    /// @notice Malda Operator address
+    address public immutable MALDA_OPERATOR;
+
+    /// @notice Mapping of allowed markets
+    mapping(address market => bool allowed) public allowedMarkets;
+
+    // ----------- ERRORS -----------
+
+    /// @notice Error thrown when address is not valid
+    error Migrator_AddressNotValid();
+
+    /// @notice Error thrown when redeem amount is not valid
+    error Migrator_RedeemAmountNotValid();
+
+    /// @notice Initializes the migrator with the operator address
+    /// @param _operator Address of the Malda operator
     constructor(address _operator) {
         require(_operator != address(0), Migrator_AddressNotValid());
         MALDA_OPERATOR = _operator;
@@ -57,9 +72,37 @@ contract Migrator is ExponentialNoError {
         allowedMarkets[0xa31963C753f277f7d82d98F56b2C374256925eB7] = true;
     }
 
-    /**
-     * @notice Get all markets where `user` has collateral in on Mendi
-     */
+    /// @notice Get all `migratable` positions from Mendi to Malda for `user`
+    /// @param user The user address
+    /// @return positions Array of positions
+    function getAllPositions(address user) external returns (Position[] memory positions) {
+        positions = _collectMendiPositions(user);
+    }
+
+    /// @notice Migrates all positions from Mendi to Malda
+    function migrateAllPositions() external {
+        // 1. Collect all positions from Mendi
+        Position[] memory positions = _collectMendiPositions(msg.sender);
+
+        uint256 posLength = positions.length;
+        require(posLength > 0, "[Migrator] No Mendi positions");
+
+        // 2. Mint mTokens in all v2 markets
+        _mintAll(positions);
+
+        // 3. Borrow from all necessary v2 markets
+        _borrowAll(positions);
+
+        // 4. Repay all debts in v1 markets
+        _repayAll(positions);
+
+        // 5. Withdraw and transfer all collateral from v1 to v2
+        _withdrawAll(positions);
+    }
+
+    /// @notice Get all markets where `user` has collateral in on Mendi
+    /// @param user The user address
+    /// @return markets Array of market addresses
     function getAllCollateralMarkets(address user) external view returns (address[] memory markets) {
         IMendiMarket[] memory mendiMarkets = IMendiComptroller(MENDI_COMPTROLLER).getAssetsIn(user);
 
@@ -75,24 +118,10 @@ contract Migrator is ExponentialNoError {
         }
     }
 
-    /**
-     * @notice Get all `migratable` positions from Mendi to Malda for `user`
-     */
-    function getAllPositions(address user) external returns (Position[] memory positions) {
-        positions = _collectMendiPositions(user);
-    }
-
-    /**
-     * @notice Migrates all positions from Mendi to Malda
-     */
-    function migrateAllPositions() external {
-        // 1. Collect all positions from Mendi
-        Position[] memory positions = _collectMendiPositions(msg.sender);
-
+    /// @notice Mints in v2 markets for all positions with collateral
+    /// @param positions Positions to process
+    function _mintAll(Position[] memory positions) private {
         uint256 posLength = positions.length;
-        require(posLength > 0, "[Migrator] No Mendi positions");
-
-        // 2. Mint mTokens in all v2 markets
         for (uint256 i; i < posLength; ++i) {
             Position memory position = positions[i];
             if (position.collateralUnderlyingAmount > 0) {
@@ -107,8 +136,12 @@ contract Migrator is ExponentialNoError {
                     );
             }
         }
+    }
 
-        // 3. Borrow from all necessary v2 markets
+    /// @notice Borrows in v2 markets for all positions requiring debt
+    /// @param positions Positions to process
+    function _borrowAll(Position[] memory positions) private {
+        uint256 posLength = positions.length;
         for (uint256 i; i < posLength; ++i) {
             Position memory position = positions[i];
             if (position.borrowAmount > 0) {
@@ -116,8 +149,12 @@ contract Migrator is ExponentialNoError {
                     .mintOrBorrowMigration(false, position.borrowAmount, address(this), msg.sender, 0);
             }
         }
+    }
 
-        // 4. Repay all debts in v1 markets
+    /// @notice Repays debts in v1 markets for all positions
+    /// @param positions Positions to process
+    function _repayAll(Position[] memory positions) private {
+        uint256 posLength = positions.length;
         for (uint256 i; i < posLength; ++i) {
             Position memory position = positions[i];
             if (position.borrowAmount > 0) {
@@ -125,12 +162,16 @@ contract Migrator is ExponentialNoError {
                 underlying.approve(position.mendiMarket, position.borrowAmount);
                 require(
                     IMendiMarket(position.mendiMarket).repayBorrowBehalf(msg.sender, position.borrowAmount) == 0,
-                    "[Migrator] Mendi repay failed"
+                    "[Migrator] repay failed"
                 );
             }
         }
+    }
 
-        // 5. Withdraw and transfer all collateral from v1 to v2
+    /// @notice Withdraws collateral from v1 and transfers to v2 for all positions
+    /// @param positions Positions to process
+    function _withdrawAll(Position[] memory positions) private {
+        uint256 posLength = positions.length;
         for (uint256 i; i < posLength; ++i) {
             Position memory position = positions[i];
             if (position.collateralUnderlyingAmount > 0) {
@@ -142,17 +183,15 @@ contract Migrator is ExponentialNoError {
                 uint256 underlyingBalanceBefore = underlying.balanceOf(address(this));
 
                 // Withdraw from v1
-                // we use address(this) here as cTokens were transferred above
                 uint256 v1Balance = IMendiMarket(position.mendiMarket).balanceOfUnderlying(address(this));
                 require(
-                    IMendiMarket(position.mendiMarket).redeemUnderlying(v1Balance) == 0,
-                    "[Migrator] Mendi withdraw failed"
+                    IMendiMarket(position.mendiMarket).redeemUnderlying(v1Balance) == 0, "[Migrator] withdraw failed"
                 );
 
                 uint256 underlyingBalanceAfter = underlying.balanceOf(address(this));
-                require(
-                    underlyingBalanceAfter - underlyingBalanceBefore >= v1Balance, "[Migrator] Redeem amount not valid"
-                );
+                if (underlyingBalanceAfter - underlyingBalanceBefore < v1Balance) {
+                    revert Migrator_RedeemAmountNotValid();
+                }
 
                 // Transfer to v2
                 underlying.safeTransfer(position.maldaMarket, position.collateralUnderlyingAmount);
@@ -160,9 +199,9 @@ contract Migrator is ExponentialNoError {
         }
     }
 
-    /**
-     * @notice Collects all user positions from Mendi
-     */
+    /// @notice Collects all user positions from Mendi
+    /// @param user The user address
+    /// @return Array of positions
     function _collectMendiPositions(address user) private returns (Position[] memory) {
         IMendiMarket[] memory mendiMarkets = IMendiComptroller(MENDI_COMPTROLLER).getAssetsIn(user);
         uint256 marketsLength = mendiMarkets.length;
@@ -195,9 +234,9 @@ contract Migrator is ExponentialNoError {
         return positions;
     }
 
-    /**
-     * @notice Gets corresponding Malda market for a given underlying
-     */
+    /// @notice Gets corresponding Malda market for a given underlying
+    /// @param underlying The underlying token address
+    /// @return The Malda market address
     function _getMaldaMarket(address underlying) private view returns (address) {
         address[] memory maldaMarkets = Operator(MALDA_OPERATOR).getAllMarkets();
 

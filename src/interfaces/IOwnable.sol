@@ -16,6 +16,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
+/// @title IOwnable
+/// @author Merge Layers Inc.
+/// @notice Minimal ownable interface
 interface IOwnable {
+    /// @notice Transfers ownership to a new owner
+    /// @param newOwner Address of the new owner
     function transferOwnership(address newOwner) external;
 }

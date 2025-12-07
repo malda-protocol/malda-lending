@@ -26,45 +26,36 @@ import {IInterestRateModel} from "src/interfaces/IInterestRateModel.sol";
 |_|_|_|__|__|_____|____/|__|__|
 */
 
-/**
- * @title JumpRateModelV4
- * @notice Implementation of the IInterestRateModel interface for calculating interest rates
- */
+/// @title JumpRateModelV4
+/// @author Merge Layers Inc.
+/// @notice Implementation of the IInterestRateModel interface for calculating interest rates
 contract JumpRateModelV4 is IInterestRateModel, Ownable {
     // ----------- STORAGE ------------
 
-    error JumpRateModelV4_MultiplierNotValid();
-    error JumpRateModelV4_InputNotValid();
-
-    /**
-     * @inheritdoc IInterestRateModel
-     */
+    /// @inheritdoc IInterestRateModel
     uint256 public override blocksPerYear;
 
-    /**
-     * @inheritdoc IInterestRateModel
-     */
+    /// @inheritdoc IInterestRateModel
     uint256 public override multiplierPerBlock;
 
-    /**
-     * @inheritdoc IInterestRateModel
-     */
+    /// @inheritdoc IInterestRateModel
     uint256 public override baseRatePerBlock;
 
-    /**
-     * @inheritdoc IInterestRateModel
-     */
+    /// @inheritdoc IInterestRateModel
     uint256 public override jumpMultiplierPerBlock;
 
-    /**
-     * @inheritdoc IInterestRateModel
-     */
+    /// @inheritdoc IInterestRateModel
     uint256 public override kink;
 
-    /**
-     * @inheritdoc IInterestRateModel
-     */
+    /// @inheritdoc IInterestRateModel
     string public override name;
+
+    // ----------- ERRORS ------------
+
+    /// @notice Error thrown when multiplier is not valid
+    error JumpRateModelV4_MultiplierNotValid();
+    /// @notice Error thrown when input is not valid
+    error JumpRateModelV4_InputNotValid();
 
     /**
      * @notice Construct an interest rate model
@@ -133,41 +124,7 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
     }
 
     // ----------- PUBLIC ------------
-    /**
-     * @inheritdoc IInterestRateModel
-     */
-    function isInterestRateModel() external pure override returns (bool) {
-        return true;
-    }
-
-    /**
-     * @inheritdoc IInterestRateModel
-     */
-    function utilizationRate(uint256 cash, uint256 borrows, uint256 reserves) public pure override returns (uint256) {
-        if (borrows == 0) {
-            return 0;
-        }
-        return borrows * 1e18 / (cash + borrows - reserves);
-    }
-
-    /**
-     * @inheritdoc IInterestRateModel
-     */
-    function getBorrowRate(uint256 cash, uint256 borrows, uint256 reserves) public view override returns (uint256) {
-        uint256 util = utilizationRate(cash, borrows, reserves);
-
-        if (util <= kink) {
-            return util * multiplierPerBlock / 1e18 + baseRatePerBlock;
-        } else {
-            uint256 normalRate = kink * multiplierPerBlock / 1e18 + baseRatePerBlock;
-            uint256 excessUtil = util - kink;
-            return excessUtil * jumpMultiplierPerBlock / 1e18 + normalRate;
-        }
-    }
-
-    /**
-     * @inheritdoc IInterestRateModel
-     */
+    /// @inheritdoc IInterestRateModel
     function getSupplyRate(uint256 cash, uint256 borrows, uint256 reserves, uint256 reserveFactorMantissa)
         external
         view
@@ -180,7 +137,38 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         return utilizationRate(cash, borrows, reserves) * rateToPool / 1e18;
     }
 
+    /// @inheritdoc IInterestRateModel
+    function isInterestRateModel() external pure override returns (bool) {
+        return true;
+    }
+
+    /// @inheritdoc IInterestRateModel
+    function getBorrowRate(uint256 cash, uint256 borrows, uint256 reserves) public view override returns (uint256) {
+        uint256 util = utilizationRate(cash, borrows, reserves);
+
+        if (util <= kink) {
+            return util * multiplierPerBlock / 1e18 + baseRatePerBlock;
+        } else {
+            uint256 normalRate = kink * multiplierPerBlock / 1e18 + baseRatePerBlock;
+            uint256 excessUtil = util - kink;
+            return excessUtil * jumpMultiplierPerBlock / 1e18 + normalRate;
+        }
+    }
+
+    /// @inheritdoc IInterestRateModel
+    function utilizationRate(uint256 cash, uint256 borrows, uint256 reserves) public pure override returns (uint256) {
+        if (borrows == 0) {
+            return 0;
+        }
+        return borrows * 1e18 / (cash + borrows - reserves);
+    }
+
     // ----------- PRIVATE ------------
+    /// @notice Internal function to update jump rate model parameters without computation
+    /// @param basePerBlock_ The base rate per block
+    /// @param multiplierPerBlock_ The multiplier per block
+    /// @param jumpMultiplierPerBlock_ The jump multiplier per block
+    /// @param kink_ The kink utilization point
     function _updateJumpRateModelWithoutComputation(
         uint256 basePerBlock_,
         uint256 multiplierPerBlock_,

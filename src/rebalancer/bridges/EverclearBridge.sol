@@ -30,13 +30,14 @@ import {IFeeAdapter} from "src/interfaces/external/everclear/IFeeAdapter.sol";
 
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 
+/// @title Everclear bridge implementation
+/// @author Malda Protocol
+/// @notice Cross-chain bridge using Everclear protocol for intent-based transfers
 contract EverclearBridge is BaseBridge, IBridge {
     using SafeERC20 for IERC20;
     using BytesLib for bytes;
 
-    // ----------- STORAGE ------------
-    IFeeAdapter public everclearFeeAdapter;
-
+    // ----------- STRUCTS ------------
     struct IntentParams {
         uint32[] destinations;
         bytes32 receiver;
@@ -49,41 +50,67 @@ contract EverclearBridge is BaseBridge, IBridge {
         IFeeAdapter.FeeParams feeParams;
     }
 
+    // ----------- STORAGE ------------
+    /// @notice Everclear fee adapter contract
+    IFeeAdapter public everclearFeeAdapter;
+
     // ----------- EVENTS ------------
+    /// @notice Emitted when a message is sent via Everclear
+    /// @param dstChainId Destination chain ID
+    /// @param market Market address
+    /// @param amountLD Amount in local decimals
+    /// @param id Intent identifier
     event MsgSent(uint256 indexed dstChainId, address indexed market, uint256 amountLD, bytes32 id);
+
+    /// @notice Emitted when excess rebalancing funds are returned to the market
+    /// @param market Market address
+    /// @param toReturn Amount returned
+    /// @param extracted Amount originally extracted
     event RebalancingReturnedToMarket(address indexed market, uint256 toReturn, uint256 extracted);
 
     // ----------- ERRORS ------------
+    /// @notice Error thrown when provided token does not match expected asset
     error Everclear_TokenMismatch();
+
+    /// @notice Error thrown when a feature is not implemented
     error Everclear_NotImplemented();
+
+    /// @notice Error thrown when maximum fee is exceeded
     error Everclear_MaxFeeExceeded();
+
+    /// @notice Error thrown when provided address is invalid
     error Everclear_AddressNotValid();
+
+    /// @notice Error thrown when provided destination is invalid
     error Everclear_DestinationNotValid();
+
+    /// @notice Error thrown when destination arrays have mismatched length
     error Everclear_DestinationsLengthMismatch();
 
+    /// @notice Initializes the Everclear bridge
+    /// @param _roles Roles contract address
+    /// @param _feeAdapter Everclear fee adapter address
     constructor(address _roles, address _feeAdapter) BaseBridge(_roles) {
         require(_feeAdapter != address(0), Everclear_AddressNotValid());
 
         everclearFeeAdapter = IFeeAdapter(_feeAdapter);
     }
 
-    // ----------- VIEW ------------
-    /**
-     * @inheritdoc IBridge
-     */
-    function getFee(uint32, bytes memory, bytes memory) external pure returns (uint256) {
-        // need to use Everclear API
-        revert Everclear_NotImplemented();
-    }
-
     // ----------- EXTERNAL ------------
+    /// @notice Sends a cross-chain message via Everclear
+    /// @param _extractedAmount Amount extracted from the market
+    /// @param _market Market address
+    /// @param _dstChainId Destination chain ID
+    /// @param _token Token address
+    /// @param _message Encoded intent parameters
+    /// @param _bridgeData Bridge data (unused)
     function sendMsg(
         uint256 _extractedAmount,
         address _market,
         uint32 _dstChainId,
         address _token,
-        bytes memory _message,
-        bytes memory // unused
+        bytes calldata _message,
+        bytes calldata /* _bridgeData */
     ) external payable onlyRebalancer {
         IntentParams memory params = _decodeIntent(_message);
 
@@ -122,6 +149,13 @@ contract EverclearBridge is BaseBridge, IBridge {
             params.feeParams
         );
         emit MsgSent(_dstChainId, _market, params.amount, id);
+    }
+
+    // ----------- VIEW ------------
+    /// @inheritdoc IBridge
+    function getFee(uint32, bytes calldata, bytes calldata) external pure returns (uint256) {
+        // need to use Everclear API
+        revert Everclear_NotImplemented();
     }
 
     // ----------- INTERNAL ------------
