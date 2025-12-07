@@ -1,24 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {Operator} from "src/Operator/Operator.sol";
-import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
-import {Roles} from "src/Roles.sol";
-import {Pauser} from "src/pauser/Pauser.sol";
 import {IOwnable} from "src/interfaces/IOwnable.sol";
 import {SetRole} from "../../configuration/SetRole.s.sol";
-
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
-
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 
 interface IAdmin {
@@ -94,7 +80,6 @@ contract TransferReleaseOwnership is DeployBaseRelease {
         interesteModels.push(0xb301c62f3f9622523c39a6ba47699fa2182483B4);
         interesteModels.push(0x3592F632C5CA77A67FbF2a4388821cd95cC029Be);
         interesteModels.push(0x5372910e816879803577fA98D78c3C0D7764D415);
-
     }
 
     function run() public {
@@ -138,7 +123,6 @@ contract TransferReleaseOwnership is DeployBaseRelease {
             console.log(" -- for BatchSubmitter ", operatingMultisig);
             IOwnable(batchSubmitter).transferOwnership(operatingMultisig);
 
-
             setRole = new SetRole();
 
             if (configs[network].isHost) {
@@ -181,33 +165,73 @@ contract TransferReleaseOwnership is DeployBaseRelease {
                 console.log(" -- for C");
                 setRole.run(rolesContract, securityMultisig, keccak256(abi.encodePacked("CHAINS_MANAGER")), true);
 
-                setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("GUARDIAN_PAUSE")), false);
-                setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("GUARDIAN_BLACKLIST")), false);
-                setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("GUARDIAN_ORACLE")), false);
-                setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("CHAINS_MANAGER")), false);
-                
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("GUARDIAN_PAUSE")),
+                    false
+                );
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("GUARDIAN_BLACKLIST")),
+                    false
+                );
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("GUARDIAN_ORACLE")),
+                    false
+                );
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("CHAINS_MANAGER")),
+                    false
+                );
 
                 console.log(" -- for Roles operatingMultisig", rolesContract);
                 setRole.run(rolesContract, operatingMultisig, keccak256(abi.encodePacked("GUARDIAN_BORROW_CAP")), true);
-                setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("GUARDIAN_BORROW_CAP")), false);
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("GUARDIAN_BORROW_CAP")),
+                    false
+                );
 
                 setRole.run(rolesContract, operatingMultisig, keccak256(abi.encodePacked("GUARDIAN_SUPPLY_CAP")), true);
-                setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("GUARDIAN_SUPPLY_CAP")), false);
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("GUARDIAN_SUPPLY_CAP")),
+                    false
+                );
 
                 setRole.run(rolesContract, operatingMultisig, keccak256(abi.encodePacked("GUARDIAN_RESERVE")), true);
-                setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("GUARDIAN_RESERVE")), false);
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("GUARDIAN_RESERVE")),
+                    false
+                );
 
                 setRole.run(rolesContract, operatingMultisig, keccak256(abi.encodePacked("GUARDIAN_BRIDGE")), true);
-                setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("GUARDIAN_BRIDGE")), false);
-
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("GUARDIAN_BRIDGE")),
+                    false
+                );
             } else {
                 console.log(" EXTENSION");
                 console.log(" -- for all extension markets ", securityMultisig);
                 for (uint256 j; j < 4; ++j) {
-                    if (marketList[i] == 0xe79a5f1E2E5619dF1cbb089Db3B11ff9E4dA5aff || 
-                    marketList[i] == 0x867B44af79da71684508c25a1323db3cce5bC23D || 
-                    marketList[i] == 0x301E5481271fD4F4f4C0291F88d7d829c64E2B2b || 
-                    marketList[i] == 0xa31963C753f277f7d82d98F56b2C374256925eB7) continue;
+                    if (
+                        marketList[i] == 0xe79a5f1E2E5619dF1cbb089Db3B11ff9E4dA5aff
+                            || marketList[i] == 0x867B44af79da71684508c25a1323db3cce5bC23D
+                            || marketList[i] == 0x301E5481271fD4F4f4C0291F88d7d829c64E2B2b
+                            || marketList[i] == 0xa31963C753f277f7d82d98F56b2C374256925eB7
+                    ) continue;
 
                     console.log(" -- for market: ", marketList[j]);
                     IOwnable(marketList[j]).transferOwnership(securityMultisig);
@@ -216,16 +240,36 @@ contract TransferReleaseOwnership is DeployBaseRelease {
                 vm.stopBroadcast();
                 console.log(" -- for Roles ");
                 setRole.run(rolesContract, securityMultisig, keccak256(abi.encodePacked("GUARDIAN_PAUSE")), true);
-                setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("GUARDIAN_PAUSE")), false);
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("GUARDIAN_PAUSE")),
+                    false
+                );
 
                 setRole.run(rolesContract, securityMultisig, keccak256(abi.encodePacked("GUARDIAN_BLACKLIST")), true);
-                setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("GUARDIAN_BLACKLIST")), false);
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("GUARDIAN_BLACKLIST")),
+                    false
+                );
 
                 setRole.run(rolesContract, securityMultisig, keccak256(abi.encodePacked("GUARDIAN_ORACLE")), true);
-                setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("GUARDIAN_ORACLE")), false);
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("GUARDIAN_ORACLE")),
+                    false
+                );
 
                 setRole.run(rolesContract, securityMultisig, keccak256(abi.encodePacked("CHAINS_MANAGER")), true);
-                setRole.run(rolesContract, 0xB819A871d20913839c37f316Dc914b0570bfc0eE, keccak256(abi.encodePacked("CHAINS_MANAGER")), false);
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("CHAINS_MANAGER")),
+                    false
+                );
             }
 
             vm.startBroadcast(key);

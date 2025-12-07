@@ -12,7 +12,6 @@ contract LiquidationTest is mToken_Unit_Shared {
     address borrower = address(0x1);
     address liquidator = address(0x2);
 
-
     function setUp() public virtual override {
         super.setUp();
 
@@ -62,7 +61,6 @@ contract LiquidationTest is mToken_Unit_Shared {
         vm.prank(liquidator);
         dai.approve(address(mDaiHost), type(uint256).max);
 
-
         // force undercollateralization; reduce collateral factor to 10%
         operator.setCollateralFactor(address(mWeth), 0.1e18);
 
@@ -83,8 +81,8 @@ contract LiquidationTest is mToken_Unit_Shared {
     function test_Liquidate_Simulation_PriceDropHalf() public {
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
-        newOracle.setUnderlyingPrice(address(mWeth), 1e18); 
-        newOracle.setUnderlyingPrice(address(mDaiHost), 1e18); 
+        newOracle.setUnderlyingPrice(address(mWeth), 1e18);
+        newOracle.setUnderlyingPrice(address(mDaiHost), 1e18);
 
         _getTokens(weth, borrower, 1000 ether);
         vm.startPrank(borrower);
@@ -123,8 +121,8 @@ contract LiquidationTest is mToken_Unit_Shared {
     function test_Liquidate_Simulation_PriceDropHalf_AndLog() public {
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
-        newOracle.setUnderlyingPrice(address(mWeth), 1e18); 
-        newOracle.setUnderlyingPrice(address(mDaiHost), 1e18); 
+        newOracle.setUnderlyingPrice(address(mWeth), 1e18);
+        newOracle.setUnderlyingPrice(address(mDaiHost), 1e18);
 
         _getTokens(weth, borrower, 1000 ether);
         vm.startPrank(borrower);
@@ -159,7 +157,7 @@ contract LiquidationTest is mToken_Unit_Shared {
         console.log("Borrow value (USD)   :", borrowValue);
 
         // price drop
-        newOracle.setUnderlyingPrice(address(mWeth), 5e17); 
+        newOracle.setUnderlyingPrice(address(mWeth), 5e17);
 
         collatPrice = newOracle.getUnderlyingPrice(address(mWeth));
         collatValue = (collatTokens * collatPrice) / 1e18;
@@ -195,8 +193,8 @@ contract LiquidationTest is mToken_Unit_Shared {
     function test_Liquidate_Simulation_PriceDropNormal_AndLog() public {
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
-        newOracle.setUnderlyingPrice(address(mWeth), 1e18); 
-        newOracle.setUnderlyingPrice(address(mDaiHost), 1e18); 
+        newOracle.setUnderlyingPrice(address(mWeth), 1e18);
+        newOracle.setUnderlyingPrice(address(mDaiHost), 1e18);
 
         _getTokens(weth, borrower, 1000 ether);
         vm.startPrank(borrower);
@@ -215,8 +213,8 @@ contract LiquidationTest is mToken_Unit_Shared {
         vm.prank(liquidator);
         dai.approve(address(mDaiHost), type(uint256).max);
 
-        uint256 borrowBalance = mDaiHost.borrowBalanceStored(borrower);
-        uint256 daiPrice = newOracle.getUnderlyingPrice(address(mDaiHost));
+        // uint256 borrowBalance = mDaiHost.borrowBalanceStored(borrower); // unused
+        // uint256 daiPrice = newOracle.getUnderlyingPrice(address(mDaiHost)); // unused
 
         (, uint256 collatFactor) = Operator(operator).markets(address(mWeth));
 
@@ -261,5 +259,4 @@ contract LiquidationTest is mToken_Unit_Shared {
             }
         }
     }
-
 }

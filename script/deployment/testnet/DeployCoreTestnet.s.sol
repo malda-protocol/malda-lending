@@ -1,22 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
-import {Operator} from "src/Operator/Operator.sol";
-import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
-import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
-import {Pauser} from "src/pauser/Pauser.sol";
 
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
+import {InterestConfig, OracleConfigRelease} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 import {DeployDeployer} from "../../deployers/DeployDeployer.s.sol";
@@ -145,10 +134,12 @@ contract DeployCoreTestnet is DeployBaseRelease {
         return deployOracle.runTestnet(deployer, rolesContract, oracleConfig.stalenessPeriod);
     }
 
-    function _deployOperator(address blacklisterOperator, address oracle, address rewardDistributor, address rolesContract)
-        internal
-        returns (address)
-    {
+    function _deployOperator(
+        address blacklisterOperator,
+        address oracle,
+        address rewardDistributor,
+        address rolesContract
+    ) internal returns (address) {
         return deployOperator.run(deployer, blacklisterOperator, oracle, rewardDistributor, rolesContract, owner);
     }
 

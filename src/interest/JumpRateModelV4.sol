@@ -20,10 +20,10 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IInterestRateModel} from "src/interfaces/IInterestRateModel.sol";
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 /**
@@ -129,6 +129,7 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
      */
     function updateBlocksPerYear(uint256 blocksPerYear_) external onlyOwner {
         blocksPerYear = blocksPerYear_;
+        emit BlocksPerYearUpdated(blocksPerYear_);
     }
 
     // ----------- PUBLIC ------------

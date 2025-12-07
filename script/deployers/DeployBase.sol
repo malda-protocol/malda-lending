@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {Script} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {DeployConfig, Market, Role, InterestConfig, DeployerConfig} from "./Types.sol";
+import {DeployConfig, Market, Role, DeployerConfig} from "./Types.sol";
 
 contract DeployBase is Script {
     using stdJson for string;
@@ -84,8 +84,9 @@ contract DeployBase is Script {
     }
 
     function getSalt(string memory name) internal view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
-        );
+        return
+            keccak256(
+                abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+            );
     }
 }

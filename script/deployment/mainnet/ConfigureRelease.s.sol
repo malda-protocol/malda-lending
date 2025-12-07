@@ -2,20 +2,10 @@
 pragma solidity =0.8.28;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {Operator} from "src/Operator/Operator.sol";
-import {Roles} from "src/Roles.sol";
-import {Pauser} from "src/pauser/Pauser.sol";
 
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
+import {MarketRelease, Role, InterestConfig} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 import {SetRole} from "../../configuration/SetRole.s.sol";
@@ -68,51 +58,51 @@ contract ConfigureRelease is DeployBaseRelease {
         super.setUp();
 
         // borrow caps
-        borrowCaps["mUSDC"]  = 0;
-        borrowCaps["mUSDT"]  = 0;
-        borrowCaps["mWETH"]  = 0;
+        borrowCaps["mUSDC"] = 0;
+        borrowCaps["mUSDT"] = 0;
+        borrowCaps["mWETH"] = 0;
         borrowCaps["mwstETH"] = 0;
-        borrowCaps["mWBTC"]  = 0;
+        borrowCaps["mWBTC"] = 0;
         borrowCaps["mezETH"] = 0;
         borrowCaps["mweETH"] = 0;
         borrowCaps["mwrsETH"] = 0;
 
         // min caps
-        minBorrowSize["mUSDC"]  = 10e6;       // 10 USDC (6 decimals)
-        minBorrowSize["mUSDT"]  = 10e6;       // 10 USDT (6 decimals)
-        minBorrowSize["mWETH"]  = 0.0025e18;  // 0.0025 ETH
+        minBorrowSize["mUSDC"] = 10e6; // 10 USDC (6 decimals)
+        minBorrowSize["mUSDT"] = 10e6; // 10 USDT (6 decimals)
+        minBorrowSize["mWETH"] = 0.0025e18; // 0.0025 ETH
         minBorrowSize["mwstETH"] = 0.0025e18; // 0.0025 wstETH
-        minBorrowSize["mWBTC"]  = 0.0001e8;   // 0.0001 BTC (8 decimals)
+        minBorrowSize["mWBTC"] = 0.0001e8; // 0.0001 BTC (8 decimals)
         minBorrowSize["mezETH"] = 0.002e18;
         minBorrowSize["mweETH"] = 0.002e18;
         minBorrowSize["mwrsETH"] = 0.002e18;
 
         // collateral factors
-        collateralFactors["mUSDC"]  = 900000000000000000; // 0.90
-        collateralFactors["mUSDT"]  = 900000000000000000; // 0.90
-        collateralFactors["mWETH"]  = 830000000000000000; // 0.83
+        collateralFactors["mUSDC"] = 900000000000000000; // 0.90
+        collateralFactors["mUSDT"] = 900000000000000000; // 0.90
+        collateralFactors["mWETH"] = 830000000000000000; // 0.83
         collateralFactors["mwstETH"] = 810000000000000000; // 0.81
-        collateralFactors["mWBTC"]  = 780000000000000000; // 0.78
+        collateralFactors["mWBTC"] = 780000000000000000; // 0.78
         collateralFactors["mezETH"] = 750000000000000000; // 0.75
         collateralFactors["mweETH"] = 800000000000000000;
         collateralFactors["mwrsETH"] = 750000000000000000;
 
         // reserve factors
-        reserveFactors["mUSDC"]  = 100000000000000000; // 0.10
-        reserveFactors["mUSDT"]  = 100000000000000000; // 0.10
-        reserveFactors["mWETH"]  = 150000000000000000; // 0.15
+        reserveFactors["mUSDC"] = 100000000000000000; // 0.10
+        reserveFactors["mUSDT"] = 100000000000000000; // 0.10
+        reserveFactors["mWETH"] = 150000000000000000; // 0.15
         reserveFactors["mwstETH"] = 50000000000000000; // 0.05
-        reserveFactors["mWBTC"]  = 500000000000000000; // 0.50
+        reserveFactors["mWBTC"] = 500000000000000000; // 0.50
         reserveFactors["mezETH"] = 450000000000000000; // 0.45
         reserveFactors["mweETH"] = 450000000000000000;
         reserveFactors["mwrsETH"] = 450000000000000000;
 
         // liquidation bonuses
-        liquidationBonuses["mUSDC"]  = 1050000000000000000; // 1.05
-        liquidationBonuses["mUSDT"]  = 1050000000000000000; // 1.05
-        liquidationBonuses["mWETH"]  = 1050000000000000000; // 1.05
+        liquidationBonuses["mUSDC"] = 1050000000000000000; // 1.05
+        liquidationBonuses["mUSDT"] = 1050000000000000000; // 1.05
+        liquidationBonuses["mWETH"] = 1050000000000000000; // 1.05
         liquidationBonuses["mwstETH"] = 1060000000000000000; // 1.06
-        liquidationBonuses["mWBTC"]  = 1050000000000000000; // 1.05
+        liquidationBonuses["mWBTC"] = 1050000000000000000; // 1.05
         liquidationBonuses["mezETH"] = 1070000000000000000; // 1.07
         liquidationBonuses["mweETH"] = 1070000000000000000;
         liquidationBonuses["mwrsETH"] = 1070000000000000000;
@@ -124,12 +114,7 @@ contract ConfigureRelease is DeployBaseRelease {
             collateralFactor: collateralFactors["mUSDC"],
             decimals: 0,
             interestModel: InterestConfig({
-                baseRate: 0,
-                blocksPerYear: 0,
-                jumpMultiplier: 0,
-                kink: 0,
-                multiplier: 0,
-                name: "mUSDC Interest Model"
+                baseRate: 0, blocksPerYear: 0, jumpMultiplier: 0, kink: 0, multiplier: 0, name: "mUSDC Interest Model"
             }),
             name: "mUSDC",
             supplyCap: 0,
@@ -145,12 +130,7 @@ contract ConfigureRelease is DeployBaseRelease {
             collateralFactor: collateralFactors["mWETH"],
             decimals: 0,
             interestModel: InterestConfig({
-                baseRate: 0,
-                blocksPerYear: 0,
-                jumpMultiplier: 0,
-                kink: 0,
-                multiplier: 0,
-                name: "mWETH Interest Model"
+                baseRate: 0, blocksPerYear: 0, jumpMultiplier: 0, kink: 0, multiplier: 0, name: "mWETH Interest Model"
             }),
             name: "mWETH",
             supplyCap: 0,
@@ -166,12 +146,7 @@ contract ConfigureRelease is DeployBaseRelease {
             collateralFactor: collateralFactors["mUSDT"],
             decimals: 0,
             interestModel: InterestConfig({
-                baseRate: 0,
-                blocksPerYear: 0,
-                jumpMultiplier: 0,
-                kink: 0,
-                multiplier: 0,
-                name: "mUSDT Interest Model"
+                baseRate: 0, blocksPerYear: 0, jumpMultiplier: 0, kink: 0, multiplier: 0, name: "mUSDT Interest Model"
             }),
             name: "mUSDT",
             supplyCap: 0,
@@ -187,12 +162,7 @@ contract ConfigureRelease is DeployBaseRelease {
             collateralFactor: collateralFactors["mWBTC"],
             decimals: 0,
             interestModel: InterestConfig({
-                baseRate: 0,
-                blocksPerYear: 0,
-                jumpMultiplier: 0,
-                kink: 0,
-                multiplier: 0,
-                name: "mWBTC Interest Model"
+                baseRate: 0, blocksPerYear: 0, jumpMultiplier: 0, kink: 0, multiplier: 0, name: "mWBTC Interest Model"
             }),
             name: "mWBTC",
             supplyCap: 0,
@@ -208,12 +178,7 @@ contract ConfigureRelease is DeployBaseRelease {
             collateralFactor: collateralFactors["mwstETH"],
             decimals: 0,
             interestModel: InterestConfig({
-                baseRate: 0,
-                blocksPerYear: 0,
-                jumpMultiplier: 0,
-                kink: 0,
-                multiplier: 0,
-                name: "mwstETH Interest Model"
+                baseRate: 0, blocksPerYear: 0, jumpMultiplier: 0, kink: 0, multiplier: 0, name: "mwstETH Interest Model"
             }),
             name: "mwstETH",
             supplyCap: 0,
@@ -229,12 +194,7 @@ contract ConfigureRelease is DeployBaseRelease {
             collateralFactor: collateralFactors["mezETH"],
             decimals: 0,
             interestModel: InterestConfig({
-                baseRate: 0,
-                blocksPerYear: 0,
-                jumpMultiplier: 0,
-                kink: 0,
-                multiplier: 0,
-                name: "mezETH Interest Model"
+                baseRate: 0, blocksPerYear: 0, jumpMultiplier: 0, kink: 0, multiplier: 0, name: "mezETH Interest Model"
             }),
             name: "mezETH",
             supplyCap: 0,
@@ -243,7 +203,7 @@ contract ConfigureRelease is DeployBaseRelease {
             reserveFactor: reserveFactors["mezETH"],
             liquidationBonus: liquidationBonuses["mezETH"]
         });
-                fullConfigs["mweETH"] = MarketRelease({
+        fullConfigs["mweETH"] = MarketRelease({
             borrowCap: borrowCaps["mweETH"],
             borrowRateMaxMantissa: 0.0005e16,
             collateralFactor: collateralFactors["mweETH"],
@@ -353,7 +313,7 @@ contract ConfigureRelease is DeployBaseRelease {
 
         console.log("Configuring close factor on operator", address(operator));
         setCloseFactor.run(operator, DEFAULT_CLOSE_FACTOR);
-        
+
         console.log("Settings feeds on oracle", address(oracle));
         setFeed.run(oracle);
 
@@ -449,7 +409,7 @@ contract ConfigureRelease is DeployBaseRelease {
     function _setBorrowCap(address market, uint256 borrowCap) internal {
         setBorrowCap.run(operator, market, borrowCap);
     }
-    
+
     function _setMinBorrowSize(address market, uint256 amount) internal {
         setMinBorrowSize.run(operator, market, amount);
     }

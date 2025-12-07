@@ -17,12 +17,13 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
+// slither-disable-start costly-loop
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {ImToken, ImTokenMinimal} from "src/interfaces/ImToken.sol";
@@ -117,8 +118,9 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
 
     /**
      * @notice Container for borrow balance information
-     * @member principal Total balance (with accrued interest), after applying the most recent balance-changing action
-     * @member interestIndex Global borrowIndex as of the most recent balance-changing action
+     * @dev Fields:
+     * - principal: Total balance (with accrued interest), after applying the most recent balance-changing action
+     * - interestIndex: Global borrowIndex as of the most recent balance-changing action
      */
     struct BorrowSnapshot {
         uint256 principal;
@@ -149,7 +151,8 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
      */
     uint256 internal constant PROTOCOL_SEIZE_SHARE_MANTISSA = 2.8e16; //2.8%
 
-    uint256[50] private __gap;  
+    // slither-disable-next-line shadowing-state
+    uint256[50] private __gap;
 
     // ----------- ERRORS ------------
     error mt_OnlyAdmin();
@@ -171,6 +174,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     error mt_RedeemTransferOutNotPossible();
     error mt_SameChainOperationsAreDisabled();
     error mt_CollateralBlockTimestampNotValid();
+    error mTokenConfiguration_AddressNotValid();
 
     // ----------- ACCESS EVENTS ------------
     /**
@@ -310,7 +314,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
              */
             uint256 totalCash = _getCashPrior();
             uint256 cashPlusBorrowsMinusReserves = totalCash + totalBorrows - totalReserves;
-            uint256 exchangeRate = (cashPlusBorrowsMinusReserves * expScale) / _totalSupply;
+            uint256 exchangeRate = (cashPlusBorrowsMinusReserves * EXP_SCALE) / _totalSupply;
 
             return exchangeRate;
         }
@@ -391,3 +395,4 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
         emit AccrueInterest(cashPrior, interestAccumulated, borrowIndexNew, totalBorrowsNew);
     }
 }
+// slither-disable-end costly-loop

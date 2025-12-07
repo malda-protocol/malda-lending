@@ -25,10 +25,12 @@ import {ImToken} from "src/interfaces/ImToken.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
 
-import "./IMigrator.sol";
+import {IMendiMarket, IMendiComptroller} from "src/migration/IMigrator.sol";
 
 contract Migrator is ExponentialNoError {
     using SafeERC20 for IERC20;
+
+    error Migrator_AddressNotValid();
 
     mapping(address => bool) public allowedMarkets;
 
@@ -43,6 +45,7 @@ contract Migrator is ExponentialNoError {
     }
 
     constructor(address _operator) {
+        require(_operator != address(0), Migrator_AddressNotValid());
         MALDA_OPERATOR = _operator;
         allowedMarkets[0x1eEa258B505cd6381171c1075EC6934F8D0Faf3b] = true;
         allowedMarkets[0x6AECeD8e67964Eb6d0Ae7B159D27eF07F6c11b99] = true;
@@ -94,11 +97,14 @@ contract Migrator is ExponentialNoError {
             Position memory position = positions[i];
             if (position.collateralUnderlyingAmount > 0) {
                 uint256 _exchangeRate = ImToken(position.maldaMarket).exchangeRateStored();
-                uint256 minCollateral =  
-                    div_(position.collateralUnderlyingAmount - (position.collateralUnderlyingAmount * 1e4 / 1e5), _exchangeRate);  
-                ImErc20Host(position.maldaMarket).mintOrBorrowMigration(
-                    true, position.collateralUnderlyingAmount, msg.sender, address(0), minCollateral
+                uint256 minCollateral = div_(
+                    position.collateralUnderlyingAmount - (position.collateralUnderlyingAmount * 1e4 / 1e5),
+                    _exchangeRate
                 );
+                ImErc20Host(position.maldaMarket)
+                    .mintOrBorrowMigration(
+                        true, position.collateralUnderlyingAmount, msg.sender, address(0), minCollateral
+                    );
             }
         }
 
@@ -106,9 +112,8 @@ contract Migrator is ExponentialNoError {
         for (uint256 i; i < posLength; ++i) {
             Position memory position = positions[i];
             if (position.borrowAmount > 0) {
-                ImErc20Host(position.maldaMarket).mintOrBorrowMigration(
-                    false, position.borrowAmount, address(this), msg.sender, 0
-                );
+                ImErc20Host(position.maldaMarket)
+                    .mintOrBorrowMigration(false, position.borrowAmount, address(this), msg.sender, 0);
             }
         }
 

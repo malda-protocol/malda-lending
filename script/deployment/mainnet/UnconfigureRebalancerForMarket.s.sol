@@ -1,20 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {Roles} from "src/Roles.sol";
 import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
-import {Pauser} from "src/pauser/Pauser.sol";
-
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 import {SetRole} from "../../configuration/SetRole.s.sol";
@@ -30,11 +19,10 @@ contract UnconfigureRebalancerForMarket is DeployBaseRelease {
     SetRole setRole;
 
     address marketToRemove = 0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F;
-    
+
     function setUp() public override {
         configPath = "deployment-config-release.json";
         super.setUp();
-
 
         string memory corePath = "script/deployment/mainnet/output/release-deployed-core-addresses.json";
         string memory jsonContent = vm.readFile(corePath);
@@ -56,7 +44,6 @@ contract UnconfigureRebalancerForMarket is DeployBaseRelease {
             // Create fork for this network
             forks[network] = vm.createSelectFork(network);
 
-
             console.log("Remove from allowed list of tokens");
             address[] memory marketsToRemove = new address[](1);
             marketsToRemove[0] = marketToRemove;
@@ -70,7 +57,6 @@ contract UnconfigureRebalancerForMarket is DeployBaseRelease {
             Rebalancer(rebalancerContract).setAllowList(marketsToRemove, false);
             Rebalancer(rebalancerContract).setMarketStatus(marketsToRemove, false);
             vm.stopBroadcast();
-
 
             console.log("-------------------- DONE");
         }

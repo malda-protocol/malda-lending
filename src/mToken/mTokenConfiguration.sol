@@ -17,15 +17,14 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 // interfaces
 import {IRoles} from "src/interfaces/IRoles.sol";
-import {IOperator} from "src/interfaces/IOperator.sol";
 import {IInterestRateModel} from "src/interfaces/IInterestRateModel.sol";
 
 import {mTokenStorage} from "./mTokenStorage.sol";
@@ -100,6 +99,7 @@ abstract contract mTokenConfiguration is mTokenStorage {
      * @param newPendingAdmin New pending admin.
      */
     function setPendingAdmin(address payable newPendingAdmin) external onlyAdmin {
+        require(newPendingAdmin != address(0), mTokenConfiguration_AddressNotValid());
         pendingAdmin = newPendingAdmin;
     }
 

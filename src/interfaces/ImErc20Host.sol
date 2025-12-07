@@ -17,10 +17,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 interface ImErc20Host {
@@ -93,6 +93,7 @@ interface ImErc20Host {
 
     event mErc20Host_MintMigration(address indexed receiver, uint256 amount);
     event mErc20Host_BorrowMigration(address indexed borrower, uint256 amount);
+    event mErc20Host_MigratorUpdated(address indexed migrator);
 
     // ----------- ERRORS -----------
     /**

@@ -17,10 +17,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -52,7 +52,7 @@ contract Roles is Ownable, IRoles {
      */
     event Allowed(address indexed _contract, bytes32 indexed _role, bool _allowed);
 
-    constructor(address _owner) Ownable(_owner) {}
+    constructor(address owner_) Ownable(owner_) {}
 
     // ----------- VIEW ------------
     function isAllowedFor(address _contract, bytes32 _role) external view override returns (bool) {

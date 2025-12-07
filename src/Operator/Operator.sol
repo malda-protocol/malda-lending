@@ -17,10 +17,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 // interfaces
@@ -61,7 +61,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     }
 
     modifier ifNotBlacklisted(address user) {
-        require (!blacklistOperator.isBlacklisted(user), Operator_UserBlacklisted());
+        require(!blacklistOperator.isBlacklisted(user), Operator_UserBlacklisted());
         _;
     }
 
@@ -81,7 +81,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
      */
     function setBorrowSizeMin(address[] memory mTokens, uint256[] memory amounts) external onlyOwner {
         uint256 length = mTokens.length;
-        require (amounts.length == length, Operator_InvalidInput());
+        require(amounts.length == length, Operator_InvalidInput());
 
         for (uint256 i; i < length; ++i) {
             minBorrowSize[mTokens[i]] = amounts[i];
@@ -103,9 +103,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         whitelistEnabled = status;
         if (status) emit WhitelistEnabled();
         else emit WhitelistDisabled();
-
     }
-
 
     /**
      * @notice Sets a new Operator for the market
@@ -197,7 +195,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         newMarket.isListed = true;
         newMarket.collateralFactorMantissa = 0;
 
-        for (uint256 i = 0; i < allMarkets.length;) {
+        uint256 marketsLength = allMarkets.length;
+        for (uint256 i = 0; i < marketsLength;) {
             require(allMarkets[i] != mToken, Operator_MarketAlreadyListed());
 
             unchecked {
@@ -266,7 +265,10 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
      * @param mTokens The addresses of the markets (tokens) to change the borrow caps for
      * @param newBorrowCaps The new borrow cap values in underlying to be set. A value of 0 corresponds to unlimited borrowing.
      */
-    function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newBorrowCaps) external onlyFirewallApproved() {
+    function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newBorrowCaps)
+        external
+        onlyFirewallApproved
+    {
         require(
             msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_BORROW_CAP()),
             Operator_OnlyAdminOrRole()
@@ -292,7 +294,10 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
      * @param mTokens The addresses of the markets (tokens) to change the supply caps for
      * @param newSupplyCaps The new supply cap values in underlying to be set. A value of 0 corresponds to unlimited supplying.
      */
-    function setMarketSupplyCaps(address[] calldata mTokens, uint256[] calldata newSupplyCaps) external onlyFirewallApproved() {
+    function setMarketSupplyCaps(address[] calldata mTokens, uint256[] calldata newSupplyCaps)
+        external
+        onlyFirewallApproved
+    {
         require(
             msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_SUPPLY_CAP()),
             Operator_OnlyAdminOrRole()
@@ -315,7 +320,10 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /**
      * @inheritdoc IOperator
      */
-    function setPaused(address mToken, ImTokenOperationTypes.OperationType _type, bool state) external onlyFirewallApproved() {
+    function setPaused(address mToken, ImTokenOperationTypes.OperationType _type, bool state)
+        external
+        onlyFirewallApproved
+    {
         if (state) {
             require(
                 msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_PAUSE()),
@@ -334,12 +342,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /**
      * @inheritdoc IOperator
      */
-    function isPaused(address mToken, ImTokenOperationTypes.OperationType _type)
-        external
-        view
-        override
-        returns (bool)
-    {
+    function isPaused(address mToken, ImTokenOperationTypes.OperationType _type) external view override returns (bool) {
         return _paused[mToken][_type];
     }
 
@@ -398,7 +401,12 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /**
      * @inheritdoc IOperator
      */
-    function enterMarkets(address[] calldata _mTokens) external override onlyAllowedUser(msg.sender) onlyFirewallApproved() {
+    function enterMarkets(address[] calldata _mTokens)
+        external
+        override
+        onlyAllowedUser(msg.sender)
+        onlyFirewallApproved
+    {
         uint256 len = _mTokens.length;
         for (uint256 i = 0; i < len;) {
             address __mToken = _mTokens[i];
@@ -423,7 +431,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /**
      * @inheritdoc IOperator
      */
-    function exitMarket(address _mToken) external override onlyFirewallApproved() {
+    function exitMarket(address _mToken) external override onlyFirewallApproved {
         IOperatorData.Market storage marketToExit = markets[_mToken];
         /* Return  if the sender is not already 'in' the market */
         if (!marketToExit.accountMembership[msg.sender]) return;
@@ -471,14 +479,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
      */
     function getUSDValueForAllMarkets() external view returns (uint256) {
         uint256 sum;
-        for (uint256 i; i < allMarkets.length;) {
-            ImToken _market = ImToken(allMarkets[i]);
+        uint256 marketsLength = allMarkets.length;
+        ImToken _market;
+        for (uint256 i = 0; i < marketsLength; i++) {
+            _market = ImToken(allMarkets[i]);
             if (_isDeprecated(address(_market))) continue;
             uint256 totalMarketVolume = _market.totalUnderlying();
             sum += _convertMarketAmountToUSDValue(totalMarketVolume, address(_market));
-            unchecked {
-                ++i;
-            }
         }
         return sum;
     }
@@ -486,14 +493,20 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeRebalancing(address mToken) external view override onlyFirewallApproved() {
+    function beforeRebalancing(address mToken) external view override onlyFirewallApproved {
         require(!_paused[mToken][OperationType.Rebalancing], Operator_Paused());
     }
 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens) external override ifNotBlacklisted(src) ifNotBlacklisted(dst) onlyFirewallApproved() {
+    function beforeMTokenTransfer(address mToken, address src, address dst, uint256 transferTokens)
+        external
+        override
+        ifNotBlacklisted(src)
+        ifNotBlacklisted(dst)
+        onlyFirewallApproved
+    {
         require(!_paused[mToken][OperationType.Transfer], Operator_Paused());
 
         ImToken(mToken).accrueInterest();
@@ -505,7 +518,16 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenMint(address mToken, address minter, address receiver) external view override onlyAllowedUser(minter) ifNotBlacklisted(minter) ifNotBlacklisted(receiver) onlyFirewallApproved() onlyAllowedUser(minter) {
+    function beforeMTokenMint(address mToken, address minter, address receiver)
+        external
+        view
+        override
+        onlyAllowedUser(minter)
+        ifNotBlacklisted(minter)
+        ifNotBlacklisted(receiver)
+        onlyFirewallApproved
+        onlyAllowedUser(minter)
+    {
         require(!_paused[mToken][OperationType.Mint], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
     }
@@ -527,14 +549,27 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
      * @inheritdoc IOperatorDefender
      */
 
-    function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external view override onlyAllowedUser(redeemer) ifNotBlacklisted(redeemer) onlyFirewallApproved() {
+    function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens)
+        external
+        view
+        override
+        onlyAllowedUser(redeemer)
+        ifNotBlacklisted(redeemer)
+        onlyFirewallApproved
+    {
         _beforeRedeem(mToken, redeemer, redeemTokens);
     }
 
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external override onlyAllowedUser(borrower) ifNotBlacklisted(borrower) onlyFirewallApproved() {
+    function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount)
+        external
+        override
+        onlyAllowedUser(borrower)
+        ifNotBlacklisted(borrower)
+        onlyFirewallApproved
+    {
         require(!_paused[mToken][OperationType.Borrow], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
@@ -568,7 +603,12 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /**
      * @inheritdoc IOperatorDefender
      */
-    function beforeMTokenRepay(address mToken, address borrower) external view onlyAllowedUser(borrower) onlyFirewallApproved() {
+    function beforeMTokenRepay(address mToken, address borrower)
+        external
+        view
+        onlyAllowedUser(borrower)
+        onlyFirewallApproved
+    {
         require(!_paused[mToken][OperationType.Repay], Operator_Paused());
         require(markets[mToken].isListed, Operator_MarketNotListed());
     }
@@ -581,7 +621,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         address mTokenCollateral,
         address borrower,
         uint256 repayAmount
-    ) external view override onlyFirewallApproved() {
+    ) external view override onlyFirewallApproved {
         require(!_paused[mTokenBorrowed][OperationType.Liquidate], Operator_Paused());
         require(markets[mTokenBorrowed].isListed, Operator_MarketNotListed());
         require(markets[mTokenCollateral].isListed, Operator_MarketNotListed());
@@ -608,7 +648,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         view
         override
         ifNotBlacklisted(liquidator)
-        onlyFirewallApproved()
+        onlyFirewallApproved
     {
         require(
             !_paused[mTokenCollateral][OperationType.Seize] && !_paused[mTokenBorrowed][OperationType.Seize],

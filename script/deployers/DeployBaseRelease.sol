@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {Script} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {
     DeployNetworksConfigRelease,
@@ -10,7 +10,6 @@ import {
     OracleFeed,
     MarketRelease,
     Role,
-    InterestConfig,
     DeployerConfig
 } from "./Types.sol";
 
@@ -117,8 +116,9 @@ contract DeployBaseRelease is Script {
     }
 
     function getSalt(string memory name) internal view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
-        );
+        return
+            keccak256(
+                abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+            );
     }
 }

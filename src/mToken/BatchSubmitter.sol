@@ -46,7 +46,7 @@ contract BatchSubmitter is Ownable {
     /**
      * @notice The roles contract for access control
      */
-    IRoles public immutable rolesOperator;
+    IRoles public immutable ROLES_OPERATOR;
 
     IZkVerifier public verifier;
 
@@ -82,10 +82,10 @@ contract BatchSubmitter is Ownable {
     bytes4 internal constant OUT_HERE_SELECTOR = ImTokenGateway.outHere.selector;
     bytes4 internal constant LIQUIDATE_SELECTOR = ImErc20Host.liquidateExternal.selector;
 
-    constructor(address _roles, address _zkVerifier, address _owner) Ownable(_owner) {
+    constructor(address _roles, address _zkVerifier, address owner_) Ownable(owner_) {
         require(_roles != address(0), BatchSubmitter_AddressNotValid());
         require(_zkVerifier != address(0), BatchSubmitter_AddressNotValid());
-        rolesOperator = IRoles(_roles);
+        ROLES_OPERATOR = IRoles(_roles);
         verifier = IZkVerifier(_zkVerifier);
     }
 
@@ -104,8 +104,9 @@ contract BatchSubmitter is Ownable {
     /**
      * @notice Execute multiple operations in a single transaction
      */
+    // slither-disable-next-line cyclomatic-complexity
     function batchProcess(BatchProcessMsg calldata data) external {
-        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_FORWARDER())) {
+        if (!ROLES_OPERATOR.isAllowedFor(msg.sender, ROLES_OPERATOR.PROOF_FORWARDER())) {
             revert BatchSubmitter_CallerNotAllowed();
         }
 
@@ -115,7 +116,7 @@ contract BatchSubmitter is Ownable {
 
         uint256 length = data.initHashes.length;
 
-        for (uint256 i = 0; i < length;) {
+        for (uint256 i = 0; i < length; i++) {
             bytes[] memory singleJournal = new bytes[](1);
             singleJournal[0] = journals[data.startIndex + i];
 
@@ -127,9 +128,8 @@ contract BatchSubmitter is Ownable {
             if (selector == MINT_SELECTOR) {
                 uint256[] memory singleMinAmounts = new uint256[](1);
                 singleMinAmounts[0] = data.minAmountsOut[i];
-                try ImErc20Host(data.mTokens[i]).mintExternal(
-                    encodedJournal, "", singleAmount, singleMinAmounts, data.receivers[i]
-                ) {
+                try ImErc20Host(data.mTokens[i])
+                    .mintExternal(encodedJournal, "", singleAmount, singleMinAmounts, data.receivers[i]) {
                     emit BatchProcessSuccess(
                         data.initHashes[i],
                         data.receivers[i],
@@ -194,13 +194,14 @@ contract BatchSubmitter is Ownable {
             } else if (selector == LIQUIDATE_SELECTOR) {
                 address[] memory singleUserToLiquidate = new address[](1);
                 singleUserToLiquidate[0] = data.userToLiquidate[i];
-                
+
                 address[] memory singleCollateral = new address[](1);
                 singleCollateral[0] = data.collateral[i];
-                
-                try ImErc20Host(data.mTokens[i]).liquidateExternal(
-                    encodedJournal, "", singleUserToLiquidate, singleAmount, singleCollateral, data.receivers[i]
-                ) {
+
+                try ImErc20Host(data.mTokens[i])
+                    .liquidateExternal(
+                        encodedJournal, "", singleUserToLiquidate, singleAmount, singleCollateral, data.receivers[i]
+                    ) {
                     emit BatchProcessSuccess(
                         data.initHashes[i],
                         data.receivers[i],
@@ -211,10 +212,8 @@ contract BatchSubmitter is Ownable {
                     );
                 } catch (bytes memory reason) {
                     // If liquidate fails, try mint as fallback
-                    
-                    try ImErc20Host(data.mTokens[i]).mintExternal(
-                        encodedJournal, "", singleAmount, new uint256[](1), data.receivers[i]
-                    ) {
+                    try ImErc20Host(data.mTokens[i])
+                        .mintExternal(encodedJournal, "", singleAmount, new uint256[](1), data.receivers[i]) {
                         emit BatchProcessSuccess(
                             data.initHashes[i],
                             data.receivers[i],
@@ -225,22 +224,12 @@ contract BatchSubmitter is Ownable {
                         );
                     } catch (bytes memory) {
                         emit BatchProcessFailed(
-                            data.initHashes[i],
-                            data.receivers[i],
-                            data.mTokens[i],
-                            data.amounts[i],
-                            0,
-                            selector,
-                            reason
+                            data.initHashes[i], data.receivers[i], data.mTokens[i], data.amounts[i], 0, selector, reason
                         );
                     }
                 }
             } else {
                 revert BatchSubmitter_InvalidSelector();
-            }
-
-            unchecked {
-                ++i;
             }
         }
     }

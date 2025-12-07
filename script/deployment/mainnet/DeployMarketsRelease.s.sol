@@ -1,23 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
-import {Operator} from "src/Operator/Operator.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-import {Roles} from "src/Roles.sol";
 import {IPauser} from "src/interfaces/IPauser.sol";
 import {Pauser} from "src/pauser/Pauser.sol";
 
-import {
-    DeployConfig, 
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
+import {MarketRelease, InterestConfig} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 import {DeployHostMarket} from "../markets/host/DeployHostMarket.s.sol";

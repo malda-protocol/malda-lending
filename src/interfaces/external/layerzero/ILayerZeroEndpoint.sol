@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity >=0.5.0;
 
-import "./ILayerZeroUserApplicationConfig.sol";
+import {ILayerZeroUserApplicationConfig} from "./ILayerZeroUserApplicationConfig.sol";
 
 /// @dev is imported from
 /// (https://github.com/LayerZero-Labs/LayerZero/blob/main/contracts/interfaces/ILayerZeroEndpoint.sol)

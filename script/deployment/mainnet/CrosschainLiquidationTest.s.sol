@@ -1,22 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Operator} from "src/Operator/Operator.sol";
-
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
-
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 
 contract CrosschainLiquidationTest is DeployBaseRelease {
@@ -36,68 +23,65 @@ contract CrosschainLiquidationTest is DeployBaseRelease {
 
     function run() public {
         uint256 key = vm.envUint("PRIVATE_KEY");
-        uint256 borrowerKey = vm.envUint("BORROWER_KEY");
-
-        mErc20Host m = mErc20Host(MARKET);
 
         // borrow on linea
-        uint256 lineaFork = vm.createSelectFork(vm.envString("LINEA_RPC_URL"));
-
-        address underlying = m.underlying();
+        vm.createSelectFork(vm.envString("LINEA_RPC_URL"));
 
         // set minBorrow to allow test
         address[] memory mTokens = new address[](1);
         uint256[] memory sizes = new uint256[](1);
         mTokens[0] = MARKET;
         sizes[0] = 1;
+
+        // @audit-question remove?
         /**
-        console.log("Setting min borrow size ...");
-        vm.startBroadcast(key);
-        Operator(OPERATOR).setBorrowSizeMin(mTokens, sizes);
-        vm.stopBroadcast();
+         * console.log("Setting min borrow size ...");
+         * vm.startBroadcast(key);
+         * Operator(OPERATOR).setBorrowSizeMin(mTokens, sizes);
+         * vm.stopBroadcast();
+         *
+         * // approve
+         * console.log("Approving underlying...");
+         * vm.startBroadcast(borrowerKey);
+         * IERC20Metadata(underlying).approve(address(m), 0.00001e18);
+         * vm.stopBroadcast();
+         *
+         * // add collateral
+         * console.log("Adding collateral...");
+         * vm.startBroadcast(borrowerKey);
+         * m.mint(0.00001e18, BORROWER, 0);
+         * vm.stopBroadcast();
+         *
+         * // borrow
+         * console.log("Borrowing...");
+         * vm.startBroadcast(borrowerKey);
+         * m.borrow(0.029e6);
+         * vm.stopBroadcast();
+         *
+         * // set collateral factor to 1%
+         * console.log("Setting collateral factor...");
+         * vm.startBroadcast(key);
+         * Operator(OPERATOR).setCollateralFactor(MARKET, 1);
+         * vm.stopBroadcast();
+         *
+         * uint256 baseFork = vm.createSelectFork(vm.envString("BASE_RPC_URL"));
+         * underlying = m.underlying();
+         *
+         * // approve for liquidation
+         * console.log("Approving underlying for liquidation...");
+         * vm.startBroadcast(key);
+         * IERC20Metadata(underlying).approve(address(m), 1e18);
+         * vm.stopBroadcast();
+         *
+         *
+         * // liquidate
+         * console.log("Liquidating...");
+         * vm.startBroadcast(key);
+         * mTokenGateway(MARKET).supplyOnHost(0.01e6, BORROWER, bytes4(0xa4777a7a));
+         * vm.stopBroadcast();
+         */
 
-        // approve
-        console.log("Approving underlying...");
-        vm.startBroadcast(borrowerKey);
-        IERC20Metadata(underlying).approve(address(m), 0.00001e18);
-        vm.stopBroadcast();
-
-        // add collateral
-        console.log("Adding collateral...");
-        vm.startBroadcast(borrowerKey);
-        m.mint(0.00001e18, BORROWER, 0);
-        vm.stopBroadcast();
-
-        // borrow
-        console.log("Borrowing...");
-        vm.startBroadcast(borrowerKey);
-        m.borrow(0.029e6);
-        vm.stopBroadcast();
-
-        // set collateral factor to 1%
-        console.log("Setting collateral factor...");
-        vm.startBroadcast(key);
-        Operator(OPERATOR).setCollateralFactor(MARKET, 1);
-        vm.stopBroadcast();
-
-        uint256 baseFork = vm.createSelectFork(vm.envString("BASE_RPC_URL"));
-        underlying = m.underlying();
-
-        // approve for liquidation
-        console.log("Approving underlying for liquidation...");
-        vm.startBroadcast(key);
-        IERC20Metadata(underlying).approve(address(m), 1e18);
-        vm.stopBroadcast();
-
-
-        // liquidate
-        console.log("Liquidating...");
-        vm.startBroadcast(key);
-        mTokenGateway(MARKET).supplyOnHost(0.01e6, BORROWER, bytes4(0xa4777a7a));
-        vm.stopBroadcast();
-        */
-
-        // reset collateral factor 
+        // reset collateral factor
         console.log("Reset collateral factor...");
         uint256 collateralFactor = 830000000000000000;
         vm.startBroadcast(key);

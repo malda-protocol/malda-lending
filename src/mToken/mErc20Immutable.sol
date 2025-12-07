@@ -17,15 +17,18 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {mErc20} from "./mErc20.sol";
 
 contract mErc20Immutable is mErc20 {
+    // ----------- ERRORS ------------
+    error mErc20Immutable_AdminNotValid();
+
     /**
      * @notice Constructs the new money market
      * @param underlying_ The address of the underlying asset
@@ -55,6 +58,7 @@ contract mErc20Immutable is mErc20 {
         );
 
         // Set the proper admin now that initialization is done
+        require(admin_ != address(0), mErc20Immutable_AdminNotValid());
         admin = admin_;
     }
 }

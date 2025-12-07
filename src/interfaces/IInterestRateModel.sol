@@ -17,10 +17,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 /**
@@ -36,6 +36,10 @@ interface IInterestRateModel {
     event NewInterestParams(
         uint256 baseRatePerBlock, uint256 multiplierPerBlock, uint256 jumpMultiplierPerBlock, uint256 kink
     );
+
+    /// @notice Emitted when blocks per year is updated
+    /// @param blocksPerYear The new blocks per year value
+    event BlocksPerYearUpdated(uint256 blocksPerYear);
 
     /**
      * @notice Should return true

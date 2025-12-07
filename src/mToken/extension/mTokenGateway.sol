@@ -17,10 +17,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -72,17 +72,21 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     ///@dev gas fee for `supplyOnHost`
     uint256 public gasFee;
 
-    uint256[50] private __gap;  
+    // slither-disable-next-line unused-state
+    uint256[50] private __gap;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
     }
 
-    function initialize(address payable _owner, address _underlying, address _roles, address _blacklister, address zkVerifier_)
-        external
-        initializer
-    {
+    function initialize(
+        address payable _owner,
+        address _underlying,
+        address _roles,
+        address _blacklister,
+        address zkVerifier_
+    ) external initializer {
         __Ownable_init(_owner);
         require(_roles != address(0), mTokenGateway_AddressNotValid());
         require(zkVerifier_ != address(0), mTokenGateway_AddressNotValid());
@@ -110,18 +114,18 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     }
 
     modifier ifNotBlacklisted(address user) {
-        require (!blacklistOperator.isBlacklisted(user), mTokenGateway_UserBlacklisted());
+        require(!blacklistOperator.isBlacklisted(user), mTokenGateway_UserBlacklisted());
         _;
     }
 
     modifier liquidateChecks() {
-       require(!paused[OperationType.Liquidate], mTokenGateway_Paused(OperationType.Liquidate));
-       require(!paused[OperationType.AmountIn], mTokenGateway_Paused(OperationType.AmountIn));
-       if (whitelistEnabled) {
-          require(userWhitelisted[msg.sender], mTokenGateway_UserNotWhitelisted());
-       }
-       require (!blacklistOperator.isBlacklisted(msg.sender), mTokenGateway_UserBlacklisted());
-       _;
+        require(!paused[OperationType.Liquidate], mTokenGateway_Paused(OperationType.Liquidate));
+        require(!paused[OperationType.AmountIn], mTokenGateway_Paused(OperationType.AmountIn));
+        if (whitelistEnabled) {
+            require(userWhitelisted[msg.sender], mTokenGateway_UserNotWhitelisted());
+        }
+        require(!blacklistOperator.isBlacklisted(msg.sender), mTokenGateway_UserBlacklisted());
+        _;
     }
 
     // ----------- VIEW ------------
@@ -142,12 +146,12 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     // ----------- OWNER ------------
     function initFirewall(address _firewall) external onlyOwner {
         _initHypernativeFirewall(_firewall, owner());
-    }   
-    
+    }
+
     function setBlacklister(address _blacklister) external onlyOwner {
         blacklistOperator = IBlacklister(_blacklister);
     }
-    
+
     /**
      * @notice Sets user whitelist status
      * @param user The user address
@@ -216,6 +220,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         if (msg.sender != owner() && !_isAllowedFor(msg.sender, _getSequencerRole())) {
             revert mTokenGateway_CallerNotAllowed();
         }
+        require(receiver != address(0), mTokenGateway_AddressNotValid());
         uint256 balance = address(this).balance;
         receiver.transfer(balance);
     }
@@ -254,7 +259,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         onlyAllowedUser(msg.sender)
         ifNotBlacklisted(msg.sender)
         ifNotBlacklisted(receiver)
-        onlyFirewallApproved()
+        onlyFirewallApproved
     {
         _takeIn(underlying, amount, receiver);
 
@@ -270,7 +275,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         );
     }
 
-        /**
+    /**
      * @inheritdoc ImTokenGateway
      */
     function liquidate(address userToLiquidate, uint256 liquidateAmount, address collateral, address receiver)
@@ -283,13 +288,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         _takeIn(underlying, liquidateAmount, receiver);
 
         emit mTokenGateway_Liquidate(
-            msg.sender,
-            receiver,
-            liquidateAmount,
-            uint32(block.chainid),
-            LINEA_CHAIN_ID,
-            userToLiquidate,
-            collateral
+            msg.sender, receiver, liquidateAmount, uint32(block.chainid), LINEA_CHAIN_ID, userToLiquidate, collateral
         );
     }
 
@@ -301,7 +300,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         notPaused(OperationType.AmountOutHere)
         ifNotBlacklisted(msg.sender)
         ifNotBlacklisted(receiver)
-        onlyFirewallApproved()
+        onlyFirewallApproved
     {
         // verify received data
         if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {
@@ -321,18 +320,19 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         }
     }
 
-
     // ----------- PRIVATE ------------
 
     function _takeIn(address asset, uint256 amount, address receiver) private {
-        // checks
+        // Requirements: the amount must be greater than 0
         require(amount > 0, mTokenGateway_AmountNotValid());
+        // Requirements: the gas fee must be greater than or equal to the gas fee
         require(msg.value >= gasFee, mTokenGateway_NotEnoughGasFee());
 
-        IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
-
-        // effects
+        // Effects: update the accumulated amount in for the receiver
         accAmountIn[receiver] += amount;
+
+        // Interactions: transfer the underlying from the sender to the contract
+        IERC20(asset).safeTransferFrom(msg.sender, address(this), amount);
     }
 
     function _outHere(bytes memory journalData, uint256 amount, address receiver) private {
@@ -341,7 +341,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
 
         // temporary overwrite; will be removed in future implementations
         receiver = _sender;
-        require (!blacklistOperator.isBlacklisted(_sender), mTokenGateway_UserBlacklisted());
+        require(!blacklistOperator.isBlacklisted(_sender), mTokenGateway_UserBlacklisted());
 
         // checks
         _checkSender(msg.sender, _sender);
@@ -369,7 +369,6 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
             uint32(block.chainid)
         );
     }
-
 
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
         require(journalData.length > 0, mTokenGateway_JournalNotValid());

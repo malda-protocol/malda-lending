@@ -20,7 +20,7 @@ import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transpa
  *     --broadcast
  */
 contract DeployOperator is Script {
-    function run(Deployer deployer, address blacklistOperator, address oracle, address rewards, address roles, address owner)
+    function run(Deployer deployer, address blacklistOperator, address oracle, address, address roles, address owner)
         public
         returns (address)
     {
@@ -66,8 +66,9 @@ contract DeployOperator is Script {
     }
 
     function _getSalt(string memory name) internal view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
-        );
+        return
+            keccak256(
+                abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+            );
     }
 }

@@ -17,17 +17,16 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 // interfaces
 import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
 
 // contracts
-import {Steel} from "risc0/steel/Steel.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 interface IZkVerifier {
@@ -47,7 +46,7 @@ contract ZkVerifier is Ownable, IZkVerifier {
     event ImageSet(bytes32 _imageId);
     event VerifierSet(address indexed oldVerifier, address indexed newVerifier);
 
-    constructor(address _owner, bytes32 _imageId, address _verifier) Ownable(_owner) {
+    constructor(address owner_, bytes32 _imageId, address _verifier) Ownable(owner_) {
         require(_verifier != address(0), ZkVerifier_InputNotValid());
         require(_imageId != bytes32(0), ZkVerifier_InputNotValid());
         verifier = IRiscZeroVerifier(_verifier);

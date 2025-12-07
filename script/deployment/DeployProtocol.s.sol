@@ -1,19 +1,12 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
-import {Operator} from "src/Operator/Operator.sol";
-import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
-import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
-import {Roles} from "src/Roles.sol";
-import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
-import {mTokenConfiguration} from "src/mToken/mTokenConfiguration.sol";
 
-import {DeployConfig, Market, Role, InterestConfig, OracleConfig} from "../deployers/Types.sol";
+import {Market, Role, InterestConfig, OracleConfig} from "../deployers/Types.sol";
 
 import {DeployBase} from "../deployers/DeployBase.sol";
 import {DeployDeployer} from "../deployers/DeployDeployer.s.sol";

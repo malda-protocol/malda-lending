@@ -1,20 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {Roles} from "src/Roles.sol";
 import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
-import {Pauser} from "src/pauser/Pauser.sol";
-
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 
@@ -29,14 +18,11 @@ contract DeprecateBridgeFromRebalancer is DeployBaseRelease {
     uint32[] whitelistChains;
     mapping(uint32 => address[]) tokens;
 
-
-    
     function setUp() public override {
         configPath = "deployment-config-release.json";
         super.setUp();
 
         bridgeContract = 0xf5ea9AE32a8487393da77973869B4f73FD088bd3;
-
 
         // Linea (chainId: 59144)
         tokens[59144] = [
@@ -45,7 +31,7 @@ contract DeprecateBridgeFromRebalancer is DeployBaseRelease {
             0xA219439258ca9da29E9Cc4cE5596924745e12B93, // mUSDT
             0x3aAB2285ddcDdaD8edf438C1bAB47e1a9D05a9b4, // mWBTC
             0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F, // mwstETH
-            0x2416092f143378750bb29b79eD961ab195CcEea5  // mezETH
+            0x2416092f143378750bb29b79eD961ab195CcEea5 // mezETH
         ];
 
         // Base (chainId: 8453)
@@ -54,7 +40,7 @@ contract DeprecateBridgeFromRebalancer is DeployBaseRelease {
             0x4200000000000000000000000000000000000006, // mWETH
             0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2, // mUSDT
             0x0555E30da8f98308EdB960aa94C0Db47230d2B9c, // mWBTC
-            0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452  // mwstETH
+            0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452 // mwstETH
         ];
 
         // Mainnet (chainId: 1)
@@ -63,14 +49,13 @@ contract DeprecateBridgeFromRebalancer is DeployBaseRelease {
             0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, // mWETH
             0xdAC17F958D2ee523a2206206994597C13D831ec7, // mUSDT
             0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599, // mWBTC
-            0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0  // mwstETH
+            0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0 // mwstETH
         ];
 
         marketList.push(0x1eEa258B505cd6381171c1075EC6934F8D0Faf3b);
         marketList.push(0x6AECeD8e67964Eb6d0Ae7B159D27eF07F6c11b99);
         marketList.push(0x66DfCBf23319D68bdF0cB57797Fcc0A64d2265f8);
         marketList.push(0x0E5ad58f827f53C9F92c71319b77772F2a1FBdb2);
-
 
         console.log("Registered no of markets:", marketList.length);
         for (uint256 i; i < marketList.length; ++i) {
@@ -92,10 +77,9 @@ contract DeprecateBridgeFromRebalancer is DeployBaseRelease {
             console.log("\n=== Configuring %s ===", network);
 
             uint32 crtChainId = configs[network].chainId;
-            
+
             // Create fork for this network
             forks[network] = vm.createSelectFork(network);
-
 
             console.log("Setting whitelisted bridges");
             vm.startBroadcast(key);

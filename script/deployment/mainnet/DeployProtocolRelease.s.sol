@@ -1,29 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
-import {Operator} from "src/Operator/Operator.sol";
-import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
-import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
+import {console} from "forge-std/console.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
-import {Roles} from "src/Roles.sol";
-import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
-import {mTokenConfiguration} from "src/mToken/mTokenConfiguration.sol";
 import {IPauser} from "src/interfaces/IPauser.sol";
-import {IOwnable} from "src/interfaces/IOwnable.sol";
 import {Pauser} from "src/pauser/Pauser.sol";
 
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
+import {MarketRelease, Role, InterestConfig, OracleConfigRelease, OracleFeed} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 import {DeployDeployer} from "../../deployers/DeployDeployer.s.sol";
@@ -38,7 +23,6 @@ import {DeployJumpRateModelV4} from "../interest/DeployJumpRateModelV4.s.sol";
 import {DeployRewardDistributor} from "../rewards/DeployRewardDistributor.s.sol";
 import {DeployBatchSubmitter} from "../generic/DeployBatchSubmitter.s.sol";
 import {DeployMixedPriceOracleV3} from "../oracles/DeployMixedPriceOracleV3.s.sol";
-import {DeployMockOracle} from "../oracles/DeployMockOracle.s.sol";
 
 import {SetOperatorInRewardDistributor} from "../../configuration/SetOperatorInRewardDistributor.s.sol";
 import {SetRole} from "../../configuration/SetRole.s.sol";
@@ -56,7 +40,7 @@ import {DeployAcrossBridge} from "script/deployment/rebalancer/DeployAcrossBridg
 import {DeployEverclearBridge} from "script/deployment/rebalancer/DeployEverclearBridge.s.sol";
 // import {VerifyDeployment} from "./VerifyDeployment.s.sol";
 
-import "forge-std/console2.sol";
+import {console} from "forge-std/console.sol";
 
 contract DeployProtocolRelease is DeployBaseRelease {
     using stdJson for string;
@@ -113,22 +97,134 @@ contract DeployProtocolRelease is DeployBaseRelease {
         configPath = "deployment-config-release.json";
         super.setUp();
 
-        feeds.push(OracleFeed("mUSDC", 0x874b4573B30629F696653EE101528C7426FFFb6b, "USD", 6));
-        feeds.push(OracleFeed("USDC", 0x874b4573B30629F696653EE101528C7426FFFb6b, "USD", 6));
-        feeds.push(OracleFeed("mWETH", 0x2284eC83978Fe21A0E667298d9110bbeaED5E9B4, "USD", 18));
-        feeds.push(OracleFeed("WETH", 0x2284eC83978Fe21A0E667298d9110bbeaED5E9B4, "USD", 18));
-        feeds.push(OracleFeed("mUSDT", 0x0c547EC8B69F50d023D52391b8cB82020c46b848, "USD", 6));
-        feeds.push(OracleFeed("USDT", 0x0c547EC8B69F50d023D52391b8cB82020c46b848, "USD", 6));
-        feeds.push(OracleFeed("mWBTC", 0xa34Aa6654A7E45fB000F130453Ba967Fd57851C1, "USD", 8));
-        feeds.push(OracleFeed("WBTC", 0xa34Aa6654A7E45fB000F130453Ba967Fd57851C1, "USD", 8));
-        feeds.push(OracleFeed("mwstETH", 0x043F8c576154E19E05cD53b21Baab86deC75c728, "USD", 18));
-        feeds.push(OracleFeed("wstETH", 0x043F8c576154E19E05cD53b21Baab86deC75c728, "USD", 18));
-        feeds.push(OracleFeed("mezETH", 0x01600fE800B9a1c3638F24c1408F2d177133074C, "USD", 18));
-        feeds.push(OracleFeed("ezETH", 0x01600fE800B9a1c3638F24c1408F2d177133074C, "USD", 18));
-        feeds.push(OracleFeed("mweETH", 0x6Bd45e0f0adaAE6481f2B4F3b867911BF5f8321b, "USD", 18));
-        feeds.push(OracleFeed("weETH", 0x6Bd45e0f0adaAE6481f2B4F3b867911BF5f8321b, "USD", 18));
-        feeds.push(OracleFeed("mwrsETH", 0xB7b25D8e8490a138c854426e7000C7E114C2DebF, "USD", 18));
-        feeds.push(OracleFeed("wrsETH", 0xB7b25D8e8490a138c854426e7000C7E114C2DebF, "USD", 18));
+        feeds.push(
+            OracleFeed({
+                symbol: "mUSDC",
+                defaultFeed: 0x874b4573B30629F696653EE101528C7426FFFb6b,
+                toSymbol: "USD",
+                underlyingDecimals: 6
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "USDC",
+                defaultFeed: 0x874b4573B30629F696653EE101528C7426FFFb6b,
+                toSymbol: "USD",
+                underlyingDecimals: 6
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "mWETH",
+                defaultFeed: 0x2284eC83978Fe21A0E667298d9110bbeaED5E9B4,
+                toSymbol: "USD",
+                underlyingDecimals: 18
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "WETH",
+                defaultFeed: 0x2284eC83978Fe21A0E667298d9110bbeaED5E9B4,
+                toSymbol: "USD",
+                underlyingDecimals: 18
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "mUSDT",
+                defaultFeed: 0x0c547EC8B69F50d023D52391b8cB82020c46b848,
+                toSymbol: "USD",
+                underlyingDecimals: 6
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "USDT",
+                defaultFeed: 0x0c547EC8B69F50d023D52391b8cB82020c46b848,
+                toSymbol: "USD",
+                underlyingDecimals: 6
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "mWBTC",
+                defaultFeed: 0xa34Aa6654A7E45fB000F130453Ba967Fd57851C1,
+                toSymbol: "USD",
+                underlyingDecimals: 8
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "WBTC",
+                defaultFeed: 0xa34Aa6654A7E45fB000F130453Ba967Fd57851C1,
+                toSymbol: "USD",
+                underlyingDecimals: 8
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "mwstETH",
+                defaultFeed: 0x043F8c576154E19E05cD53b21Baab86deC75c728,
+                toSymbol: "USD",
+                underlyingDecimals: 18
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "wstETH",
+                defaultFeed: 0x043F8c576154E19E05cD53b21Baab86deC75c728,
+                toSymbol: "USD",
+                underlyingDecimals: 18
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "mezETH",
+                defaultFeed: 0x01600fE800B9a1c3638F24c1408F2d177133074C,
+                toSymbol: "USD",
+                underlyingDecimals: 18
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "ezETH",
+                defaultFeed: 0x01600fE800B9a1c3638F24c1408F2d177133074C,
+                toSymbol: "USD",
+                underlyingDecimals: 18
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "mweETH",
+                defaultFeed: 0x6Bd45e0f0adaAE6481f2B4F3b867911BF5f8321b,
+                toSymbol: "USD",
+                underlyingDecimals: 18
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "weETH",
+                defaultFeed: 0x6Bd45e0f0adaAE6481f2B4F3b867911BF5f8321b,
+                toSymbol: "USD",
+                underlyingDecimals: 18
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "mwrsETH",
+                defaultFeed: 0xB7b25D8e8490a138c854426e7000C7E114C2DebF,
+                toSymbol: "USD",
+                underlyingDecimals: 18
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "wrsETH",
+                defaultFeed: 0xB7b25D8e8490a138c854426e7000C7E114C2DebF,
+                toSymbol: "USD",
+                underlyingDecimals: 18
+            })
+        );
 
         // borrow caps
         borrowCaps["mUSDC"] = 0;
@@ -457,8 +553,9 @@ contract DeployProtocolRelease is DeployBaseRelease {
 
         if (spokePoolAddresses[configs[network].chainId] != address(0)) {
             console.log(" --- Deploying acrossBridge");
-            address acrossBridge =
-                deployAcrossBridge.run(rolesContract, spokePoolAddresses[configs[network].chainId], rebalancer, deployer);
+            address acrossBridge = deployAcrossBridge.run(
+                rolesContract, spokePoolAddresses[configs[network].chainId], rebalancer, deployer
+            );
             console.log(" --- Deployed acrossBridge at ", acrossBridge);
         } else {
             console.log(

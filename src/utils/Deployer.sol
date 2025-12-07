@@ -17,10 +17,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 // contracts
@@ -42,6 +42,7 @@ contract Deployer {
     }
 
     constructor(address _admin) {
+        require(_admin != address(0), NotAuthorized(address(0), msg.sender));
         admin = _admin;
     }
 
@@ -49,6 +50,7 @@ contract Deployer {
 
     // ----------- OWNER ------------
     function setPendingAdmin(address newAdmin) external onlyAdmin {
+        require(newAdmin != address(0), NotAuthorized(address(0), msg.sender));
         pendingAdmin = newAdmin;
 
         emit PendingAdminSet(newAdmin);
@@ -63,6 +65,7 @@ contract Deployer {
 
     function setNewAdmin(address _addr) external {
         if (admin == msg.sender) {
+            require(_addr != address(0), NotAuthorized(address(0), msg.sender));
             admin = _addr;
 
             emit AdminSet(_addr);

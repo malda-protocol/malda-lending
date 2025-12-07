@@ -17,14 +17,13 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 // interfaces
-import {Steel} from "risc0/steel/Steel.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
@@ -41,15 +40,14 @@ import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {IGasFeesHelper} from "src/interfaces/IGasFeesHelper.sol";
 import {CommonLib} from "src/libraries/CommonLib.sol";
 
-import {Migrator} from "src/migration/Migrator.sol";
-
 contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     using SafeERC20 for IERC20;
 
     // Add migrator address
     address public migrator;
 
-    uint256[50] private __gap;  
+    // slither-disable-next-line unused-state
+    uint256[50] private __gap;
 
     // Add modifier for migrator only
     modifier onlyMigrator() {
@@ -105,7 +103,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         _proxyInitialize(
             underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_, admin_
         );
-       
+
         verifier = IZkVerifier(zkVerifier_);
 
         rolesOperator = IRoles(roles_);
@@ -126,13 +124,13 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     /**
      * @notice Updates an allowed chain status
      * @param _chainId the chain id
-     * @param _status the new status
+     * @param status_ the new status
      */
-    function updateAllowedChain(uint32 _chainId, bool _status) external {
+    function updateAllowedChain(uint32 _chainId, bool status_) external {
         _onlyAdminOrRole(_getChainsManagerRole());
 
-        allowedChains[_chainId] = _status;
-        emit mErc20Host_ChainStatusUpdated(_chainId, _status);
+        allowedChains[_chainId] = status_;
+        emit mErc20Host_ChainStatusUpdated(_chainId, status_);
     }
 
     /**
@@ -152,6 +150,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     function setMigrator(address _migrator) external onlyAdmin {
         require(_migrator != address(0), mErc20Host_AddressNotValid());
         migrator = _migrator;
+        emit mErc20Host_MigratorUpdated(_migrator);
     }
 
     /**
@@ -169,6 +168,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
      */
     function withdrawGasFees(address payable receiver) external {
         _onlyAdminOrRole(_getSequencerRole());
+        require(receiver != address(0), mErc20Host_AddressNotValid());
 
         uint256 balance = address(this).balance;
         receiver.transfer(balance);
@@ -304,13 +304,13 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     /**
      * @inheritdoc ImErc20Host
      */
-    function mintOrBorrowMigration(bool mint, uint256 amount, address receiver, address borrower, uint256 minAmount)
+    function mintOrBorrowMigration(bool isMint, uint256 amount, address receiver, address borrower, uint256 minAmount)
         external
         onlyMigrator
     {
         require(amount > 0, mErc20Host_AmountNotValid());
 
-        if (mint) {
+        if (isMint) {
             _mint(receiver, receiver, amount, minAmount, false);
             emit mErc20Host_MintMigration(receiver, amount);
         } else {
@@ -352,6 +352,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         }
     }
 
+    // slither-disable-next-line dead-code
     function _getGasFees(uint32 dstChain) internal view returns (uint256) {
         if (address(gasHelper) == address(0)) return 0;
         return gasHelper.gasFees(dstChain);
@@ -468,6 +469,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         // base checks
         _checkProofCall(_dstChainId, _chainId, _market, _sender);
 
+        // slither-disable-next-line reentrancy-benign -- _repayBehalf uses ReentrancyGuard in mToken
         uint256 actualRepayAmount = _repayBehalf(receiver, repayAmount, false);
 
         // operation checks

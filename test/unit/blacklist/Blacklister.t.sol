@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-import "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Blacklister} from "src/blacklister/Blacklister.sol";
 import {MockRoles} from "test/mocks/MockRoles.sol";
@@ -16,7 +16,8 @@ contract BlacklisterTest is Test {
     function setUp() public {
         roles = new MockRoles();
         Blacklister blacklisterImp = new Blacklister();
-        bytes memory blacklisterInitData = abi.encodeWithSelector(Blacklister.initialize.selector, address(owner), address(roles));
+        bytes memory blacklisterInitData =
+            abi.encodeWithSelector(Blacklister.initialize.selector, address(owner), address(roles));
         ERC1967Proxy blacklisterProxy = new ERC1967Proxy(address(blacklisterImp), blacklisterInitData);
         blacklister = Blacklister(address(blacklisterProxy));
         vm.label(address(blacklister), "Blacklister");

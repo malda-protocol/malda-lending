@@ -4,7 +4,6 @@ pragma solidity =0.8.28;
 import {Script, console} from "forge-std/Script.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 /**
@@ -101,9 +100,10 @@ contract DeployHostMarket is Script {
     }
 
     function getSalt(string memory name) internal view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
-        );
+        return
+            keccak256(
+                abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+            );
     }
 
     function addressToString(address _addr) internal pure returns (string memory) {

@@ -1,34 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {Operator} from "src/Operator/Operator.sol";
-import {Roles} from "src/Roles.sol";
-import {Pauser} from "src/pauser/Pauser.sol";
-
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
-
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
-import {SetRole} from "../../configuration/SetRole.s.sol";
-import {SetCollateralFactor} from "../../configuration/SetCollateralFactor.s.sol";
-import {SetReserveFactor} from "../../configuration/SetReserveFactor.s.sol";
-import {SetLiquidationBonus} from "../../configuration/SetLiquidationBonus.s.sol";
-import {SetCloseFactor} from "../../configuration/SetCloseFactor.s.sol";
-import {SupportMarket} from "../../configuration/SupportMarket.s.sol";
-import {SetBorrowRateMaxMantissa} from "../../configuration/SetBorrowRateMaxMantissa.s.sol";
-import {SetBorrowCap} from "../../configuration/SetBorrowCap.s.sol";
-import {SetMinBorrowSize} from "../../configuration/SetMinBorrowSize.s.sol";
-import {SetSupplyCap} from "../../configuration/SetSupplyCap.s.sol";
-import {SetPriceFeedOnOracleV4} from "../../configuration/SetPriceFeedOnOracleV4.s.sol";
 import {SetWhitelistEnabled} from "../../configuration/SetWhitelistEnabled.s.sol";
 import {SetWhitelistedUsersOnGateway} from "../../configuration/SetWhitelistedUsersOnGateway.s.sol";
 
@@ -38,15 +13,12 @@ contract SetWhitelist is DeployBaseRelease {
     address[] marketList;
     address operator;
 
-
     SetWhitelistEnabled setWhitelistEnabled;
     SetWhitelistedUsersOnGateway setWhitelistEnabledOnExtension;
-
 
     function setUp() public override {
         configPath = "deployment-config-release.json";
         super.setUp();
-
 
         string memory marketsOutputPath = "script/deployment/mainnet/output/release-deployed-market-addresses.json";
         string memory rawMarketJson = vm.readFile(marketsOutputPath);
@@ -80,7 +52,6 @@ contract SetWhitelist is DeployBaseRelease {
 
             // Create fork for this network
             forks[network] = vm.createSelectFork(network);
-
 
             if (configs[network].isHost) {
                 setWhitelistEnabled = new SetWhitelistEnabled();

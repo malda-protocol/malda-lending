@@ -1,0 +1,5 @@
+{
+  "detectors_to_exclude": "solc-version,timestamp,unused-return,naming-convention,low-level-calls,calls-loop,assembly-usage,immutable-states,different-pragma-directives-are-used,reentrancy-events,uninitialized-state-variables,incorrect-equality,too-many-digits,uninitialized-local",
+  "filter_paths": "lib,test,script",
+  "compile_libraries": false
+}

@@ -17,12 +17,13 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
+// slither-disable-start costly-loop
 // interfaces
 import {ImToken, ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {IInterestRateModel} from "src/interfaces/IInterestRateModel.sol";
@@ -63,7 +64,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         _setOperator(operator_);
 
         accrualBlockTimestamp = _getBlockTimestamp();
-        borrowIndex = mantissaOne;
+        borrowIndex = MANTISSA_ONE;
 
         _setInterestRateModel(interestRateModel_);
 
@@ -114,9 +115,8 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @inheritdoc ImToken
      */
     function supplyRatePerBlock() external view override returns (uint256) {
-        return IInterestRateModel(interestRateModel).getSupplyRate(
-            _getCashPrior(), totalBorrows, totalReserves, reserveFactorMantissa
-        );
+        return IInterestRateModel(interestRateModel)
+            .getSupplyRate(_getCashPrior(), totalBorrows, totalReserves, reserveFactorMantissa);
     }
 
     /**
@@ -504,7 +504,11 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         emit LiquidateBorrow(liquidator, borrower, actualRepayAmount, address(mTokenCollateral), seizeTokens);
     }
 
-    function __calculateSeizeTokens(address mTokenBorrowed, address mTokenCollateral, uint256 actualRepayAmount) private view returns (uint256) {
+    function __calculateSeizeTokens(address mTokenBorrowed, address mTokenCollateral, uint256 actualRepayAmount)
+        private
+        view
+        returns (uint256)
+    {
         address _oracleOperator = IOperator(operator).oracleOperator();
         uint256 priceBorrowedMantissa = IOracleOperator(_oracleOperator).getUnderlyingPrice(mTokenBorrowed);
         uint256 priceCollateralMantissa = IOracleOperator(_oracleOperator).getUnderlyingPrice(mTokenCollateral);
@@ -515,18 +519,13 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         uint256 exchangeRateMantissa = ImToken(mTokenCollateral).exchangeRateStored();
 
         uint256 _incentiveMantissa = IOperator(operator).liquidationIncentiveMantissa(mTokenCollateral);
-        Exp memory numerator = mul_(
-            Exp({mantissa: _incentiveMantissa}),
-            Exp({mantissa: priceBorrowedMantissa})
-        );
-        Exp memory denominator = mul_(
-            Exp({mantissa: priceCollateralMantissa}),
-            Exp({mantissa: exchangeRateMantissa})
-        );
+        Exp memory numerator = mul_(Exp({mantissa: _incentiveMantissa}), Exp({mantissa: priceBorrowedMantissa}));
+        Exp memory denominator = mul_(Exp({mantissa: priceCollateralMantissa}), Exp({mantissa: exchangeRateMantissa}));
         Exp memory ratio = div_(numerator, denominator);
 
         return mul_ScalarTruncate(ratio, actualRepayAmount);
     }
+
     /**
      * @notice Borrows are repaid by another user (possibly the borrower).
      * @param payer the account paying off the borrow
@@ -583,6 +582,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     function __borrow(address payable borrower, address payable receiver, uint256 borrowAmount, bool doTransfer)
         private
     {
+        // slither-disable-next-line reentrancy-benign -- outer nonReentrant on _borrow/_borrowWithReceiver covers hook
         IOperatorDefender(operator).beforeMTokenBorrow(address(this), borrower, borrowAmount);
 
         require(_getCashPrior() >= borrowAmount, mt_BorrowCashNotAvailable());
@@ -682,6 +682,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         emit Transfer(redeemer, address(this), redeemTokens);
         emit Redeem(redeemer, redeemAmount, redeemTokens);
     }
+
     /**
      * @notice User supplies assets into the market and receives mTokens in exchange
      * @dev Assumes interest has already been accrued up to the current block
@@ -691,7 +692,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param minAmountOut The min amount to be received
      * @param doTransfer If an actual transfer should be performed
      */
-
     function __mint(address minter, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer)
         private
     {
@@ -746,9 +746,9 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
 
         // Activate market by default if not entered already
         bool isEnteredReceiver = IOperator(operator).checkMembership(receiver, address(this));
-        if (!isEnteredReceiver) {  
-           IOperator(operator).enterMarketsWithSender(receiver);  
-        }  
+        if (!isEnteredReceiver) {
+            IOperator(operator).enterMarketsWithSender(receiver);
+        }
     }
 
     /**
@@ -760,6 +760,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
      * @param tokens The number of tokens to transfer
      */
     function _transferTokens(address spender, address src, address dst, uint256 tokens) private {
+        // slither-disable-next-line reentrancy-benign -- entrypoints transfer/transferFrom are nonReentrant
         IOperatorDefender(operator).beforeMTokenTransfer(address(this), src, dst, tokens);
 
         require(src != dst, mt_TransferNotValid());
@@ -793,3 +794,4 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         emit Transfer(src, dst, tokens);
     }
 }
+// slither-disable-end costly-loop

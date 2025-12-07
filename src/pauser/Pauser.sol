@@ -17,10 +17,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|                           
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 // contracts
@@ -35,17 +35,17 @@ import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
 
 contract Pauser is Ownable, IPauser {
     // ----------- STORAGE ------------
-    IRoles public immutable roles;
-    IOperator public immutable operator;
+    IRoles public immutable ROLES;
+    IOperator public immutable OPERATOR;
 
     PausableContract[] public pausableContracts;
     mapping(address _contract => bool _registered) public registeredContracts;
     mapping(address _contract => PausableType _type) public contractTypes;
 
-    constructor(address _roles, address _operator, address _owner) Ownable(_owner) {
+    constructor(address _roles, address _operator, address owner_) Ownable(owner_) {
         require(_roles != address(0), Pauser_AddressNotValid());
-        roles = IRoles(_roles);
-        operator = IOperator(_operator);
+        ROLES = IRoles(_roles);
+        OPERATOR = IOperator(_operator);
     }
 
     // ----------- OWNER ------------
@@ -58,7 +58,7 @@ contract Pauser is Ownable, IPauser {
         require(_contract != address(0), Pauser_AddressNotValid());
         if (registeredContracts[_contract]) return;
         registeredContracts[_contract] = true;
-        pausableContracts.push(PausableContract(_contract, _contractType));
+        pausableContracts.push(PausableContract({market: _contract, contractType: _contractType}));
         contractTypes[_contract] = _contractType;
         emit MarketAdded(_contract, _contractType);
     }
@@ -130,10 +130,10 @@ contract Pauser is Ownable, IPauser {
     }
 
     function _pause(address _market, ImTokenOperationTypes.OperationType _pauseType) private {
-        require(roles.isAllowedFor(msg.sender, roles.PAUSE_MANAGER()), Pauser_NotAuthorized());
+        require(ROLES.isAllowedFor(msg.sender, ROLES.PAUSE_MANAGER()), Pauser_NotAuthorized());
         PausableType _type = contractTypes[_market];
         if (_type == PausableType.Host) {
-            operator.setPaused(_market, _pauseType, true);
+            OPERATOR.setPaused(_market, _pauseType, true);
         } else if (_type == PausableType.Extension) {
             ImTokenGateway(_market).setPaused(_pauseType, true);
         } else {

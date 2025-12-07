@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-import {MixedPriceOracleV4} from "src/oracles/MixedPriceOracleV4.sol";
-
 import {Test} from "forge-std/Test.sol";
-import {console} from "forge-std/console.sol";
-
+import {MixedPriceOracleV4} from "src/oracles/MixedPriceOracleV4.sol";
 
 contract MockAdapter {
     uint8 public decimals = 8;
@@ -72,10 +69,7 @@ contract MixedPriceOracleV4Test is Test {
 
         MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](1);
         configs[0] = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(api3),
-            eOracleFeed: address(eOracle),
-            toSymbol: "USD",
-            underlyingDecimals: 18
+            api3Feed: address(api3), eOracleFeed: address(eOracle), toSymbol: "USD", underlyingDecimals: 18
         });
 
         oracle = new MixedPriceOracleV4(symbols, configs, address(roles), 1 days);
@@ -101,10 +95,7 @@ contract MixedPriceOracleV4Test is Test {
 
     function testSetConfig() public {
         MixedPriceOracleV4.PriceConfig memory cfg = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(api3),
-            eOracleFeed: address(eOracle),
-            toSymbol: "USD",
-            underlyingDecimals: 18
+            api3Feed: address(api3), eOracleFeed: address(eOracle), toSymbol: "USD", underlyingDecimals: 18
         });
         oracle.setConfig("MOCK", cfg);
     }
@@ -165,16 +156,10 @@ contract MixedPriceOracleV4Test is Test {
 
         MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](2);
         configs[0] = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(api3),
-            eOracleFeed: address(eOracle),
-            toSymbol: "USD",
-            underlyingDecimals: 18
+            api3Feed: address(api3), eOracleFeed: address(eOracle), toSymbol: "USD", underlyingDecimals: 18
         });
         configs[1] = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(api3),
-            eOracleFeed: address(eOracle),
-            toSymbol: "ETH", 
-            underlyingDecimals: 18
+            api3Feed: address(api3), eOracleFeed: address(eOracle), toSymbol: "ETH", underlyingDecimals: 18
         });
 
         oracle = new MixedPriceOracleV4(symbols, configs, address(roles), 1 days);
@@ -189,7 +174,7 @@ contract MixedPriceOracleV4Test is Test {
         eOracle.setPrice(2700e8);
 
         // should revert because composed delta is too high
-        vm.expectRevert(); 
+        vm.expectRevert();
         oracle.getPrice(address(token));
     }
 
@@ -197,7 +182,7 @@ contract MixedPriceOracleV4Test is Test {
         api3.setPrice(-1);
         eOracle.setPrice(-1);
 
-        vm.expectRevert(); 
+        vm.expectRevert();
         oracle.getPrice(address(token));
     }
 
@@ -210,9 +195,8 @@ contract MixedPriceOracleV4Test is Test {
         uint256 price = oracle.getPrice(address(token));
         assertEq(price, 120e18);
 
-  
         oracle.setSymbolMaxPriceDelta(25000, "MOCK"); // 25%
         price = oracle.getPrice(address(token));
-        assertEq(price, 100e18); 
+        assertEq(price, 100e18);
     }
 }

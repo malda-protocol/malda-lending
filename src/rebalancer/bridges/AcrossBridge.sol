@@ -13,10 +13,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -29,16 +29,17 @@ import {IBridge} from "src/interfaces/IBridge.sol";
 import {IRebalancer} from "src/interfaces/IRebalancer.sol";
 import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {IAcrossSpokePoolV3} from "src/interfaces/external/across/IAcrossSpokePoolV3.sol";
+import {IAcrossReceiverV3} from "src/interfaces/external/across/IAcrossReceiverV3.sol";
 
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 
-contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
+contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE ------------
-    address public immutable acrossSpokePool;
-    uint256 public immutable maxSlippage;
-    address public immutable rebalancer;
+    address public immutable ACROSS_SPOKE_POOL;
+    uint256 public immutable MAX_SLIPPAGE;
+    address public immutable REBALANCER;
     mapping(uint32 => mapping(address => bool)) public whitelistedRelayers;
 
     uint256 private constant SLIPPAGE_PRECISION = 1e5;
@@ -71,13 +72,13 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
     constructor(address _roles, address _spokePool, address _rebalancer) BaseBridge(_roles) {
         require(_spokePool != address(0), AcrossBridge_AddressNotValid());
         require(_rebalancer != address(0), AcrossBridge_AddressNotValid());
-        acrossSpokePool = _spokePool;
-        maxSlippage = 1e4;
-        rebalancer = _rebalancer;
+        ACROSS_SPOKE_POOL = _spokePool;
+        MAX_SLIPPAGE = 1e4;
+        REBALANCER = _rebalancer;
     }
 
     modifier onlySpokePool() {
-        require(msg.sender == acrossSpokePool, AcrossBridge_NotAuthorized());
+        require(msg.sender == ACROSS_SPOKE_POOL, AcrossBridge_NotAuthorized());
         _;
     }
 
@@ -128,7 +129,7 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
         IERC20(_token).safeTransferFrom(msg.sender, address(this), msgData.inputAmount);
 
         if (msgData.inputAmount > msgData.outputAmount) {
-            uint256 maxSlippageInputAmount = msgData.inputAmount * maxSlippage / SLIPPAGE_PRECISION;
+            uint256 maxSlippageInputAmount = msgData.inputAmount * MAX_SLIPPAGE / SLIPPAGE_PRECISION;
             require(
                 msgData.inputAmount - msgData.outputAmount <= maxSlippageInputAmount, AcrossBridge_SlippageNotValid()
             );
@@ -149,9 +150,13 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
         uint256 amount,
         address, // relayer is unused
         bytes memory message
-    ) external onlySpokePool nonReentrant {
+    )
+        external
+        onlySpokePool
+        nonReentrant
+    {
         address market = abi.decode(message, (address));
-        require(IRebalancer(rebalancer).isMarketWhitelisted(market), AcrossBridge_InvalidReceiver());
+        require(IRebalancer(REBALANCER).isMarketWhitelisted(market), AcrossBridge_InvalidReceiver());
         address _underlying = ImTokenMinimal(market).underlying();
         require(_underlying == tokenSent, AcrossBridge_TokenMismatch());
         if (amount > 0) {
@@ -163,28 +168,42 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
 
     // ----------- PRIVATE ------------
     function _decodeMessage(bytes memory _message) private pure returns (DecodedMessage memory) {
-        (address outputToken, uint256 inputAmount, uint256 outputAmount, address relayer, uint32 deadline, uint32 exclusivityDeadline) =
-            abi.decode(_message, (address, uint256, uint256, address, uint32, uint32));
+        (
+            address outputToken,
+            uint256 inputAmount,
+            uint256 outputAmount,
+            address relayer,
+            uint32 deadline,
+            uint32 exclusivityDeadline
+        ) = abi.decode(_message, (address, uint256, uint256, address, uint32, uint32));
 
-        return DecodedMessage(outputToken, inputAmount, outputAmount, relayer, deadline, exclusivityDeadline);
+        return DecodedMessage({
+            outputToken: outputToken,
+            inputAmount: inputAmount,
+            outputAmount: outputAmount,
+            relayer: relayer,
+            deadline: deadline,
+            exclusivityDeadline: exclusivityDeadline
+        });
     }
 
     function _depositV3Now(bytes memory _message, address _token, uint32 _dstChainId, address _market) private {
         DecodedMessage memory msgData = _decodeMessage(_message);
         // approve and send with Across
-        SafeApprove.safeApprove(_token, address(acrossSpokePool), msgData.inputAmount);
-        IAcrossSpokePoolV3(acrossSpokePool).depositV3Now( // no need for `msg.value`; fee is taken from amount
-            msg.sender, //depositor
-            address(this), //recipient
-            _token,
-            msgData.outputToken,
-            msgData.inputAmount,
-            msgData.outputAmount, //outputAmount should be set as the inputAmount - relay fees; use Across API
-            uint256(_dstChainId),
-            msgData.relayer, //exclusiveRelayer
-            msgData.deadline, //fillDeadline
-            msgData.exclusivityDeadline, //can use Across API/suggested-fees or 0 to disable
-            abi.encode(_market)
-        );
+        SafeApprove.safeApprove(_token, ACROSS_SPOKE_POOL, msgData.inputAmount);
+        IAcrossSpokePoolV3(ACROSS_SPOKE_POOL)
+            .depositV3Now( // no need for `msg.value`; fee is taken from amount
+                msg.sender, //depositor
+                address(this), //recipient
+                _token,
+                msgData.outputToken,
+                msgData.inputAmount,
+                msgData.outputAmount, //outputAmount should be set as the inputAmount - relay fees; use Across API
+                uint256(_dstChainId),
+                msgData.relayer, //exclusiveRelayer
+                msgData.deadline, //fillDeadline
+                msgData.exclusivityDeadline, //can use Across API/suggested-fees or 0 to disable
+                abi.encode(_market)
+            );
     }
 }

@@ -1,23 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
-import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
-import {Operator} from "src/Operator/Operator.sol";
-import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
-import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
-import {Roles} from "src/Roles.sol";
-import {Pauser} from "src/pauser/Pauser.sol";
+import {console} from "forge-std/console.sol";
+import {stdJson} from "forge-std/StdJson.sol";
 
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
+import {OracleConfigRelease} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 import {DeployDeployer} from "../../deployers/DeployDeployer.s.sol";
@@ -168,7 +156,9 @@ contract DeployCoreRelease is DeployBaseRelease {
 
         if (spokePoolAddresses[configs[network].chainId] != address(0)) {
             console.log(" --- Deploying acrossBridge");
-            acrossBridge = deployAcrossBridge.run(rolesContract, spokePoolAddresses[configs[network].chainId], rebalancer, deployer);
+            acrossBridge = deployAcrossBridge.run(
+                rolesContract, spokePoolAddresses[configs[network].chainId], rebalancer, deployer
+            );
             console.log(" --- Deployed acrossBridge at ", acrossBridge);
         } else {
             console.log(

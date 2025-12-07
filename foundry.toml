@@ -32,6 +32,10 @@
     { access = "read-write", path = "./script/deployment/mainnet/output/" }
 ]
 
+[lint]
+  exclude_lints = ["asm-keccak256","unwrapped-modifier-logic","pascal-case-struct","mixed-case-function","unsafe-typecast","unsafe-cheatcode","mixed-case-variable"] # possibly reintroduce mixed-case-variable later
+  ignore = ["test/**/*", "script/**/*"]
+
 [rpc_endpoints]
 #mainnet
 linea="${LINEA_RPC_URL}"

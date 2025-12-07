@@ -91,7 +91,7 @@ interface IRebalancer {
      * @param bridge the whitelisted bridge address
      * @param _market the market to rebalance from address
      * @param _amount the amount to rebalance
-     * @param msg the message data
+     * @param _msg the message data
      */
-    function sendMsg(address bridge, address _market, uint256 _amount, Msg calldata msg) external payable;
+    function sendMsg(address bridge, address _market, uint256 _amount, Msg calldata _msg) external payable;
 }

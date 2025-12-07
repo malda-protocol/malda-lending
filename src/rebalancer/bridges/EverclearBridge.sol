@@ -13,10 +13,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -89,17 +89,17 @@ contract EverclearBridge is BaseBridge, IBridge {
 
         require(params.inputAsset == _token, Everclear_TokenMismatch());
         require(_extractedAmount >= params.amount, BaseBridge_AmountMismatch());
-        require(params.amount > 0 , BaseBridge_AmountMismatch());
+        require(params.amount > 0, BaseBridge_AmountMismatch());
 
         require(address(uint160(uint256(params.receiver))) == _market, BaseBridge_AddressNotValid());
 
         uint256 destinationsLength = params.destinations.length;
 
         require(destinationsLength == 1, Everclear_DestinationsLengthMismatch());
-        require (params.destinations[0] == _dstChainId, Everclear_DestinationNotValid());
+        require(params.destinations[0] == _dstChainId, Everclear_DestinationNotValid());
 
         require(params.maxFee <= params.amount / 10, Everclear_MaxFeeExceeded());
-             
+
         // retrieve tokens from `Rebalancer`
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _extractedAmount);
 
@@ -127,28 +127,28 @@ contract EverclearBridge is BaseBridge, IBridge {
     // ----------- INTERNAL ------------
     /**
      * @notice Decodes an intent message returned by the Everclear intents API into structured parameters.
-     * @dev 
+     * @dev
      * - The input `message` is the raw ABI-encoded calldata of a `FeeAdapter.newIntent` call.
      * - The first 4 bytes are the function selector, which are skipped.
      * - The remaining bytes encode the primary intent parameters followed by `FeeParams`.
      * - Because `FeeParams` is a dynamic struct appended at the end, its data must be located by
      *   reading its offset and decoding separately.
-     * 
+     *
      * Layout of `FeeAdapter.newIntent` calldata after the selector:
      * ```
-     * destinations (uint32[])   @ offset 0x00
-     * receiver (bytes32)        @ offset 0x20
-     * inputAsset (address)      @ offset 0x40
-     * outputAsset (bytes32)     @ offset 0x60
-     * amount (uint256)          @ offset 0x80
-     * maxFee (uint24)           @ offset 0xa0
-     * ttl (uint48)              @ offset 0xc0
-     * data (bytes)              @ offset 0xe0
-     * feeParams (FeeParams)     @ offset 0x100 (9th arg → pointer)
+     * destinations (uint32[])   at offset 0x00
+     * receiver (bytes32)        at offset 0x20
+     * inputAsset (address)      at offset 0x40
+     * outputAsset (bytes32)     at offset 0x60
+     * amount (uint256)          at offset 0x80
+     * maxFee (uint24)           at offset 0xa0
+     * ttl (uint48)              at offset 0xc0
+     * data (bytes)              at offset 0xe0
+     * feeParams (FeeParams)     at offset 0x100 (9th arg → pointer)
      * ```
      * Since each static argument occupies a 32-byte slot, the pointer to `feeParams`
      * lives at offset `0x100` (256 bytes) after the selector is removed.
-     * 
+     *
      * @param message ABI-encoded calldata for `FeeAdapter.newIntent`.
      * @return Decoded `IntentParams` struct with both core parameters and nested `FeeParams`.
      */
@@ -167,28 +167,35 @@ contract EverclearBridge is BaseBridge, IBridge {
             uint24 maxFee,
             uint48 ttl,
             bytes memory data
-        ) = abi.decode(
-            intentData, (uint32[], bytes32, address, bytes32, uint256, uint24, uint48, bytes)
-        );
+        ) = abi.decode(intentData, (uint32[], bytes32, address, bytes32, uint256, uint24, uint48, bytes));
 
         (uint256 fee, uint256 deadline, bytes memory sig) = _extractFeeParams(intentData);
         IFeeAdapter.FeeParams memory feeParams = IFeeAdapter.FeeParams(fee, deadline, sig);
 
-        return IntentParams(destinations, receiver, inputAsset, outputAsset, amount, maxFee, ttl, data, feeParams);
+        return IntentParams({
+            destinations: destinations,
+            receiver: receiver,
+            inputAsset: inputAsset,
+            outputAsset: outputAsset,
+            amount: amount,
+            maxFee: maxFee,
+            ttl: ttl,
+            data: data,
+            feeParams: feeParams
+        });
     }
-
 
     /**
      * @notice Extracts the nested `FeeParams` struct from ABI-encoded `intentData`.
-     * @dev 
+     * @dev
      * - `FeeParams` is the 9th parameter of `FeeAdapter.newIntent` and therefore stored as a pointer at offset `0x100`.
      * - The selector has already been removed, so the pointer is read at byte position `0x100` (256 bytes).
      * - The pointer gives the offset to the start of the `FeeParams` struct relative to the start of intentData.
      * - Within `FeeParams`, the layout is:
      *   ```
-     *   fee      (uint256) @ +0x00
-     *   deadline (uint256) @ +0x20
-     *   sig      (bytes)   @ +0x40 (stored as offset → length → data)
+     *   fee      (uint256) at +0x00
+     *   deadline (uint256) at +0x20
+     *   sig      (bytes)   at +0x40 (stored as offset → length → data)
      *   ```
      * - The `sig` field is dynamic, so we read its offset (at +0x40) relative to the `FeeParams` base,
      *   then read the length at that offset, then slice out the actual signature bytes.
@@ -198,9 +205,13 @@ contract EverclearBridge is BaseBridge, IBridge {
      * @return deadline The signature deadline.
      * @return sig The validator/relayer signature.
      */
-    function _extractFeeParams(bytes memory intentData) private pure returns (uint256 fee, uint256 deadline, bytes memory sig) {
+    function _extractFeeParams(bytes memory intentData)
+        private
+        pure
+        returns (uint256 fee, uint256 deadline, bytes memory sig)
+    {
         uint256 feeParamsOffset = BytesLib.toUint256(intentData, 0x120);
-        uint256 feeParamsPtr = feeParamsOffset; 
+        uint256 feeParamsPtr = feeParamsOffset;
 
         fee = BytesLib.toUint256(intentData, feeParamsPtr);
         deadline = BytesLib.toUint256(intentData, feeParamsPtr + 32);
@@ -208,7 +219,5 @@ contract EverclearBridge is BaseBridge, IBridge {
         uint256 sigOffset = BytesLib.toUint256(intentData, feeParamsOffset + 64);
         uint256 sigLen = BytesLib.toUint256(intentData, feeParamsOffset + sigOffset);
         sig = BytesLib.slice(intentData, feeParamsOffset + sigOffset + 32, sigLen);
-
     }
 }
-

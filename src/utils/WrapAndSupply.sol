@@ -17,10 +17,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -35,8 +35,11 @@ interface IWrappedNative {
     function withdraw(uint256) external;
 }
 
+/// @title WrapAndSupply
+/// @notice Wraps a native coin into its wrapped version and supplies on a host or extension market in a single function call.
 contract WrapAndSupply {
-    IWrappedNative public immutable wrappedNative;
+    /// @notice The wrapped native coin contract
+    IWrappedNative public immutable WRAPPED_NATIVE;
 
     // ----------- ERRORS ------------
     error WrapAndSupply_AddressNotValid();
@@ -46,8 +49,11 @@ contract WrapAndSupply {
     event WrappedAndSupplied(address indexed sender, address indexed receiver, address indexed market, uint256 amount);
 
     constructor(address _wrappedNative) {
+        // Requirements: wrapped native coin's address must not be zero
         require(_wrappedNative != address(0), WrapAndSupply_AddressNotValid());
-        wrappedNative = IWrappedNative(_wrappedNative);
+
+        // Effects: set the wrapped native coin's contract address
+        WRAPPED_NATIVE = IWrappedNative(_wrappedNative);
     }
 
     // ----------- PUBLIC ------------
@@ -57,48 +63,70 @@ contract WrapAndSupply {
      * @param receiver The mToken receiver
      */
     function wrapAndSupplyOnHostMarket(address mToken, address receiver, uint256 minAmount) external payable {
+        // Requirements: the underlying must be the wrapped native coin
         address underlying = ImTokenMinimal(mToken).underlying();
-        require(underlying == address(wrappedNative), WrapAndSupply_AddressNotValid());
+        require(underlying == address(WRAPPED_NATIVE), WrapAndSupply_AddressNotValid());
 
+        // @audit-question why not check other addresses for zero address, especially the receiver?
+
+        // Interactions: wrap the native coin into its wrapped version
         uint256 amount = msg.value;
         _wrap(amount);
 
-        IERC20(underlying).approve(mToken, 0);
+        // @audit-question why not use safeApprove?
+        // Interactions: approve the underlying to the market
+        IERC20(underlying).approve(mToken, 0); // @audit-question why approve 0 first?
         IERC20(underlying).approve(mToken, amount);
+
+        // Interactions: supply the underlying to the host market
         ImErc20(mToken).mint(amount, receiver, minAmount);
 
+        // Events: emit the wrapped and supplied event
         emit WrappedAndSupplied(msg.sender, receiver, mToken, amount);
     }
 
     /**
      * @notice Wraps a native coin into its wrapped version and supplies on an extension market
-     * @param mTokenGateway The market address
+     * @param mTokenGateway The extension market address
      * @param receiver The receiver
      * @param selector The host chain function selector
      */
-    function wrapAndSupplyOnExtensionMarket(address mTokenGateway, address receiver, bytes4 selector)
-        external
-        payable
-    {
+    function wrapAndSupplyOnExtensionMarket(address mTokenGateway, address receiver, bytes4 selector) external payable {
+        // Requirements: the underlying must be the wrapped native coin
         address underlying = ImTokenGateway(mTokenGateway).underlying();
-        require(underlying == address(wrappedNative), WrapAndSupply_AddressNotValid());
+        require(underlying == address(WRAPPED_NATIVE), WrapAndSupply_AddressNotValid());
+
+        // @audit-question why not check other addresses for zero address, especially the receiver?
 
         uint256 _gasFee = ImTokenGateway(mTokenGateway).gasFee();
-        uint256 amount = msg.value - _gasFee;
 
+        // Interactions: wrap the native coin into its wrapped version
+        uint256 amount = msg.value - _gasFee;
         _wrap(amount);
 
-        IERC20(underlying).approve(mTokenGateway, 0);
+        // Interactions: approve the underlying to the market
+        IERC20(underlying).approve(mTokenGateway, 0); // @audit-question why approve 0 first?
         IERC20(underlying).approve(mTokenGateway, amount);
 
+        // Interactions: supply the underlying to the extension market
+        // @audit-question shouldn't we check the mTokenGateway somehow?
+        // slither-disable-next-line arbitrary-send-eth
         ImTokenGateway(mTokenGateway).supplyOnHost{value: _gasFee}(amount, receiver, selector);
+
+        // @audit-question why no event?
     }
 
     // ----------- PRIVATE ------------
+    /// @notice Wraps a native coin into its wrapped version
+    /// @param amountToWrap The amount of native coin to wrap
     function _wrap(uint256 amountToWrap) private {
+        // Requirements: can wraup only up to the amount of the msg.value
         require(amountToWrap <= msg.value, WrapAndSupply_AmountNotValid());
+
+        // Requirements: the amount to wrap must be greater than 0
         require(amountToWrap > 0, WrapAndSupply_AmountNotValid());
 
-        wrappedNative.deposit{value: amountToWrap}();
+        // Interactions: wrap the native coin into its wrapped version
+        WRAPPED_NATIVE.deposit{value: amountToWrap}();
     }
 }

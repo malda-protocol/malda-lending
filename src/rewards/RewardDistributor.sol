@@ -17,10 +17,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|                           
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -160,13 +160,13 @@ contract RewardDistributor is
      * @inheritdoc IRewardDistributor
      */
     function notifySupplyIndex(address mToken) external override onlyOperator {
-        for (uint256 i = 0; i < rewardTokens.length;) {
-            _notifySupplyIndex(rewardTokens[i], mToken);
+        address rewardToken;
+        uint256 rewardTokensLength = rewardTokens.length;
+        for (uint256 i = 0; i < rewardTokensLength; i++) {
+            rewardToken = rewardTokens[i];
 
-            emit SupplyIndexNotified(rewardTokens[i], mToken);
-            unchecked {
-                ++i;
-            }
+            _notifySupplyIndex(rewardToken, mToken);
+            emit SupplyIndexNotified(rewardToken, mToken);
         }
     }
 
@@ -174,13 +174,11 @@ contract RewardDistributor is
      * @inheritdoc IRewardDistributor
      */
     function notifyBorrowIndex(address mToken) external override onlyOperator {
-        for (uint256 i = 0; i < rewardTokens.length;) {
+        uint256 rewardTokensLength = rewardTokens.length;
+        for (uint256 i = 0; i < rewardTokensLength; i++) {
             _notifyBorrowIndex(rewardTokens[i], mToken);
 
             emit BorrowIndexNotified(rewardTokens[i], mToken);
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -188,12 +186,9 @@ contract RewardDistributor is
      * @inheritdoc IRewardDistributor
      */
     function notifySupplier(address mToken, address supplier) external override onlyOperator {
-        for (uint256 i = 0; i < rewardTokens.length;) {
+        uint256 rewardTokensLength = rewardTokens.length;
+        for (uint256 i = 0; i < rewardTokensLength; i++) {
             _notifySupplier(rewardTokens[i], mToken, supplier);
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -201,19 +196,14 @@ contract RewardDistributor is
      * @inheritdoc IRewardDistributor
      */
     function notifyBorrower(address mToken, address borrower) external override onlyOperator {
-        for (uint256 i = 0; i < rewardTokens.length;) {
+        uint256 rewardTokensLength = rewardTokens.length;
+        for (uint256 i = 0; i < rewardTokensLength; i++) {
             _notifyBorrower(rewardTokens[i], mToken, borrower);
-
-            unchecked {
-                ++i;
-            }
         }
     }
 
     // ----------- PRIVATE ------------
-    function _updateRewardSpeed(address rewardToken, address mToken, uint256 supplySpeed, uint256 borrowSpeed)
-        private
-    {
+    function _updateRewardSpeed(address rewardToken, address mToken, uint256 supplySpeed, uint256 borrowSpeed) private {
         IRewardDistributorData.RewardMarketState storage marketState = rewardMarketState[rewardToken][mToken];
 
         if (marketState.supplySpeed != supplySpeed) {

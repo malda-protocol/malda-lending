@@ -3,14 +3,8 @@ pragma solidity =0.8.28;
 
 import {MixedPriceOracleV3} from "src/oracles/MixedPriceOracleV3.sol";
 import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
-import {ImToken} from "src/interfaces/ImToken.sol";
-
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
-
-import {Base_Unit_Test} from "test/Base_Unit_Test.t.sol";
 import {Operator} from "src/Operator/Operator.sol";
 
 contract MockChainlinkOracle {
@@ -111,23 +105,17 @@ contract MixedPriceOracleV3_Test is Operator, Test {
 
         symbols[0] = "USDC";
         configs[0] = IDefaultAdapter.PriceConfig({
-            defaultFeed: address(usdPerUSDCOracle),
-            toSymbol: "USD",
-            underlyingDecimals: usdcDecimals
+            defaultFeed: address(usdPerUSDCOracle), toSymbol: "USD", underlyingDecimals: usdcDecimals
         });
 
         symbols[1] = "ETH";
         configs[1] = IDefaultAdapter.PriceConfig({
-            defaultFeed: address(usdcPerEthOracle),
-            toSymbol: "USDC",
-            underlyingDecimals: ethDecimals
+            defaultFeed: address(usdcPerEthOracle), toSymbol: "USDC", underlyingDecimals: ethDecimals
         });
 
         symbols[2] = "BTC";
         configs[2] = IDefaultAdapter.PriceConfig({
-            defaultFeed: address(ethPerBTCOracle),
-            toSymbol: "ETH",
-            underlyingDecimals: bitcoinDecimals
+            defaultFeed: address(ethPerBTCOracle), toSymbol: "ETH", underlyingDecimals: bitcoinDecimals
         });
 
         address roles = address(0);

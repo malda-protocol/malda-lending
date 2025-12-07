@@ -1,25 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {Roles} from "src/Roles.sol";
 import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
-import {Pauser} from "src/pauser/Pauser.sol";
-
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 
 interface IAcrossBridge {
-     function setWhitelistedRelayer(uint32 _dstId, address _relayer, bool status) external;
+    function setWhitelistedRelayer(uint32 _dstId, address _relayer, bool status) external;
 }
 
 contract AddBridgeToRebalancer is DeployBaseRelease {
@@ -33,14 +22,11 @@ contract AddBridgeToRebalancer is DeployBaseRelease {
     uint32[] whitelistChains;
     mapping(uint32 => address[]) tokens;
 
-
-    
     function setUp() public override {
         configPath = "deployment-config-release.json";
         super.setUp();
 
         bridgeContract = 0x0D6C5079CdCdC7d84104F0598EBFAd943dc5281e;
-
 
         // Linea (chainId: 59144)
         tokens[59144] = [
@@ -71,7 +57,6 @@ contract AddBridgeToRebalancer is DeployBaseRelease {
         marketList.push(0x66DfCBf23319D68bdF0cB57797Fcc0A64d2265f8);
         marketList.push(0x0E5ad58f827f53C9F92c71319b77772F2a1FBdb2);
 
-
         console.log("Registered no of markets:", marketList.length);
         for (uint256 i; i < marketList.length; ++i) {
             console.log(" - market: ", marketList[i]);
@@ -92,14 +77,14 @@ contract AddBridgeToRebalancer is DeployBaseRelease {
             console.log("\n=== Configuring %s ===", network);
 
             uint32 crtChainId = configs[network].chainId;
-            
+
             // Create fork for this network
             forks[network] = vm.createSelectFork(network);
 
-
             console.log("Setting whitelisted bridges");
             vm.startBroadcast(key);
-            Rebalancer(rebalancerContract).setWhitelistedBridgeStatus(address(0xa952cEB0617231C94F88CF52c8E512E224B3972D), false);
+            Rebalancer(rebalancerContract)
+                .setWhitelistedBridgeStatus(address(0xa952cEB0617231C94F88CF52c8E512E224B3972D), false);
             Rebalancer(rebalancerContract).setWhitelistedBridgeStatus(address(bridgeContract), true);
             vm.stopBroadcast();
 
@@ -107,7 +92,8 @@ contract AddBridgeToRebalancer is DeployBaseRelease {
             address[] memory tknsArr = tokens[crtChainId];
             vm.startBroadcast(key);
             Rebalancer(rebalancerContract).setAllowedTokens(address(bridgeContract), tknsArr, true);
-            Rebalancer(rebalancerContract).setAllowedTokens(address(0xa952cEB0617231C94F88CF52c8E512E224B3972D), tknsArr, false);
+            Rebalancer(rebalancerContract)
+                .setAllowedTokens(address(0xa952cEB0617231C94F88CF52c8E512E224B3972D), tknsArr, false);
             vm.stopBroadcast();
 
             console.log("Setting whitelisted relayer for across bridge");

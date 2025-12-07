@@ -3,18 +3,9 @@ pragma solidity =0.8.28;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Operator} from "src/Operator/Operator.sol";
-
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 
@@ -42,7 +33,7 @@ contract LiquidationTestLinea is DeployBaseRelease {
 
         console.log("underlying: ", underlying);
 
-         // set minBorrow to allow test
+        // set minBorrow to allow test
         address[] memory mTokens = new address[](1);
         uint256[] memory sizes = new uint256[](1);
         mTokens[0] = MARKET;
@@ -88,7 +79,7 @@ contract LiquidationTestLinea is DeployBaseRelease {
         m.liquidate(BORROWER, 0.01e6, MARKET);
         vm.stopBroadcast();
 
-        // reset collateral factor 
+        // reset collateral factor
         console.log("Reset collateral factor...");
         uint256 collateralFactor = 830000000000000000;
         vm.startBroadcast(key);

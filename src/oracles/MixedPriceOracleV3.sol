@@ -23,7 +23,7 @@ contract MixedPriceOracleV3 is IOracleOperator {
     // ----------- STORAGE ------------
     mapping(string => IDefaultAdapter.PriceConfig) public configs;
     mapping(string => uint256) public stalenessPerSymbol;
-    IRoles public immutable roles;
+    IRoles public immutable ROLES;
 
     error MixedPriceOracle_Unauthorized();
     error MixedPriceOracle_StalePrice();
@@ -40,7 +40,7 @@ contract MixedPriceOracleV3 is IOracleOperator {
         address roles_,
         uint256 stalenessPeriod_
     ) {
-        roles = IRoles(roles_);
+        ROLES = IRoles(roles_);
         for (uint256 i = 0; i < symbols_.length; i++) {
             configs[symbols_[i]] = configs_[i];
         }
@@ -48,7 +48,7 @@ contract MixedPriceOracleV3 is IOracleOperator {
     }
 
     function setStaleness(string memory symbol, uint256 val) external {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_ORACLE())) {
+        if (!ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE())) {
             revert MixedPriceOracle_Unauthorized();
         }
         stalenessPerSymbol[symbol] = val;
@@ -56,7 +56,7 @@ contract MixedPriceOracleV3 is IOracleOperator {
     }
 
     function setConfig(string memory symbol, IDefaultAdapter.PriceConfig memory config) external {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_ORACLE())) {
+        if (!ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE())) {
             revert MixedPriceOracle_Unauthorized();
         }
         if (config.defaultFeed == address(0)) {

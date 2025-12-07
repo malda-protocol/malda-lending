@@ -1,21 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
-import {Operator} from "src/Operator/Operator.sol";
-import {Roles} from "src/Roles.sol";
-import {Pauser} from "src/pauser/Pauser.sol";
 
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
+import {MarketRelease, Role, OracleFeed} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 
@@ -64,10 +54,38 @@ contract ConfigureTestnet is DeployBaseRelease {
         configPath = "deployment-config-testnet.json";
         super.setUp();
 
-        feeds.push(OracleFeed("mUSDCMock", 0xdf0bD5072572A002ad0eeBAc58c4BCECA952A826, "USD", 6));
-        feeds.push(OracleFeed("USDC-M", 0xdf0bD5072572A002ad0eeBAc58c4BCECA952A826, "USD", 6));
-        feeds.push(OracleFeed("mwstETHMock", 0xa371FA57A42d9c72380e2959ceDbB21aE07AD210, "USD", 18));
-        feeds.push(OracleFeed("wstETH-M", 0xa371FA57A42d9c72380e2959ceDbB21aE07AD210, "USD", 18));
+        feeds.push(
+            OracleFeed({
+                symbol: "mUSDCMock",
+                defaultFeed: 0xdf0bD5072572A002ad0eeBAc58c4BCECA952A826,
+                toSymbol: "USD",
+                underlyingDecimals: 6
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "USDC-M",
+                defaultFeed: 0xdf0bD5072572A002ad0eeBAc58c4BCECA952A826,
+                toSymbol: "USD",
+                underlyingDecimals: 6
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "mwstETHMock",
+                defaultFeed: 0xa371FA57A42d9c72380e2959ceDbB21aE07AD210,
+                toSymbol: "USD",
+                underlyingDecimals: 18
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "wstETH-M",
+                defaultFeed: 0xa371FA57A42d9c72380e2959ceDbB21aE07AD210,
+                toSymbol: "USD",
+                underlyingDecimals: 18
+            })
+        );
 
         // SET before running it!
         deployer = Deployer(payable(0x1E4B67AB819F9700aB6280ea0Beeaf19F2C48719));

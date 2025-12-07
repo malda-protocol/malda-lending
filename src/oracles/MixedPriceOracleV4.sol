@@ -31,7 +31,7 @@ contract MixedPriceOracleV4 is IOracleOperator {
 
     uint256 public maxPriceDelta = 1.5e3; // 1.5%
     uint256 public constant PRICE_DELTA_EXP = 1e5;
-    IRoles public immutable roles;
+    IRoles public immutable ROLES;
 
     // ----------- ERRORS ------------
     error MixedPriceOracle_Unauthorized();
@@ -48,13 +48,8 @@ contract MixedPriceOracleV4 is IOracleOperator {
     event PriceDeltaUpdated(uint256 oldVal, uint256 newVal);
     event PriceSymbolDeltaUpdated(uint256 oldVal, uint256 newVal, string symbol);
 
-    constructor(
-        string[] memory symbols_,
-        PriceConfig[] memory configs_,
-        address roles_,
-        uint256 stalenessPeriod_
-    ) {
-        roles = IRoles(roles_);
+    constructor(string[] memory symbols_, PriceConfig[] memory configs_, address roles_, uint256 stalenessPeriod_) {
+        ROLES = IRoles(roles_);
         for (uint256 i = 0; i < symbols_.length; i++) {
             configs[symbols_[i]] = configs_[i];
         }
@@ -63,7 +58,7 @@ contract MixedPriceOracleV4 is IOracleOperator {
 
     // ----------- ADMIN ------------
     function setStaleness(string memory symbol, uint256 val) external {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_ORACLE())) {
+        if (!ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE())) {
             revert MixedPriceOracle_Unauthorized();
         }
         stalenessPerSymbol[symbol] = val;
@@ -71,7 +66,7 @@ contract MixedPriceOracleV4 is IOracleOperator {
     }
 
     function setConfig(string memory symbol, PriceConfig memory config) external {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_ORACLE())) {
+        if (!ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE())) {
             revert MixedPriceOracle_Unauthorized();
         }
         if (config.api3Feed == address(0) || config.eOracleFeed == address(0)) {
@@ -83,7 +78,7 @@ contract MixedPriceOracleV4 is IOracleOperator {
     }
 
     function setMaxPriceDelta(uint256 _delta) external {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_ORACLE())) {
+        if (!ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE())) {
             revert MixedPriceOracle_Unauthorized();
         }
         if (_delta > PRICE_DELTA_EXP) revert MixedPriceOracle_DeltaTooHigh();
@@ -93,7 +88,7 @@ contract MixedPriceOracleV4 is IOracleOperator {
     }
 
     function setSymbolMaxPriceDelta(uint256 _delta, string calldata _symbol) external {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_ORACLE())) {
+        if (!ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE())) {
             revert MixedPriceOracle_Unauthorized();
         }
         if (_delta > PRICE_DELTA_EXP) revert MixedPriceOracle_DeltaTooHigh();
@@ -149,7 +144,7 @@ contract MixedPriceOracleV4 is IOracleOperator {
         PriceConfig memory config = configs[symbol];
         (, int256 api3Price,, uint256 api3UpdatedAt,) = IDefaultAdapter(config.api3Feed).latestRoundData();
 
-        uint256 decimalsApi3Feed = IDefaultAdapter(config.api3Feed).decimals(); 
+        uint256 decimalsApi3Feed = IDefaultAdapter(config.api3Feed).decimals();
         price = uint256(api3Price) * 10 ** (18 - decimalsApi3Feed);
         lastUpdate = api3UpdatedAt;
 
@@ -167,7 +162,7 @@ contract MixedPriceOracleV4 is IOracleOperator {
         PriceConfig memory config = configs[symbol];
         (, int256 eOraclePrice,, uint256 eOracleUpdatedAt,) = IDefaultAdapter(config.eOracleFeed).latestRoundData();
 
-        uint256 decimalseOracleFeed = IDefaultAdapter(config.eOracleFeed).decimals(); 
+        uint256 decimalseOracleFeed = IDefaultAdapter(config.eOracleFeed).decimals();
         price = uint256(eOraclePrice) * 10 ** (18 - decimalseOracleFeed);
         lastUpdate = eOracleUpdatedAt;
 
@@ -181,13 +176,11 @@ contract MixedPriceOracleV4 is IOracleOperator {
         }
     }
 
-    // Safe freshness check helper  
-    function _isFresh(uint256 updatedAt, uint256 staleness) internal view returns (bool) {  
-        uint256 timeDiff = updatedAt > block.timestamp ?   
-            updatedAt - block.timestamp :   
-            block.timestamp - updatedAt;  
-        return timeDiff <= staleness;  
-    }  
+    // Safe freshness check helper
+    function _isFresh(uint256 updatedAt, uint256 staleness) internal view returns (bool) {
+        uint256 timeDiff = updatedAt > block.timestamp ? updatedAt - block.timestamp : block.timestamp - updatedAt;
+        return timeDiff <= staleness;
+    }
 
     // ----------- HELPERS ------------
     function _absDiff(int256 a, int256 b) internal pure returns (uint256) {
