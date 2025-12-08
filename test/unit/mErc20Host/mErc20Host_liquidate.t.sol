@@ -44,9 +44,10 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
     function test_RevertWhen_JournalIsEmpty(uint256 amount)
         external
         givenMarketIsNotPaused
-        inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
         address[] memory users = new address[](1);

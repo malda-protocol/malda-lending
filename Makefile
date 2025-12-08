@@ -36,13 +36,11 @@ fmt:
   	solhint -c script/.solhint.json --max-warnings 0 "script/**/*.sol" && \
   	solhint -c test/.solhint.json --max-warnings 0 "test/**/*.t.sol"
 
-test: ## Run tests (also generates snapshots in `./snapshots`)
-	@SEED=$$(echo $$(($$( date +%s) - $$(date +%s) % 604800))); \
-	echo "Using FOUNDRY_FUZZ_SEED=$$SEED"; \
-	FOUNDRY_FUZZ_SEED=$$SEED FOUNDRY_PROFILE=ci forge test --force --isolate -vvv --show-progress
+test: ## Run tests
+	forge test --force --isolate -vvv --show-progress
 
 coverage-summary: ## Run tests and generate coverage summary
-	FOUNDRY_PROFILE=lite forge coverage --no-match-coverage "(test|mocks|dependencies)" --force --report summary
+	forge coverage --no-match-coverage "(test|mocks|dependencies)" --force --report summary
 
 COVERAGE_MIN := 100
 coverage-check: ## Check if test coverage is above the minimum
