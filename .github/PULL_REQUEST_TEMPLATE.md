@@ -21,8 +21,9 @@
 - [ ] Added code follows Solidity best practices and style guidelines similar to the rest of the project.
 - [ ] Added code has been reviewed for potential security vulnerabilities.
 - [ ] Added code has been tested thoroughly.
-- [ ] All tests pass successfully.
+- [ ] All tests pass successfully when running `make test`.
 - [ ] NatSpec documentation is up to date and accurate.
+- [ ] Documentation has been generated locally using `make docs`.
 
 ## Additional Context
 
