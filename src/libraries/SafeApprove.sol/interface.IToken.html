@@ -180,12 +180,28 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="itoken"><a class="header" href="#itoken">IToken</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/6da3402491b0597592e7ce77df035b59e43e1167/src/libraries/SafeApprove.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/776b029d072a7c4fd533681c87655b462e9fc973/src/libraries/SafeApprove.sol">Git Source</a></p>
+<p><strong>Title:</strong>
+Minimal ERC20 approve interface</p>
+<p><strong>Author:</strong>
+Merge Layers Inc.</p>
+<p>Exposes approve to perform safe allowance updates</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="approve"><a class="header" href="#approve">approve</a></h3>
+<p>Approves spender for an allowance amount</p>
 <pre><code class="language-solidity">function approve(address spender, uint256 amount) external returns (bool);
 </code></pre>
-
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>spender</code></td><td><code>address</code></td><td>Address allowed to spend</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>Allowance amount</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>success True if approve succeeded</td></tr>
+</tbody></table>
+</div>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

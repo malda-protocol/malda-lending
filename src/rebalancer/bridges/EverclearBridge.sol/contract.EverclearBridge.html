@@ -180,20 +180,54 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="everclearbridge"><a class="header" href="#everclearbridge">EverclearBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/6da3402491b0597592e7ce77df035b59e43e1167/src/rebalancer/bridges/EverclearBridge.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/776b029d072a7c4fd533681c87655b462e9fc973/src/rebalancer/bridges/EverclearBridge.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.html">BaseBridge</a>, <a href="/src/interfaces/IBridge.sol/interface.IBridge.html">IBridge</a></p>
+<p><strong>Title:</strong>
+Everclear bridge implementation</p>
+<p><strong>Author:</strong>
+Malda Protocol</p>
+<p>Cross-chain bridge using Everclear protocol for intent-based transfers</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="everclearfeeadapter"><a class="header" href="#everclearfeeadapter">everclearFeeAdapter</a></h3>
+<p>Everclear fee adapter contract</p>
 <pre><code class="language-solidity">IFeeAdapter public everclearFeeAdapter
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
+<p>Initializes the Everclear bridge</p>
 <pre><code class="language-solidity">constructor(address _roles, address _feeAdapter) BaseBridge(_roles);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_roles</code></td><td><code>address</code></td><td>Roles contract address</td></tr>
+<tr><td><code>_feeAdapter</code></td><td><code>address</code></td><td>Everclear fee adapter address</td></tr>
+</tbody></table>
+</div>
+<h3 id="sendmsg"><a class="header" href="#sendmsg">sendMsg</a></h3>
+<p>rebalance through bridge</p>
+<pre><code class="language-solidity">function sendMsg(
+    uint256 _extractedAmount,
+    address _market,
+    uint32 _dstChainId,
+    address _token,
+    bytes calldata _message,
+    bytes calldata /* _bridgeData */
+) external payable onlyRebalancer;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_extractedAmount</code></td><td><code>uint256</code></td><td>extracted amount for rebalancing</td></tr>
+<tr><td><code>_market</code></td><td><code>address</code></td><td>destination address</td></tr>
+<tr><td><code>_dstChainId</code></td><td><code>uint32</code></td><td>destination chain id</td></tr>
+<tr><td><code>_token</code></td><td><code>address</code></td><td>the token to rebalance</td></tr>
+<tr><td><code>_message</code></td><td><code>bytes</code></td><td>operation message data</td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bytes</code></td><td></td></tr>
+</tbody></table>
+</div>
 <h3 id="getfee"><a class="header" href="#getfee">getFee</a></h3>
 <p>computes fee for bridge operation</p>
-<pre><code class="language-solidity">function getFee(uint32, bytes memory, bytes memory) external pure returns (uint256);
+<pre><code class="language-solidity">function getFee(uint32, bytes calldata, bytes calldata) external pure returns (uint256);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -202,16 +236,11 @@
 <tr><td><code>&lt;none&gt;</code></td><td><code>bytes</code></td><td></td></tr>
 </tbody></table>
 </div>
-<h3 id="sendmsg"><a class="header" href="#sendmsg">sendMsg</a></h3>
-<pre><code class="language-solidity">function sendMsg(
-    uint256 _extractedAmount,
-    address _market,
-    uint32 _dstChainId,
-    address _token,
-    bytes memory _message,
-    bytes memory // unused
-) external payable onlyRebalancer;
-</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>fee Computed bridge fee</td></tr>
+</tbody></table>
+</div>
 <h3 id="_decodeintent"><a class="header" href="#_decodeintent">_decodeIntent</a></h3>
 <p>Decodes an intent message returned by the Everclear intents API into structured parameters.</p>
 <ul>
@@ -222,15 +251,15 @@
 reading its offset and decoding separately.
 Layout of <code>FeeAdapter.newIntent</code> calldata after the selector:</li>
 </ul>
-<pre><code>destinations (uint32[])   @ offset 0x00
-receiver (bytes32)        @ offset 0x20
-inputAsset (address)      @ offset 0x40
-outputAsset (bytes32)     @ offset 0x60
-amount (uint256)          @ offset 0x80
-maxFee (uint24)           @ offset 0xa0
-ttl (uint48)              @ offset 0xc0
-data (bytes)              @ offset 0xe0
-feeParams (FeeParams)     @ offset 0x100 (9th arg → pointer)
+<pre><code>destinations (uint32[])   at offset 0x00
+receiver (bytes32)        at offset 0x20
+inputAsset (address)      at offset 0x40
+outputAsset (bytes32)     at offset 0x60
+amount (uint256)          at offset 0x80
+maxFee (uint24)           at offset 0xa0
+ttl (uint48)              at offset 0xc0
+data (bytes)              at offset 0xe0
+feeParams (FeeParams)     at offset 0x100 (9th arg → pointer)
 </code></pre>
 <p>Since each static argument occupies a 32-byte slot, the pointer to <code>feeParams</code>
 lives at offset <code>0x100</code> (256 bytes) after the selector is removed.</p>
@@ -254,9 +283,9 @@ lives at offset <code>0x100</code> (256 bytes) after the selector is removed.</p
 <li>The pointer gives the offset to the start of the <code>FeeParams</code> struct relative to the start of intentData.</li>
 <li>Within <code>FeeParams</code>, the layout is:</li>
 </ul>
-<pre><code>fee      (uint256) @ +0x00
-deadline (uint256) @ +0x20
-sig      (bytes)   @ +0x40 (stored as offset → length → data)
+<pre><code>fee      (uint256) at +0x00
+deadline (uint256) at +0x20
+sig      (bytes)   at +0x40 (stored as offset → length → data)
 </code></pre>
 <ul>
 <li>The <code>sig</code> field is dynamic, so we read its offset (at +0x40) relative to the <code>FeeParams</code> base,
@@ -281,28 +310,51 @@ then read the length at that offset, then slice out the actual signature bytes.<
 </div>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="msgsent"><a class="header" href="#msgsent">MsgSent</a></h3>
+<p>Emitted when a message is sent via Everclear</p>
 <pre><code class="language-solidity">event MsgSent(uint256 indexed dstChainId, address indexed market, uint256 amountLD, bytes32 id);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>dstChainId</code></td><td><code>uint256</code></td><td>Destination chain ID</td></tr>
+<tr><td><code>market</code></td><td><code>address</code></td><td>Market address</td></tr>
+<tr><td><code>amountLD</code></td><td><code>uint256</code></td><td>Amount in local decimals</td></tr>
+<tr><td><code>id</code></td><td><code>bytes32</code></td><td>Intent identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="rebalancingreturnedtomarket"><a class="header" href="#rebalancingreturnedtomarket">RebalancingReturnedToMarket</a></h3>
+<p>Emitted when excess rebalancing funds are returned to the market</p>
 <pre><code class="language-solidity">event RebalancingReturnedToMarket(address indexed market, uint256 toReturn, uint256 extracted);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>market</code></td><td><code>address</code></td><td>Market address</td></tr>
+<tr><td><code>toReturn</code></td><td><code>uint256</code></td><td>Amount returned</td></tr>
+<tr><td><code>extracted</code></td><td><code>uint256</code></td><td>Amount originally extracted</td></tr>
+</tbody></table>
+</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="everclear_tokenmismatch"><a class="header" href="#everclear_tokenmismatch">Everclear_TokenMismatch</a></h3>
+<p>Error thrown when provided token does not match expected asset</p>
 <pre><code class="language-solidity">error Everclear_TokenMismatch();
 </code></pre>
 <h3 id="everclear_notimplemented"><a class="header" href="#everclear_notimplemented">Everclear_NotImplemented</a></h3>
+<p>Error thrown when a feature is not implemented</p>
 <pre><code class="language-solidity">error Everclear_NotImplemented();
 </code></pre>
 <h3 id="everclear_maxfeeexceeded"><a class="header" href="#everclear_maxfeeexceeded">Everclear_MaxFeeExceeded</a></h3>
+<p>Error thrown when maximum fee is exceeded</p>
 <pre><code class="language-solidity">error Everclear_MaxFeeExceeded();
 </code></pre>
 <h3 id="everclear_addressnotvalid"><a class="header" href="#everclear_addressnotvalid">Everclear_AddressNotValid</a></h3>
+<p>Error thrown when provided address is invalid</p>
 <pre><code class="language-solidity">error Everclear_AddressNotValid();
 </code></pre>
 <h3 id="everclear_destinationnotvalid"><a class="header" href="#everclear_destinationnotvalid">Everclear_DestinationNotValid</a></h3>
+<p>Error thrown when provided destination is invalid</p>
 <pre><code class="language-solidity">error Everclear_DestinationNotValid();
 </code></pre>
 <h3 id="everclear_destinationslengthmismatch"><a class="header" href="#everclear_destinationslengthmismatch">Everclear_DestinationsLengthMismatch</a></h3>
+<p>Error thrown when destination arrays have mismatched length</p>
 <pre><code class="language-solidity">error Everclear_DestinationsLengthMismatch();
 </code></pre>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>

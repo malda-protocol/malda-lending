@@ -180,11 +180,17 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="rewarddistributor"><a class="header" href="#rewarddistributor">RewardDistributor</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/6da3402491b0597592e7ce77df035b59e43e1167/src/rewards/RewardDistributor.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/776b029d072a7c4fd533681c87655b462e9fc973/src/rewards/RewardDistributor.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/interfaces/IRewardDistributor.sol/interface.IRewardDistributor.html">IRewardDistributor</a>, <a href="/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a>, Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable</p>
+<p><strong>Title:</strong>
+Reward distribution manager</p>
+<p><strong>Author:</strong>
+Malda Protocol</p>
+<p>Distributes reward tokens to suppliers and borrowers across markets.</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="reward_initial_index"><a class="header" href="#reward_initial_index">REWARD_INITIAL_INDEX</a></h3>
+<p>Initial index used when starting accruals</p>
 <pre><code class="language-solidity">uint224 public constant REWARD_INITIAL_INDEX = 1e36
 </code></pre>
 <h3 id="operator"><a class="header" href="#operator">operator</a></h3>
@@ -193,49 +199,108 @@
 </code></pre>
 <h3 id="rewardmarketstate"><a class="header" href="#rewardmarketstate">rewardMarketState</a></h3>
 <p>The Reward state for each reward token for each market</p>
-<pre><code class="language-solidity">mapping(address =&gt; mapping(address =&gt; IRewardDistributorData.RewardMarketState)) public rewardMarketState
+<pre><code class="language-solidity">mapping(address rewardToken =&gt; mapping(address mToken =&gt; IRewardDistributorData.RewardMarketState marketState))
+    public rewardMarketState
 </code></pre>
 <h3 id="rewardaccountstate"><a class="header" href="#rewardaccountstate">rewardAccountState</a></h3>
 <p>The Reward state for each reward token for each account</p>
-<pre><code class="language-solidity">mapping(address =&gt; mapping(address =&gt; IRewardDistributorData.RewardAccountState)) public rewardAccountState
+<pre><code class="language-solidity">mapping(
+    address rewardToken =&gt; mapping(address account =&gt; IRewardDistributorData.RewardAccountState accountState)
+) public rewardAccountState
 </code></pre>
 <h3 id="rewardtokens"><a class="header" href="#rewardtokens">rewardTokens</a></h3>
 <p>Added reward tokens</p>
 <pre><code class="language-solidity">address[] public rewardTokens
 </code></pre>
 <h3 id="isrewardtoken"><a class="header" href="#isrewardtoken">isRewardToken</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; bool) public isRewardToken
+<pre><code class="language-solidity">mapping(address rewardToken =&gt; bool status) public isRewardToken
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="onlyoperator"><a class="header" href="#onlyoperator">onlyOperator</a></h3>
 <pre><code class="language-solidity">modifier onlyOperator() ;
 </code></pre>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
+<p>Disable initializers for the implementation</p>
 <p><strong>Note:</strong>
 oz-upgrades-unsafe-allow: constructor</p>
 <pre><code class="language-solidity">constructor() ;
 </code></pre>
-<h3 id="claim"><a class="header" href="#claim">claim</a></h3>
-<pre><code class="language-solidity">function claim(address[] memory holders) public override nonReentrant;
-</code></pre>
-<h3 id="getblocktimestamp"><a class="header" href="#getblocktimestamp">getBlockTimestamp</a></h3>
-<p>Get block timestamp</p>
-<pre><code class="language-solidity">function getBlockTimestamp() public view override returns (uint32);
-</code></pre>
-<h3 id="getrewardtokens"><a class="header" href="#getrewardtokens">getRewardTokens</a></h3>
-<p>Added reward tokens</p>
-<pre><code class="language-solidity">function getRewardTokens() public view override returns (address[] memory);
-</code></pre>
-<h3 id="initialize"><a class="header" href="#initialize">initialize</a></h3>
-<pre><code class="language-solidity">function initialize(address _owner) public initializer;
-</code></pre>
 <h3 id="setoperator"><a class="header" href="#setoperator">setOperator</a></h3>
+<p>Sets the operator allowed to notify indices</p>
 <pre><code class="language-solidity">function setOperator(address _operator) external onlyOwner;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_operator</code></td><td><code>address</code></td><td>Operator address</td></tr>
+</tbody></table>
+</div>
+<h3 id="notifysupplyindex"><a class="header" href="#notifysupplyindex">notifySupplyIndex</a></h3>
+<p>Updates supply indices for all reward tokens on a market</p>
+<pre><code class="language-solidity">function notifySupplyIndex(address mToken) external override onlyOperator;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market address</td></tr>
+</tbody></table>
+</div>
+<h3 id="notifyborrowindex"><a class="header" href="#notifyborrowindex">notifyBorrowIndex</a></h3>
+<p>Updates borrow indices for all reward tokens on a market</p>
+<pre><code class="language-solidity">function notifyBorrowIndex(address mToken) external override onlyOperator;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market address</td></tr>
+</tbody></table>
+</div>
+<h3 id="notifysupplier"><a class="header" href="#notifysupplier">notifySupplier</a></h3>
+<p>Accrues supplier rewards for all reward tokens on a market</p>
+<pre><code class="language-solidity">function notifySupplier(address mToken, address supplier) external override onlyOperator;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market address</td></tr>
+<tr><td><code>supplier</code></td><td><code>address</code></td><td>Supplier address</td></tr>
+</tbody></table>
+</div>
+<h3 id="notifyborrower"><a class="header" href="#notifyborrower">notifyBorrower</a></h3>
+<p>Accrues borrower rewards for all reward tokens on a market</p>
+<pre><code class="language-solidity">function notifyBorrower(address mToken, address borrower) external override onlyOperator;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market address</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>Borrower address</td></tr>
+</tbody></table>
+</div>
+<h3 id="initialize"><a class="header" href="#initialize">initialize</a></h3>
+<p>Initializes the upgradeable contract</p>
+<pre><code class="language-solidity">function initialize(address _owner) public initializer;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_owner</code></td><td><code>address</code></td><td>Owner address</td></tr>
+</tbody></table>
+</div>
+<h3 id="claim"><a class="header" href="#claim">claim</a></h3>
+<p>Claims rewards for a list of holders across all reward tokens</p>
+<pre><code class="language-solidity">function claim(address[] memory holders) public override nonReentrant;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>holders</code></td><td><code>address[]</code></td><td>Account list to claim for</td></tr>
+</tbody></table>
+</div>
 <h3 id="whitelisttoken"><a class="header" href="#whitelisttoken">whitelistToken</a></h3>
+<p>Whitelists a new reward token</p>
 <pre><code class="language-solidity">function whitelistToken(address rewardToken_) public onlyOwner;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>rewardToken_</code></td><td><code>address</code></td><td>Reward token address</td></tr>
+</tbody></table>
+</div>
 <h3 id="updaterewardspeeds"><a class="header" href="#updaterewardspeeds">updateRewardSpeeds</a></h3>
+<p>Updates reward speeds for multiple markets</p>
 <pre><code class="language-solidity">function updateRewardSpeeds(
     address rewardToken_,
     address[] memory mTokens,
@@ -243,46 +308,112 @@ oz-upgrades-unsafe-allow: constructor</p>
     uint256[] memory borrowSpeeds
 ) public onlyOwner;
 </code></pre>
-<h3 id="grantreward"><a class="header" href="#grantreward">grantReward</a></h3>
-<pre><code class="language-solidity">function grantReward(address token, address user, uint256 amount) public onlyOwner;
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>rewardToken_</code></td><td><code>address</code></td><td>Reward token address</td></tr>
+<tr><td><code>mTokens</code></td><td><code>address[]</code></td><td>Market addresses</td></tr>
+<tr><td><code>supplySpeeds</code></td><td><code>uint256[]</code></td><td>Supply speeds per market</td></tr>
+<tr><td><code>borrowSpeeds</code></td><td><code>uint256[]</code></td><td>Borrow speeds per market</td></tr>
+</tbody></table>
+</div>
+<h3 id="getblocktimestamp"><a class="header" href="#getblocktimestamp">getBlockTimestamp</a></h3>
+<p>Get block timestamp</p>
+<pre><code class="language-solidity">function getBlockTimestamp() public view override returns (uint32);
 </code></pre>
-<h3 id="notifysupplyindex"><a class="header" href="#notifysupplyindex">notifySupplyIndex</a></h3>
-<p>Notifies supply index</p>
-<pre><code class="language-solidity">function notifySupplyIndex(address mToken) external override onlyOperator;
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint32</code></td><td>timestamp Current block timestamp</td></tr>
+</tbody></table>
+</div>
+<h3 id="getrewardtokens"><a class="header" href="#getrewardtokens">getRewardTokens</a></h3>
+<p>Added reward tokens</p>
+<pre><code class="language-solidity">function getRewardTokens() public view override returns (address[] memory);
 </code></pre>
-<h3 id="notifyborrowindex"><a class="header" href="#notifyborrowindex">notifyBorrowIndex</a></h3>
-<p>Notifies borrow index</p>
-<pre><code class="language-solidity">function notifyBorrowIndex(address mToken) external override onlyOperator;
-</code></pre>
-<h3 id="notifysupplier"><a class="header" href="#notifysupplier">notifySupplier</a></h3>
-<p>Notifies supplier</p>
-<pre><code class="language-solidity">function notifySupplier(address mToken, address supplier) external override onlyOperator;
-</code></pre>
-<h3 id="notifyborrower"><a class="header" href="#notifyborrower">notifyBorrower</a></h3>
-<p>Notifies borrower</p>
-<pre><code class="language-solidity">function notifyBorrower(address mToken, address borrower) external override onlyOperator;
-</code></pre>
-<h3 id="_updaterewardspeed"><a class="header" href="#_updaterewardspeed">_updateRewardSpeed</a></h3>
-<pre><code class="language-solidity">function _updateRewardSpeed(address rewardToken, address mToken, uint256 supplySpeed, uint256 borrowSpeed) private;
-</code></pre>
-<h3 id="_notifysupplyindex"><a class="header" href="#_notifysupplyindex">_notifySupplyIndex</a></h3>
-<pre><code class="language-solidity">function _notifySupplyIndex(address rewardToken, address mToken) private;
-</code></pre>
-<h3 id="_notifyborrowindex"><a class="header" href="#_notifyborrowindex">_notifyBorrowIndex</a></h3>
-<pre><code class="language-solidity">function _notifyBorrowIndex(address rewardToken, address mToken) private;
-</code></pre>
-<h3 id="_notifysupplier"><a class="header" href="#_notifysupplier">_notifySupplier</a></h3>
-<pre><code class="language-solidity">function _notifySupplier(address rewardToken, address mToken, address supplier) private;
-</code></pre>
-<h3 id="_notifyborrower"><a class="header" href="#_notifyborrower">_notifyBorrower</a></h3>
-<pre><code class="language-solidity">function _notifyBorrower(address rewardToken, address mToken, address borrower) private;
-</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>address[]</code></td><td>rewardTokens Array of reward token addresses</td></tr>
+</tbody></table>
+</div>
 <h3 id="_claim"><a class="header" href="#_claim">_claim</a></h3>
+<p>Claims rewards for holders for a given token</p>
 <pre><code class="language-solidity">function _claim(address rewardToken, address[] memory holders) internal;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>rewardToken</code></td><td><code>address</code></td><td>Reward token address</td></tr>
+<tr><td><code>holders</code></td><td><code>address[]</code></td><td>Holder list</td></tr>
+</tbody></table>
+</div>
 <h3 id="_grantreward"><a class="header" href="#_grantreward">_grantReward</a></h3>
+<p>Transfers accrued rewards to a user</p>
 <pre><code class="language-solidity">function _grantReward(address token, address user, uint256 amount) internal returns (uint256);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>token</code></td><td><code>address</code></td><td>Reward token</td></tr>
+<tr><td><code>user</code></td><td><code>address</code></td><td>Recipient address</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>Amount to grant</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>Remaining amount (if transfer not fully executed)</td></tr>
+</tbody></table>
+</div>
+<h3 id="_updaterewardspeed"><a class="header" href="#_updaterewardspeed">_updateRewardSpeed</a></h3>
+<p>Updates supply/borrow speed and indexes for a market</p>
+<pre><code class="language-solidity">function _updateRewardSpeed(address rewardToken, address mToken, uint256 supplySpeed, uint256 borrowSpeed) private;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>rewardToken</code></td><td><code>address</code></td><td>Reward token address</td></tr>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market address</td></tr>
+<tr><td><code>supplySpeed</code></td><td><code>uint256</code></td><td>New supply speed</td></tr>
+<tr><td><code>borrowSpeed</code></td><td><code>uint256</code></td><td>New borrow speed</td></tr>
+</tbody></table>
+</div>
+<h3 id="_notifysupplyindex"><a class="header" href="#_notifysupplyindex">_notifySupplyIndex</a></h3>
+<p>Updates supply index for a reward token/market pair</p>
+<pre><code class="language-solidity">function _notifySupplyIndex(address rewardToken, address mToken) private;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>rewardToken</code></td><td><code>address</code></td><td>Reward token address</td></tr>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market address</td></tr>
+</tbody></table>
+</div>
+<h3 id="_notifyborrowindex"><a class="header" href="#_notifyborrowindex">_notifyBorrowIndex</a></h3>
+<p>Updates borrow index for a reward token/market pair</p>
+<pre><code class="language-solidity">function _notifyBorrowIndex(address rewardToken, address mToken) private;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>rewardToken</code></td><td><code>address</code></td><td>Reward token address</td></tr>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market address</td></tr>
+</tbody></table>
+</div>
+<h3 id="_notifysupplier"><a class="header" href="#_notifysupplier">_notifySupplier</a></h3>
+<p>Accrues supplier rewards for a market</p>
+<pre><code class="language-solidity">function _notifySupplier(address rewardToken, address mToken, address supplier) private;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>rewardToken</code></td><td><code>address</code></td><td>Reward token address</td></tr>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market address</td></tr>
+<tr><td><code>supplier</code></td><td><code>address</code></td><td>Supplier address</td></tr>
+</tbody></table>
+</div>
+<h3 id="_notifyborrower"><a class="header" href="#_notifyborrower">_notifyBorrower</a></h3>
+<p>Accrues borrower rewards for a market</p>
+<pre><code class="language-solidity">function _notifyBorrower(address rewardToken, address mToken, address borrower) private;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>rewardToken</code></td><td><code>address</code></td><td>Reward token address</td></tr>
+<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market address</td></tr>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>Borrower address</td></tr>
+</tbody></table>
+</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="rewarddistributor_onlyoperator"><a class="header" href="#rewarddistributor_onlyoperator">RewardDistributor_OnlyOperator</a></h3>
 <pre><code class="language-solidity">error RewardDistributor_OnlyOperator();
