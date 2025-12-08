@@ -180,39 +180,23 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="chainlinkoracle"><a class="header" href="#chainlinkoracle">ChainlinkOracle</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/ccecbab9a15e069e6b0d9dc3aeebd0c797006f08/src/oracles/ChainlinkOracle.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/6da3402491b0597592e7ce77df035b59e43e1167/src/oracles/ChainlinkOracle.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/interfaces/IOracleOperator.sol/interface.IOracleOperator.html">IOracleOperator</a></p>
-<p><strong>Title:</strong>
-ChainlinkOracle</p>
-<p><strong>Author:</strong>
-Merge Layers Inc.</p>
-<p>Oracle contract using Chainlink price feeds</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
-<h3 id="decimals"><a class="header" href="#decimals">DECIMALS</a></h3>
-<p>Number of decimals for price</p>
-<pre><code class="language-solidity">uint8 public constant DECIMALS = 18
-</code></pre>
 <h3 id="pricefeeds"><a class="header" href="#pricefeeds">priceFeeds</a></h3>
-<p>Mapping of symbols to price feeds</p>
-<pre><code class="language-solidity">mapping(string symbol =&gt; IAggregatorV3 feed) public priceFeeds
+<pre><code class="language-solidity">mapping(string =&gt; IAggregatorV3) public priceFeeds
 </code></pre>
 <h3 id="baseunits"><a class="header" href="#baseunits">baseUnits</a></h3>
-<p>Mapping of symbols to base units</p>
-<pre><code class="language-solidity">mapping(string symbol =&gt; uint256 units) public baseUnits
+<pre><code class="language-solidity">mapping(string =&gt; uint256) public baseUnits
+</code></pre>
+<h3 id="decimals"><a class="header" href="#decimals">DECIMALS</a></h3>
+<pre><code class="language-solidity">uint8 public constant DECIMALS = 18
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<p>Constructor</p>
 <pre><code class="language-solidity">constructor(string[] memory symbols_, IAggregatorV3[] memory feeds_, uint256[] memory baseUnits_) ;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>symbols_</code></td><td><code>string[]</code></td><td>Array of symbols</td></tr>
-<tr><td><code>feeds_</code></td><td><code>IAggregatorV3[]</code></td><td>Array of price feeds</td></tr>
-<tr><td><code>baseUnits_</code></td><td><code>uint256[]</code></td><td>Array of base units</td></tr>
-</tbody></table>
-</div>
 <h3 id="getprice"><a class="header" href="#getprice">getPrice</a></h3>
 <p>Get the price of a mToken asset</p>
 <pre><code class="language-solidity">function getPrice(address mToken) external view override returns (uint256);
@@ -224,7 +208,7 @@ Merge Layers Inc.</p>
 </div>
 <p><strong>Returns</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>price The underlying asset price mantissa (scaled by 1e18). Zero means unavailable.</td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The underlying asset price mantissa (scaled by 1e18). Zero means the price is unavailable.</td></tr>
 </tbody></table>
 </div>
 <h3 id="getunderlyingprice"><a class="header" href="#getunderlyingprice">getUnderlyingPrice</a></h3>
@@ -238,31 +222,17 @@ Merge Layers Inc.</p>
 </div>
 <p><strong>Returns</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>price The underlying asset price mantissa (scaled by 1e18). Zero means unavailable.</td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The underlying asset price mantissa (scaled by 1e18). Zero means the price is unavailable.</td></tr>
 </tbody></table>
 </div>
 <h3 id="_getlatestprice"><a class="header" href="#_getlatestprice">_getLatestPrice</a></h3>
-<p>Get the latest price for a symbol</p>
 <pre><code class="language-solidity">function _getLatestPrice(string memory symbol) internal view returns (uint256, uint256);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>symbol</code></td><td><code>string</code></td><td>The symbol to get price for</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>price The price</td></tr>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>timeStamp The timestamp</td></tr>
-</tbody></table>
-</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="chainlinkoracle_nopricefeed"><a class="header" href="#chainlinkoracle_nopricefeed">ChainlinkOracle_NoPriceFeed</a></h3>
-<p>Error thrown when no price feed is found</p>
 <pre><code class="language-solidity">error ChainlinkOracle_NoPriceFeed();
 </code></pre>
 <h3 id="chainlinkoracle_zeroprice"><a class="header" href="#chainlinkoracle_zeroprice">ChainlinkOracle_ZeroPrice</a></h3>
-<p>Error thrown when price is zero</p>
 <pre><code class="language-solidity">error ChainlinkOracle_ZeroPrice();
 </code></pre>
 

@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="exponentialnoerror"><a class="header" href="#exponentialnoerror">ExponentialNoError</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/ccecbab9a15e069e6b0d9dc3aeebd0c797006f08/src/utils/ExponentialNoError.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/6da3402491b0597592e7ce77df035b59e43e1167/src/utils/ExponentialNoError.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 Exponential module for storing fixed-precision decimals</p>
 <p><strong>Author:</strong>
@@ -189,22 +189,22 @@ Compound</p>
 Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
 <code>Exp({mantissa: 5100000000000000000})</code>.</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
-<h3 id="exp_scale"><a class="header" href="#exp_scale">EXP_SCALE</a></h3>
-<pre><code class="language-solidity">uint256 internal constant EXP_SCALE = 1e18
+<h3 id="expscale"><a class="header" href="#expscale">expScale</a></h3>
+<pre><code class="language-solidity">uint256 constant expScale = 1e18
 </code></pre>
-<h3 id="double_scale"><a class="header" href="#double_scale">DOUBLE_SCALE</a></h3>
-<pre><code class="language-solidity">uint256 internal constant DOUBLE_SCALE = 1e36
+<h3 id="doublescale"><a class="header" href="#doublescale">doubleScale</a></h3>
+<pre><code class="language-solidity">uint256 constant doubleScale = 1e36
 </code></pre>
-<h3 id="half_exp_scale"><a class="header" href="#half_exp_scale">HALF_EXP_SCALE</a></h3>
-<pre><code class="language-solidity">uint256 internal constant HALF_EXP_SCALE = EXP_SCALE / 2
+<h3 id="halfexpscale"><a class="header" href="#halfexpscale">halfExpScale</a></h3>
+<pre><code class="language-solidity">uint256 constant halfExpScale = expScale / 2
 </code></pre>
-<h3 id="mantissa_one"><a class="header" href="#mantissa_one">MANTISSA_ONE</a></h3>
-<pre><code class="language-solidity">uint256 internal constant MANTISSA_ONE = EXP_SCALE
+<h3 id="mantissaone"><a class="header" href="#mantissaone">mantissaOne</a></h3>
+<pre><code class="language-solidity">uint256 constant mantissaOne = expScale
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="truncate"><a class="header" href="#truncate">truncate</a></h3>
 <p>Truncates the given exp to a whole number value.
-For example, truncate(Exp{mantissa: 15 * EXP_SCALE}) = 15</p>
+For example, truncate(Exp{mantissa: 15 * expScale}) = 15</p>
 <pre><code class="language-solidity">function truncate(Exp memory exp) internal pure returns (uint256);
 </code></pre>
 <h3 id="mul_scalartruncate"><a class="header" href="#mul_scalartruncate">mul_ScalarTruncate</a></h3>

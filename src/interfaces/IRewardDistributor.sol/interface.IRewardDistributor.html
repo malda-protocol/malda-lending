@@ -180,186 +180,80 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="irewarddistributor"><a class="header" href="#irewarddistributor">IRewardDistributor</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/ccecbab9a15e069e6b0d9dc3aeebd0c797006f08/src/interfaces/IRewardDistributor.sol">Git Source</a></p>
-<p><strong>Title:</strong>
-IRewardDistributor</p>
-<p><strong>Author:</strong>
-Merge Layers Inc.</p>
-<p>Interface for reward distribution operations</p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/6da3402491b0597592e7ce77df035b59e43e1167/src/interfaces/IRewardDistributor.sol">Git Source</a></p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
-<h3 id="notifysupplyindex"><a class="header" href="#notifysupplyindex">notifySupplyIndex</a></h3>
-<p>Notifies supply index</p>
-<pre><code class="language-solidity">function notifySupplyIndex(address mToken) external;
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market token</td></tr>
-</tbody></table>
-</div>
-<h3 id="notifyborrowindex"><a class="header" href="#notifyborrowindex">notifyBorrowIndex</a></h3>
-<p>Notifies borrow index</p>
-<pre><code class="language-solidity">function notifyBorrowIndex(address mToken) external;
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market token</td></tr>
-</tbody></table>
-</div>
-<h3 id="notifysupplier"><a class="header" href="#notifysupplier">notifySupplier</a></h3>
-<p>Notifies supplier</p>
-<pre><code class="language-solidity">function notifySupplier(address mToken, address supplier) external;
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market token</td></tr>
-<tr><td><code>supplier</code></td><td><code>address</code></td><td>Supplier address</td></tr>
-</tbody></table>
-</div>
-<h3 id="notifyborrower"><a class="header" href="#notifyborrower">notifyBorrower</a></h3>
-<p>Notifies borrower</p>
-<pre><code class="language-solidity">function notifyBorrower(address mToken, address borrower) external;
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market token</td></tr>
-<tr><td><code>borrower</code></td><td><code>address</code></td><td>Borrower address</td></tr>
-</tbody></table>
-</div>
-<h3 id="claim"><a class="header" href="#claim">claim</a></h3>
-<p>Claim tokens for holders</p>
-<pre><code class="language-solidity">function claim(address[] memory holders) external;
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>holders</code></td><td><code>address[]</code></td><td>The accounts to claim for</td></tr>
-</tbody></table>
-</div>
 <h3 id="operator"><a class="header" href="#operator">operator</a></h3>
 <p>The operator that rewards are distributed to</p>
-<pre><code class="language-solidity">function operator() external view returns (address operatorAddress);
+<pre><code class="language-solidity">function operator() external view returns (address);
 </code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>operatorAddress</code></td><td><code>address</code></td><td>Operator address</td></tr>
-</tbody></table>
-</div>
 <h3 id="isrewardtoken"><a class="header" href="#isrewardtoken">isRewardToken</a></h3>
 <p>Flag to check if reward token added before</p>
-<pre><code class="language-solidity">function isRewardToken(address _token) external view returns (bool isRewardTokenAdded);
+<pre><code class="language-solidity">function isRewardToken(address _token) external view returns (bool);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_token</code></td><td><code>address</code></td><td>The token to check for</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>isRewardTokenAdded</code></td><td><code>bool</code></td><td>True if token is a reward token</td></tr>
+<tr><td><code>_token</code></td><td><code>address</code></td><td>the token to check for</td></tr>
 </tbody></table>
 </div>
 <h3 id="getrewardtokens"><a class="header" href="#getrewardtokens">getRewardTokens</a></h3>
 <p>Added reward tokens</p>
-<pre><code class="language-solidity">function getRewardTokens() external view returns (address[] memory rewardTokens);
+<pre><code class="language-solidity">function getRewardTokens() external view returns (address[] memory);
 </code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>rewardTokens</code></td><td><code>address[]</code></td><td>Array of reward token addresses</td></tr>
-</tbody></table>
-</div>
 <h3 id="getblocktimestamp"><a class="header" href="#getblocktimestamp">getBlockTimestamp</a></h3>
 <p>Get block timestamp</p>
-<pre><code class="language-solidity">function getBlockTimestamp() external view returns (uint32 timestamp);
+<pre><code class="language-solidity">function getBlockTimestamp() external view returns (uint32);
 </code></pre>
-<p><strong>Returns</strong></p>
+<h3 id="notifysupplyindex"><a class="header" href="#notifysupplyindex">notifySupplyIndex</a></h3>
+<p>Notifies supply index</p>
+<pre><code class="language-solidity">function notifySupplyIndex(address mToken) external;
+</code></pre>
+<h3 id="notifyborrowindex"><a class="header" href="#notifyborrowindex">notifyBorrowIndex</a></h3>
+<p>Notifies borrow index</p>
+<pre><code class="language-solidity">function notifyBorrowIndex(address mToken) external;
+</code></pre>
+<h3 id="notifysupplier"><a class="header" href="#notifysupplier">notifySupplier</a></h3>
+<p>Notifies supplier</p>
+<pre><code class="language-solidity">function notifySupplier(address mToken, address supplier) external;
+</code></pre>
+<h3 id="notifyborrower"><a class="header" href="#notifyborrower">notifyBorrower</a></h3>
+<p>Notifies borrower</p>
+<pre><code class="language-solidity">function notifyBorrower(address mToken, address borrower) external;
+</code></pre>
+<h3 id="claim"><a class="header" href="#claim">claim</a></h3>
+<p>Claim tokens for `holders</p>
+<pre><code class="language-solidity">function claim(address[] memory holders) external;
+</code></pre>
+<p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>timestamp</code></td><td><code>uint32</code></td><td>Current block timestamp</td></tr>
+<tr><td><code>holders</code></td><td><code>address[]</code></td><td>the accounts to claim for</td></tr>
 </tbody></table>
 </div>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="rewardaccrued"><a class="header" href="#rewardaccrued">RewardAccrued</a></h3>
-<p>Emitted when reward is accrued for a user</p>
 <pre><code class="language-solidity">event RewardAccrued(address indexed rewardToken, address indexed user, uint256 deltaAccrued, uint256 totalAccrued);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>rewardToken</code></td><td><code>address</code></td><td>Reward token address</td></tr>
-<tr><td><code>user</code></td><td><code>address</code></td><td>User address</td></tr>
-<tr><td><code>deltaAccrued</code></td><td><code>uint256</code></td><td>Newly accrued amount</td></tr>
-<tr><td><code>totalAccrued</code></td><td><code>uint256</code></td><td>Total accrued amount</td></tr>
-</tbody></table>
-</div>
 <h3 id="rewardgranted"><a class="header" href="#rewardgranted">RewardGranted</a></h3>
-<p>Emitted when reward is granted to a user</p>
 <pre><code class="language-solidity">event RewardGranted(address indexed rewardToken, address indexed user, uint256 amount);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>rewardToken</code></td><td><code>address</code></td><td>Reward token address</td></tr>
-<tr><td><code>user</code></td><td><code>address</code></td><td>User address</td></tr>
-<tr><td><code>amount</code></td><td><code>uint256</code></td><td>Granted amount</td></tr>
-</tbody></table>
-</div>
 <h3 id="supplyspeedupdated"><a class="header" href="#supplyspeedupdated">SupplySpeedUpdated</a></h3>
-<p>Emitted when supply speed is updated</p>
 <pre><code class="language-solidity">event SupplySpeedUpdated(address indexed rewardToken, address indexed mToken, uint256 supplySpeed);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>rewardToken</code></td><td><code>address</code></td><td>Reward token address</td></tr>
-<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market token</td></tr>
-<tr><td><code>supplySpeed</code></td><td><code>uint256</code></td><td>New supply speed</td></tr>
-</tbody></table>
-</div>
 <h3 id="borrowspeedupdated"><a class="header" href="#borrowspeedupdated">BorrowSpeedUpdated</a></h3>
-<p>Emitted when borrow speed is updated</p>
 <pre><code class="language-solidity">event BorrowSpeedUpdated(address indexed rewardToken, address indexed mToken, uint256 borrowSpeed);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>rewardToken</code></td><td><code>address</code></td><td>Reward token address</td></tr>
-<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market token</td></tr>
-<tr><td><code>borrowSpeed</code></td><td><code>uint256</code></td><td>New borrow speed</td></tr>
-</tbody></table>
-</div>
 <h3 id="operatorset"><a class="header" href="#operatorset">OperatorSet</a></h3>
-<p>Emitted when operator is updated</p>
 <pre><code class="language-solidity">event OperatorSet(address indexed oldOperator, address indexed newOperator);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>oldOperator</code></td><td><code>address</code></td><td>Previous operator</td></tr>
-<tr><td><code>newOperator</code></td><td><code>address</code></td><td>New operator</td></tr>
-</tbody></table>
-</div>
 <h3 id="whitelistedtoken"><a class="header" href="#whitelistedtoken">WhitelistedToken</a></h3>
-<p>Emitted when token is whitelisted</p>
 <pre><code class="language-solidity">event WhitelistedToken(address indexed token);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>token</code></td><td><code>address</code></td><td>Whitelisted token</td></tr>
-</tbody></table>
-</div>
 <h3 id="supplyindexnotified"><a class="header" href="#supplyindexnotified">SupplyIndexNotified</a></h3>
-<p>Emitted when supply index is notified</p>
 <pre><code class="language-solidity">event SupplyIndexNotified(address indexed rewardToken, address indexed mToken);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>rewardToken</code></td><td><code>address</code></td><td>Reward token address</td></tr>
-<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market token</td></tr>
-</tbody></table>
-</div>
 <h3 id="borrowindexnotified"><a class="header" href="#borrowindexnotified">BorrowIndexNotified</a></h3>
-<p>Emitted when borrow index is notified</p>
 <pre><code class="language-solidity">event BorrowIndexNotified(address indexed rewardToken, address indexed mToken);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>rewardToken</code></td><td><code>address</code></td><td>Reward token address</td></tr>
-<tr><td><code>mToken</code></td><td><code>address</code></td><td>Market token</td></tr>
-</tbody></table>
-</div>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

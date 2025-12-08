@@ -180,35 +180,20 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="zkverifier"><a class="header" href="#zkverifier">ZkVerifier</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/ccecbab9a15e069e6b0d9dc3aeebd0c797006f08/src/verifier/ZkVerifier.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/6da3402491b0597592e7ce77df035b59e43e1167/src/verifier/ZkVerifier.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable, <a href="/src/verifier/ZkVerifier.sol/interface.IZkVerifier.html">IZkVerifier</a></p>
-<p><strong>Title:</strong>
-Zero-knowledge verifier wrapper</p>
-<p><strong>Author:</strong>
-Malda Protocol</p>
-<p>Ownable wrapper around the Risc0 verifier with configurable imageId</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="verifier"><a class="header" href="#verifier">verifier</a></h3>
-<p>Current Risc0 verifier contract</p>
 <pre><code class="language-solidity">IRiscZeroVerifier public verifier
 </code></pre>
 <h3 id="imageid"><a class="header" href="#imageid">imageId</a></h3>
-<p>Current Risc0 image identifier</p>
 <pre><code class="language-solidity">bytes32 public imageId
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<p>Initializes the verifier wrapper</p>
-<pre><code class="language-solidity">constructor(address owner_, bytes32 _imageId, address _verifier) Ownable(owner_);
+<pre><code class="language-solidity">constructor(address _owner, bytes32 _imageId, address _verifier) Ownable(_owner);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>owner_</code></td><td><code>address</code></td><td>Contract owner</td></tr>
-<tr><td><code>_imageId</code></td><td><code>bytes32</code></td><td>Risc0 image identifier</td></tr>
-<tr><td><code>_verifier</code></td><td><code>address</code></td><td>Risc0 verifier contract address</td></tr>
-</tbody></table>
-</div>
 <h3 id="setverifier"><a class="header" href="#setverifier">setVerifier</a></h3>
 <p>Sets the _risc0Verifier address</p>
 <p>Admin check is needed on the external method</p>
@@ -240,39 +225,18 @@ Malda Protocol</p>
 </tbody></table>
 </div>
 <h3 id="_checkaddresses"><a class="header" href="#_checkaddresses">_checkAddresses</a></h3>
-<p>Ensures verifier is configured</p>
 <pre><code class="language-solidity">function _checkAddresses() private view;
 </code></pre>
 <h3 id="__verify"><a class="header" href="#__verify">__verify</a></h3>
-<p>Internal verification against the configured image</p>
 <pre><code class="language-solidity">function __verify(bytes calldata journalEntry, bytes calldata seal) private view;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>journalEntry</code></td><td><code>bytes</code></td><td>the Risc0 journal entry</td></tr>
-<tr><td><code>seal</code></td><td><code>bytes</code></td><td>the Risc0 seal</td></tr>
-</tbody></table>
-</div>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="imageset"><a class="header" href="#imageset">ImageSet</a></h3>
-<p>Emitted when the imageId is updated</p>
 <pre><code class="language-solidity">event ImageSet(bytes32 _imageId);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_imageId</code></td><td><code>bytes32</code></td><td>New image identifier</td></tr>
-</tbody></table>
-</div>
 <h3 id="verifierset"><a class="header" href="#verifierset">VerifierSet</a></h3>
-<p>Emitted when the verifier contract address is updated</p>
 <pre><code class="language-solidity">event VerifierSet(address indexed oldVerifier, address indexed newVerifier);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>oldVerifier</code></td><td><code>address</code></td><td>Previous verifier address</td></tr>
-<tr><td><code>newVerifier</code></td><td><code>address</code></td><td>New verifier address</td></tr>
-</tbody></table>
-</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="zkverifier_imagenotvalid"><a class="header" href="#zkverifier_imagenotvalid">ZkVerifier_ImageNotValid</a></h3>
 <pre><code class="language-solidity">error ZkVerifier_ImageNotValid();
