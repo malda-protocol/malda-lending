@@ -16,9 +16,14 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
 
       - name: Install Dependencies
         run: forge install
+
+      - name: Clean old documentation
+        run: rm -rf docs
 
       - name: Generate Documentation
         run: forge doc
