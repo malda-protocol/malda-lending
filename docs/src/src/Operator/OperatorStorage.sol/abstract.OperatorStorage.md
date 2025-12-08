@@ -1,17 +1,49 @@
 # OperatorStorage
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\Operator\OperatorStorage.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/Operator/OperatorStorage.sol)
 
 **Inherits:**
-[IOperator](/src\interfaces\IOperator.sol\interface.IOperator.md), [IOperatorDefender](/src\interfaces\IOperator.sol\interface.IOperatorDefender.md), [ExponentialNoError](/src\utils\ExponentialNoError.sol\abstract.ExponentialNoError.md)
+[IOperator](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IOperator.sol/interface.IOperator.md), [IOperatorDefender](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IOperator.sol/interface.IOperatorDefender.md), [ExponentialNoError](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.md)
+
+**Author:**
+Merge Layers Inc.
+
+Storage contract for Operator
 
 
 ## State Variables
+### CLOSE_FACTOR_MIN_MANTISSA
+closeFactorMantissa must be strictly greater than this value
+
+
+```solidity
+uint256 internal constant CLOSE_FACTOR_MIN_MANTISSA = 0.05e18
+```
+
+
+### CLOSE_FACTOR_MAX_MANTISSA
+closeFactorMantissa must not exceed this value
+
+
+```solidity
+uint256 internal constant CLOSE_FACTOR_MAX_MANTISSA = 0.9e18
+```
+
+
+### COLLATERAL_FACTOR_MAX_MANTISSA
+No collateralFactorMantissa may exceed this value
+
+
+```solidity
+uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18
+```
+
+
 ### rolesOperator
 Roles
 
 
 ```solidity
-IRoles public rolesOperator;
+IRoles public rolesOperator
 ```
 
 
@@ -20,7 +52,7 @@ Blacklist
 
 
 ```solidity
-IBlacklister public blacklistOperator;
+IBlacklister public blacklistOperator
 ```
 
 
@@ -29,7 +61,7 @@ Oracle which gives the price of any given asset
 
 
 ```solidity
-address public oracleOperator;
+address public oracleOperator
 ```
 
 
@@ -38,16 +70,16 @@ Multiplier used to calculate the maximum repayAmount when liquidating a borrow
 
 
 ```solidity
-uint256 public closeFactorMantissa;
+uint256 public closeFactorMantissa
 ```
 
 
 ### liquidationIncentiveMantissa
-Multiplier representing the discount on collateral that a liquidator receives
+Mapping of markets to liquidation incentive mantissa
 
 
 ```solidity
-mapping(address => uint256) public liquidationIncentiveMantissa;
+mapping(address market => uint256 incentive) public liquidationIncentiveMantissa
 ```
 
 
@@ -56,18 +88,18 @@ Per-account mapping of "assets you are in", capped by maxAssets
 
 
 ```solidity
-mapping(address => address[]) public accountAssets;
+mapping(address account => address[] assets) public accountAssets
 ```
 
 
 ### markets
-Official mapping of mTokens -> Market metadata
+Mapping of mTokens to market data
 
-*Used e.g. to determine if a market is supported*
+Used e.g. to determine if a market is supported
 
 
 ```solidity
-mapping(address => IOperatorData.Market) public markets;
+mapping(address mToken => IOperatorData.Market market) public markets
 ```
 
 
@@ -76,34 +108,34 @@ A list of all markets
 
 
 ```solidity
-address[] public allMarkets;
+address[] public allMarkets
 ```
 
 
 ### borrowCaps
-Borrow caps enforced by borrowAllowed for each mToken address. Defaults to zero which corresponds to unlimited borrowing.
+Mapping of mTokens to borrow caps
 
 
 ```solidity
-mapping(address => uint256) public borrowCaps;
+mapping(address mToken => uint256 cap) public borrowCaps
 ```
 
 
 ### supplyCaps
-Supply caps enforced by supplyAllowed for each mToken address. Defaults to zero which corresponds to unlimited supplying.
+Mapping of mTokens to supply caps
 
 
 ```solidity
-mapping(address => uint256) public supplyCaps;
+mapping(address mToken => uint256 cap) public supplyCaps
 ```
 
 
-### rewardDistributor
-Reward Distributor to markets supply and borrow (including protocol token)
+### minBorrowSize
+Mapping of mTokens to minimum borrow size
 
 
 ```solidity
-address public rewardDistributor;
+mapping(address mToken => uint256 size) public minBorrowSize
 ```
 
 
@@ -112,7 +144,7 @@ Should return outflow limit
 
 
 ```solidity
-uint256 public limitPerTimePeriod;
+uint256 public limitPerTimePeriod
 ```
 
 
@@ -121,7 +153,7 @@ Should return outflow volume
 
 
 ```solidity
-uint256 public cumulativeOutflowVolume;
+uint256 public cumulativeOutflowVolume
 ```
 
 
@@ -130,7 +162,7 @@ Should return last reset time for outflow check
 
 
 ```solidity
-uint256 public lastOutflowResetTimestamp;
+uint256 public lastOutflowResetTimestamp
 ```
 
 
@@ -139,51 +171,41 @@ Should return the outflow volume time window
 
 
 ```solidity
-uint256 public outflowResetTimeWindow;
+uint256 public outflowResetTimeWindow
 ```
 
 
 ### userWhitelisted
-Returns true/false for user
+Mapping of users to whitelist status
 
 
 ```solidity
-mapping(address => bool) public userWhitelisted;
+mapping(address user => bool whitelisted) public userWhitelisted
 ```
 
 
 ### whitelistEnabled
+Whether whitelist is enabled
+
 
 ```solidity
-bool public whitelistEnabled;
+bool public whitelistEnabled
 ```
 
 
 ### _paused
+Mapping of mTokens to operation types to pause status
+
 
 ```solidity
-mapping(address => mapping(ImTokenOperationTypes.OperationType => bool)) internal _paused;
+mapping(address mToken => mapping(ImTokenOperationTypes.OperationType actionType => bool paused)) internal _paused
 ```
 
 
-### CLOSE_FACTOR_MIN_MANTISSA
+### __gap
 
 ```solidity
-uint256 internal constant CLOSE_FACTOR_MIN_MANTISSA = 0.05e18;
-```
-
-
-### CLOSE_FACTOR_MAX_MANTISSA
-
-```solidity
-uint256 internal constant CLOSE_FACTOR_MAX_MANTISSA = 0.9e18;
-```
-
-
-### COLLATERAL_FACTOR_MAX_MANTISSA
-
-```solidity
-uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18;
+uint256[50] private __gap
 ```
 
 
@@ -196,13 +218,24 @@ Emitted when user whitelist status is changed
 event UserWhitelisted(address indexed user, bool state);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`user`|`address`|Address of the user|
+|`state`|`bool`|Whitelist state|
+
 ### WhitelistEnabled
+Emitted when whitelist is enabled
+
 
 ```solidity
 event WhitelistEnabled();
 ```
 
 ### WhitelistDisabled
+Emitted when whitelist is disabled
+
 
 ```solidity
 event WhitelistDisabled();
@@ -216,13 +249,13 @@ Emitted when pause status is changed
 event ActionPaused(address indexed mToken, ImTokenOperationTypes.OperationType _type, bool state);
 ```
 
-### NewRewardDistributor
-Emitted when reward distributor is changed
+**Parameters**
 
-
-```solidity
-event NewRewardDistributor(address indexed oldRewardDistributor, address indexed newRewardDistributor);
-```
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|Market address|
+|`_type`|`ImTokenOperationTypes.OperationType`|Operation type paused|
+|`state`|`bool`|New pause state|
 
 ### NewBorrowCap
 Emitted when borrow cap for a mToken is changed
@@ -232,6 +265,13 @@ Emitted when borrow cap for a mToken is changed
 event NewBorrowCap(address indexed mToken, uint256 newBorrowCap);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|Market address|
+|`newBorrowCap`|`uint256`|New borrow cap|
+
 ### NewSupplyCap
 Emitted when supply cap for a mToken is changed
 
@@ -239,6 +279,13 @@ Emitted when supply cap for a mToken is changed
 ```solidity
 event NewSupplyCap(address indexed mToken, uint256 newBorrowCap);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|Market address|
+|`newBorrowCap`|`uint256`|New supply cap|
 
 ### MarketListed
 Emitted when an admin supports a market
@@ -248,6 +295,12 @@ Emitted when an admin supports a market
 event MarketListed(address mToken);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|Market listed|
+
 ### MarketEntered
 Emitted when an account enters a market
 
@@ -255,6 +308,13 @@ Emitted when an account enters a market
 ```solidity
 event MarketEntered(address indexed mToken, address indexed account);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|Market entered|
+|`account`|`address`|Account entering|
 
 ### MarketExited
 Emitted when an account exits a market
@@ -264,13 +324,27 @@ Emitted when an account exits a market
 event MarketExited(address indexed mToken, address indexed account);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|Market exited|
+|`account`|`address`|Account exiting|
+
 ### NewCloseFactor
-Emitted Emitted when close factor is changed by admin
+Emitted when close factor is changed by admin
 
 
 ```solidity
 event NewCloseFactor(uint256 oldCloseFactorMantissa, uint256 newCloseFactorMantissa);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`oldCloseFactorMantissa`|`uint256`|Previous close factor|
+|`newCloseFactorMantissa`|`uint256`|New close factor|
 
 ### NewCollateralFactor
 Emitted when a collateral factor is changed by admin
@@ -282,6 +356,14 @@ event NewCollateralFactor(
 );
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|Market address|
+|`oldCollateralFactorMantissa`|`uint256`|Previous collateral factor|
+|`newCollateralFactorMantissa`|`uint256`|New collateral factor|
+
 ### NewLiquidationIncentive
 Emitted when liquidation incentive is changed by admin
 
@@ -292,6 +374,14 @@ event NewLiquidationIncentive(
 );
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`market`|`address`|Market address|
+|`oldLiquidationIncentiveMantissa`|`uint256`|Previous incentive|
+|`newLiquidationIncentiveMantissa`|`uint256`|New incentive|
+
 ### NewPriceOracle
 Emitted when price oracle is changed
 
@@ -299,6 +389,13 @@ Emitted when price oracle is changed
 ```solidity
 event NewPriceOracle(address indexed oldPriceOracle, address indexed newPriceOracle);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`oldPriceOracle`|`address`|Previous price oracle|
+|`newPriceOracle`|`address`|New price oracle|
 
 ### NewRolesOperator
 Event emitted when rolesOperator is changed
@@ -308,6 +405,13 @@ Event emitted when rolesOperator is changed
 event NewRolesOperator(address indexed oldRoles, address indexed newRoles);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`oldRoles`|`address`|Previous roles operator|
+|`newRoles`|`address`|New roles operator|
+
 ### OutflowLimitUpdated
 Event emitted when outflow limit is updated
 
@@ -315,6 +419,14 @@ Event emitted when outflow limit is updated
 ```solidity
 event OutflowLimitUpdated(address indexed sender, uint256 oldLimit, uint256 newLimit);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`sender`|`address`|Caller updating limit|
+|`oldLimit`|`uint256`|Previous limit|
+|`newLimit`|`uint256`|New limit|
 
 ### OutflowTimeWindowUpdated
 Event emitted when outflow reset time window is updated
@@ -324,6 +436,13 @@ Event emitted when outflow reset time window is updated
 event OutflowTimeWindowUpdated(uint256 oldWindow, uint256 newWindow);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`oldWindow`|`uint256`|Previous window|
+|`newWindow`|`uint256`|New window|
+
 ### OutflowVolumeReset
 Event emitted when outflow volume has been reset
 
@@ -332,158 +451,225 @@ Event emitted when outflow volume has been reset
 event OutflowVolumeReset();
 ```
 
+### MinBorrowSizeSet
+Event emitted when min borrow size set for markets
+
+
+```solidity
+event MinBorrowSizeSet(address[] markets, uint256[] amounts);
+```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`markets`|`address[]`|Markets being updated|
+|`amounts`|`uint256[]`|Borrow size amounts|
+
 ## Errors
 ### Operator_Paused
+Error when action is paused
+
 
 ```solidity
 error Operator_Paused();
 ```
 
 ### Operator_Mismatch
+Error when data mismatch occurs
+
 
 ```solidity
 error Operator_Mismatch();
 ```
 
 ### Operator_OnlyAdmin
+Error when caller is not admin
+
 
 ```solidity
 error Operator_OnlyAdmin();
 ```
 
 ### Operator_EmptyPrice
+Error when oracle price is empty
+
 
 ```solidity
 error Operator_EmptyPrice();
 ```
 
 ### Operator_WrongMarket
+Error when wrong market is referenced
+
 
 ```solidity
 error Operator_WrongMarket();
 ```
 
 ### Operator_InvalidInput
+Error when input is invalid
+
 
 ```solidity
 error Operator_InvalidInput();
 ```
 
 ### Operator_AssetNotFound
+Error when asset is not found
+
 
 ```solidity
 error Operator_AssetNotFound();
 ```
 
 ### Operator_RepayingTooMuch
+Error when repay amount exceeds allowed
+
 
 ```solidity
 error Operator_RepayingTooMuch();
 ```
 
 ### Operator_OnlyAdminOrRole
+Error when caller lacks admin or role permissions
+
 
 ```solidity
 error Operator_OnlyAdminOrRole();
 ```
 
 ### Operator_MarketNotListed
+Error when market is not listed
+
 
 ```solidity
 error Operator_MarketNotListed();
 ```
 
 ### Operator_UserBlacklisted
+Error when user is blacklisted
+
 
 ```solidity
 error Operator_UserBlacklisted();
 ```
 
 ### Operator_PriceFetchFailed
+Error when price fetch fails
+
 
 ```solidity
 error Operator_PriceFetchFailed();
 ```
 
 ### Operator_SenderMustBeToken
+Error when sender must be token
+
 
 ```solidity
 error Operator_SenderMustBeToken();
 ```
 
 ### Operator_UserNotWhitelisted
+Error when user is not whitelisted
+
 
 ```solidity
 error Operator_UserNotWhitelisted();
 ```
 
 ### Operator_MarketSupplyReached
+Error when market supply cap reached
+
 
 ```solidity
 error Operator_MarketSupplyReached();
 ```
 
 ### Operator_RepayAmountNotValid
+Error when repay amount invalid
+
 
 ```solidity
 error Operator_RepayAmountNotValid();
 ```
 
 ### Operator_MarketAlreadyListed
+Error when market already listed
+
 
 ```solidity
 error Operator_MarketAlreadyListed();
 ```
 
 ### Operator_OutflowVolumeReached
+Error when outflow volume reached
+
 
 ```solidity
 error Operator_OutflowVolumeReached();
 ```
 
 ### Operator_InvalidRolesOperator
+Error when roles operator invalid
+
 
 ```solidity
 error Operator_InvalidRolesOperator();
 ```
 
 ### Operator_InsufficientLiquidity
+Error when insufficient liquidity
+
 
 ```solidity
 error Operator_InsufficientLiquidity();
 ```
 
+### Operator_MarketBorrowSizeNotMet
+Error when borrow size not met
+
+
+```solidity
+error Operator_MarketBorrowSizeNotMet();
+```
+
 ### Operator_MarketBorrowCapReached
+Error when borrow cap reached
+
 
 ```solidity
 error Operator_MarketBorrowCapReached();
 ```
 
 ### Operator_InvalidCollateralFactor
+Error when collateral factor invalid
+
 
 ```solidity
 error Operator_InvalidCollateralFactor();
 ```
 
 ### Operator_InvalidBlacklistOperator
+Error when blacklist operator invalid
+
 
 ```solidity
 error Operator_InvalidBlacklistOperator();
 ```
 
-### Operator_InvalidRewardDistributor
-
-```solidity
-error Operator_InvalidRewardDistributor();
-```
-
 ### Operator_OracleUnderlyingFetchError
+Error when oracle underlying fetch fails
+
 
 ```solidity
 error Operator_OracleUnderlyingFetchError();
 ```
 
 ### Operator_Deactivate_MarketBalanceOwed
+Error when market has balance owed during deactivation
+
 
 ```solidity
 error Operator_Deactivate_MarketBalanceOwed();
@@ -491,19 +677,22 @@ error Operator_Deactivate_MarketBalanceOwed();
 
 ## Structs
 ### AccountLiquidityLocalVars
-*Local vars for avoiding stack-depth limits in calculating account liquidity.
-Note that `mTokenBalance` is the number of mTokens the account owns in the market,
-whereas `borrowBalance` is the amount of underlying that the account has borrowed.*
+Local vars for avoiding stack-depth limits in calculating account liquidity.
 
 
 ```solidity
 struct AccountLiquidityLocalVars {
     uint256 sumCollateral;
     uint256 sumBorrowPlusEffects;
+    /// @notice Number of mTokens the account owns in the market
     uint256 mTokenBalance;
+    /// @notice Amount of underlying that the account has borrowed
     uint256 borrowBalance;
     uint256 exchangeRateMantissa;
     uint256 oraclePriceMantissa;
+    uint256 collateralFactorMantissa;
+    uint256 liquidationIncentiveMantissa;
+    uint256 borrowLimitMantissa;
     Exp collateralFactor;
     Exp exchangeRate;
     Exp oraclePrice;

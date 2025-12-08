@@ -1,25 +1,40 @@
 # DefaultGasHelper
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\oracles\gas\DefaultGasHelper.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/oracles/gas/DefaultGasHelper.sol)
 
 **Inherits:**
 Ownable
 
+**Author:**
+Merge Layers Inc.
+
+Helper contract for managing gas fees
+
 
 ## State Variables
 ### gasFees
+Mapping of chain IDs to gas fees
+
 
 ```solidity
-mapping(uint32 => uint256) public gasFees;
+mapping(uint32 chainId => uint256 fee) public gasFees
 ```
 
 
 ## Functions
 ### constructor
 
+Constructor
+
 
 ```solidity
-constructor(address _owner) Ownable(_owner);
+constructor(address owner_) Ownable(owner_);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`owner_`|`address`|The owner address|
+
 
 ### setGasFee
 
@@ -33,14 +48,23 @@ function setGasFee(uint32 dstChainId, uint256 amount) external onlyOwner;
 
 |Name|Type|Description|
 |----|----|-----------|
-|`dstChainId`|`uint32`|the destination chain id|
-|`amount`|`uint256`|the gas fee amount|
+|`dstChainId`|`uint32`|The destination chain id|
+|`amount`|`uint256`|The gas fee amount|
 
 
 ## Events
 ### GasFeeUpdated
+Event emitted when gas fee is updated
+
 
 ```solidity
-event GasFeeUpdated(uint32 indexed dstChainid, uint256 amount);
+event GasFeeUpdated(uint32 indexed dstChainId, uint256 amount);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`dstChainId`|`uint32`|The destination chain ID|
+|`amount`|`uint256`|The gas fee amount|
 

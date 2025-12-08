@@ -1,4 +1,4 @@
 
 
 # Contents
-- [mTokenGateway](mTokenGateway.sol\contract.mTokenGateway.md)
+- [mTokenGateway](mTokenGateway.sol/contract.mTokenGateway.md)

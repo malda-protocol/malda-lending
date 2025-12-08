@@ -1,4 +1,4 @@
 
 
 # Contents
-- [ReferralSigning](ReferralSigning.sol\contract.ReferralSigning.md)
+- [ReferralSigning](ReferralSigning.sol/contract.ReferralSigning.md)

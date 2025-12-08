@@ -1,5 +1,8 @@
 # IInterestRateModel
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\interfaces\IInterestRateModel.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/interfaces/IInterestRateModel.sol)
+
+**Author:**
+Merge Layers Inc.
 
 Interface for the interest rate contracts
 
@@ -13,6 +16,12 @@ Should return true
 ```solidity
 function isInterestRateModel() external view returns (bool);
 ```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`bool`|isModel True when contract implements interest rate model|
+
 
 ### blocksPerYear
 
@@ -104,29 +113,6 @@ function name() external view returns (string memory);
 |`<none>`|`string`|The name of the interest rate model|
 
 
-### utilizationRate
-
-Calculates the utilization rate of the market
-
-
-```solidity
-function utilizationRate(uint256 cash, uint256 borrows, uint256 reserves) external pure returns (uint256);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`cash`|`uint256`|The total cash in the market|
-|`borrows`|`uint256`|The total borrows in the market|
-|`reserves`|`uint256`|The total reserves in the market|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|The utilization rate as a mantissa between [0, 1e18]|
-
-
 ### getBorrowRate
 
 Returns the current borrow rate per block for the market
@@ -177,6 +163,29 @@ function getSupplyRate(uint256 cash, uint256 borrows, uint256 reserves, uint256 
 |`<none>`|`uint256`|The current supply rate per block, scaled by 1e18|
 
 
+### utilizationRate
+
+Calculates the utilization rate of the market
+
+
+```solidity
+function utilizationRate(uint256 cash, uint256 borrows, uint256 reserves) external pure returns (uint256);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`cash`|`uint256`|The total cash in the market|
+|`borrows`|`uint256`|The total borrows in the market|
+|`reserves`|`uint256`|The total reserves in the market|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|The utilization rate as a mantissa between [0, 1e18]|
+
+
 ## Events
 ### NewInterestParams
 Emitted when interest rate parameters are updated
@@ -196,4 +205,18 @@ event NewInterestParams(
 |`multiplierPerBlock`|`uint256`|The multiplier per block for the interest rate slope|
 |`jumpMultiplierPerBlock`|`uint256`|The multiplier after hitting the kink|
 |`kink`|`uint256`|The utilization point where the jump multiplier is applied|
+
+### BlocksPerYearUpdated
+Emitted when blocks per year is updated
+
+
+```solidity
+event BlocksPerYearUpdated(uint256 blocksPerYear);
+```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`blocksPerYear`|`uint256`|The new blocks per year value|
 

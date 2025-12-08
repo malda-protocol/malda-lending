@@ -1,4 +1,4 @@
 
 
 # Contents
-- [Blacklister](Blacklister.sol\contract.Blacklister.md)
+- [Blacklister](Blacklister.sol/contract.Blacklister.md)

@@ -1,38 +1,57 @@
 # ZkVerifier
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\verifier\ZkVerifier.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/verifier/ZkVerifier.sol)
 
 **Inherits:**
-Ownable, [IZkVerifier](/src\verifier\ZkVerifier.sol\interface.IZkVerifier.md)
+Ownable, [IZkVerifier](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/verifier/ZkVerifier.sol/interface.IZkVerifier.md)
+
+**Author:**
+Malda Protocol
+
+Ownable wrapper around the Risc0 verifier with configurable imageId
 
 
 ## State Variables
 ### verifier
+Current Risc0 verifier contract
+
 
 ```solidity
-IRiscZeroVerifier public verifier;
+IRiscZeroVerifier public verifier
 ```
 
 
 ### imageId
+Current Risc0 image identifier
+
 
 ```solidity
-bytes32 public imageId;
+bytes32 public imageId
 ```
 
 
 ## Functions
 ### constructor
 
+Initializes the verifier wrapper
+
 
 ```solidity
-constructor(address _owner, bytes32 _imageId, address _verifier) Ownable(_owner);
+constructor(address owner_, bytes32 _imageId, address _verifier) Ownable(owner_);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`owner_`|`address`|Contract owner|
+|`_imageId`|`bytes32`|Risc0 image identifier|
+|`_verifier`|`address`|Risc0 verifier contract address|
+
 
 ### setVerifier
 
 Sets the _risc0Verifier address
 
-*Admin check is needed on the external method*
+Admin check is needed on the external method
 
 
 ```solidity
@@ -49,7 +68,7 @@ function setVerifier(address _risc0Verifier) external onlyOwner;
 
 Sets the image id
 
-*Admin check is needed on the external method*
+Admin check is needed on the external method
 
 
 ```solidity
@@ -80,6 +99,8 @@ function verifyInput(bytes calldata journalEntry, bytes calldata seal) external 
 
 ### _checkAddresses
 
+Ensures verifier is configured
+
 
 ```solidity
 function _checkAddresses() private view;
@@ -87,23 +108,49 @@ function _checkAddresses() private view;
 
 ### __verify
 
+Internal verification against the configured image
+
 
 ```solidity
 function __verify(bytes calldata journalEntry, bytes calldata seal) private view;
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`journalEntry`|`bytes`|the Risc0 journal entry|
+|`seal`|`bytes`|the Risc0 seal|
+
 
 ## Events
 ### ImageSet
+Emitted when the imageId is updated
+
 
 ```solidity
 event ImageSet(bytes32 _imageId);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_imageId`|`bytes32`|New image identifier|
+
 ### VerifierSet
+Emitted when the verifier contract address is updated
+
 
 ```solidity
 event VerifierSet(address indexed oldVerifier, address indexed newVerifier);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`oldVerifier`|`address`|Previous verifier address|
+|`newVerifier`|`address`|New verifier address|
 
 ## Errors
 ### ZkVerifier_ImageNotValid

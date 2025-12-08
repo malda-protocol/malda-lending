@@ -1,5 +1,10 @@
 # IOperator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\interfaces\IOperator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/interfaces/IOperator.sol)
+
+**Author:**
+Merge Layers Inc.
+
+Core Operator contract surface
 
 
 ## Functions
@@ -11,15 +16,18 @@ Returns true/false for user
 ```solidity
 function userWhitelisted(address _user) external view returns (bool);
 ```
+**Parameters**
 
-### isOperator
+|Name|Type|Description|
+|----|----|-----------|
+|`_user`|`address`|Address to check|
 
-Should return true
+**Returns**
 
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`bool`|whitelisted True if user is whitelisted|
 
-```solidity
-function isOperator() external view returns (bool);
-```
 
 ### limitPerTimePeriod
 
@@ -29,6 +37,12 @@ Should return outflow limit
 ```solidity
 function limitPerTimePeriod() external view returns (uint256);
 ```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|limit Outflow limit per period|
+
 
 ### cumulativeOutflowVolume
 
@@ -38,6 +52,12 @@ Should return outflow volume
 ```solidity
 function cumulativeOutflowVolume() external view returns (uint256);
 ```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|volume Current outflow volume|
+
 
 ### lastOutflowResetTimestamp
 
@@ -47,6 +67,12 @@ Should return last reset time for outflow check
 ```solidity
 function lastOutflowResetTimestamp() external view returns (uint256);
 ```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|lastReset Timestamp of last reset|
+
 
 ### outflowResetTimeWindow
 
@@ -56,6 +82,12 @@ Should return the outflow volume time window
 ```solidity
 function outflowResetTimeWindow() external view returns (uint256);
 ```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|window Outflow window|
+
 
 ### isPaused
 
@@ -72,6 +104,12 @@ function isPaused(address mToken, ImTokenOperationTypes.OperationType _type) ext
 |`mToken`|`address`|The mToken to check|
 |`_type`|`ImTokenOperationTypes.OperationType`|the operation type|
 
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`bool`|paused True if paused|
+
 
 ### rolesOperator
 
@@ -81,6 +119,12 @@ Roles
 ```solidity
 function rolesOperator() external view returns (IRoles);
 ```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`IRoles`|roles Roles contract|
+
 
 ### blacklistOperator
 
@@ -90,6 +134,12 @@ Blacklist
 ```solidity
 function blacklistOperator() external view returns (IBlacklister);
 ```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`IBlacklister`|blacklister Blacklist operator|
+
 
 ### oracleOperator
 
@@ -99,6 +149,12 @@ Oracle which gives the price of any given asset
 ```solidity
 function oracleOperator() external view returns (address);
 ```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`address`|oracle Oracle address|
+
 
 ### closeFactorMantissa
 
@@ -108,6 +164,12 @@ Multiplier used to calculate the maximum repayAmount when liquidating a borrow
 ```solidity
 function closeFactorMantissa() external view returns (uint256);
 ```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|closeFactor Close factor mantissa|
+
 
 ### liquidationIncentiveMantissa
 
@@ -117,6 +179,18 @@ Multiplier representing the discount on collateral that a liquidator receives
 ```solidity
 function liquidationIncentiveMantissa(address market) external view returns (uint256);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`market`|`address`|Market address|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|incentive Discount mantissa|
+
 
 ### isMarketListed
 
@@ -126,6 +200,18 @@ Returns true/false
 ```solidity
 function isMarketListed(address market) external view returns (bool);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`market`|`address`|Market address|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`bool`|listed True if market is listed|
+
 
 ### getAssetsIn
 
@@ -156,33 +242,78 @@ A list of all markets
 ```solidity
 function getAllMarkets() external view returns (address[] memory mTokens);
 ```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mTokens`|`address[]`|List of markets|
+
 
 ### borrowCaps
 
-Borrow caps enforced by borrowAllowed for each mToken address. Defaults to zero which corresponds to unlimited borrowing.
+Borrow caps enforced by borrowAllowed for each mToken address.
+Defaults to zero which corresponds to unlimited borrowing.
 
 
 ```solidity
 function borrowCaps(address _mToken) external view returns (uint256);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_mToken`|`address`|Market address|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|cap Borrow cap|
+
 
 ### supplyCaps
 
-Supply caps enforced by supplyAllowed for each mToken address. Defaults to zero which corresponds to unlimited supplying.
+Supply caps enforced by supplyAllowed for each mToken address.
+Defaults to zero which corresponds to unlimited supplying.
 
 
 ```solidity
 function supplyCaps(address _mToken) external view returns (uint256);
 ```
+**Parameters**
 
-### rewardDistributor
+|Name|Type|Description|
+|----|----|-----------|
+|`_mToken`|`address`|Market address|
 
-Reward Distributor to markets supply and borrow (including protocol token)
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|cap Supply cap|
+
+
+### minBorrowSize
+
+Supply caps enforced by supplyAllowed for each mToken address.
+Defaults to zero which corresponds to unlimited supplying.
 
 
 ```solidity
-function rewardDistributor() external view returns (address);
+function minBorrowSize(address _mToken) external view returns (uint256);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_mToken`|`address`|Market address|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|minimum Minimum borrow size|
+
 
 ### checkMembership
 
@@ -206,22 +337,6 @@ function checkMembership(address account, address mToken) external view returns 
 |`<none>`|`bool`|True if the account is in the asset, otherwise false.|
 
 
-### getAccountLiquidity
-
-Determine the current account liquidity wrt collateral requirements
-
-
-```solidity
-function getAccountLiquidity(address account) external view returns (uint256, uint256);
-```
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|account liquidity in excess of collateral requirements, account shortfall below collateral requirements)|
-|`<none>`|`uint256`||
-
-
 ### getHypotheticalAccountLiquidity
 
 Determine what the account liquidity would be if the given amounts were redeemed/borrowed
@@ -233,7 +348,7 @@ function getHypotheticalAccountLiquidity(
     address mTokenModify,
     uint256 redeemTokens,
     uint256 borrowAmount
-) external view returns (uint256, uint256);
+) external view returns (uint256 liquidity, uint256 shortfall);
 ```
 **Parameters**
 
@@ -248,8 +363,8 @@ function getHypotheticalAccountLiquidity(
 
 |Name|Type|Description|
 |----|----|-----------|
-|`<none>`|`uint256`|hypothetical account liquidity in excess of collateral requirements, hypothetical account shortfall below collateral requirements)|
-|`<none>`|`uint256`||
+|`liquidity`|`uint256`|Account liquidity in excess of collateral requirements|
+|`shortfall`|`uint256`|Account shortfall below collateral requirements|
 
 
 ### getUSDValueForAllMarkets
@@ -260,40 +375,18 @@ Returns USD value for all markets
 ```solidity
 function getUSDValueForAllMarkets() external view returns (uint256);
 ```
-
-### liquidateCalculateSeizeTokens
-
-Calculate number of tokens of collateral asset to seize given an underlying amount
-
-*Used in liquidation (called in mTokenBorrowed.liquidate)*
-
-
-```solidity
-function liquidateCalculateSeizeTokens(address mTokenBorrowed, address mTokenCollateral, uint256 actualRepayAmount)
-    external
-    view
-    returns (uint256);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`mTokenBorrowed`|`address`|The address of the borrowed mToken|
-|`mTokenCollateral`|`address`|The address of the collateral mToken|
-|`actualRepayAmount`|`uint256`|The amount of mTokenBorrowed underlying to convert into mTokenCollateral tokens|
-
 **Returns**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`<none>`|`uint256`|number of mTokenCollateral tokens to be seized in a liquidation|
+|`<none>`|`uint256`|usdValue Total USD value|
 
 
 ### isDeprecated
 
 Returns true if the given mToken market has been deprecated
 
-*All borrows in a deprecated mToken market can be immediately liquidated*
+All borrows in a deprecated mToken market can be immediately liquidated
 
 
 ```solidity
@@ -304,6 +397,12 @@ function isDeprecated(address mToken) external view returns (bool);
 |Name|Type|Description|
 |----|----|-----------|
 |`mToken`|`address`|The market to check if deprecated|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`bool`|deprecated True if deprecated|
 
 
 ### setPaused
@@ -357,8 +456,8 @@ function enterMarketsWithSender(address _account) external;
 
 Removes asset from sender's account liquidity calculation
 
-*Sender must not have an outstanding borrow balance in the asset,
-or be providing necessary collateral for an outstanding borrow.*
+Sender must not have an outstanding borrow balance in the asset,
+or be providing necessary collateral for an outstanding borrow.
 
 
 ```solidity
@@ -369,54 +468,5 @@ function exitMarket(address _mToken) external;
 |Name|Type|Description|
 |----|----|-----------|
 |`_mToken`|`address`|The address of the asset to be removed|
-
-
-### claimMalda
-
-Claim all the MALDA accrued by holder in all markets
-
-
-```solidity
-function claimMalda(address holder) external;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`holder`|`address`|The address to claim MALDA for|
-
-
-### claimMalda
-
-Claim all the MALDA accrued by holder in the specified markets
-
-
-```solidity
-function claimMalda(address holder, address[] memory mTokens) external;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`holder`|`address`|The address to claim MALDA for|
-|`mTokens`|`address[]`|The list of markets to claim MALDA in|
-
-
-### claimMalda
-
-Claim all MALDA accrued by the holders
-
-
-```solidity
-function claimMalda(address[] memory holders, address[] memory mTokens, bool borrowers, bool suppliers) external;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`holders`|`address[]`|The addresses to claim MALDA for|
-|`mTokens`|`address[]`|The list of markets to claim MALDA in|
-|`borrowers`|`bool`|Whether or not to claim MALDA earned by borrowing|
-|`suppliers`|`bool`|Whether or not to claim MALDA earned by supplying|
 
 

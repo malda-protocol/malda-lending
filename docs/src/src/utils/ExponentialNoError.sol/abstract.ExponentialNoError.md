@@ -1,5 +1,5 @@
 # ExponentialNoError
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\utils\ExponentialNoError.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/utils/ExponentialNoError.sol)
 
 **Author:**
 Compound
@@ -10,39 +10,39 @@ Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
 
 
 ## State Variables
-### expScale
+### EXP_SCALE
 
 ```solidity
-uint256 constant expScale = 1e18;
+uint256 internal constant EXP_SCALE = 1e18
 ```
 
 
-### doubleScale
+### DOUBLE_SCALE
 
 ```solidity
-uint256 constant doubleScale = 1e36;
+uint256 internal constant DOUBLE_SCALE = 1e36
 ```
 
 
-### halfExpScale
+### HALF_EXP_SCALE
 
 ```solidity
-uint256 constant halfExpScale = expScale / 2;
+uint256 internal constant HALF_EXP_SCALE = EXP_SCALE / 2
 ```
 
 
-### mantissaOne
+### MANTISSA_ONE
 
 ```solidity
-uint256 constant mantissaOne = expScale;
+uint256 internal constant MANTISSA_ONE = EXP_SCALE
 ```
 
 
 ## Functions
 ### truncate
 
-*Truncates the given exp to a whole number value.
-For example, truncate(Exp{mantissa: 15 * expScale}) = 15*
+Truncates the given exp to a whole number value.
+For example, truncate(Exp{mantissa: 15 * EXP_SCALE}) = 15
 
 
 ```solidity
@@ -51,7 +51,7 @@ function truncate(Exp memory exp) internal pure returns (uint256);
 
 ### mul_ScalarTruncate
 
-*Multiply an Exp by a scalar, then truncate to return an unsigned integer.*
+Multiply an Exp by a scalar, then truncate to return an unsigned integer.
 
 
 ```solidity
@@ -60,7 +60,7 @@ function mul_ScalarTruncate(Exp memory a, uint256 scalar) internal pure returns 
 
 ### mul_ScalarTruncateAddUInt
 
-*Multiply an Exp by a scalar, truncate, then add an to an unsigned integer, returning an unsigned integer.*
+Multiply an Exp by a scalar, truncate, then add an to an unsigned integer, returning an unsigned integer.
 
 
 ```solidity
@@ -69,7 +69,7 @@ function mul_ScalarTruncateAddUInt(Exp memory a, uint256 scalar, uint256 addend)
 
 ### lessThanExp
 
-*Checks if first Exp is less than second Exp.*
+Checks if first Exp is less than second Exp.
 
 
 ```solidity
@@ -78,7 +78,7 @@ function lessThanExp(Exp memory left, Exp memory right) internal pure returns (b
 
 ### lessThanOrEqualExp
 
-*Checks if left Exp <= right Exp.*
+Checks if left Exp <= right Exp.
 
 
 ```solidity
@@ -87,7 +87,7 @@ function lessThanOrEqualExp(Exp memory left, Exp memory right) internal pure ret
 
 ### greaterThanExp
 
-*Checks if left Exp > right Exp.*
+Checks if left Exp > right Exp.
 
 
 ```solidity
@@ -96,7 +96,7 @@ function greaterThanExp(Exp memory left, Exp memory right) internal pure returns
 
 ### isZeroExp
 
-*returns true if Exp is exactly zero*
+returns true if Exp is exactly zero
 
 
 ```solidity
@@ -255,6 +255,20 @@ function div_(uint256 a, Double memory b) internal pure returns (uint256);
 
 ```solidity
 function div_(uint256 a, uint256 b) internal pure returns (uint256);
+```
+
+### divUp_
+
+
+```solidity
+function divUp_(uint256 a, uint256 b) internal pure returns (uint256);
+```
+
+### divUp_
+
+
+```solidity
+function divUp_(uint256 a, Exp memory b) internal pure returns (uint256);
 ```
 
 ### fraction

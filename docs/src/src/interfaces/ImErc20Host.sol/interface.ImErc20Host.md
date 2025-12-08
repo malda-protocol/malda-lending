@@ -1,17 +1,13 @@
 # ImErc20Host
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\interfaces\ImErc20Host.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/interfaces/ImErc20Host.sol)
+
+**Author:**
+Merge Layers Inc.
+
+Interface for host-side mERC20 cross-chain operations
 
 
 ## Functions
-### getProofData
-
-Returns the proof data journal
-
-
-```solidity
-function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
-```
-
 ### mintOrBorrowMigration
 
 Mints mTokens during migration without requiring underlying transfer
@@ -155,6 +151,29 @@ function performExtensionCall(uint256 actionType, uint256 amount, uint32 dstChai
 |`dstChainId`|`uint32`|The destination chain to recieve funds|
 
 
+### getProofData
+
+Returns the proof data journal
+
+
+```solidity
+function getProofData(address user, uint32 dstId) external view returns (uint256 dataRoot, uint256 journalHash);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`user`|`address`|The user address for the proof|
+|`dstId`|`uint32`|The destination chain identifier|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`dataRoot`|`uint256`|The proof data root|
+|`journalHash`|`uint256`|The proof journal hash|
+
+
 ## Events
 ### AllowedCallerUpdated
 Emitted when a user updates allowed callers
@@ -164,6 +183,14 @@ Emitted when a user updates allowed callers
 event AllowedCallerUpdated(address indexed sender, address indexed caller, bool status);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`sender`|`address`|The caller updating permission|
+|`caller`|`address`|The address whose status is updated|
+|`status`|`bool`|Whether the caller is allowed|
+
 ### mErc20Host_ChainStatusUpdated
 Emitted when a chain id whitelist status is updated
 
@@ -171,6 +198,13 @@ Emitted when a chain id whitelist status is updated
 ```solidity
 event mErc20Host_ChainStatusUpdated(uint32 indexed chainId, bool status);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`chainId`|`uint32`|The chain identifier|
+|`status`|`bool`|Whether the chain is whitelisted|
 
 ### mErc20Host_LiquidateExternal
 Emitted when a liquidate operation is executed
@@ -188,6 +222,18 @@ event mErc20Host_LiquidateExternal(
 );
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`msgSender`|`address`|The caller on host chain|
+|`srcSender`|`address`|The caller on source chain|
+|`userToLiquidate`|`address`|The user being liquidated|
+|`receiver`|`address`|The receiver of seized collateral|
+|`collateral`|`address`|The collateral market|
+|`srcChainId`|`uint32`|Source chain identifier|
+|`amount`|`uint256`|The repay amount|
+
 ### mErc20Host_MintExternal
 Emitted when a mint operation is executed
 
@@ -197,6 +243,16 @@ event mErc20Host_MintExternal(
     address indexed msgSender, address indexed srcSender, address indexed receiver, uint32 chainId, uint256 amount
 );
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`msgSender`|`address`|The caller on host chain|
+|`srcSender`|`address`|The caller on source chain|
+|`receiver`|`address`|The receiver of minted tokens|
+|`chainId`|`uint32`|Source chain identifier|
+|`amount`|`uint256`|The mint amount|
 
 ### mErc20Host_BorrowExternal
 Emitted when a borrow operation is executed
@@ -208,6 +264,15 @@ event mErc20Host_BorrowExternal(
 );
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`msgSender`|`address`|The caller on host chain|
+|`srcSender`|`address`|The caller on source chain|
+|`chainId`|`uint32`|Source chain identifier|
+|`amount`|`uint256`|The borrow amount|
+
 ### mErc20Host_RepayExternal
 Emitted when a repay operation is executed
 
@@ -217,6 +282,16 @@ event mErc20Host_RepayExternal(
     address indexed msgSender, address indexed srcSender, address indexed position, uint32 chainId, uint256 amount
 );
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`msgSender`|`address`|The caller on host chain|
+|`srcSender`|`address`|The caller on source chain|
+|`position`|`address`|The position being repaid|
+|`chainId`|`uint32`|Source chain identifier|
+|`amount`|`uint256`|The repay amount|
 
 ### mErc20Host_WithdrawExternal
 Emitted when a withdrawal is executed
@@ -228,6 +303,15 @@ event mErc20Host_WithdrawExternal(
 );
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`msgSender`|`address`|The caller on host chain|
+|`srcSender`|`address`|The caller on source chain|
+|`chainId`|`uint32`|Source chain identifier|
+|`amount`|`uint256`|The withdrawal amount|
+
 ### mErc20Host_BorrowOnExtensionChain
 Emitted when a borrow operation is triggered for an extension chain
 
@@ -235,6 +319,14 @@ Emitted when a borrow operation is triggered for an extension chain
 ```solidity
 event mErc20Host_BorrowOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`sender`|`address`|The caller initiating the borrow|
+|`dstChainId`|`uint32`|Destination chain identifier|
+|`amount`|`uint256`|The borrow amount|
 
 ### mErc20Host_WithdrawOnExtensionChain
 Emitted when a withdraw operation is triggered for an extension chain
@@ -244,6 +336,14 @@ Emitted when a withdraw operation is triggered for an extension chain
 event mErc20Host_WithdrawOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`sender`|`address`|The caller initiating the withdrawal|
+|`dstChainId`|`uint32`|Destination chain identifier|
+|`amount`|`uint256`|The withdrawal amount|
+
 ### mErc20Host_GasFeeUpdated
 Emitted when gas fees are updated for a dst chain
 
@@ -252,17 +352,56 @@ Emitted when gas fees are updated for a dst chain
 event mErc20Host_GasFeeUpdated(uint32 indexed dstChainId, uint256 amount);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`dstChainId`|`uint32`|Destination chain identifier|
+|`amount`|`uint256`|The gas fee amount|
+
 ### mErc20Host_MintMigration
+Emitted when migration mint is performed
+
 
 ```solidity
 event mErc20Host_MintMigration(address indexed receiver, uint256 amount);
 ```
 
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`receiver`|`address`|Receiver of the migrated tokens|
+|`amount`|`uint256`|Amount minted|
+
 ### mErc20Host_BorrowMigration
+Emitted when migration borrow is performed
+
 
 ```solidity
 event mErc20Host_BorrowMigration(address indexed borrower, uint256 amount);
 ```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`borrower`|`address`|Borrower receiving funds|
+|`amount`|`uint256`|Amount borrowed|
+
+### mErc20Host_MigratorUpdated
+Emitted when migrator address is updated
+
+
+```solidity
+event mErc20Host_MigratorUpdated(address indexed migrator);
+```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`migrator`|`address`|The new migrator address|
 
 ## Errors
 ### mErc20Host_ProofGenerationInputNotValid

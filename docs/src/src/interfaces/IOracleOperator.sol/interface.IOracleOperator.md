@@ -1,7 +1,10 @@
 # IOracleOperator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\interfaces\IOracleOperator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/interfaces/IOracleOperator.sol)
 
-Prices are returned in USD
+**Author:**
+Merge Layers Inc.
+
+Oracle operator interface returning USD prices
 
 
 ## Functions
@@ -23,7 +26,7 @@ function getPrice(address mToken) external view returns (uint256);
 
 |Name|Type|Description|
 |----|----|-----------|
-|`<none>`|`uint256`|The underlying asset price mantissa (scaled by 1e18). Zero means the price is unavailable.|
+|`<none>`|`uint256`|price The underlying asset price mantissa (scaled by 1e18). Zero means unavailable.|
 
 
 ### getUnderlyingPrice
@@ -44,6 +47,6 @@ function getUnderlyingPrice(address mToken) external view returns (uint256);
 
 |Name|Type|Description|
 |----|----|-----------|
-|`<none>`|`uint256`|The underlying asset price mantissa (scaled by 1e18). Zero means the price is unavailable.|
+|`<none>`|`uint256`|price The underlying asset price mantissa (scaled by 1e18). Zero means unavailable.|
 
 

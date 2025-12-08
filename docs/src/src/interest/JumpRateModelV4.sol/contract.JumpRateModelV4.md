@@ -1,8 +1,11 @@
 # JumpRateModelV4
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\interest\JumpRateModelV4.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/interest/JumpRateModelV4.sol)
 
 **Inherits:**
-[IInterestRateModel](/src\interfaces\IInterestRateModel.sol\interface.IInterestRateModel.md), Ownable
+[IInterestRateModel](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IInterestRateModel.sol/interface.IInterestRateModel.md), Ownable
+
+**Author:**
+Merge Layers Inc.
 
 Implementation of the IInterestRateModel interface for calculating interest rates
 
@@ -13,7 +16,7 @@ The approximate number of blocks per year that is assumed by the interest rate m
 
 
 ```solidity
-uint256 public override blocksPerYear;
+uint256 public override blocksPerYear
 ```
 
 
@@ -22,7 +25,7 @@ The multiplier of utilization rate that gives the slope of the interest rate
 
 
 ```solidity
-uint256 public override multiplierPerBlock;
+uint256 public override multiplierPerBlock
 ```
 
 
@@ -31,7 +34,7 @@ The base interest rate which is the y-intercept when utilization rate is 0
 
 
 ```solidity
-uint256 public override baseRatePerBlock;
+uint256 public override baseRatePerBlock
 ```
 
 
@@ -40,7 +43,7 @@ The multiplierPerBlock after hitting a specified utilization point
 
 
 ```solidity
-uint256 public override jumpMultiplierPerBlock;
+uint256 public override jumpMultiplierPerBlock
 ```
 
 
@@ -49,7 +52,7 @@ The utilization point at which the jump multiplier is applied
 
 
 ```solidity
-uint256 public override kink;
+uint256 public override kink
 ```
 
 
@@ -58,7 +61,7 @@ A name for user-friendliness, e.g. WBTC
 
 
 ```solidity
-string public override name;
+string public override name
 ```
 
 
@@ -71,9 +74,9 @@ Construct an interest rate model
 ```solidity
 constructor(
     uint256 blocksPerYear_,
-    uint256 baseRatePerYear,
-    uint256 multiplierPerYear,
-    uint256 jumpMultiplierPerYear,
+    uint256 baseRatePerBlock_,
+    uint256 multiplierPerBlock_,
+    uint256 jumpMultiplierPerBlock_,
     uint256 kink_,
     address owner_,
     string memory name_
@@ -84,12 +87,35 @@ constructor(
 |Name|Type|Description|
 |----|----|-----------|
 |`blocksPerYear_`|`uint256`|The estimated number of blocks per year|
-|`baseRatePerYear`|`uint256`|The base APR, scaled by 1e18|
-|`multiplierPerYear`|`uint256`|The rate increase in interest wrt utilization, scaled by 1e18|
-|`jumpMultiplierPerYear`|`uint256`|The multiplier per block after utilization point|
+|`baseRatePerBlock_`|`uint256`|The base APR, scaled by 1e18|
+|`multiplierPerBlock_`|`uint256`|The rate increase in interest wrt utilization, scaled by 1e18|
+|`jumpMultiplierPerBlock_`|`uint256`|The multiplier per block after utilization point|
 |`kink_`|`uint256`|The utilization point where the jump multiplier applies|
 |`owner_`|`address`|The owner of the contract|
 |`name_`|`string`|A user-friendly name for the contract|
+
+
+### updateJumpRateModelDirect
+
+Update the parameters of the interest rate model (only callable by owner, i.e. Timelock)
+
+
+```solidity
+function updateJumpRateModelDirect(
+    uint256 baseRatePerBlock_,
+    uint256 multiplierPerBlock_,
+    uint256 jumpMultiplierPerBlock_,
+    uint256 kink_
+) external onlyOwner;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`baseRatePerBlock_`|`uint256`|The approximate target base APR, as a mantissa (scaled by 1e18)|
+|`multiplierPerBlock_`|`uint256`|The rate of increase in interest rate wrt utilization (scaled by 1e18)|
+|`jumpMultiplierPerBlock_`|`uint256`|The multiplierPerBlock after hitting a specified utilization point|
+|`kink_`|`uint256`|The utilization point at which the jump multiplier is applied|
 
 
 ### updateJumpRateModel
@@ -130,61 +156,6 @@ function updateBlocksPerYear(uint256 blocksPerYear_) external onlyOwner;
 |`blocksPerYear_`|`uint256`|The new estimated eth blocks per year.|
 
 
-### isInterestRateModel
-
-Should return true
-
-
-```solidity
-function isInterestRateModel() external pure override returns (bool);
-```
-
-### utilizationRate
-
-Calculates the utilization rate of the market
-
-
-```solidity
-function utilizationRate(uint256 cash, uint256 borrows, uint256 reserves) public pure override returns (uint256);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`cash`|`uint256`|The total cash in the market|
-|`borrows`|`uint256`|The total borrows in the market|
-|`reserves`|`uint256`|The total reserves in the market|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|The utilization rate as a mantissa between [0, 1e18]|
-
-
-### getBorrowRate
-
-Returns the current borrow rate per block for the market
-
-
-```solidity
-function getBorrowRate(uint256 cash, uint256 borrows, uint256 reserves) public view override returns (uint256);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`cash`|`uint256`|The total cash in the market|
-|`borrows`|`uint256`|The total borrows in the market|
-|`reserves`|`uint256`|The total reserves in the market|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|The current borrow rate per block, scaled by 1e18|
-
-
 ### getSupplyRate
 
 Returns the current supply rate per block for the market
@@ -213,6 +184,90 @@ function getSupplyRate(uint256 cash, uint256 borrows, uint256 reserves, uint256 
 |`<none>`|`uint256`|The current supply rate per block, scaled by 1e18|
 
 
+### isInterestRateModel
+
+Should return true
+
+
+```solidity
+function isInterestRateModel() external pure override returns (bool);
+```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`bool`|isModel True when contract implements interest rate model|
+
+
+### getBorrowRate
+
+Returns the current borrow rate per block for the market
+
+
+```solidity
+function getBorrowRate(uint256 cash, uint256 borrows, uint256 reserves) public view override returns (uint256);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`cash`|`uint256`|The total cash in the market|
+|`borrows`|`uint256`|The total borrows in the market|
+|`reserves`|`uint256`|The total reserves in the market|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|The current borrow rate per block, scaled by 1e18|
+
+
+### utilizationRate
+
+Calculates the utilization rate of the market
+
+
+```solidity
+function utilizationRate(uint256 cash, uint256 borrows, uint256 reserves) public pure override returns (uint256);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`cash`|`uint256`|The total cash in the market|
+|`borrows`|`uint256`|The total borrows in the market|
+|`reserves`|`uint256`|The total reserves in the market|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|The utilization rate as a mantissa between [0, 1e18]|
+
+
+### _updateJumpRateModelWithoutComputation
+
+Internal function to update jump rate model parameters without computation
+
+
+```solidity
+function _updateJumpRateModelWithoutComputation(
+    uint256 basePerBlock_,
+    uint256 multiplierPerBlock_,
+    uint256 jumpMultiplierPerBlock_,
+    uint256 kink_
+) private;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`basePerBlock_`|`uint256`|The base rate per block|
+|`multiplierPerBlock_`|`uint256`|The multiplier per block|
+|`jumpMultiplierPerBlock_`|`uint256`|The jump multiplier per block|
+|`kink_`|`uint256`|The kink utilization point|
+
+
 ### _updateJumpRateModel
 
 Internal function to update the parameters of the interest rate model
@@ -238,12 +293,16 @@ function _updateJumpRateModel(
 
 ## Errors
 ### JumpRateModelV4_MultiplierNotValid
+Error thrown when multiplier is not valid
+
 
 ```solidity
 error JumpRateModelV4_MultiplierNotValid();
 ```
 
 ### JumpRateModelV4_InputNotValid
+Error thrown when input is not valid
+
 
 ```solidity
 error JumpRateModelV4_InputNotValid();
