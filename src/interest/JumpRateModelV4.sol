@@ -143,6 +143,17 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
     }
 
     /// @inheritdoc IInterestRateModel
+    function utilizationRate(uint256 cash, uint256 borrows, uint256 reserves) public pure override returns (uint256) {
+        if (borrows == 0) {
+            return 0;
+        }
+        uint256 utilRate = borrows * 1e18 / (cash + borrows - reserves);
+        // cap utilization rate to 100%
+        if (utilRate > 1e18) return 1e18;
+        return utilRate;
+    }
+
+    /// @inheritdoc IInterestRateModel
     function getBorrowRate(uint256 cash, uint256 borrows, uint256 reserves) public view override returns (uint256) {
         uint256 util = utilizationRate(cash, borrows, reserves);
 
