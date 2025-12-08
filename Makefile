@@ -3,7 +3,7 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
-.PHONY: all clean build docs lint slither test test-coverage-check test-coverage-report snapshot snapshot-diff gas-report pre-commit mine-address mine-address-parallel create2-address BROADCAST GCP RESUME
+.PHONY: all clean build slither lint fmt test coverage-summary coverage-check pre-commit
 
 help: ## Print all targets and descriptions
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[.a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } END { printf "\n" }' $(MAKEFILE_LIST)
@@ -42,7 +42,7 @@ test: ## Run tests (also generates snapshots in `./snapshots`)
 	FOUNDRY_FUZZ_SEED=$$SEED FOUNDRY_PROFILE=ci forge test --force --isolate -vvv --show-progress
 
 coverage-summary: ## Run tests and generate coverage summary
-	FOUNDRY_PROFILE=lite forge coverage --no-match-coverage "(test|mocks|dependencies|Executor.sol|MilkmanRouter.sol|CalldataReader.sol|Sweepable.sol|script|PendleOracle.sol)" --force --report summary
+	FOUNDRY_PROFILE=lite forge coverage --no-match-coverage "(test|mocks|dependencies)" --force --report summary
 
 COVERAGE_MIN := 100
 coverage-check: ## Check if test coverage is above the minimum
