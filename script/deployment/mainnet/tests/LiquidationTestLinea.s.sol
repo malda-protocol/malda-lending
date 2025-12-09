@@ -7,7 +7,7 @@ import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Operator} from "src/Operator/Operator.sol";
 
-import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
+import {DeployBaseRelease} from "../../../deployers/DeployBaseRelease.sol";
 
 contract LiquidationTestLinea is DeployBaseRelease {
     using stdJson for string;
