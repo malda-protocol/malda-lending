@@ -4,8 +4,7 @@
     "src/interfaces/external/**/*.sol",
     "src/libraries/BytesLib.sol",
     "src/libraries/Bytes32AddressLib.sol",
-    "src/libraries/CREATE3.sol",
-    "src/libraries/HypernativeFirewallProtected.sol"
+    "src/libraries/CREATE3.sol"
   ],
   "rules": {
     "code-complexity": ["error", 8],
