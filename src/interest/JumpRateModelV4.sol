@@ -131,10 +131,10 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         override
         returns (uint256)
     {
-        uint256 oneMinusReserveFactor = 1e18 - reserveFactorMantissa;
-        uint256 borrowRate = getBorrowRate(cash, borrows, reserves);
-        uint256 rateToPool = borrowRate * oneMinusReserveFactor / 1e18;
-        return utilizationRate(cash, borrows, reserves) * rateToPool / 1e18;
+        // @audit-question check the calculation, reordered to preserve precision (multiply before dividing)
+        return (utilizationRate(cash, borrows, reserves)
+                * getBorrowRate(cash, borrows, reserves)
+                * (1e18 - reserveFactorMantissa)) / 1e36;
     }
 
     /// @inheritdoc IInterestRateModel

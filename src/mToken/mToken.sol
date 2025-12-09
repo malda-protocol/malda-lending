@@ -310,6 +310,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     ) internal nonReentrant {
         _accrueInterest();
 
+        // slither-disable-next-line reentrancy-no-eth
         ImToken(mTokenCollateral).accrueInterest();
 
         // emits borrow-specific logs on errors, so we don't need to

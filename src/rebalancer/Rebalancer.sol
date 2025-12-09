@@ -252,13 +252,14 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected, ReentrancyGuar
 
         // retrieve amounts (make sure to check min and max for that bridge)
         require(allowedList[_market], Rebalancer_MarketNotValid());
-        IRebalanceMarket(_market).extractForRebalancing(_amount);
 
         // log
         unchecked {
             ++nonce;
         }
         logs[_msg.dstChainId][nonce] = _msg;
+
+        IRebalanceMarket(_market).extractForRebalancing(_amount);
 
         // approve and trigger send
         SafeApprove.safeApprove(_msg.token, _bridge, _amount);

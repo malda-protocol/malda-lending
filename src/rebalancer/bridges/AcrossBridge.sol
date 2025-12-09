@@ -134,24 +134,18 @@ contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuar
     }
 
     // ----------- EXTERNAL ------------
-    /**
-     * @notice handles AcrossV3 SpokePool message
-     * @param tokenSent the token address received
-     * @param amount the token amount
-     * @param relayer the relayer submitting the message
-     * @param message the custom message sent from source
-     */
+
+    /// @inheritdoc IAcrossReceiverV3
     function handleV3AcrossMessage(
         address tokenSent,
         uint256 amount,
-        address relayer, // relayer is unused
+        address, /* relayer is unused */
         bytes calldata message
     )
         external
         onlySpokePool
         nonReentrant
     {
-        relayer;
         address market = abi.decode(message, (address));
         require(IRebalancer(REBALANCER).isMarketWhitelisted(market), AcrossBridge_InvalidReceiver());
         address _underlying = ImTokenMinimal(market).underlying();

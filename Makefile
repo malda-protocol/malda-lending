@@ -22,7 +22,7 @@ build: ## Build the project forcefully
 	forge build --force
 
 slither: ## Run slither
-	slither . --include-paths "(src)" --fail-low --config-file slither.config.json
+	slither . --fail-low --config-file slither.config.json --exclude-dependencies
 
 lint: ## Run lint
 	forge fmt --check && \
