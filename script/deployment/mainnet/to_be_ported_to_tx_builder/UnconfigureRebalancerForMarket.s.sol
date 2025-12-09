@@ -5,8 +5,8 @@ import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
 
-import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
-import {SetRole} from "../../configuration/SetRole.s.sol";
+import {DeployBaseRelease} from "../../../deployers/DeployBaseRelease.sol";
+import {SetRole} from "../../../configuration/SetRole.s.sol";
 
 contract UnconfigureRebalancerForMarket is DeployBaseRelease {
     using stdJson for string;
