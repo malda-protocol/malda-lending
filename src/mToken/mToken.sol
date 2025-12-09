@@ -234,37 +234,31 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         underlyingAmount = __redeem(payable(user), redeemTokens, 0, doTransfer);
     }
 
-    /**
-     * @notice Sender redeems mTokens in exchange for a specified amount of underlying asset
-     * @dev Accrues interest whether or not the operation succeeds, unless reverted
-     * @param user The user address
-     * @param redeemAmount The amount of underlying to receive from redeeming mTokens
-     * @param doTransfer If an actual transfer should be performed
-     */
+    /// @notice Sender redeems mTokens in exchange for a specified amount of underlying asset
+    /// @dev Accrues interest whether or not the operation succeeds, unless reverted
+    /// @param user The user address
+    /// @param redeemAmount The amount of underlying to receive from redeeming mTokens
+    /// @param doTransfer If an actual transfer should be performed
     function _redeemUnderlying(address user, uint256 redeemAmount, bool doTransfer) internal nonReentrant {
         _accrueInterest();
         // emits redeem-specific logs on errors, so we don't need to
         __redeem(payable(user), 0, redeemAmount, doTransfer);
     }
 
-    /**
-     * @notice Sender borrows assets from the protocol to their own address
-     * @param user The user address
-     * @param borrowAmount The amount of the underlying asset to borrow
-     * @param doTransfer If an actual transfer should be performed
-     */
+    /// @notice Sender borrows assets from the protocol to their own address
+    /// @param user The user address
+    /// @param borrowAmount The amount of the underlying asset to borrow
+    /// @param doTransfer If an actual transfer should be performed
     function _borrow(address user, uint256 borrowAmount, bool doTransfer) internal nonReentrant {
         _accrueInterest();
         // emits borrow-specific logs on errors, so we don't need to
         __borrow(payable(user), payable(user), borrowAmount, doTransfer);
     }
 
-    /**
-     * @notice Sender borrows assets from the protocol to their own address
-     * @param user The user address
-     * @param receiver The underlying receiver address
-     * @param borrowAmount The amount of the underlying asset to borrow
-     */
+    /// @notice Sender borrows assets from the protocol to their own address
+    /// @param user The user address
+    /// @param receiver The underlying receiver address
+    /// @param borrowAmount The amount of the underlying asset to borrow
     function _borrowWithReceiver(address user, address receiver, uint256 borrowAmount) internal nonReentrant {
         _accrueInterest();
         __borrow(payable(user), payable(receiver), borrowAmount, true);
@@ -317,15 +311,13 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         __liquidate(liquidator, borrower, repayAmount, mTokenCollateral, doTransfer);
     }
 
-    /**
-     * @notice Transfers collateral tokens (this market) to the liquidator.
-     * @dev Called only during an in-kind liquidation, or by liquidateBorrow during the liquidation of another mToken.
-     *  Its absolutely critical to use msg.sender as the seizer mToken and not a parameter.
-     * @param seizerToken The contract seizing the collateral (i.e. borrowed mToken)
-     * @param liquidator The account receiving seized collateral
-     * @param borrower The account having collateral seized
-     * @param seizeTokens The number of mTokens to seize
-     */
+    /// @notice Transfers collateral tokens (this market) to the liquidator.
+    /// @dev Called only during an in-kind liquidation, or by liquidateBorrow during the liquidation of another mToken.
+    ///      It's absolutely critical to use msg.sender as the seizer mToken and not a parameter.
+    /// @param seizerToken The contract seizing the collateral (i.e. borrowed mToken)
+    /// @param liquidator The account receiving seized collateral
+    /// @param borrower The account having collateral seized
+    /// @param seizeTokens The number of mTokens to seize
     function _seize(address seizerToken, address liquidator, address borrower, uint256 seizeTokens) internal {
         IOperatorDefender(operator).beforeMTokenSeize(address(this), seizerToken, liquidator);
 
@@ -358,10 +350,8 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         emit ReservesAdded(address(this), protocolSeizeAmount, totalReservesNew);
     }
 
-    /**
-     * @notice Accrues interest and reduces reserves by transferring from msg.sender
-     * @param addAmount Amount of addition to reserves
-     */
+    /// @notice Accrues interest and reduces reserves by transferring from msg.sender
+    /// @param addAmount Amount of addition to reserves
     function _addReserves(uint256 addAmount) internal nonReentrant {
         _accrueInterest();
 
@@ -513,13 +503,11 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         return actualRepayAmount;
     }
 
-    /**
-     * @notice Users borrow assets from the protocol to their own address
-     * @param borrower Borrower address
-     * @param receiver Receiver address
-     * @param borrowAmount The amount of the underlying asset to borrow
-     * @param doTransfer If an actual transfer should be performed
-     */
+    /// @notice Users borrow assets from the protocol to their own address
+    /// @param borrower Borrower address
+    /// @param receiver Receiver address
+    /// @param borrowAmount The amount of the underlying asset to borrow
+    /// @param doTransfer If an actual transfer should be performed
     function __borrow(address payable borrower, address payable receiver, uint256 borrowAmount, bool doTransfer)
         private
     {
@@ -630,15 +618,13 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         emit Redeem(redeemer, redeemAmount, redeemTokens);
     }
 
-    /**
-     * @notice User supplies assets into the market and receives mTokens in exchange
-     * @dev Assumes interest has already been accrued up to the current block
-     * @param minter The address of the account which is supplying the assets
-     * @param receiver The address of the account which is receiving the assets
-     * @param mintAmount The amount of the underlying asset to supply
-     * @param minAmountOut The min amount to be received
-     * @param doTransfer If an actual transfer should be performed
-     */
+    /// @notice User supplies assets into the market and receives mTokens in exchange
+    /// @dev Assumes interest has already been accrued up to the current block
+    /// @param minter The address of the account which is supplying the assets
+    /// @param receiver The address of the account which is receiving the assets
+    /// @param mintAmount The amount of the underlying asset to supply
+    /// @param minAmountOut The min amount to be received
+    /// @param doTransfer If an actual transfer should be performed
     function __mint(address minter, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer)
         private
     {
@@ -698,14 +684,12 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         }
     }
 
-    /**
-     * @notice Transfer `tokens` tokens from `src` to `dst` by `spender`
-     * @dev Called by both `transfer` and `transferFrom` internally
-     * @param spender The address of the account performing the transfer
-     * @param src The address of the source account
-     * @param dst The address of the destination account
-     * @param tokens The number of tokens to transfer
-     */
+    /// @notice Transfer `tokens` tokens from `src` to `dst` by `spender`
+    /// @dev Called by both `transfer` and `transferFrom` internally
+    /// @param spender The address of the account performing the transfer
+    /// @param src The address of the source account
+    /// @param dst The address of the destination account
+    /// @param tokens The number of tokens to transfer
     function _transferTokens(address spender, address src, address dst, uint256 tokens) private {
         // slither-disable-next-line reentrancy-benign -- entrypoints transfer/transferFrom are nonReentrant
         IOperatorDefender(operator).beforeMTokenTransfer(address(this), src, dst, tokens);

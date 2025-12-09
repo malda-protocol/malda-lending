@@ -39,20 +39,17 @@ abstract contract mErc20 is mToken, ImErc20 {
     using SafeERC20 for IERC20;
 
     // ----------- STORAGE ------------
-    /**
-     * @notice Underlying asset for this mToken
-     */
+    /// @notice Underlying asset for this mToken
     address public underlying;
 
     // ----------- ERRORS ------------
+    /// @notice Error thrown when token is not valid
     error mErc20_TokenNotValid();
 
     // ----------- OWNER ------------
-    /**
-     * @notice A public function to sweep accidental ERC-20 transfers to this contract. Tokens are sent to admin (timelock)
-     * @param token The address of the ERC-20 token to sweep
-     * @param amount The amount of tokens to sweep
-     */
+    /// @notice A public function to sweep accidental ERC-20 transfers to this contract. Tokens are sent to admin (timelock)
+    /// @param token The address of the ERC-20 token to sweep
+    /// @param amount The amount of tokens to sweep
     function sweepToken(IERC20 token, uint256 amount) external onlyAdmin {
         require(address(token) != underlying, mErc20_TokenNotValid());
         token.safeTransfer(admin, amount);
@@ -143,11 +140,9 @@ abstract contract mErc20 is mToken, ImErc20 {
         IERC20(underlying).safeTransfer(to, amount);
     }
 
-    /**
-     * @notice Gets balance of this contract in terms of the underlying
-     * @dev This excludes the value of the current message, if any
-     * @return The quantity of underlying tokens owned by this contract
-     */
+    /// @notice Gets balance of this contract in terms of the underlying
+    /// @dev This excludes the value of the current message, if any
+    /// @return The quantity of underlying tokens owned by this contract
     function _getCashPrior() internal view virtual override returns (uint256) {
         return totalUnderlying;
     }

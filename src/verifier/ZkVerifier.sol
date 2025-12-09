@@ -77,22 +77,18 @@ contract ZkVerifier is Ownable, IZkVerifier {
     }
 
     // ----------- OWNER ------------
-    /**
-     * @notice Sets the _risc0Verifier address
-     * @dev Admin check is needed on the external method
-     * @param _risc0Verifier the new IRiscZeroVerifier address
-     */
+    /// @notice Sets the _risc0Verifier address
+    /// @dev Admin check is needed on the external method
+    /// @param _risc0Verifier the new IRiscZeroVerifier address
     function setVerifier(address _risc0Verifier) external onlyOwner {
         require(_risc0Verifier != address(0), ZkVerifier_InputNotValid());
         emit VerifierSet(address(verifier), _risc0Verifier);
         verifier = IRiscZeroVerifier(_risc0Verifier);
     }
 
-    /**
-     * @notice Sets the image id
-     * @dev Admin check is needed on the external method
-     * @param _imageId the new image id
-     */
+    /// @notice Sets the image id
+    /// @dev Admin check is needed on the external method
+    /// @param _imageId the new image id
     function setImageId(bytes32 _imageId) external onlyOwner {
         require(_imageId != bytes32(0), ZkVerifier_ImageNotValid());
         emit ImageSet(_imageId);
@@ -100,11 +96,9 @@ contract ZkVerifier is Ownable, IZkVerifier {
     }
 
     // ----------- VIEW ------------
-    /**
-     * @notice Verifies an input
-     * @param journalEntry the risc0 journal entry
-     * @param seal the risc0 seal
-     */
+    /// @notice Verifies an input
+    /// @param journalEntry the risc0 journal entry
+    /// @param seal the risc0 seal
     function verifyInput(bytes calldata journalEntry, bytes calldata seal) external view {
         // generic checks
         _checkAddresses();

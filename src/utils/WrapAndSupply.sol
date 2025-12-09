@@ -77,12 +77,10 @@ contract WrapAndSupply {
     }
 
     // ----------- PUBLIC ------------
-    /**
-     * @notice Wraps a native coin into its wrapped version and supplies on a host market
-     * @param mToken The market address
-     * @param receiver The mToken receiver
-     * @param minAmount The minimum amount of mTokens expected
-     */
+    /// @notice Wraps a native coin into its wrapped version and supplies on a host market
+    /// @param mToken The market address
+    /// @param receiver The mToken receiver
+    /// @param minAmount The minimum amount of mTokens expected
     function wrapAndSupplyOnHostMarket(address mToken, address receiver, uint256 minAmount) external payable {
         // Requirements: the underlying must be the wrapped native coin
         address underlying = ImTokenMinimal(mToken).underlying();
@@ -106,12 +104,10 @@ contract WrapAndSupply {
         emit WrappedAndSupplied(msg.sender, receiver, mToken, amount);
     }
 
-    /**
-     * @notice Wraps a native coin into its wrapped version and supplies on an extension market
-     * @param mTokenGateway The extension market address
-     * @param receiver The receiver
-     * @param selector The host chain function selector
-     */
+    /// @notice Wraps a native coin into its wrapped version and supplies on an extension market
+    /// @param mTokenGateway The extension market address
+    /// @param receiver The receiver
+    /// @param selector The host chain function selector
     function wrapAndSupplyOnExtensionMarket(address mTokenGateway, address receiver, bytes4 selector) external payable {
         // Requirements: the underlying must be the wrapped native coin
         address underlying = ImTokenGateway(mTokenGateway).underlying();

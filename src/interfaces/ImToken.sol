@@ -93,36 +93,28 @@ interface ImTokenMinimal {
 /// @notice Core mToken interface with state views and actions
 interface ImToken is ImTokenMinimal {
     // ----------- ACTIONS ------------
-    /**
-     * @notice Transfers `amount` tokens to the `dst` address
-     * @param dst The address of the recipient
-     * @param amount The number of tokens to transfer
-     * @return success Whether the transfer was successful or not
-     */
+    /// @notice Transfers `amount` tokens to the `dst` address
+    /// @param dst The address of the recipient
+    /// @param amount The number of tokens to transfer
+    /// @return success Whether the transfer was successful or not
     function transfer(address dst, uint256 amount) external returns (bool);
 
-    /**
-     * @notice Transfers `amount` tokens from the `src` address to the `dst` address
-     * @param src The address from which tokens are transferred
-     * @param dst The address to which tokens are transferred
-     * @param amount The number of tokens to transfer
-     * @return success Whether the transfer was successful or not
-     */
+    /// @notice Transfers `amount` tokens from the `src` address to the `dst` address
+    /// @param src The address from which tokens are transferred
+    /// @param dst The address to which tokens are transferred
+    /// @param amount The number of tokens to transfer
+    /// @return success Whether the transfer was successful or not
     function transferFrom(address src, address dst, uint256 amount) external returns (bool);
 
-    /**
-     * @notice Approves `spender` to spend `amount` tokens on behalf of the caller
-     * @param spender The address authorized to spend tokens
-     * @param amount The number of tokens to approve
-     * @return success Whether the approval was successful or not
-     */
+    /// @notice Approves `spender` to spend `amount` tokens on behalf of the caller
+    /// @param spender The address authorized to spend tokens
+    /// @param amount The number of tokens to approve
+    /// @return success Whether the approval was successful or not
     function approve(address spender, uint256 amount) external returns (bool);
 
-    /**
-     * @notice Returns the underlying asset balance of the `owner`
-     * @param owner The address to query the balance of underlying assets for
-     * @return balance The balance of underlying assets owned by `owner`
-     */
+    /// @notice Returns the underlying asset balance of the `owner`
+    /// @param owner The address to query the balance of underlying assets for
+    /// @return balance The balance of underlying assets owned by `owner`
     function balanceOfUnderlying(address owner) external returns (uint256);
 
     /// @notice Returns the total amount of borrows, accounting for interest
@@ -134,31 +126,23 @@ interface ImToken is ImTokenMinimal {
     /// @return borrowBalance Current borrow balance
     function borrowBalanceCurrent(address account) external returns (uint256);
 
-    /**
-     * @notice Returns the current exchange rate, with interest accrued
-     * @return exchangeRate The current exchange rate
-     */
+    /// @notice Returns the current exchange rate, with interest accrued
+    /// @return exchangeRate The current exchange rate
     function exchangeRateCurrent() external returns (uint256 exchangeRate);
 
-    /**
-     * @notice Accrues interest on the contract's outstanding loans
-     */
+    /// @notice Accrues interest on the contract's outstanding loans
     function accrueInterest() external;
 
-    /**
-     * @notice Transfers collateral tokens (this market) to the liquidator.
-     * @dev Will fail unless called by another mToken during the process of liquidation.
-     *  Its absolutely critical to use msg.sender as the borrowed mToken and not a parameter.
-     * @param liquidator The account receiving seized collateral
-     * @param borrower The account having collateral seized
-     * @param seizeTokens The number of mTokens to seize
-     */
+    /// @notice Transfers collateral tokens (this market) to the liquidator.
+    /// @dev Will fail unless called by another mToken during the process of liquidation.
+    ///  Its absolutely critical to use msg.sender as the borrowed mToken and not a parameter.
+    /// @param liquidator The account receiving seized collateral
+    /// @param borrower The account having collateral seized
+    /// @param seizeTokens The number of mTokens to seize
     function seize(address liquidator, address borrower, uint256 seizeTokens) external;
 
-    /**
-     * @notice Accrues interest and reduces reserves by transferring to admin
-     * @param reduceAmount Amount of reduction to reserves
-     */
+    /// @notice Accrues interest and reduces reserves by transferring to admin
+    /// @param reduceAmount Amount of reduction to reserves
     function reduceReserves(uint256 reduceAmount) external;
 
     // ----------- VIEWS ------------
@@ -182,91 +166,65 @@ interface ImToken is ImTokenMinimal {
     /// @return interestModel Interest rate model address
     function interestRateModel() external view returns (address interestModel);
 
-    /**
-     * @notice Fraction of interest currently set aside for reserves
-     * @return reserveFactor Current reserve factor mantissa
-     */
+    /// @notice Fraction of interest currently set aside for reserves
+    /// @return reserveFactor Current reserve factor mantissa
     function reserveFactorMantissa() external view returns (uint256 reserveFactor);
 
-    /**
-     * @notice Block timestamp that interest was last accrued at
-     * @return timestamp Last accrual block timestamp
-     */
+    /// @notice Block timestamp that interest was last accrued at
+    /// @return timestamp Last accrual block timestamp
     function accrualBlockTimestamp() external view returns (uint256 timestamp);
 
-    /**
-     * @notice Accumulator of the total earned interest rate since the opening of the market
-     * @return index Borrow index
-     */
+    /// @notice Accumulator of the total earned interest rate since the opening of the market
+    /// @return index Borrow index
     function borrowIndex() external view returns (uint256 index);
 
-    /**
-     * @notice Total amount of outstanding borrows of the underlying in this market
-     * @return borrows Total borrows
-     */
+    /// @notice Total amount of outstanding borrows of the underlying in this market
+    /// @return borrows Total borrows
     function totalBorrows() external view returns (uint256 borrows);
 
-    /**
-     * @notice Total amount of reserves of the underlying held in this market
-     * @return reserves Total reserves
-     */
+    /// @notice Total amount of reserves of the underlying held in this market
+    /// @return reserves Total reserves
     function totalReserves() external view returns (uint256 reserves);
 
-    /**
-     * @notice Returns the snapshot of account details for the given `account`
-     * @param account The address to query the account snapshot for
-     * @return tokenBalance Token balance
-     * @return borrowBalance Borrow balance
-     * @return exchangeRate Exchange rate
-     */
+    /// @notice Returns the snapshot of account details for the given `account`
+    /// @param account The address to query the account snapshot for
+    /// @return tokenBalance Token balance
+    /// @return borrowBalance Borrow balance
+    /// @return exchangeRate Exchange rate
     function getAccountSnapshot(address account)
         external
         view
         returns (uint256 tokenBalance, uint256 borrowBalance, uint256 exchangeRate);
 
-    /**
-     * @notice Returns the stored borrow balance for `account`, without accruing interest
-     * @param account The address to query the stored borrow balance for
-     * @return storedBalance The stored borrow balance
-     */
+    /// @notice Returns the stored borrow balance for `account`, without accruing interest
+    /// @param account The address to query the stored borrow balance for
+    /// @return storedBalance The stored borrow balance
     function borrowBalanceStored(address account) external view returns (uint256 storedBalance);
 
-    /**
-     * @notice Returns the stored exchange rate, without accruing interest
-     * @return exchangeRateStoredMantissa The stored exchange rate
-     */
+    /// @notice Returns the stored exchange rate, without accruing interest
+    /// @return exchangeRateStoredMantissa The stored exchange rate
     function exchangeRateStored() external view returns (uint256 exchangeRateStoredMantissa);
 
-    /**
-     * @notice Returns the total amount of available cash in the contract
-     * @return cash The total amount of cash
-     */
+    /// @notice Returns the total amount of available cash in the contract
+    /// @return cash The total amount of cash
     function getCash() external view returns (uint256 cash);
 
-    /**
-     * @notice Returns the current allowance the `spender` has from the `owner`
-     * @param owner The address of the token holder
-     * @param spender The address authorized to spend the tokens
-     * @return allowanceAmount The current remaining number of tokens `spender` can spend
-     */
+    /// @notice Returns the current allowance the `spender` has from the `owner`
+    /// @param owner The address of the token holder
+    /// @param spender The address authorized to spend the tokens
+    /// @return allowanceAmount The current remaining number of tokens `spender` can spend
     function allowance(address owner, address spender) external view returns (uint256 allowanceAmount);
 
-    /**
-     * @notice Returns the balance of tokens held by `owner`
-     * @param owner The address to query the balance for
-     * @return ownerBalance The balance of tokens owned by `owner`
-     */
+    /// @notice Returns the balance of tokens held by `owner`
+    /// @param owner The address to query the balance for
+    /// @return ownerBalance The balance of tokens owned by `owner`
     function balanceOf(address owner) external view returns (uint256 ownerBalance);
 
-    /**
-     * @notice Returns the current borrow rate per block
-     * @return borrowRate The current borrow rate per block, scaled by 1e18
-     */
+    /// @notice Returns the current borrow rate per block
+    /// @return borrowRate The current borrow rate per block, scaled by 1e18
     function borrowRatePerBlock() external view returns (uint256 borrowRate);
 
-    /**
-     * @notice Returns the current supply rate per block
-     * @return supplyRate The current supply rate per block, scaled by 1e18
-     */
+    /// @notice Returns the current supply rate per block
+    /// @return supplyRate The current supply rate per block, scaled by 1e18
     function supplyRatePerBlock() external view returns (uint256 supplyRate);
 }

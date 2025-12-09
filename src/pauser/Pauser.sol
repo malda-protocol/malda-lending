@@ -64,11 +64,9 @@ contract Pauser is Ownable, IPauser {
     }
 
     // ----------- OWNER ------------
-    /**
-     * @notice add pauable contract
-     * @param _contract the pausable contract
-     * @param _contractType the pausable contract type
-     */
+    /// @notice Add pausable contract
+    /// @param _contract the pausable contract
+    /// @param _contractType the pausable contract type
     function addPausableMarket(address _contract, PausableType _contractType) external onlyOwner {
         require(_contract != address(0), Pauser_AddressNotValid());
         if (registeredContracts[_contract]) return;
@@ -78,10 +76,8 @@ contract Pauser is Ownable, IPauser {
         emit MarketAdded(_contract, _contractType);
     }
 
-    /**
-     * @notice removes pauable contract
-     * @param _contract the pausable contract
-     */
+    /// @notice Removes pausable contract
+    /// @param _contract the pausable contract
     function removePausableMarket(address _contract) external onlyOwner {
         if (!registeredContracts[_contract]) revert Pauser_EntryNotFound();
         uint256 index = _findIndex(_contract);

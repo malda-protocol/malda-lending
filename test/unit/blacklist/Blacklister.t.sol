@@ -4,6 +4,7 @@ pragma solidity ^0.8.28;
 import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Blacklister} from "src/blacklister/Blacklister.sol";
+import {IBlacklister} from "src/interfaces/IBlacklister.sol";
 import {MockRoles} from "test/mocks/MockRoles.sol";
 
 contract BlacklisterTest is Test {
@@ -36,14 +37,14 @@ contract BlacklisterTest is Test {
     function testBlacklistAlreadyBlacklistedReverts() public {
         vm.startPrank(owner);
         blacklister.blacklist(user);
-        vm.expectRevert(Blacklister.Blacklister_AlreadyBlacklisted.selector);
+        vm.expectRevert(IBlacklister.Blacklister_AlreadyBlacklisted.selector);
         blacklister.blacklist(user);
         vm.stopPrank();
     }
 
     function testUnblacklistNotBlacklistedReverts() public {
         vm.prank(owner);
-        vm.expectRevert(Blacklister.Blacklister_NotBlacklisted.selector);
+        vm.expectRevert(IBlacklister.Blacklister_NotBlacklisted.selector);
         blacklister.unblacklist(user);
     }
 

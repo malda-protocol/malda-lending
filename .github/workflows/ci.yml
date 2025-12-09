@@ -1,4 +1,4 @@
-name: "Solidity CI Workflow"
+name: "Solidity"
 
 on:
   workflow_dispatch:

@@ -29,9 +29,23 @@ interface IBlacklister {
     /// @notice Emitted when a user is blacklisted
     /// @param user The blacklisted address
     event Blacklisted(address indexed user);
+
     /// @notice Emitted when a user is removed from blacklist
     /// @param user The unblacklisted address
     event Unblacklisted(address indexed user);
+
+    // ----------- ERRORS -----------
+    /// @notice Error thrown when address is already blacklisted
+    error Blacklister_AlreadyBlacklisted();
+
+    /// @notice Error thrown when address is not blacklisted
+    error Blacklister_NotBlacklisted();
+
+    /// @notice Error thrown when roles contract is invalid
+    error Blacklister_InvalidRoles();
+
+    /// @notice Error thrown when caller is not authorized
+    error Blacklister_NotAllowed();
 
     // ----------- OWNER ACTIONS -----------
     /// @notice Blacklists a user immediately (onlyOwner).

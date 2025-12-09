@@ -153,8 +153,8 @@ contract EverclearBridge is BaseBridge, IBridge {
     }
 
     // ----------- INTERNAL ------------
+    /// @notice Decodes an intent message returned by the Everclear intents API into structured parameters.
     /**
-     * @notice Decodes an intent message returned by the Everclear intents API into structured parameters.
      * @dev
      * - The input `message` is the raw ABI-encoded calldata of a `FeeAdapter.newIntent` call.
      * - The first 4 bytes are the function selector, which are skipped.
@@ -176,10 +176,9 @@ contract EverclearBridge is BaseBridge, IBridge {
      * ```
      * Since each static argument occupies a 32-byte slot, the pointer to `feeParams`
      * lives at offset `0x100` (256 bytes) after the selector is removed.
-     *
-     * @param message ABI-encoded calldata for `FeeAdapter.newIntent`.
-     * @return Decoded `IntentParams` struct with both core parameters and nested `FeeParams`.
      */
+    /// @param message ABI-encoded calldata for `FeeAdapter.newIntent`.
+    /// @return Decoded `IntentParams` struct with both core parameters and nested `FeeParams`.
     function _decodeIntent(bytes memory message) internal pure returns (IntentParams memory) {
         // message contains data obtained from `https://api.everclear.org/intents` call
         // data can be decoded into `FeeAdapter.newIntent` call params
@@ -213,8 +212,8 @@ contract EverclearBridge is BaseBridge, IBridge {
         });
     }
 
+    /// @notice Extracts the nested `FeeParams` struct from ABI-encoded `intentData`.
     /**
-     * @notice Extracts the nested `FeeParams` struct from ABI-encoded `intentData`.
      * @dev
      * - `FeeParams` is the 9th parameter of `FeeAdapter.newIntent` and therefore stored as a pointer at offset `0x100`.
      * - The selector has already been removed, so the pointer is read at byte position `0x100` (256 bytes).
@@ -227,12 +226,11 @@ contract EverclearBridge is BaseBridge, IBridge {
      *   ```
      * - The `sig` field is dynamic, so we read its offset (at +0x40) relative to the `FeeParams` base,
      *   then read the length at that offset, then slice out the actual signature bytes.
-     *
-     * @param intentData ABI-encoded calldata without selector, containing intent arguments.
-     * @return fee The fee value.
-     * @return deadline The signature deadline.
-     * @return sig The validator/relayer signature.
      */
+    /// @param intentData ABI-encoded calldata without selector, containing intent arguments.
+    /// @return fee The fee value.
+    /// @return deadline The signature deadline.
+    /// @return sig The validator/relayer signature.
     function _extractFeeParams(bytes memory intentData)
         private
         pure

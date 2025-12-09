@@ -27,6 +27,7 @@ pragma solidity =0.8.28;
 /// @author Merge Layers Inc.
 /// @notice Interface for the interest rate contracts
 interface IInterestRateModel {
+    // ----------- EVENTS ------------
     /// @notice Emitted when interest rate parameters are updated
     /// @param baseRatePerBlock The base rate per block
     /// @param multiplierPerBlock The multiplier per block for the interest rate slope
@@ -40,29 +41,34 @@ interface IInterestRateModel {
     /// @param blocksPerYear The new blocks per year value
     event BlocksPerYearUpdated(uint256 blocksPerYear);
 
+    // ----------- ERRORS ------------
+
+    /// @notice Error thrown when multiplier is not valid
+    error JumpRateModelV4_MultiplierNotValid();
+
+    /// @notice Error thrown when input is not valid
+    error JumpRateModelV4_InputNotValid();
+
+    // ----------- VIEW ------------
+
     /// @notice Should return true
     /// @return isModel True when contract implements interest rate model
-
     function isInterestRateModel() external view returns (bool);
 
     /// @notice The approximate number of blocks per year that is assumed by the interest rate model
     /// @return The number of blocks per year
-
     function blocksPerYear() external view returns (uint256);
 
     /// @notice The multiplier of utilization rate that gives the slope of the interest rate
     /// @return The multiplier per block
-
     function multiplierPerBlock() external view returns (uint256);
 
     /// @notice The base interest rate which is the y-intercept when utilization rate is 0
     /// @return The base rate per block
-
     function baseRatePerBlock() external view returns (uint256);
 
     /// @notice The multiplierPerBlock after hitting a specified utilization point
     /// @return The jump multiplier per block
-
     function jumpMultiplierPerBlock() external view returns (uint256);
 
     /// @notice The utilization point at which the jump multiplier is applied
@@ -71,7 +77,6 @@ interface IInterestRateModel {
 
     /// @notice A name for user-friendliness, e.g. WBTC
     /// @return The name of the interest rate model
-
     function name() external view returns (string memory);
 
     /// @notice Returns the current borrow rate per block for the market
@@ -79,7 +84,6 @@ interface IInterestRateModel {
     /// @param borrows The total borrows in the market
     /// @param reserves The total reserves in the market
     /// @return The current borrow rate per block, scaled by 1e18
-
     function getBorrowRate(uint256 cash, uint256 borrows, uint256 reserves) external view returns (uint256);
 
     /// @notice Returns the current supply rate per block for the market
@@ -88,7 +92,6 @@ interface IInterestRateModel {
     /// @param reserves The total reserves in the market
     /// @param reserveFactorMantissa The current reserve factor for the market
     /// @return The current supply rate per block, scaled by 1e18
-
     function getSupplyRate(uint256 cash, uint256 borrows, uint256 reserves, uint256 reserveFactorMantissa)
         external
         view

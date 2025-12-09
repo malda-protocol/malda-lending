@@ -38,14 +38,11 @@ import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
 abstract contract mTokenStorage is ImToken, ExponentialNoError {
     // ----------- TYPES ------------
 
-    /**
-     * @notice Container for borrow balance information
-     * @dev Fields:
-     * - principal: Total balance (with accrued interest), after applying the most recent balance-changing action
-     * - interestIndex: Global borrowIndex as of the most recent balance-changing action
-     */
+    /// @notice Container for borrow balance information
     struct BorrowSnapshot {
+        /// @notice Total balance (with accrued interest), after applying the most recent balance-changing action
         uint256 principal;
+        /// @notice Global borrowIndex as of the most recent balance-changing action
         uint256 interestIndex;
     }
 
@@ -103,9 +100,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     /// @inheritdoc ImTokenMinimal
     uint256 public totalUnderlying;
 
-    /**
-     * @notice Maximum borrow rate that can ever be applied
-     */
+    /// @notice Maximum borrow rate that can ever be applied
     uint256 public borrowRateMaxMantissa = 0.0005e16;
 
     // Mapping of account addresses to outstanding borrow balances
@@ -120,9 +115,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     /// @notice Mapping of owner to spender to allowance amount
     mapping(address owner => mapping(address spender => uint256 amount)) internal transferAllowances;
 
-    /**
-     * @notice Initial exchange rate used when minting the first mTokens (used when totalSupply = 0)
-     */
+    /// @notice Initial exchange rate used when minting the first mTokens (used when totalSupply = 0)
     uint256 internal initialExchangeRateMantissa;
 
     // slither-disable-next-line shadowing-state
@@ -249,42 +242,61 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     // ----------- ERRORS ------------
     /// @notice Thrown when caller is not admin
     error mt_OnlyAdmin();
+
     /// @notice Thrown when redeem amounts are zero
     error mt_RedeemEmpty();
+
     /// @notice Thrown when provided input is invalid
     error mt_InvalidInput();
+
     /// @notice Thrown when caller lacks required role
     error mt_OnlyAdminOrRole();
+
     /// @notice Thrown when price fetch fails
     error mt_PriceFetchFailed();
+
     /// @notice Thrown when transfer is not valid
     error mt_TransferNotValid();
+
     /// @notice Thrown when minimum amount is not met
     error mt_MinAmountNotValid();
+
     /// @notice Thrown when borrow rate exceeds maximum
     error mt_BorrowRateTooHigh();
+
     /// @notice Thrown when contract is already initialized
     error mt_AlreadyInitialized();
+
     /// @notice Thrown when reserve factor exceeds limit
     error mt_ReserveFactorTooHigh();
+
     /// @notice Thrown when exchange rate is invalid
     error mt_ExchangeRateNotValid();
+
     /// @notice Thrown when market method call is invalid
     error mt_MarketMethodNotValid();
+
     /// @notice Thrown when liquidation seizes too much collateral
     error mt_LiquidateSeizeTooMuch();
+
     /// @notice Thrown when redeem cash is unavailable
     error mt_RedeemCashNotAvailable();
+
     /// @notice Thrown when borrow cash is unavailable
     error mt_BorrowCashNotAvailable();
+
     /// @notice Thrown when reserve cash is unavailable
     error mt_ReserveCashNotAvailable();
+
     /// @notice Thrown when redeem transfer out is not possible
     error mt_RedeemTransferOutNotPossible();
+
     /// @notice Thrown when same chain operations are disabled
     error mt_SameChainOperationsAreDisabled();
+
     /// @notice Thrown when collateral block timestamp is invalid
     error mt_CollateralBlockTimestampNotValid();
+
     /// @notice Thrown when configuration address is invalid
     error mTokenConfiguration_AddressNotValid();
 
@@ -361,26 +373,20 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     /// @param amount Amount to transfer
     function _doTransferOut(address payable to, uint256 amount) internal virtual;
 
-    /**
-     * @notice Calculates the exchange rate from the underlying to the MToken
-     * @dev This function does not accrue interest before calculating the exchange rate
-     *      Can generate issues if inflated by an attacker when market is created
-     *      Solution: use 0 collateral factor initially
-     * @return calculated exchange rate scaled by 1e18
-     */
+    /// @notice Calculates the exchange rate from the underlying to the MToken
+    /// @dev This function does not accrue interest before calculating the exchange rate
+    ///      Can generate issues if inflated by an attacker when market is created
+    ///      Solution: use 0 collateral factor initially
+    /// @return calculated exchange rate scaled by 1e18
     function _exchangeRateStored() internal view virtual returns (uint256) {
         uint256 _totalSupply = totalSupply;
         if (_totalSupply == 0) {
-            /*
-             * If there are no tokens minted:
-             *  exchangeRate = initialExchangeRate
-             */
+            /// If there are no tokens minted:
+            ///  exchangeRate = initialExchangeRate
             return initialExchangeRateMantissa;
         } else {
-            /*
-             * Otherwise:
-             *  exchangeRate = (totalCash + totalBorrows - totalReserves) / totalSupply
-             */
+            /// Otherwise:
+            ///  exchangeRate = (totalCash + totalBorrows - totalReserves) / totalSupply
             uint256 totalCash = _getCashPrior();
             uint256 cashPlusBorrowsMinusReserves = totalCash + totalBorrows - totalReserves;
             uint256 exchangeRate = (cashPlusBorrowsMinusReserves * EXP_SCALE) / _totalSupply;

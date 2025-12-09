@@ -50,23 +50,14 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
     /// @inheritdoc IInterestRateModel
     string public override name;
 
-    // ----------- ERRORS ------------
-
-    /// @notice Error thrown when multiplier is not valid
-    error JumpRateModelV4_MultiplierNotValid();
-    /// @notice Error thrown when input is not valid
-    error JumpRateModelV4_InputNotValid();
-
-    /**
-     * @notice Construct an interest rate model
-     * @param blocksPerYear_ The estimated number of blocks per year
-     * @param baseRatePerBlock_ The base APR, scaled by 1e18
-     * @param multiplierPerBlock_ The rate increase in interest wrt utilization, scaled by 1e18
-     * @param jumpMultiplierPerBlock_ The multiplier per block after utilization point
-     * @param kink_ The utilization point where the jump multiplier applies
-     * @param owner_ The owner of the contract
-     * @param name_ A user-friendly name for the contract
-     */
+    /// @notice Construct an interest rate model
+    /// @param blocksPerYear_ The estimated number of blocks per year
+    /// @param baseRatePerBlock_ The base APR, scaled by 1e18
+    /// @param multiplierPerBlock_ The rate increase in interest wrt utilization, scaled by 1e18
+    /// @param jumpMultiplierPerBlock_ The multiplier per block after utilization point
+    /// @param kink_ The utilization point where the jump multiplier applies
+    /// @param owner_ The owner of the contract
+    /// @param name_ A user-friendly name for the contract
     constructor(
         uint256 blocksPerYear_,
         uint256 baseRatePerBlock_,
@@ -76,50 +67,54 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         address owner_,
         string memory name_
     ) Ownable(owner_) {
+        // @audit-question check zero values?
+
+        // Effects: set blocks per year, name, and update jump rate model
         blocksPerYear = blocksPerYear_;
         name = name_;
         _updateJumpRateModelWithoutComputation(baseRatePerBlock_, multiplierPerBlock_, jumpMultiplierPerBlock_, kink_);
     }
 
     // ----------- OWNER ------------
-    /**
-     * @notice Update the parameters of the interest rate model (only callable by owner, i.e. Timelock)
-     * @param baseRatePerBlock_ The approximate target base APR, as a mantissa (scaled by 1e18)
-     * @param multiplierPerBlock_ The rate of increase in interest rate wrt utilization (scaled by 1e18)
-     * @param jumpMultiplierPerBlock_ The multiplierPerBlock after hitting a specified utilization point
-     * @param kink_ The utilization point at which the jump multiplier is applied
-     */
+    /// @notice Update the parameters of the interest rate model (only callable by owner, i.e. Timelock)
+    /// @param baseRatePerBlock_ The approximate target base APR, as a mantissa (scaled by 1e18)
+    /// @param multiplierPerBlock_ The rate of increase in interest rate wrt utilization (scaled by 1e18)
+    /// @param jumpMultiplierPerBlock_ The multiplierPerBlock after hitting a specified utilization point
+    /// @param kink_ The utilization point at which the jump multiplier is applied
     function updateJumpRateModelDirect(
         uint256 baseRatePerBlock_,
         uint256 multiplierPerBlock_,
         uint256 jumpMultiplierPerBlock_,
         uint256 kink_
     ) external onlyOwner {
+        // Effects: update jump rate model
         _updateJumpRateModelWithoutComputation(baseRatePerBlock_, multiplierPerBlock_, jumpMultiplierPerBlock_, kink_);
     }
 
-    /**
-     * @notice Update the parameters of the interest rate model (only callable by owner, i.e. Timelock)
-     * @param baseRatePerYear The approximate target base APR, as a mantissa (scaled by 1e18)
-     * @param multiplierPerYear The rate of increase in interest rate wrt utilization (scaled by 1e18)
-     * @param jumpMultiplierPerYear The multiplierPerBlock after hitting a specified utilization point
-     * @param kink_ The utilization point at which the jump multiplier is applied
-     */
+    /// @notice Update the parameters of the interest rate model (only callable by owner, i.e. Timelock)
+    /// @param baseRatePerYear The approximate target base APR, as a mantissa (scaled by 1e18)
+    /// @param multiplierPerYear The rate of increase in interest rate wrt utilization (scaled by 1e18)
+    /// @param jumpMultiplierPerYear The multiplierPerBlock after hitting a specified utilization point
+    /// @param kink_ The utilization point at which the jump multiplier is applied
     function updateJumpRateModel(
         uint256 baseRatePerYear,
         uint256 multiplierPerYear,
         uint256 jumpMultiplierPerYear,
         uint256 kink_
     ) external onlyOwner {
+        // Effects: update jump rate model
         _updateJumpRateModel(baseRatePerYear, multiplierPerYear, jumpMultiplierPerYear, kink_);
     }
 
-    /**
-     * @notice Updates the blocksPerYear in order to make interest calculations simpler
-     * @param blocksPerYear_ The new estimated eth blocks per year.
-     */
+    /// @notice Updates the blocksPerYear in order to make interest calculations simpler
+    /// @param blocksPerYear_ The new estimated eth blocks per year.
     function updateBlocksPerYear(uint256 blocksPerYear_) external onlyOwner {
+        // @audit-question check zero values?
+
+        // Effects: update blocks per year
         blocksPerYear = blocksPerYear_;
+
+        // Events: emit blocks per year updated event
         emit BlocksPerYearUpdated(blocksPerYear_);
     }
 
@@ -157,13 +152,14 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
 
     /// @inheritdoc IInterestRateModel
     function utilizationRate(uint256 cash, uint256 borrows, uint256 reserves) public pure override returns (uint256) {
-        if (borrows == 0) {
-            return 0;
-        }
+        // If borrows are zero, exit early
+        if (borrows == 0) return 0;
+
+        // Calculate utilization rate
         uint256 utilRate = borrows * 1e18 / (cash + borrows - reserves);
-        // cap utilization rate to 100%
-        if (utilRate > 1e18) return 1e18;
-        return utilRate;
+
+        // Cap utilization rate to 100%
+        return utilRate > 1e18 ? 1e18 : utilRate;
     }
 
     // ----------- PRIVATE ------------
@@ -178,32 +174,38 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         uint256 jumpMultiplierPerBlock_,
         uint256 kink_
     ) private {
+        // @audit-question check zero values?
+
+        // Effects: update jump rate model parameters
         baseRatePerBlock = basePerBlock_;
         multiplierPerBlock = multiplierPerBlock_;
         jumpMultiplierPerBlock = jumpMultiplierPerBlock_;
         kink = kink_;
 
+        // Events: emit new interest params event
         emit NewInterestParams(baseRatePerBlock, multiplierPerBlock, jumpMultiplierPerBlock, kink);
     }
 
-    /**
-     * @notice Internal function to update the parameters of the interest rate model
-     * @param baseRatePerYear The base APR, scaled by 1e18
-     * @param multiplierPerYear The rate increase wrt utilization, scaled by 1e18
-     * @param jumpMultiplierPerYear The multiplier per block after utilization point
-     * @param kink_ The utilization point where the jump multiplier applies
-     */
+    /// @notice Internal function to update the parameters of the interest rate model
+    /// @param baseRatePerYear The base APR, scaled by 1e18
+    /// @param multiplierPerYear The rate increase wrt utilization, scaled by 1e18
+    /// @param jumpMultiplierPerYear The multiplier per block after utilization point
+    /// @param kink_ The utilization point where the jump multiplier applies
     function _updateJumpRateModel(
         uint256 baseRatePerYear,
         uint256 multiplierPerYear,
         uint256 jumpMultiplierPerYear,
         uint256 kink_
     ) private {
+        // @audit-question check zero values?
+
+        // Effects: update jump rate model parameters
         baseRatePerBlock = baseRatePerYear / blocksPerYear;
         multiplierPerBlock = multiplierPerYear * 1e18 / (blocksPerYear * kink_);
         jumpMultiplierPerBlock = jumpMultiplierPerYear / blocksPerYear;
         kink = kink_;
 
+        // Events: emit new interest params event
         emit NewInterestParams(baseRatePerBlock, multiplierPerBlock, jumpMultiplierPerBlock, kink);
     }
 }

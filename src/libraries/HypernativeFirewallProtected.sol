@@ -80,9 +80,7 @@ abstract contract HypernativeFirewallProtected {
         firewall.register(_account, isStrictMode);
     }
 
-    /**
-     * @dev Admin only function, sets new firewall admin. set to address(0) to revoke firewall
-     */
+    /// @dev Admin only function, sets new firewall admin. set to address(0) to revoke firewall
     function setFirewall(address _firewall) public onlyFirewallAdmin {
         address oldFirewall = _hypernativeFirewall();
         _setAddressBySlot(HYPERNATIVE_ORACLE_STORAGE_SLOT, _firewall);

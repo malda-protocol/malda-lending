@@ -31,21 +31,15 @@ contract Blacklister is OwnableUpgradeable, IBlacklister {
     /// @notice Mapping of addresses to their blacklist status
     mapping(address user => bool isBlacklisted) public isBlacklisted;
 
+    /// @notice List of blacklisted addresses
     address[] private _blacklistedList;
 
     /// @notice The roles operator contract
     IRoles public rolesOperator;
 
-    // ----------- ERRORS -----------
-    /// @notice Error thrown when address is already blacklisted
-    error Blacklister_AlreadyBlacklisted();
-    /// @notice Error thrown when address is not blacklisted
-    error Blacklister_NotBlacklisted();
-    /// @notice Error thrown when caller is not authorized
-    error Blacklister_NotAllowed();
-
     /// @notice Modifier to restrict access to owner or guardian
     modifier onlyOwnerOrGuardian() {
+        // Requirements: caller is owner or has guardian blacklist role
         require(
             msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_BLACKLIST()),
             Blacklister_NotAllowed()
@@ -64,40 +58,50 @@ contract Blacklister is OwnableUpgradeable, IBlacklister {
     /// @param _roles The roles contract address
     function initialize(address payable _owner, address _roles) external initializer {
         __Ownable_init(_owner);
+
+        // Require: roles contract is not zero address
+        require(_roles != address(0), Blacklister_InvalidRoles());
+
+        // Effects: set roles operator
         rolesOperator = IRoles(_roles);
     }
 
     // ----------- OWNER ------------
-    /// @notice Blacklist an address
-    /// @param user The address to blacklist
+    /// @inheritdoc IBlacklister
     function blacklist(address user) external override onlyOwnerOrGuardian {
-        // @audit use custom error
-        if (isBlacklisted[user]) revert Blacklister_AlreadyBlacklisted();
+        // Requirements: address is not already blacklisted
+        require(!isBlacklisted[user], Blacklister_AlreadyBlacklisted());
+
+        // Effects: add address to blacklist
         _addToBlacklist(user);
     }
 
-    /// @notice Remove an address from blacklist
-    /// @param user The address to unblacklist
+    /// @inheritdoc IBlacklister
     function unblacklist(address user) external override onlyOwnerOrGuardian {
-        if (!isBlacklisted[user]) revert Blacklister_NotBlacklisted();
-        isBlacklisted[user] = false;
-        _removeFromBlacklistList(user);
+        // Requirements: address is not blacklisted
+        require(isBlacklisted[user], Blacklister_NotBlacklisted());
+
+        // Effects: remove address from blacklist
+        _removeFromBlacklist(user);
+
+        // Events: emit unblacklisted event
         emit Unblacklisted(user);
     }
 
-    /// @notice Remove an address from blacklist by index
-    /// @param user The address to unblacklist
-    /// @param index The index in the blacklist array
+    /// @inheritdoc IBlacklister
     function unblacklist(address user, uint256 index) external override onlyOwnerOrGuardian {
-        if (!isBlacklisted[user]) revert Blacklister_NotBlacklisted();
-        isBlacklisted[user] = false;
-        _removeFromBlacklistList(user, index);
+        // Requirements: address is not blacklisted
+        require(isBlacklisted[user], Blacklister_NotBlacklisted());
+
+        // Effects: remove address from blacklist
+        _removeFromBlacklist(user, index);
+
+        // Events: emit unblacklisted event
         emit Unblacklisted(user);
     }
 
     // ----------- VIEW ------------
-    /// @notice Get all blacklisted addresses
-    /// @return Array of blacklisted addresses
+    /// @inheritdoc IBlacklister
     function getBlacklistedAddresses() external view returns (address[] memory) {
         return _blacklistedList;
     }
@@ -106,17 +110,26 @@ contract Blacklister is OwnableUpgradeable, IBlacklister {
     /// @notice Internal function to add an address to blacklist
     /// @param user The address to blacklist
     function _addToBlacklist(address user) internal {
+        // Effects: set address to blacklisted
         isBlacklisted[user] = true;
+
+        // Effects: add address to blacklist list
         _blacklistedList.push(user);
+
+        // Events: emit blacklisted event
         emit Blacklisted(user);
     }
 
     /// @notice Internal function to remove an address from blacklist list
     /// @param user The address to remove
-    function _removeFromBlacklistList(address user) internal {
+    function _removeFromBlacklist(address user) internal {
+        // Effects: set address to not blacklisted
+        isBlacklisted[user] = false;
+
         uint256 len = _blacklistedList.length;
         for (uint256 i; i < len; ++i) {
             if (_blacklistedList[i] == user) {
+                // Effects: remove address from blacklist list
                 _blacklistedList[i] = _blacklistedList[len - 1];
                 _blacklistedList.pop();
                 break;
@@ -127,9 +140,13 @@ contract Blacklister is OwnableUpgradeable, IBlacklister {
     /// @notice Internal function to remove an address from blacklist list by index
     /// @param user The address to remove
     /// @param index The index in the blacklist array
-    function _removeFromBlacklistList(address user, uint256 index) internal {
+    function _removeFromBlacklist(address user, uint256 index) internal {
+        // Effects: set address to not blacklisted
+        isBlacklisted[user] = false;
+
         uint256 len = _blacklistedList.length;
         if (_blacklistedList[index] == user) {
+            // Effects: remove address from blacklist list
             _blacklistedList[index] = _blacklistedList[len - 1];
             _blacklistedList.pop();
         } else {

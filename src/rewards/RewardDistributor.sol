@@ -48,22 +48,16 @@ contract RewardDistributor is
     /// @inheritdoc IRewardDistributor
     address public operator;
 
-    /**
-     * @notice The Reward state for each reward token for each market
-     */
+    /// @notice The Reward state for each reward token for each market
     mapping(address rewardToken => mapping(address mToken => IRewardDistributorData.RewardMarketState marketState))
         public rewardMarketState;
 
-    /**
-     * @notice The Reward state for each reward token for each account
-     */
+    /// @notice The Reward state for each reward token for each account
     mapping(
         address rewardToken => mapping(address account => IRewardDistributorData.RewardAccountState accountState)
     ) public rewardAccountState;
 
-    /**
-     * @notice Added reward tokens
-     */
+    /// @notice Added reward tokens
     address[] public rewardTokens;
 
     /// @inheritdoc IRewardDistributor
@@ -90,10 +84,8 @@ contract RewardDistributor is
     }
 
     // ----------- OWNER ------------
-    /**
-     * @notice Sets the operator allowed to notify indices
-     * @param _operator Operator address
-     */
+    /// @notice Sets the operator allowed to notify indices
+    /// @param _operator Operator address
     function setOperator(address _operator) external onlyOwner {
         require(_operator != address(0), RewardDistributor_AddressNotValid());
         emit OperatorSet(operator, _operator);
@@ -102,10 +94,8 @@ contract RewardDistributor is
 
     // ----------- OPERATOR ------------
     /// @inheritdoc IRewardDistributor
-    /**
-     * @notice Updates supply indices for all reward tokens on a market
-     * @param mToken Market address
-     */
+    /// @notice Updates supply indices for all reward tokens on a market
+    /// @param mToken Market address
     function notifySupplyIndex(address mToken) external override onlyOperator {
         address rewardToken;
         uint256 rewardTokensLength = rewardTokens.length;
@@ -118,10 +108,8 @@ contract RewardDistributor is
     }
 
     /// @inheritdoc IRewardDistributor
-    /**
-     * @notice Updates borrow indices for all reward tokens on a market
-     * @param mToken Market address
-     */
+    /// @notice Updates borrow indices for all reward tokens on a market
+    /// @param mToken Market address
     function notifyBorrowIndex(address mToken) external override onlyOperator {
         uint256 rewardTokensLength = rewardTokens.length;
         for (uint256 i = 0; i < rewardTokensLength; i++) {
@@ -132,11 +120,9 @@ contract RewardDistributor is
     }
 
     /// @inheritdoc IRewardDistributor
-    /**
-     * @notice Accrues supplier rewards for all reward tokens on a market
-     * @param mToken Market address
-     * @param supplier Supplier address
-     */
+    /// @notice Accrues supplier rewards for all reward tokens on a market
+    /// @param mToken Market address
+    /// @param supplier Supplier address
     function notifySupplier(address mToken, address supplier) external override onlyOperator {
         uint256 rewardTokensLength = rewardTokens.length;
         for (uint256 i = 0; i < rewardTokensLength; i++) {
@@ -145,11 +131,9 @@ contract RewardDistributor is
     }
 
     /// @inheritdoc IRewardDistributor
-    /**
-     * @notice Accrues borrower rewards for all reward tokens on a market
-     * @param mToken Market address
-     * @param borrower Borrower address
-     */
+    /// @notice Accrues borrower rewards for all reward tokens on a market
+    /// @param mToken Market address
+    /// @param borrower Borrower address
     function notifyBorrower(address mToken, address borrower) external override onlyOperator {
         uint256 rewardTokensLength = rewardTokens.length;
         for (uint256 i = 0; i < rewardTokensLength; i++) {
@@ -157,19 +141,15 @@ contract RewardDistributor is
         }
     }
 
-    /**
-     * @notice Initializes the upgradeable contract
-     * @param _owner Owner address
-     */
+    /// @notice Initializes the upgradeable contract
+    /// @param _owner Owner address
     function initialize(address _owner) public initializer {
         __Ownable_init(_owner);
     }
 
     // ----------- PUBLIC ------------
-    /**
-     * @notice Claims rewards for a list of holders across all reward tokens
-     * @param holders Account list to claim for
-     */
+    /// @notice Claims rewards for a list of holders across all reward tokens
+    /// @param holders Account list to claim for
     function claim(address[] memory holders) public override nonReentrant {
         for (uint256 i = 0; i < rewardTokens.length;) {
             _claim(rewardTokens[i], holders);
@@ -180,10 +160,8 @@ contract RewardDistributor is
         }
     }
 
-    /**
-     * @notice Whitelists a new reward token
-     * @param rewardToken_ Reward token address
-     */
+    /// @notice Whitelists a new reward token
+    /// @param rewardToken_ Reward token address
     function whitelistToken(address rewardToken_) public onlyOwner {
         require(rewardToken_ != address(0), RewardDistributor_AddressNotValid());
         require(!isRewardToken[rewardToken_], RewardDistributor_AddressAlreadyRegistered());
@@ -194,13 +172,11 @@ contract RewardDistributor is
         emit WhitelistedToken(rewardToken_);
     }
 
-    /**
-     * @notice Updates reward speeds for multiple markets
-     * @param rewardToken_ Reward token address
-     * @param mTokens Market addresses
-     * @param supplySpeeds Supply speeds per market
-     * @param borrowSpeeds Borrow speeds per market
-     */
+    /// @notice Updates reward speeds for multiple markets
+    /// @param rewardToken_ Reward token address
+    /// @param mTokens Market addresses
+    /// @param supplySpeeds Supply speeds per market
+    /// @param borrowSpeeds Borrow speeds per market
     function updateRewardSpeeds(
         address rewardToken_,
         address[] memory mTokens,

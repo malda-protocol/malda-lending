@@ -65,10 +65,8 @@ contract Deployer {
     receive() external payable {}
 
     // ----------- OWNER ------------
-    /**
-     * @notice Propose a new admin that must later accept
-     * @param newAdmin Address proposed as the next admin
-     */
+    /// @notice Propose a new admin that must later accept
+    /// @param newAdmin Address proposed as the next admin
     function setPendingAdmin(address newAdmin) external onlyAdmin {
         require(newAdmin != address(0), NotAuthorized(address(0), msg.sender));
         pendingAdmin = newAdmin;
@@ -84,10 +82,8 @@ contract Deployer {
         }
     }
 
-    /**
-     * @notice Directly sets a new admin (without pending/accept)
-     * @param _addr New admin address
-     */
+    /// @notice Directly sets a new admin (without pending/accept)
+    /// @param _addr New admin address
     function setNewAdmin(address _addr) external {
         if (admin == msg.sender) {
             require(_addr != address(0), NotAuthorized(address(0), msg.sender));
@@ -98,12 +94,10 @@ contract Deployer {
     }
 
     // ----------- PUBLIC ------------
-    /**
-     * @notice Deploys a contract using CREATE3
-     * @param salt Deterministic salt used for CREATE3
-     * @param code Creation bytecode to deploy
-     * @return deployed The deployed contract address
-     */
+    /// @notice Deploys a contract using CREATE3
+    /// @param salt Deterministic salt used for CREATE3
+    /// @param code Creation bytecode to deploy
+    /// @return deployed The deployed contract address
     function create(bytes32 salt, bytes calldata code) external payable onlyAdmin returns (address deployed) {
         return CREATE3.deploy(salt, code, msg.value);
     }
@@ -119,11 +113,9 @@ contract Deployer {
     }
 
     // ----------- VIEW ------------
-    /**
-     * @notice Precomputes the deployment address for a given salt
-     * @param salt Deterministic salt used for CREATE3
-     * @return The address that would be deployed
-     */
+    /// @notice Precomputes the deployment address for a given salt
+    /// @param salt Deterministic salt used for CREATE3
+    /// @return The address that would be deployed
     function precompute(bytes32 salt) external view returns (address) {
         return CREATE3.getDeployed(salt);
     }

@@ -117,10 +117,12 @@ interface ImErc20Host {
     /// @param receiver Receiver of the migrated tokens
     /// @param amount Amount minted
     event mErc20Host_MintMigration(address indexed receiver, uint256 amount);
+
     /// @notice Emitted when migration borrow is performed
     /// @param borrower Borrower receiving funds
     /// @param amount Amount borrowed
     event mErc20Host_BorrowMigration(address indexed borrower, uint256 amount);
+
     /// @notice Emitted when migrator address is updated
     /// @param migrator The new migrator address
     event mErc20Host_MigratorUpdated(address indexed migrator);

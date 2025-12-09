@@ -25,13 +25,11 @@ pragma solidity =0.8.28;
 |_|_|_|__|__|_____|____/|__|__|
 */
 
-/**
- * @title Exponential module for storing fixed-precision decimals
- * @author Compound
- * @notice Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
- *         Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
- *         `Exp({mantissa: 5100000000000000000})`.
- */
+/// @title Exponential module for storing fixed-precision decimals
+/// @author Compound
+/// @notice Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
+/// Thus, if we wanted to store the 5.1, mantissa would store 5.1e18.
+/// That is: `Exp({mantissa: 5100000000000000000})`.
 // slither-disable-start unused-state,dead-code
 abstract contract ExponentialNoError {
     struct Exp {
@@ -47,55 +45,43 @@ abstract contract ExponentialNoError {
     uint256 internal constant HALF_EXP_SCALE = EXP_SCALE / 2;
     uint256 internal constant MANTISSA_ONE = EXP_SCALE;
 
-    /**
-     * @dev Truncates the given exp to a whole number value.
-     *      For example, truncate(Exp{mantissa: 15 * EXP_SCALE}) = 15
-     */
+    /// @dev Truncates the given exp to a whole number value.
+    ///      For example, truncate(Exp{mantissa: 15 * EXP_SCALE}) = 15
+    /// @param exp The exp to truncate.
+    /// @return The truncated value.
     function truncate(Exp memory exp) internal pure returns (uint256) {
         // Note: We are not using careful math here as we're performing a division that cannot fail
         return exp.mantissa / EXP_SCALE;
     }
 
-    /**
-     * @dev Multiply an Exp by a scalar, then truncate to return an unsigned integer.
-     */
+    /// @dev Multiply an Exp by a scalar, then truncate to return an unsigned integer.
     function mul_ScalarTruncate(Exp memory a, uint256 scalar) internal pure returns (uint256) {
         Exp memory product = mul_(a, scalar);
         return truncate(product);
     }
 
-    /**
-     * @dev Multiply an Exp by a scalar, truncate, then add an to an unsigned integer, returning an unsigned integer.
-     */
+    /// @dev Multiply an Exp by a scalar, truncate, then add an to an unsigned integer, returning an unsigned integer.
     function mul_ScalarTruncateAddUInt(Exp memory a, uint256 scalar, uint256 addend) internal pure returns (uint256) {
         Exp memory product = mul_(a, scalar);
         return add_(truncate(product), addend);
     }
 
-    /**
-     * @dev Checks if first Exp is less than second Exp.
-     */
+    /// @dev Checks if first Exp is less than second Exp.
     function lessThanExp(Exp memory left, Exp memory right) internal pure returns (bool) {
         return left.mantissa < right.mantissa;
     }
 
-    /**
-     * @dev Checks if left Exp <= right Exp.
-     */
+    /// @dev Checks if left Exp <= right Exp.
     function lessThanOrEqualExp(Exp memory left, Exp memory right) internal pure returns (bool) {
         return left.mantissa <= right.mantissa;
     }
 
-    /**
-     * @dev Checks if left Exp > right Exp.
-     */
+    /// @dev Checks if left Exp > right Exp.
     function greaterThanExp(Exp memory left, Exp memory right) internal pure returns (bool) {
         return left.mantissa > right.mantissa;
     }
 
-    /**
-     * @dev returns true if Exp is exactly zero
-     */
+    /// @dev returns true if Exp is exactly zero
     function isZeroExp(Exp memory value) internal pure returns (bool) {
         return value.mantissa == 0;
     }

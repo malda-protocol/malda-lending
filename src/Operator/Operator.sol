@@ -114,22 +114,18 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         emit NewRolesOperator(address(rolesOperator), _roles);
     }
 
-    /**
-     * @notice Sets a new price oracle
-     * @dev Admin function to set a new price oracle
-     * @param newOracle Address of the new oracle
-     */
+    /// @notice Sets a new price oracle
+    /// @dev Admin function to set a new price oracle
+    /// @param newOracle Address of the new oracle
     function setPriceOracle(address newOracle) external onlyOwner {
         require(newOracle != address(0), Operator_InvalidInput());
         emit NewPriceOracle(oracleOperator, newOracle);
         oracleOperator = newOracle;
     }
 
-    /**
-     * @notice Sets the closeFactor used when liquidating borrows
-     * @dev Admin function to set closeFactor
-     * @param newCloseFactorMantissa New close factor, scaled by 1e18
-     */
+    /// @notice Sets the closeFactor used when liquidating borrows
+    /// @dev Admin function to set closeFactor
+    /// @param newCloseFactorMantissa New close factor, scaled by 1e18
     function setCloseFactor(uint256 newCloseFactorMantissa) external onlyOwner {
         require(
             newCloseFactorMantissa >= CLOSE_FACTOR_MIN_MANTISSA && newCloseFactorMantissa <= CLOSE_FACTOR_MAX_MANTISSA,
@@ -139,12 +135,10 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         closeFactorMantissa = newCloseFactorMantissa;
     }
 
-    /**
-     * @notice Sets the collateralFactor for a market
-     * @dev Admin function to set per-market collateralFactor
-     * @param mToken The market to set the factor on
-     * @param newCollateralFactorMantissa The new collateral factor, scaled by 1e18
-     */
+    /// @notice Sets the collateralFactor for a market
+    /// @dev Admin function to set per-market collateralFactor
+    /// @param mToken The market to set the factor on
+    /// @param newCollateralFactorMantissa The new collateral factor, scaled by 1e18
     function setCollateralFactor(address mToken, uint256 newCollateralFactorMantissa) external onlyOwner {
         // Verify market is listed
         IOperatorData.Market storage market = markets[address(mToken)];
@@ -168,12 +162,10 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         market.collateralFactorMantissa = newCollateralFactorMantissa;
     }
 
-    /**
-     * @notice Sets liquidationIncentive
-     * @dev Admin function to set liquidationIncentive
-     * @param market Market address
-     * @param newLiquidationIncentiveMantissa New liquidationIncentive scaled by 1e18
-     */
+    /// @notice Sets liquidationIncentive
+    /// @dev Admin function to set liquidationIncentive
+    /// @param market Market address
+    /// @param newLiquidationIncentiveMantissa New liquidationIncentive scaled by 1e18
     function setLiquidationIncentive(address market, uint256 newLiquidationIncentiveMantissa) external onlyOwner {
         // Emit event with old incentive, new incentive
         emit NewLiquidationIncentive(market, liquidationIncentiveMantissa[market], newLiquidationIncentiveMantissa);
@@ -182,11 +174,9 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         liquidationIncentiveMantissa[market] = newLiquidationIncentiveMantissa;
     }
 
-    /**
-     * @notice Add the market to the markets mapping and set it as listed
-     * @dev Admin function to set isListed and add support for the market
-     * @param mToken The address of the market (token) to list
-     */
+    /// @notice Add the market to the markets mapping and set it as listed
+    /// @dev Admin function to set isListed and add support for the market
+    /// @param mToken The address of the market (token) to list
     function supportMarket(address mToken) external onlyOwner {
         require(!markets[address(mToken)].isListed, Operator_MarketAlreadyListed());
 
@@ -207,38 +197,30 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         emit MarketListed(mToken);
     }
 
-    /**
-     * @notice Sets outflow volume time window
-     * @param newTimeWindow The new reset time window
-     */
+    /// @notice Sets outflow volume time window
+    /// @param newTimeWindow The new reset time window
     function setOutflowVolumeTimeWindow(uint256 newTimeWindow) external onlyOwner {
         emit OutflowTimeWindowUpdated(outflowResetTimeWindow, newTimeWindow);
         outflowResetTimeWindow = newTimeWindow;
     }
 
-    /**
-     * @notice Sets outflow volume limit
-     * @dev when 0, it means there's no limit
-     * @param amount The new limit
-     */
+    /// @notice Sets outflow volume limit
+    /// @dev when 0, it means there's no limit
+    /// @param amount The new limit
     function setOutflowTimeLimitInUSD(uint256 amount) external onlyOwner {
         emit OutflowLimitUpdated(msg.sender, limitPerTimePeriod, amount);
         limitPerTimePeriod = amount;
     }
 
-    /**
-     * @notice Resets outflow volume
-     */
+    /// @notice Resets outflow volume
     function resetOutflowVolume() external onlyOwner {
         cumulativeOutflowVolume = 0;
         lastOutflowResetTimestamp = block.timestamp;
         emit OutflowVolumeReset();
     }
 
-    /**
-     * @notice Verifies outflow volule limit
-     * @param amount The new limit
-     */
+    /// @notice Verifies outflow volule limit
+    /// @param amount The new limit
     function checkOutflowVolumeLimit(uint256 amount) external {
         require(markets[msg.sender].isListed, Operator_MarketNotListed());
 
@@ -262,12 +244,11 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         }
     }
 
-    /**
-     * @notice Set borrow caps for given mToken markets.
-     * @dev Borrowing that brings total borrows to or above borrow cap will revert.
-     * @param mTokens The addresses of the markets (tokens) to change the borrow caps for
-     * @param newBorrowCaps The new borrow cap values in underlying to be set. Value of 0 corresponds to unlimited borrowing.
-     */
+    /// @notice Set borrow caps for given mToken markets.
+    /// @dev Borrowing that brings total borrows to or above borrow cap will revert.
+    ///      A value of 0 corresponds to unlimited borrowing.
+    /// @param mTokens The addresses of the markets (tokens) to change the borrow caps for
+    /// @param newBorrowCaps The new borrow cap values in underlying to be set.
     function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newBorrowCaps)
         external
         onlyFirewallApproved
@@ -292,13 +273,11 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         }
     }
 
-    /**
-     * @notice Set supply caps for the given mToken markets.
-     * @dev Supplying that brings total supply to or above supply cap will revert.
-     * @param mTokens The addresses of the markets (tokens) to change the supply caps for
-     * @param newSupplyCaps The new supply cap values in underlying to be set.
-     * A value of 0 corresponds to unlimited supplying.
-     */
+    /// @notice Set supply caps for the given mToken markets.
+    /// @dev Supplying that brings total supply to or above supply cap will revert.
+    ///      A value of 0 corresponds to unlimited supplying.
+    /// @param mTokens The addresses of the markets (tokens) to change the supply caps for
+    /// @param newSupplyCaps The new supply cap values in underlying to be set.
     function setMarketSupplyCaps(address[] calldata mTokens, uint256[] calldata newSupplyCaps)
         external
         onlyFirewallApproved
