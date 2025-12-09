@@ -22,8 +22,9 @@ contract mErc20Host_mint is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsPausedForMinting(uint256 amount)
         external
         whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint)
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
         mWethHost.mint(amount, address(this), amount - 1000);
     }
@@ -31,18 +32,17 @@ contract mErc20Host_mint is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
         external
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint)
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         mWethHost.mint(amount, address(this), amount - 1000);
     }
 
-    function test_RevertGiven_WhenSupplyCapIsReached(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenSupplyCapReached(address(mWethHost), amount)
-        whenMarketIsListed(address(mWethHost))
-    {
+    function test_RevertGiven_WhenSupplyCapIsReached(uint256 amount) external whenMarketIsListed(address(mWethHost)) {
+        amount = bound(amount, SMALL, LARGE);
+        _whenSupplyCapIsReached(address(mWethHost), amount);
+
         _getTokens(weth, address(this), amount);
         weth.approve(address(mWethHost), amount);
 
@@ -51,11 +51,9 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         // it should revert with Operator_MarketSupplyReached
     }
 
-    function test_WhenSupplyCapIsGreater(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenMarketIsListed(address(mWethHost))
-    {
+    function test_WhenSupplyCapIsGreater(uint256 amount) external whenMarketIsListed(address(mWethHost)) {
+        amount = bound(amount, SMALL, LARGE);
+
         _getTokens(weth, address(this), amount);
         weth.approve(address(mWethHost), amount);
 
@@ -96,11 +94,9 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         _;
     }
 
-    function test_RevertGiven_JournalIsEmpty(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenMintExternalIsCalled
-    {
+    function test_RevertGiven_JournalIsEmpty(uint256 amount) external whenMintExternalIsCalled {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
@@ -108,11 +104,9 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         mWethHost.mintExternal("", "0x123", amounts, new uint256[](1), address(this));
     }
 
-    function test_RevertGiven_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenMintExternalIsCalled
-    {
+    function test_RevertGiven_JournalIsNonEmptyButLengthIsNotValid(uint256 amount) external whenMintExternalIsCalled {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
@@ -132,10 +126,11 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
     function test_RevertWhen_SealVerificationFails(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenMintExternalIsCalled
         givenDecodedAmountIsValid
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
@@ -151,11 +146,12 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
     function test_WhenSealVerificationWasOk(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenMintExternalIsCalled
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256 balanceWethBefore = weth.balanceOf(address(this));
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
@@ -185,22 +181,24 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
     function test_SetReserveFactor(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenMintExternalIsCalled
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         mWethHost.setReserveFactor(1e17);
     }
 
     function test_WhenSealVerificationWasOk_And_OverflowLimitIsInPlace(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenMintExternalIsCalled
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE36)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
@@ -239,12 +237,13 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
     function test_WhenSealVerificationWasOk_And_OverflowLimitNotExceeded(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenMintExternalIsCalled
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
@@ -265,12 +264,13 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
     function test_WhenSealVerificationWasOk_And_OverflowLimitNotExceeded_ButUserIsBlacklisted(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenMintExternalIsCalled
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
@@ -311,12 +311,13 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
     function test_WhenSealVerificationWasOk_And_OutflowLimitIsAdjusted(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenMintExternalIsCalled
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE36)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));
 
@@ -342,11 +343,12 @@ contract mErc20Host_mint is mToken_Unit_Shared {
 
     function test_WhenSealVerificationWasOk_ButWhitelistEnabled(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenMintExternalIsCalled
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256 balanceWethBefore = weth.balanceOf(address(this));
         uint256 totalSupplyBefore = mWethHost.totalSupply();
         uint256 balanceOfBefore = mWethHost.balanceOf(address(this));

@@ -20,8 +20,9 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsPausedForBorrow(uint256 amount)
         external
         whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
         mWethHost.borrow(amount);
     }
@@ -29,8 +30,9 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
         external
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         mWethHost.borrow(amount);
     }
@@ -41,8 +43,9 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenUnderlyingPriceIs(ZERO_VALUE)
         whenMarketIsListed(address(mWethHost))
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         // it should revert
         vm.expectRevert(OperatorStorage.Operator_EmptyPrice.selector);
         mWethHost.borrow(amount);
@@ -59,9 +62,10 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
-        inRange(amount, SMALL, LARGE)
         whenMarketEntered(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         // it should revert with mt_BorrowCashNotAvailable but it actually reverts with InsufficientLiquidity for non cross-chain tokens
         // cannot test this in a non-external flow
         vm.expectRevert();
@@ -74,9 +78,10 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
-        inRange(amount, SMALL, LARGE)
-        whenBorrowCapReached(address(mWethHost), amount)
     {
+        amount = bound(amount, SMALL, LARGE);
+        _whenBorrowCapIsReached(address(mWethHost), amount);
+
         // it should revert with Operator_MarketBorrowCapReached
         vm.expectRevert(OperatorStorage.Operator_MarketBorrowCapReached.selector);
         mWethHost.borrow(amount);
@@ -88,9 +93,10 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
-        inRange(amount, SMALL, LARGE)
         whenMarketEntered(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         _borrowPrerequisites(address(mWethHost), amount);
 
         vm.expectRevert(OperatorStorage.Operator_InsufficientLiquidity.selector);
@@ -109,8 +115,9 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         // supply tokens; assure collateral factor is met
         _borrowPrerequisites(address(mWethHost), amount * 2);
 
@@ -140,9 +147,10 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
-        inRange(amount, SMALL, LARGE)
         whenMarketEntered(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         // supply tokens; assure collateral factor is met
         _borrowPrerequisites(address(mWethHost), amount * 2);
 
@@ -216,13 +224,14 @@ contract mErc20Host_borrow is mToken_Unit_Shared {
 
     function test_WhenBorrowOnExtensionVerificationWasOk(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenBorrowOnExtensionIsCalled
         givenDecodedLiquidityIsValid
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         // supply tokens; assure collateral factor is met
         _borrowPrerequisites(address(mWethHost), amount * 2);
 

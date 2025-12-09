@@ -171,29 +171,27 @@ abstract contract mToken_Unit_Shared is Base_Unit_Test {
         _;
     }
 
-    modifier whenSupplyCapReached(address mToken, uint256 amount) {
-        address[] memory mTokens = new address[](1);
-        uint256[] memory caps = new uint256[](1);
-        mTokens[0] = mToken;
-        caps[0] = amount - 1;
-        operator.setMarketSupplyCaps(mTokens, caps);
-        _;
-    }
-
-    modifier whenBorrowCapReached(address mToken, uint256 amount) {
-        address[] memory mTokens = new address[](1);
-        uint256[] memory caps = new uint256[](1);
-        mTokens[0] = mToken;
-        caps[0] = amount - 1;
-        operator.setMarketBorrowCaps(mTokens, caps);
-        _;
-    }
-
     modifier whenMarketEntered(address mToken) {
         address[] memory mTokens = new address[](1);
         mTokens[0] = mToken;
         operator.enterMarkets(mTokens);
         operator.setCollateralFactor(mToken, DEFAULT_COLLATERAL_FACTOR);
         _;
+    }
+
+    function _whenBorrowCapIsReached(address mToken, uint256 amount) internal {
+        address[] memory mTokens = new address[](1);
+        uint256[] memory caps = new uint256[](1);
+        mTokens[0] = mToken;
+        caps[0] = amount - 1;
+        operator.setMarketBorrowCaps(mTokens, caps);
+    }
+
+    function _whenSupplyCapIsReached(address mToken, uint256 amount) internal {
+        address[] memory mTokens = new address[](1);
+        uint256[] memory caps = new uint256[](1);
+        mTokens[0] = mToken;
+        caps[0] = amount - 1;
+        operator.setMarketSupplyCaps(mTokens, caps);
     }
 }

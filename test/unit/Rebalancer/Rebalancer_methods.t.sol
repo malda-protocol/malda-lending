@@ -152,8 +152,9 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
         external
         givenSendMsgIsCalledWithRightParameters
         givenSenderHasRoleGUARDIAN_BRIDGE
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
         rebalancer.setMaxTransferSize(0, address(weth), amount - 1);
         IRebalancer.Msg memory _msg =

@@ -15,8 +15,9 @@ contract mErc20_repay is mToken_Unit_Shared {
         external
         whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenMarketIsListed(address(mWeth))
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
         mWeth.repayBehalf(address(this), amount);
     }
@@ -24,21 +25,23 @@ contract mErc20_repay is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         mWeth.repayBehalf(address(this), amount);
     }
 
     function test_GivenAmountIs0(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
         whenMarketEntered(address(mWeth))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         _repayPrerequisites(address(mWeth), amount * 2, amount);
 
         uint256 totalBorrowsBefore = mWeth.totalBorrows();
@@ -82,13 +85,14 @@ contract mErc20_repay is mToken_Unit_Shared {
         external
         givenAmountIsGreaterThan0
         whenStateIsValid
-        inRange(amount, SMALL, LARGE)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
         whenMarketEntered(address(mWeth))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         {
             _repayPrerequisites(address(mWeth), amount * 2, amount);
             _getTokens(weth, address(this), amount * 10);
@@ -137,13 +141,14 @@ contract mErc20_repay is mToken_Unit_Shared {
         external
         givenAmountIsGreaterThan0
         whenStateIsValid
-        inRange(amount, SMALL, LARGE)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
         whenMarketEntered(address(mWeth))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         RepayStateInternal memory vars;
 
         _repayPrerequisites(address(mWeth), amount * 2, amount);

@@ -172,8 +172,9 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         external
         givenSenderHasProofForwarderRole
         givenJournalDataIsValid
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         // Reset storage arrays to length 1
         mTokens = new address[](1);
         mTokens[0] = address(mWethExtension);
@@ -281,12 +282,9 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         );
     }
 
-    function test_WhenMintSucceeds(uint256 amount)
-        external
-        givenSenderHasProofForwarderRole
-        givenJournalDataIsValid
-        inRange(amount, SMALL, LARGE)
-    {
+    function test_WhenMintSucceeds(uint256 amount) external givenSenderHasProofForwarderRole givenJournalDataIsValid {
+        amount = bound(amount, SMALL, LARGE);
+
         // Reset storage arrays to length 1
         mTokens = new address[](1);
         mTokens[0] = address(mWethHost);
@@ -459,8 +457,9 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         external
         givenSenderHasProofForwarderRole
         givenJournalDataIsValid
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         // Reset storage arrays to length 1
         mTokens = new address[](1);
         mTokens[0] = address(mWethHost);

@@ -16,8 +16,9 @@ contract mErc20_redeem is mToken_Unit_Shared {
         external
         whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWeth))
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
         mWeth.redeem(amount);
 
@@ -28,8 +29,9 @@ contract mErc20_redeem is mToken_Unit_Shared {
     function test_GivenMarketIsNotListed(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         mWeth.redeem(amount);
 
@@ -40,9 +42,10 @@ contract mErc20_redeem is mToken_Unit_Shared {
     function test_GivenRedeemerIsNotPartOfTheMarket(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
-        inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWeth))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         _getTokens(weth, address(mWeth), amount);
         vm.expectRevert();
         mWeth.redeem(amount);
@@ -71,9 +74,10 @@ contract mErc20_redeem is mToken_Unit_Shared {
         external
         givenAmountIsGreaterThan0
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
-        inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWeth))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         // it should revert with mt_RedeemCashNotAvailable
         vm.expectRevert(mTokenStorage.mt_RedeemCashNotAvailable.selector);
         mWeth.redeem(amount);
@@ -86,10 +90,11 @@ contract mErc20_redeem is mToken_Unit_Shared {
         external
         givenAmountIsGreaterThan0
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
-        inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWeth))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         _redeem(amount, false);
     }
 
@@ -97,10 +102,11 @@ contract mErc20_redeem is mToken_Unit_Shared {
         external
         givenAmountIsGreaterThan0
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
-        inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWeth))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         _redeem(amount, true);
     }
 

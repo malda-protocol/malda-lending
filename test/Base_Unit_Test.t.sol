@@ -117,11 +117,6 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
         _;
     }
 
-    modifier inRange(uint256 _value, uint256 _min, uint256 _max) {
-        vm.assume(_value >= _min && _value <= _max);
-        _;
-    }
-
     modifier resetContext(address _executor) {
         _resetContext(_executor);
         _;

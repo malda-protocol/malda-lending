@@ -13,7 +13,9 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         vm.chainId(LINEA_CHAIN_ID);
     }
 
-    function test_RevertGiven_IsPaused(uint256 amount) external inRange(amount, SMALL, LARGE) {
+    function test_RevertGiven_IsPaused(uint256 amount) external {
+        amount = bound(amount, SMALL, LARGE);
+
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.AmountOutHere, true);
 
         vm.expectRevert();
@@ -26,7 +28,9 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         _;
     }
 
-    function test_RevertWhen_AmountIs(uint256 amount) external inRange(amount, SMALL, LARGE) givenMarketIsNotPaused {
+    function test_RevertWhen_AmountIs(uint256 amount) external givenMarketIsNotPaused {
+        amount = bound(amount, SMALL, LARGE);
+
         // it should revert
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethExtension), amount);
 
@@ -36,11 +40,9 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
 
-    function test_WhenAccumulatedAmountReceivedOrLessThanNeeded(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        givenMarketIsNotPaused
-    {
+    function test_WhenAccumulatedAmountReceivedOrLessThanNeeded(uint256 amount) external givenMarketIsNotPaused {
+        amount = bound(amount, SMALL, LARGE);
+
         // it should revert with mTokenGateway_AmountTooBig
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethExtension), amount - 1);
         uint256[] memory amounts = new uint256[](1);
@@ -49,11 +51,9 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
 
-    function test_WhenMarketDoesNotHaveLiquidity(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        givenMarketIsNotPaused
-    {
+    function test_WhenMarketDoesNotHaveLiquidity(uint256 amount) external givenMarketIsNotPaused {
+        amount = bound(amount, SMALL, LARGE);
+
         // it should revert with mTokenGateway_ReleaseCashNotAvailable
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethExtension), amount);
         uint256[] memory amounts = new uint256[](1);
@@ -62,11 +62,9 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
 
-    function test_RevertWhen_CallerNotAllowedXQ(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        givenMarketIsNotPaused
-    {
+    function test_RevertWhen_CallerNotAllowedXQ(uint256 amount) external givenMarketIsNotPaused {
+        amount = bound(amount, SMALL, LARGE);
+
         // it should revert
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethExtension), amount);
         _resetContext(alice);
@@ -76,7 +74,9 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
 
-    function test_WhenParametersAreRight(uint256 amount) external inRange(amount, SMALL, LARGE) givenMarketIsNotPaused {
+    function test_WhenParametersAreRight(uint256 amount) external givenMarketIsNotPaused {
+        amount = bound(amount, SMALL, LARGE);
+
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethExtension), amount);
 
         _getTokens(weth, address(mWethExtension), amount);
@@ -94,11 +94,9 @@ contract mTokenGateway_outHere is mToken_Unit_Shared {
         assertEq(balanceUserBefore + amount, balanceUserAfter);
     }
 
-    function test_WhenParametersAreRightDifferentUsersQE(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        givenMarketIsNotPaused
-    {
+    function test_WhenParametersAreRightDifferentUsersQE(uint256 amount) external givenMarketIsNotPaused {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.chainId(LINEA_CHAIN_ID);
         address[] memory allowerdCallers = new address[](1);
         allowerdCallers[0] = alice;

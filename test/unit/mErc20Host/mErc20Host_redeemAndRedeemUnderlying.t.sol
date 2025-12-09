@@ -24,8 +24,9 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         external
         whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWethHost))
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
         mWethHost.redeem(amount);
 
@@ -36,8 +37,9 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
     function test_GivenMarketIsNotListed(uint256 amount)
         external
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         mWethHost.redeem(amount);
 
@@ -48,9 +50,10 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
     function test_GivenRedeemerIsNotPartOfTheMarket(uint256 amount)
         external
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
-        inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         _getTokens(weth, address(mWethHost), amount);
         vm.expectRevert();
         mWethHost.redeem(amount);
@@ -79,9 +82,10 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         external
         givenAmountIsGreaterThan0
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
-        inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         // it should revert with mt_RedeemCashNotAvailable
         vm.expectRevert(mTokenStorage.mt_RedeemCashNotAvailable.selector);
         mWethHost.redeem(amount);
@@ -94,10 +98,11 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         external
         givenAmountIsGreaterThan0
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
-        inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         _redeem(amount, false);
     }
 
@@ -105,10 +110,11 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
         external
         givenAmountIsGreaterThan0
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
-        inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         _redeem(amount, true);
     }
 
@@ -166,10 +172,11 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
 
     function test_RevertWhen_LiquiditySealVerificationFails(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenWithdrawOnExtensionIsCalled
         givenDecodedLiquidityIsValid
     {
+        amount = bound(amount, SMALL, LARGE);
+
         verifierMock.setStatus(true); // set for failure
 
         vm.expectRevert();
@@ -178,12 +185,13 @@ contract mErc20Host_redeem is mToken_Unit_Shared {
 
     function test_WhenLiquiditySealVerificationWasOk(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenWithdrawOnExtensionIsCalled
         givenDecodedLiquidityIsValid
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         _borrowPrerequisites(address(mWethHost), amount);
 
         amount = amount - DEFAULT_INFLATION_INCREASE;
