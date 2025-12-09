@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="mtokenstorage"><a class="header" href="#mtokenstorage">mTokenStorage</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/dbdad17553cf75e91336b6ff44691dc560564fe7/src/mToken/mTokenStorage.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/f500978505f25c8d2e1efeed3a63ef7075380ee1/src/mToken/mTokenStorage.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/interfaces/ImToken.sol/interface.ImToken.html">ImToken</a>, <a href="/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a></p>
 <p><strong>Title:</strong>
@@ -630,13 +630,10 @@ Solution: use 0 collateral factor initially</p>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
 <h3 id="borrowsnapshot"><a class="header" href="#borrowsnapshot">BorrowSnapshot</a></h3>
 <p>Container for borrow balance information</p>
-<p>Fields:</p>
-<ul>
-<li>principal: Total balance (with accrued interest), after applying the most recent balance-changing action</li>
-<li>interestIndex: Global borrowIndex as of the most recent balance-changing action</li>
-</ul>
 <pre><code class="language-solidity">struct BorrowSnapshot {
+    /// @notice Total balance (with accrued interest), after applying the most recent balance-changing action
     uint256 principal;
+    /// @notice Global borrowIndex as of the most recent balance-changing action
     uint256 interestIndex;
 }
 </code></pre>
