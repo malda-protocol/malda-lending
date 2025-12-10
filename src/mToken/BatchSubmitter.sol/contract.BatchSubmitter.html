@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="batchsubmitter"><a class="header" href="#batchsubmitter">BatchSubmitter</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/af2768a9b2db8566303867d6f24ff80987b6cec4/src/mToken/BatchSubmitter.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/f825c605923d5577653597ebada8607276259a2e/src/mToken/BatchSubmitter.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable</p>
 <p><strong>Title:</strong>
@@ -190,15 +190,19 @@ Merge Layers Inc.</p>
 <p>Contract for batch processing multiple operations</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="mint_selector"><a class="header" href="#mint_selector">MINT_SELECTOR</a></h3>
+<p>The function selector for the supported <code>mintExternal</code> operation</p>
 <pre><code class="language-solidity">bytes4 internal constant MINT_SELECTOR = ImErc20Host.mintExternal.selector
 </code></pre>
 <h3 id="repay_selector"><a class="header" href="#repay_selector">REPAY_SELECTOR</a></h3>
+<p>The function selector for the supported <code>repayExternal</code> operation</p>
 <pre><code class="language-solidity">bytes4 internal constant REPAY_SELECTOR = ImErc20Host.repayExternal.selector
 </code></pre>
 <h3 id="out_here_selector"><a class="header" href="#out_here_selector">OUT_HERE_SELECTOR</a></h3>
+<p>The function selector for the supported <code>outHere</code> operation</p>
 <pre><code class="language-solidity">bytes4 internal constant OUT_HERE_SELECTOR = ImTokenGateway.outHere.selector
 </code></pre>
 <h3 id="liquidate_selector"><a class="header" href="#liquidate_selector">LIQUIDATE_SELECTOR</a></h3>
+<p>The function selector for the supported <code>liquidateExternal</code> operation</p>
 <pre><code class="language-solidity">bytes4 internal constant LIQUIDATE_SELECTOR = ImErc20Host.liquidateExternal.selector
 </code></pre>
 <h3 id="roles_operator"><a class="header" href="#roles_operator">ROLES_OPERATOR</a></h3>
