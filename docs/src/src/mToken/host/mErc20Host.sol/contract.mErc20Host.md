@@ -1,5 +1,5 @@
 # mErc20Host
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/mToken/host/mErc20Host.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/mToken/host/mErc20Host.sol)
 
 **Inherits:**
 [mErc20Upgradable](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/mToken/mErc20Upgradable.sol/abstract.mErc20Upgradable.md), [ImErc20Host](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/ImErc20Host.sol/interface.ImErc20Host.md), [ImTokenOperationTypes](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.md)
@@ -452,13 +452,13 @@ function _onlyAdminOrRole(bytes32 _role) internal view;
 |`_role`|`bytes32`|Role identifier to check|
 
 
-### _checkProofCall
+### _checkJournalData
 
 Performs basic proof call checks
 
 
 ```solidity
-function _checkProofCall(uint32 dstChainId, uint32 chainId, address market, address sender) internal view;
+function _checkJournalData(uint32 dstChainId, uint32 chainId, address market, address sender) internal view;
 ```
 **Parameters**
 
@@ -468,22 +468,6 @@ function _checkProofCall(uint32 dstChainId, uint32 chainId, address market, addr
 |`chainId`|`uint32`|Source chain id|
 |`market`|`address`|Market address encoded in proof|
 |`sender`|`address`|Sender extracted from proof|
-
-
-### _checkSender
-
-Ensures message sender matches source sender or has permission
-
-
-```solidity
-function _checkSender(address msgSender, address srcSender) internal view;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`msgSender`|`address`|The current msg.sender|
-|`srcSender`|`address`|Sender encoded in proof|
 
 
 ### _isAllowedFor

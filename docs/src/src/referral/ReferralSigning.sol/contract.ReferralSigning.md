@@ -1,5 +1,5 @@
 # ReferralSigning
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/referral/ReferralSigning.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/referral/ReferralSigning.sol)
 
 **Author:**
 Malda Protocol
@@ -65,6 +65,8 @@ mapping(address user => uint256 nonce) public nonces
 ## Functions
 ### onlyNewUser
 
+Modifier to check if the user is a new user
+
 
 ```solidity
 modifier onlyNewUser() ;
@@ -120,24 +122,32 @@ event ReferralRejected(address indexed referred, address indexed referrer, strin
 
 ## Errors
 ### ReferralSigning_SameUser
+Error thrown when the user is the same as the referrer
+
 
 ```solidity
 error ReferralSigning_SameUser();
 ```
 
 ### ReferralSigning_InvalidSignature
+Error thrown when the signature is invalid
+
 
 ```solidity
 error ReferralSigning_InvalidSignature();
 ```
 
 ### ReferralSigning_UserAlreadyReferred
+Error thrown when the user has already been referred
+
 
 ```solidity
 error ReferralSigning_UserAlreadyReferred();
 ```
 
 ### ReferralSigning_ContractReferrerNotAllowed
+Error thrown when the referrer is a contract
+
 
 ```solidity
 error ReferralSigning_ContractReferrerNotAllowed();

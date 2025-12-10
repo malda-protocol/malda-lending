@@ -1,5 +1,5 @@
 # IRewardDistributor
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/interfaces/IRewardDistributor.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/interfaces/IRewardDistributor.sol)
 
 **Author:**
 Merge Layers Inc.
@@ -10,7 +10,7 @@ Interface for reward distribution operations
 ## Functions
 ### notifySupplyIndex
 
-Notifies supply index
+Updates supply indices for all reward tokens on a market
 
 
 ```solidity
@@ -25,7 +25,7 @@ function notifySupplyIndex(address mToken) external;
 
 ### notifyBorrowIndex
 
-Notifies borrow index
+Updates borrow indices for all reward tokens on a market
 
 
 ```solidity

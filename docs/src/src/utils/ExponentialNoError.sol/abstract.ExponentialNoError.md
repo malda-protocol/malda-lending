@@ -1,16 +1,18 @@
 # ExponentialNoError
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/utils/ExponentialNoError.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/utils/ExponentialNoError.sol)
 
 **Author:**
 Compound
 
 Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
-Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
-`Exp({mantissa: 5100000000000000000})`.
+Thus, if we wanted to store the 5.1, mantissa would store 5.1e18.
+That is: `Exp({mantissa: 5100000000000000000})`.
 
 
 ## State Variables
 ### EXP_SCALE
+Scale factor for exponential calculations
+
 
 ```solidity
 uint256 internal constant EXP_SCALE = 1e18
@@ -18,6 +20,8 @@ uint256 internal constant EXP_SCALE = 1e18
 
 
 ### DOUBLE_SCALE
+Scale factor for double precision calculations
+
 
 ```solidity
 uint256 internal constant DOUBLE_SCALE = 1e36
@@ -25,6 +29,8 @@ uint256 internal constant DOUBLE_SCALE = 1e36
 
 
 ### HALF_EXP_SCALE
+Half of the scale factor for exponential calculations
+
 
 ```solidity
 uint256 internal constant HALF_EXP_SCALE = EXP_SCALE / 2
@@ -32,6 +38,8 @@ uint256 internal constant HALF_EXP_SCALE = EXP_SCALE / 2
 
 
 ### MANTISSA_ONE
+Mantissa value for one
+
 
 ```solidity
 uint256 internal constant MANTISSA_ONE = EXP_SCALE
@@ -48,6 +56,18 @@ For example, truncate(Exp{mantissa: 15 * EXP_SCALE}) = 15
 ```solidity
 function truncate(Exp memory exp) internal pure returns (uint256);
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`exp`|`Exp`|The exp to truncate.|
+
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`uint256`|The truncated value.|
+
 
 ### mul_ScalarTruncate
 

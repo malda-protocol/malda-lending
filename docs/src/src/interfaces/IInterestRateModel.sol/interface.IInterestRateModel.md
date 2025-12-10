@@ -1,5 +1,5 @@
 # IInterestRateModel
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/interfaces/IInterestRateModel.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/interfaces/IInterestRateModel.sol)
 
 **Author:**
 Merge Layers Inc.
@@ -219,4 +219,21 @@ event BlocksPerYearUpdated(uint256 blocksPerYear);
 |Name|Type|Description|
 |----|----|-----------|
 |`blocksPerYear`|`uint256`|The new blocks per year value|
+
+## Errors
+### JumpRateModelV4_MultiplierNotValid
+Error thrown when multiplier is not valid
+
+
+```solidity
+error JumpRateModelV4_MultiplierNotValid();
+```
+
+### JumpRateModelV4_InputNotValid
+Error thrown when input is not valid
+
+
+```solidity
+error JumpRateModelV4_InputNotValid();
+```
 

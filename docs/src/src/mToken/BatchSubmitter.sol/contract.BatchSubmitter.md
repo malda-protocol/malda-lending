@@ -1,5 +1,5 @@
 # BatchSubmitter
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/mToken/BatchSubmitter.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/mToken/BatchSubmitter.sol)
 
 **Inherits:**
 Ownable
@@ -12,6 +12,8 @@ Contract for batch processing multiple operations
 
 ## State Variables
 ### MINT_SELECTOR
+The function selector for the supported `mintExternal` operation
+
 
 ```solidity
 bytes4 internal constant MINT_SELECTOR = ImErc20Host.mintExternal.selector
@@ -19,6 +21,8 @@ bytes4 internal constant MINT_SELECTOR = ImErc20Host.mintExternal.selector
 
 
 ### REPAY_SELECTOR
+The function selector for the supported `repayExternal` operation
+
 
 ```solidity
 bytes4 internal constant REPAY_SELECTOR = ImErc20Host.repayExternal.selector
@@ -26,6 +30,8 @@ bytes4 internal constant REPAY_SELECTOR = ImErc20Host.repayExternal.selector
 
 
 ### OUT_HERE_SELECTOR
+The function selector for the supported `outHere` operation
+
 
 ```solidity
 bytes4 internal constant OUT_HERE_SELECTOR = ImTokenGateway.outHere.selector
@@ -33,6 +39,8 @@ bytes4 internal constant OUT_HERE_SELECTOR = ImTokenGateway.outHere.selector
 
 
 ### LIQUIDATE_SELECTOR
+The function selector for the supported `liquidateExternal` operation
+
 
 ```solidity
 bytes4 internal constant LIQUIDATE_SELECTOR = ImErc20Host.liquidateExternal.selector

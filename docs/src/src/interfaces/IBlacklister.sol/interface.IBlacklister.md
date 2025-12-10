@@ -1,5 +1,5 @@
 # IBlacklister
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/interfaces/IBlacklister.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/interfaces/IBlacklister.sol)
 
 **Author:**
 Merge Layers Inc.
@@ -118,4 +118,37 @@ event Unblacklisted(address indexed user);
 |Name|Type|Description|
 |----|----|-----------|
 |`user`|`address`|The unblacklisted address|
+
+## Errors
+### Blacklister_AlreadyBlacklisted
+Error thrown when address is already blacklisted
+
+
+```solidity
+error Blacklister_AlreadyBlacklisted();
+```
+
+### Blacklister_NotBlacklisted
+Error thrown when address is not blacklisted
+
+
+```solidity
+error Blacklister_NotBlacklisted();
+```
+
+### Blacklister_InvalidRoles
+Error thrown when roles contract is invalid
+
+
+```solidity
+error Blacklister_InvalidRoles();
+```
+
+### Blacklister_NotAllowed
+Error thrown when caller is not authorized
+
+
+```solidity
+error Blacklister_NotAllowed();
+```
 

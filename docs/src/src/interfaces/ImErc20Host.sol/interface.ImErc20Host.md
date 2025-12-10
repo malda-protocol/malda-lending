@@ -1,5 +1,5 @@
 # ImErc20Host
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/interfaces/ImErc20Host.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/interfaces/ImErc20Host.sol)
 
 **Author:**
 Merge Layers Inc.
@@ -402,6 +402,20 @@ event mErc20Host_MigratorUpdated(address indexed migrator);
 |Name|Type|Description|
 |----|----|-----------|
 |`migrator`|`address`|The new migrator address|
+
+### mErc20Host_GasHelperUpdated
+Emitted when gas helper address is updated
+
+
+```solidity
+event mErc20Host_GasHelperUpdated(address indexed helper);
+```
+
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`helper`|`address`|The new gas helper address|
 
 ## Errors
 ### mErc20Host_ProofGenerationInputNotValid

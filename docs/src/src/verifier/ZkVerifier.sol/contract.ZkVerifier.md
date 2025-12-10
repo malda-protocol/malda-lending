@@ -1,5 +1,5 @@
 # ZkVerifier
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/verifier/ZkVerifier.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/verifier/ZkVerifier.sol)
 
 **Inherits:**
 Ownable, [IZkVerifier](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/verifier/ZkVerifier.sol/interface.IZkVerifier.md)
@@ -154,18 +154,24 @@ event VerifierSet(address indexed oldVerifier, address indexed newVerifier);
 
 ## Errors
 ### ZkVerifier_ImageNotValid
+Error thrown when the image id is not valid
+
 
 ```solidity
 error ZkVerifier_ImageNotValid();
 ```
 
 ### ZkVerifier_InputNotValid
+Error thrown when the input is not valid
+
 
 ```solidity
 error ZkVerifier_InputNotValid();
 ```
 
 ### ZkVerifier_VerifierNotSet
+Error thrown when the verifier is not set
+
 
 ```solidity
 error ZkVerifier_VerifierNotSet();

@@ -38,7 +38,7 @@
             const path_to_root = "../../../";
             const default_light_theme = "dark";
             const default_dark_theme = "ayu";
-            window.path_to_searchindex_js = "../../../searchindex-811220a0.js";
+            window.path_to_searchindex_js = "../../../searchindex-45779523.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../../../toc-78fd3355.js"></script>
@@ -181,7 +181,7 @@
                 <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="ioperator"><a class="header" href="#ioperator">IOperator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/interfaces/IOperator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/interfaces/IOperator.sol">Git Source</a></p>
 <p><strong>Author:</strong>
 Merge Layers Inc.</p>
 <p>Core Operator contract surface</p>
@@ -453,8 +453,8 @@ Merge Layers Inc.</p>
 </table>
 </div>
 <h3 id="borrowcaps"><a class="header" href="#borrowcaps">borrowCaps</a></h3>
-<p>Borrow caps enforced by borrowAllowed for each mToken address.
-Defaults to zero which corresponds to unlimited borrowing.</p>
+<p>Borrow caps enforced by borrowAllowed for each mToken address.</p>
+<p>Defaults to zero which corresponds to unlimited borrowing.</p>
 <pre><code class="language-solidity">function borrowCaps(address _mToken) external view returns (uint256);
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -480,8 +480,8 @@ Defaults to zero which corresponds to unlimited borrowing.</p>
 </table>
 </div>
 <h3 id="supplycaps"><a class="header" href="#supplycaps">supplyCaps</a></h3>
-<p>Supply caps enforced by supplyAllowed for each mToken address.
-Defaults to zero which corresponds to unlimited supplying.</p>
+<p>Supply caps enforced by supplyAllowed for each mToken address.</p>
+<p>Defaults to zero which corresponds to unlimited supplying.</p>
 <pre><code class="language-solidity">function supplyCaps(address _mToken) external view returns (uint256);
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -507,8 +507,8 @@ Defaults to zero which corresponds to unlimited supplying.</p>
 </table>
 </div>
 <h3 id="minborrowsize"><a class="header" href="#minborrowsize">minBorrowSize</a></h3>
-<p>Supply caps enforced by supplyAllowed for each mToken address.
-Defaults to zero which corresponds to unlimited supplying.</p>
+<p>Supply caps enforced by supplyAllowed for each mToken address.</p>
+<p>Defaults to zero which corresponds to unlimited borrowing.</p>
 <pre><code class="language-solidity">function minBorrowSize(address _mToken) external view returns (uint256);
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -687,7 +687,7 @@ Defaults to zero which corresponds to unlimited supplying.</p>
 <h3 id="exitmarket"><a class="header" href="#exitmarket">exitMarket</a></h3>
 <p>Removes asset from sender’s account liquidity calculation</p>
 <p>Sender must not have an outstanding borrow balance in the asset,
-or be providing necessary collateral for an outstanding borrow.</p>
+and must not be providing necessary collateral for an outstanding borrow.</p>
 <pre><code class="language-solidity">function exitMarket(address _mToken) external;
 </code></pre>
 <p><strong>Parameters</strong></p>

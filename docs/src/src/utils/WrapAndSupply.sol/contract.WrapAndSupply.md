@@ -1,5 +1,5 @@
 # WrapAndSupply
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/utils/WrapAndSupply.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/utils/WrapAndSupply.sol)
 
 **Author:**
 Malda Protocol
@@ -102,12 +102,16 @@ event WrappedAndSupplied(address indexed sender, address indexed receiver, addre
 
 ## Errors
 ### WrapAndSupply_AddressNotValid
+Error thrown when the address is not valid
+
 
 ```solidity
 error WrapAndSupply_AddressNotValid();
 ```
 
 ### WrapAndSupply_AmountNotValid
+Error thrown when the amount is not valid
+
 
 ```solidity
 error WrapAndSupply_AmountNotValid();

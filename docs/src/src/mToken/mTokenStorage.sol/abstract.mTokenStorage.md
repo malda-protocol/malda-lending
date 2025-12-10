@@ -1,5 +1,5 @@
 # mTokenStorage
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/mToken/mTokenStorage.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/mToken/mTokenStorage.sol)
 
 **Inherits:**
 [ImToken](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/ImToken.sol/interface.ImToken.md), [ExponentialNoError](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.md)
@@ -775,14 +775,12 @@ error mTokenConfiguration_AddressNotValid();
 ### BorrowSnapshot
 Container for borrow balance information
 
-Fields:
-- principal: Total balance (with accrued interest), after applying the most recent balance-changing action
-- interestIndex: Global borrowIndex as of the most recent balance-changing action
-
 
 ```solidity
 struct BorrowSnapshot {
+    /// @notice Total balance (with accrued interest), after applying the most recent balance-changing action
     uint256 principal;
+    /// @notice Global borrowIndex as of the most recent balance-changing action
     uint256 interestIndex;
 }
 ```

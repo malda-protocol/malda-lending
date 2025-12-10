@@ -1,5 +1,5 @@
 # BaseBridge
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/rebalancer/bridges/BaseBridge.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/rebalancer/bridges/BaseBridge.sol)
 
 **Author:**
 Malda Protocol
@@ -20,12 +20,16 @@ IRoles public roles
 ## Functions
 ### onlyBridgeConfigurator
 
+Modifier to check if the caller is the bridge configurator
+
 
 ```solidity
 modifier onlyBridgeConfigurator() ;
 ```
 
 ### onlyRebalancer
+
+Modifier to check if the caller is the rebalancer
 
 
 ```solidity
@@ -49,24 +53,32 @@ constructor(address _roles) ;
 
 ## Errors
 ### BaseBridge_NotAuthorized
+Error thrown when caller is not authorized
+
 
 ```solidity
 error BaseBridge_NotAuthorized();
 ```
 
 ### BaseBridge_AmountMismatch
+Error thrown when amount mismatch
+
 
 ```solidity
 error BaseBridge_AmountMismatch();
 ```
 
 ### BaseBridge_AmountNotValid
+Error thrown when amount is not valid
+
 
 ```solidity
 error BaseBridge_AmountNotValid();
 ```
 
 ### BaseBridge_AddressNotValid
+Error thrown when address is not valid
+
 
 ```solidity
 error BaseBridge_AddressNotValid();

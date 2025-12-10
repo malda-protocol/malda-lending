@@ -1,5 +1,5 @@
 # JumpRateModelV4
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/interest/JumpRateModelV4.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/interest/JumpRateModelV4.sol)
 
 **Inherits:**
 [IInterestRateModel](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IInterestRateModel.sol/interface.IInterestRateModel.md), Ownable
@@ -290,21 +290,4 @@ function _updateJumpRateModel(
 |`jumpMultiplierPerYear`|`uint256`|The multiplier per block after utilization point|
 |`kink_`|`uint256`|The utilization point where the jump multiplier applies|
 
-
-## Errors
-### JumpRateModelV4_MultiplierNotValid
-Error thrown when multiplier is not valid
-
-
-```solidity
-error JumpRateModelV4_MultiplierNotValid();
-```
-
-### JumpRateModelV4_InputNotValid
-Error thrown when input is not valid
-
-
-```solidity
-error JumpRateModelV4_InputNotValid();
-```
 

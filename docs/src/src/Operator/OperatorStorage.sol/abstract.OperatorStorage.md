@@ -1,5 +1,5 @@
 # OperatorStorage
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/Operator/OperatorStorage.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/Operator/OperatorStorage.sol)
 
 **Inherits:**
 [IOperator](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IOperator.sol/interface.IOperator.md), [IOperatorDefender](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IOperator.sol/interface.IOperatorDefender.md), [ExponentialNoError](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.md)
@@ -115,6 +115,8 @@ address[] public allMarkets
 ### borrowCaps
 Mapping of mTokens to borrow caps
 
+Defaults to zero which corresponds to unlimited borrowing.
+
 
 ```solidity
 mapping(address mToken => uint256 cap) public borrowCaps
@@ -124,6 +126,8 @@ mapping(address mToken => uint256 cap) public borrowCaps
 ### supplyCaps
 Mapping of mTokens to supply caps
 
+Defaults to zero which corresponds to unlimited supplying.
+
 
 ```solidity
 mapping(address mToken => uint256 cap) public supplyCaps
@@ -132,6 +136,8 @@ mapping(address mToken => uint256 cap) public supplyCaps
 
 ### minBorrowSize
 Mapping of mTokens to minimum borrow size
+
+Defaults to zero which corresponds to unlimited borrowing.
 
 
 ```solidity

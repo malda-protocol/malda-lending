@@ -1,5 +1,5 @@
 # RewardDistributor
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/rewards/RewardDistributor.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/rewards/RewardDistributor.sol)
 
 **Inherits:**
 [IRewardDistributor](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IRewardDistributor.sol/interface.IRewardDistributor.md), [ExponentialNoError](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.md), Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
@@ -71,6 +71,8 @@ mapping(address rewardToken => bool status) public isRewardToken
 ## Functions
 ### onlyOperator
 
+Modifier to check if the caller is the operator
+
 
 ```solidity
 modifier onlyOperator() ;
@@ -115,7 +117,7 @@ function notifySupplyIndex(address mToken) external override onlyOperator;
 
 |Name|Type|Description|
 |----|----|-----------|
-|`mToken`|`address`|Market address|
+|`mToken`|`address`|Market token|
 
 
 ### notifyBorrowIndex
@@ -130,7 +132,7 @@ function notifyBorrowIndex(address mToken) external override onlyOperator;
 
 |Name|Type|Description|
 |----|----|-----------|
-|`mToken`|`address`|Market address|
+|`mToken`|`address`|Market token|
 
 
 ### notifySupplier
@@ -388,42 +390,56 @@ function _notifyBorrower(address rewardToken, address mToken, address borrower) 
 
 ## Errors
 ### RewardDistributor_OnlyOperator
+Error thrown when the caller is not the operator
+
 
 ```solidity
 error RewardDistributor_OnlyOperator();
 ```
 
 ### RewardDistributor_TransferFailed
+Error thrown when the transfer fails
+
 
 ```solidity
 error RewardDistributor_TransferFailed();
 ```
 
 ### RewardDistributor_RewardNotValid
+Error thrown when the reward token is not valid
+
 
 ```solidity
 error RewardDistributor_RewardNotValid();
 ```
 
 ### RewardDistributor_AddressNotValid
+Error thrown when the address is not valid
+
 
 ```solidity
 error RewardDistributor_AddressNotValid();
 ```
 
 ### RewardDistributor_AddressAlreadyRegistered
+Error thrown when the address is already registered
+
 
 ```solidity
 error RewardDistributor_AddressAlreadyRegistered();
 ```
 
 ### RewardDistributor_SupplySpeedArrayLengthMismatch
+Error thrown when the supply speed array length mismatch
+
 
 ```solidity
 error RewardDistributor_SupplySpeedArrayLengthMismatch();
 ```
 
 ### RewardDistributor_BorrowSpeedArrayLengthMismatch
+Error thrown when the borrow speed array length mismatch
+
 
 ```solidity
 error RewardDistributor_BorrowSpeedArrayLengthMismatch();

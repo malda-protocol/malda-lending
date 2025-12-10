@@ -1,5 +1,5 @@
 # IRoles
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/interfaces/IRoles.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/interfaces/IRoles.sol)
 
 **Author:**
 Merge Layers Inc.
@@ -242,6 +242,8 @@ function isAllowedFor(address _contract, bytes32 _role) external view returns (b
 
 ## Errors
 ### Roles_InputNotValid
+Error thrown when input is not valid
+
 
 ```solidity
 error Roles_InputNotValid();

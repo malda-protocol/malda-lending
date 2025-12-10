@@ -1,5 +1,5 @@
 # mTokenGateway
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/mToken/extension/mTokenGateway.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/mToken/extension/mTokenGateway.sol)
 
 **Inherits:**
 OwnableUpgradeable, [ImTokenGateway](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/ImTokenGateway.sol/interface.ImTokenGateway.md), [ImTokenOperationTypes](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.md), [HypernativeFirewallProtected](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.md)
@@ -129,26 +129,52 @@ uint256[50] private __gap
 ## Functions
 ### notPaused
 
+Modifier to restrict access to only allowed users
+
 
 ```solidity
 modifier notPaused(OperationType _type) ;
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_type`|`OperationType`|The operation type|
+
 
 ### onlyAllowedUser
+
+Modifier to restrict access to only allowed users
 
 
 ```solidity
 modifier onlyAllowedUser(address user) ;
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`user`|`address`|The user address|
+
 
 ### ifNotBlacklisted
+
+Modifier to restrict access to only not blacklisted users
 
 
 ```solidity
 modifier ifNotBlacklisted(address user) ;
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`user`|`address`|The user address|
+
 
 ### liquidateChecks
+
+Modifier to check liquidate conditions
 
 
 ```solidity

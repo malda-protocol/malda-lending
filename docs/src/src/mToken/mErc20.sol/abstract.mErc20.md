@@ -1,5 +1,5 @@
 # mErc20
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/mToken/mErc20.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/mToken/mErc20.sol)
 
 **Inherits:**
 [mToken](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/mToken/mToken.sol/abstract.mToken.md), [ImErc20](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/ImErc20.sol/interface.ImErc20.md)
@@ -266,6 +266,8 @@ function _getCashPrior() internal view virtual override returns (uint256);
 
 ## Errors
 ### mErc20_TokenNotValid
+Error thrown when token is not valid
+
 
 ```solidity
 error mErc20_TokenNotValid();

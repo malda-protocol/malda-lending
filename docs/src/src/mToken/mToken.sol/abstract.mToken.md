@@ -1,5 +1,5 @@
 # mToken
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/mToken/mToken.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/mToken/mToken.sol)
 
 **Inherits:**
 [mTokenConfiguration](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/mToken/mTokenConfiguration.sol/abstract.mTokenConfiguration.md), ReentrancyGuard
@@ -554,7 +554,7 @@ function _liquidate(
 Transfers collateral tokens (this market) to the liquidator.
 
 Called only during an in-kind liquidation, or by liquidateBorrow during the liquidation of another mToken.
-Its absolutely critical to use msg.sender as the seizer mToken and not a parameter.
+It's absolutely critical to use msg.sender as the seizer mToken and not a parameter.
 
 
 ```solidity

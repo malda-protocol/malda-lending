@@ -1,5 +1,5 @@
 # Deployer
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/utils/Deployer.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/utils/Deployer.sol)
 
 **Author:**
 Malda Protocol
@@ -28,6 +28,8 @@ address public pendingAdmin
 
 ## Functions
 ### onlyAdmin
+
+Modifier to check if the caller is the admin
 
 
 ```solidity
@@ -79,7 +81,7 @@ Withdraws all ETH to the admin
 
 
 ```solidity
-function saveEth() external;
+function saveEth() external onlyAdmin;
 ```
 
 ### setNewAdmin
@@ -88,7 +90,7 @@ Directly sets a new admin (without pending/accept)
 
 
 ```solidity
-function setNewAdmin(address _addr) external;
+function setNewAdmin(address _addr) external onlyAdmin;
 ```
 **Parameters**
 
@@ -194,6 +196,8 @@ event AdminAccepted(address indexed _admin);
 
 ## Errors
 ### NotAuthorized
+Error thrown when the caller is not the admin
+
 
 ```solidity
 error NotAuthorized(address admin, address sender);

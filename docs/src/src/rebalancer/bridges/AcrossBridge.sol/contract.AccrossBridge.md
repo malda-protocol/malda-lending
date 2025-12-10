@@ -1,5 +1,5 @@
 # AccrossBridge
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/rebalancer/bridges/AcrossBridge.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/rebalancer/bridges/AcrossBridge.sol)
 
 **Inherits:**
 [BaseBridge](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.md), [IBridge](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IBridge.sol/interface.IBridge.md), [IAcrossReceiverV3](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/external/across/IAcrossReceiverV3.sol/interface.IAcrossReceiverV3.md), ReentrancyGuard
@@ -59,6 +59,8 @@ mapping(uint32 dstChainId => mapping(address relayer => bool isWhitelisted)) pub
 ## Functions
 ### onlySpokePool
 
+Modifier to restrict access to only the spoke pool
+
 
 ```solidity
 modifier onlySpokePool() ;
@@ -107,7 +109,7 @@ handles AcrossV3 SpokePool message
 function handleV3AcrossMessage(
     address tokenSent,
     uint256 amount,
-    address relayer, // relayer is unused
+    address, /* relayer is unused */
     bytes calldata message
 )
     external
@@ -120,7 +122,7 @@ function handleV3AcrossMessage(
 |----|----|-----------|
 |`tokenSent`|`address`|the token address received|
 |`amount`|`uint256`|the token amount|
-|`relayer`|`address`|the relayer submitting the message|
+|`<none>`|`address`||
 |`message`|`bytes`|the custom message sent from source|
 
 

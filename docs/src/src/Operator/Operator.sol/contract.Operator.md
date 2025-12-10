@@ -1,5 +1,5 @@
 # Operator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/Operator/Operator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/Operator/Operator.sol)
 
 **Inherits:**
 [OperatorStorage](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/Operator/OperatorStorage.sol/abstract.OperatorStorage.md), [ImTokenOperationTypes](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.md), OwnableUpgradeable, [HypernativeFirewallProtected](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.md)
@@ -275,7 +275,7 @@ function resetOutflowVolume() external onlyOwner;
 
 ### checkOutflowVolumeLimit
 
-Verifies outflow volule limit
+Verifies outflow volume limit
 
 
 ```solidity
@@ -285,7 +285,7 @@ function checkOutflowVolumeLimit(uint256 amount) external;
 
 |Name|Type|Description|
 |----|----|-----------|
-|`amount`|`uint256`|The new limit|
+|`amount`|`uint256`|The amount to check|
 
 
 ### setMarketBorrowCaps
@@ -293,6 +293,7 @@ function checkOutflowVolumeLimit(uint256 amount) external;
 Set borrow caps for given mToken markets.
 
 Borrowing that brings total borrows to or above borrow cap will revert.
+A value of 0 corresponds to unlimited borrowing.
 
 
 ```solidity
@@ -305,7 +306,7 @@ function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newB
 |Name|Type|Description|
 |----|----|-----------|
 |`mTokens`|`address[]`|The addresses of the markets (tokens) to change the borrow caps for|
-|`newBorrowCaps`|`uint256[]`|The new borrow cap values in underlying to be set. Value of 0 corresponds to unlimited borrowing.|
+|`newBorrowCaps`|`uint256[]`|The new borrow cap values in underlying to be set.|
 
 
 ### setMarketSupplyCaps
@@ -313,6 +314,7 @@ function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newB
 Set supply caps for the given mToken markets.
 
 Supplying that brings total supply to or above supply cap will revert.
+A value of 0 corresponds to unlimited supplying.
 
 
 ```solidity
@@ -325,7 +327,7 @@ function setMarketSupplyCaps(address[] calldata mTokens, uint256[] calldata newS
 |Name|Type|Description|
 |----|----|-----------|
 |`mTokens`|`address[]`|The addresses of the markets (tokens) to change the supply caps for|
-|`newSupplyCaps`|`uint256[]`|The new supply cap values in underlying to be set. A value of 0 corresponds to unlimited supplying.|
+|`newSupplyCaps`|`uint256[]`|The new supply cap values in underlying to be set.|
 
 
 ### setPaused
@@ -403,7 +405,7 @@ function enterMarketsWithSender(address _account) external override onlyAllowedU
 Removes asset from sender's account liquidity calculation
 
 Sender must not have an outstanding borrow balance in the asset,
-or be providing necessary collateral for an outstanding borrow.
+and must not be providing necessary collateral for an outstanding borrow.
 
 
 ```solidity

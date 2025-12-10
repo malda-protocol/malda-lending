@@ -1,5 +1,5 @@
 # EverclearBridge
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/rebalancer/bridges/EverclearBridge.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/rebalancer/bridges/EverclearBridge.sol)
 
 **Inherits:**
 [BaseBridge](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.md), [IBridge](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IBridge.sol/interface.IBridge.md)

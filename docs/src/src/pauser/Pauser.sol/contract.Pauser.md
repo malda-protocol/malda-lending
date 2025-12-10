@@ -1,5 +1,5 @@
 # Pauser
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/pauser/Pauser.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/pauser/Pauser.sol)
 
 **Inherits:**
 Ownable, [IPauser](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IPauser.sol/interface.IPauser.md)
@@ -76,7 +76,7 @@ constructor(address _roles, address _operator, address owner_) Ownable(owner_);
 
 ### addPausableMarket
 
-add pauable contract
+Add pausable contract
 
 
 ```solidity
@@ -92,7 +92,7 @@ function addPausableMarket(address _contract, PausableType _contractType) extern
 
 ### removePausableMarket
 
-removes pauable contract
+Removes pausable contract
 
 
 ```solidity

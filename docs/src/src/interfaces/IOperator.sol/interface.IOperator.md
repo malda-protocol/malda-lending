@@ -1,5 +1,5 @@
 # IOperator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/177617a42b7e8d8762d299e2b6c84a3ba81f2fc4/src/interfaces/IOperator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/interfaces/IOperator.sol)
 
 **Author:**
 Merge Layers Inc.
@@ -252,6 +252,7 @@ function getAllMarkets() external view returns (address[] memory mTokens);
 ### borrowCaps
 
 Borrow caps enforced by borrowAllowed for each mToken address.
+
 Defaults to zero which corresponds to unlimited borrowing.
 
 
@@ -274,6 +275,7 @@ function borrowCaps(address _mToken) external view returns (uint256);
 ### supplyCaps
 
 Supply caps enforced by supplyAllowed for each mToken address.
+
 Defaults to zero which corresponds to unlimited supplying.
 
 
@@ -296,7 +298,8 @@ function supplyCaps(address _mToken) external view returns (uint256);
 ### minBorrowSize
 
 Supply caps enforced by supplyAllowed for each mToken address.
-Defaults to zero which corresponds to unlimited supplying.
+
+Defaults to zero which corresponds to unlimited borrowing.
 
 
 ```solidity
@@ -457,7 +460,7 @@ function enterMarketsWithSender(address _account) external;
 Removes asset from sender's account liquidity calculation
 
 Sender must not have an outstanding borrow balance in the asset,
-or be providing necessary collateral for an outstanding borrow.
+and must not be providing necessary collateral for an outstanding borrow.
 
 
 ```solidity
