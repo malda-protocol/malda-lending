@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="exponentialnoerror"><a class="header" href="#exponentialnoerror">ExponentialNoError</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/f825c605923d5577653597ebada8607276259a2e/src/utils/ExponentialNoError.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/utils/ExponentialNoError.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 Exponential module for storing fixed-precision decimals</p>
 <p><strong>Author:</strong>
@@ -190,15 +190,19 @@ Thus, if we wanted to store the 5.1, mantissa would store 5.1e18.
 That is: <code>Exp({mantissa: 5100000000000000000})</code>.</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="exp_scale"><a class="header" href="#exp_scale">EXP_SCALE</a></h3>
+<p>Scale factor for exponential calculations</p>
 <pre><code class="language-solidity">uint256 internal constant EXP_SCALE = 1e18
 </code></pre>
 <h3 id="double_scale"><a class="header" href="#double_scale">DOUBLE_SCALE</a></h3>
+<p>Scale factor for double precision calculations</p>
 <pre><code class="language-solidity">uint256 internal constant DOUBLE_SCALE = 1e36
 </code></pre>
 <h3 id="half_exp_scale"><a class="header" href="#half_exp_scale">HALF_EXP_SCALE</a></h3>
+<p>Half of the scale factor for exponential calculations</p>
 <pre><code class="language-solidity">uint256 internal constant HALF_EXP_SCALE = EXP_SCALE / 2
 </code></pre>
 <h3 id="mantissa_one"><a class="header" href="#mantissa_one">MANTISSA_ONE</a></h3>
+<p>Mantissa value for one</p>
 <pre><code class="language-solidity">uint256 internal constant MANTISSA_ONE = EXP_SCALE
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
