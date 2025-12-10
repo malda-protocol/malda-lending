@@ -58,8 +58,15 @@ contract Pauser is Ownable, IPauser {
     /// @param _operator Address of the operator contract
     /// @param owner_ Owner address of the pauser contract
     constructor(address _roles, address _operator, address owner_) Ownable(owner_) {
+        // Requirements: the roles contract address is not zero
         require(_roles != address(0), Pauser_AddressNotValid());
+
+        // @audit-question zero check for operator?
+
+        // Effects: set the roles and operator
         ROLES = IRoles(_roles);
+
+        // Effects: set the operator
         OPERATOR = IOperator(_operator);
     }
 
@@ -68,23 +75,45 @@ contract Pauser is Ownable, IPauser {
     /// @param _contract the pausable contract
     /// @param _contractType the pausable contract type
     function addPausableMarket(address _contract, PausableType _contractType) external onlyOwner {
+        // Requirements: the contract address is not zero
         require(_contract != address(0), Pauser_AddressNotValid());
+
+        // If the contract is already registered, return
         if (registeredContracts[_contract]) return;
+
+        // Effects: register the contract
         registeredContracts[_contract] = true;
+
+        // Effects: add the contract to the pausable contracts array
         pausableContracts.push(PausableContract({market: _contract, contractType: _contractType}));
+
+        // Effects: set the contract type
         contractTypes[_contract] = _contractType;
+
+        // Events: emit the market added event
         emit MarketAdded(_contract, _contractType);
     }
 
     /// @notice Removes pausable contract
     /// @param _contract the pausable contract
     function removePausableMarket(address _contract) external onlyOwner {
+        // Requirements: the contract is registered
         if (!registeredContracts[_contract]) revert Pauser_EntryNotFound();
+
+        // Interactions: find the index of the contract
         uint256 index = _findIndex(_contract);
+
+        // Effects: remove the contract from the pausable contracts array
         pausableContracts[index] = pausableContracts[pausableContracts.length - 1];
         pausableContracts.pop();
+
+        // Effects: unregister the contract
         registeredContracts[_contract] = false;
+
+        // Effects: set the contract type to non-pausable
         contractTypes[_contract] = PausableType.NonPausable;
+
+        // Events: emit the market removed event
         emit MarketRemoved(_contract);
     }
 
@@ -103,13 +132,12 @@ contract Pauser is Ownable, IPauser {
     /// @inheritdoc IPauser
     function emergencyPauseAll() external {
         uint256 len = pausableContracts.length;
-        for (uint256 i; i < len;) {
+        for (uint256 i; i < len; i++) {
+            // Interactions: pause all market operations for the contract
             _pauseAllMarketOperations(pausableContracts[i].market);
-
-            unchecked {
-                ++i;
-            }
         }
+
+        // Events: emit the pause all event
         emit PauseAll();
     }
 
@@ -117,6 +145,7 @@ contract Pauser is Ownable, IPauser {
     /// @notice Pauses all market operations for a given market
     /// @param _market The market to pause
     function _pauseAllMarketOperations(address _market) private {
+        // Interactions: pause all market operations for the contract
         _pauseMarketOperation(_market, OperationType.AmountIn);
         _pauseMarketOperation(_market, OperationType.AmountOut);
         _pauseMarketOperation(_market, OperationType.AmountInHere);
@@ -129,6 +158,8 @@ contract Pauser is Ownable, IPauser {
         _pauseMarketOperation(_market, OperationType.Redeem);
         _pauseMarketOperation(_market, OperationType.Liquidate);
         _pauseMarketOperation(_market, OperationType.Rebalancing);
+
+        // Events: emit the market paused event
         emit MarketPaused(_market);
     }
 
@@ -136,7 +167,10 @@ contract Pauser is Ownable, IPauser {
     /// @param _market The market to pause
     /// @param _pauseType The operation type to pause
     function _pauseMarketOperation(address _market, ImTokenOperationTypes.OperationType _pauseType) private {
+        // Interactions: perform pause logic depending on contract type
         _pause(_market, _pauseType);
+
+        // Events: emit the market paused for event
         emit MarketPausedFor(_market, _pauseType);
     }
 
@@ -144,13 +178,18 @@ contract Pauser is Ownable, IPauser {
     /// @param _market The market address to pause
     /// @param _pauseType The operation type to pause
     function _pause(address _market, ImTokenOperationTypes.OperationType _pauseType) private {
+        // Requirements: the caller is allowed to pause the market operation
         require(ROLES.isAllowedFor(msg.sender, ROLES.PAUSE_MANAGER()), Pauser_NotAuthorized());
+
         PausableType _type = contractTypes[_market];
         if (_type == PausableType.Host) {
+            // Interactions: set the paused state for the host
             OPERATOR.setPaused(_market, _pauseType, true);
         } else if (_type == PausableType.Extension) {
+            // Interactions: set the paused state for the extension
             ImTokenGateway(_market).setPaused(_pauseType, true);
         } else {
+            // Requirements: the contract is not enabled
             revert Pauser_ContractNotEnabled();
         }
     }

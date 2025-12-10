@@ -108,29 +108,45 @@ contract EverclearBridge is BaseBridge, IBridge {
     ) external payable onlyRebalancer {
         IntentParams memory params = _decodeIntent(_message);
 
+        // Requirements: the input asset matches the token
         require(params.inputAsset == _token, Everclear_TokenMismatch());
+
+        // Requirements: the extracted amount is greater than or equal to the amount
         require(_extractedAmount >= params.amount, BaseBridge_AmountMismatch());
+
+        // Requirements: the amount is greater than 0
         require(params.amount > 0, BaseBridge_AmountMismatch());
 
+        // Requirements: the receiver matches the market
         require(address(uint160(uint256(params.receiver))) == _market, BaseBridge_AddressNotValid());
 
         uint256 destinationsLength = params.destinations.length;
-
+        // Requirements: the destinations length is 1
         require(destinationsLength == 1, Everclear_DestinationsLengthMismatch());
+
+        // Requirements: the destination matches the destination chain id
         require(params.destinations[0] == _dstChainId, Everclear_DestinationNotValid());
 
+        // Requirements: the max fee is less than or equal to 10% of the amount
         require(params.maxFee <= params.amount / 10, Everclear_MaxFeeExceeded());
 
-        // retrieve tokens from `Rebalancer`
+        // Interactions: transfer the tokens from the sender to the contract
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _extractedAmount);
 
+        // Requirements: the extracted amount is greater than the amount plus the fee
         if (_extractedAmount > params.amount + params.feeParams.fee) {
+            // Interactions: transfer the excess tokens to the market
             uint256 toReturn = _extractedAmount - params.amount - params.feeParams.fee;
             IERC20(_token).safeTransfer(_market, toReturn);
+
+            // Events: emit the rebalancing returned to market event
             emit RebalancingReturnedToMarket(_market, toReturn, _extractedAmount);
         }
 
+        // Interactions: approve the tokens to the fee adapter
         SafeApprove.safeApprove(params.inputAsset, address(everclearFeeAdapter), params.amount + params.feeParams.fee);
+
+        // Interactions: create a new intent
         (bytes32 id,) = everclearFeeAdapter.newIntent(
             params.destinations,
             params.receiver,
@@ -142,6 +158,8 @@ contract EverclearBridge is BaseBridge, IBridge {
             params.data,
             params.feeParams
         );
+
+        // Events: emit the message sent event
         emit MsgSent(_dstChainId, _market, params.amount, id);
     }
 

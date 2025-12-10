@@ -98,11 +98,17 @@ contract MixedPriceOracleV4 is IOracleOperator {
     /// @param stalenessPeriod_ Default staleness period
     constructor(string[] memory symbols_, PriceConfig[] memory configs_, address roles_, uint256 stalenessPeriod_) {
         // @audit-question zero checks?
+
+        // Effects: set the roles
         ROLES = IRoles(roles_);
+
+        // Effects: set the staleness period
+        STALENESS_PERIOD = stalenessPeriod_;
+
         for (uint256 i = 0; i < symbols_.length; i++) {
+            // Effects: set the price config
             configs[symbols_[i]] = configs_[i];
         }
-        STALENESS_PERIOD = stalenessPeriod_;
     }
 
     // ----------- ADMIN ------------
@@ -110,11 +116,13 @@ contract MixedPriceOracleV4 is IOracleOperator {
     /// @param symbol Symbol to update
     /// @param val New staleness value
     function setStaleness(string calldata symbol, uint256 val) external {
-        // @audit use require instead of revert
-        if (!ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE())) {
-            revert MixedPriceOracle_Unauthorized();
-        }
+        // Requirements: the caller is allowed to set the staleness
+        require(ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE()), MixedPriceOracle_Unauthorized());
+
+        // Effects: set the staleness
         stalenessPerSymbol[symbol] = val;
+
+        // Events: emit the staleness updated event
         emit StalenessUpdated(symbol, val);
     }
 
@@ -122,42 +130,50 @@ contract MixedPriceOracleV4 is IOracleOperator {
     /// @param symbol Symbol to configure
     /// @param config Price configuration
     function setConfig(string calldata symbol, PriceConfig calldata config) external {
-        // @audit use require instead of revert
-        if (!ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE())) {
-            revert MixedPriceOracle_Unauthorized();
-        }
-        if (config.api3Feed == address(0) || config.eOracleFeed == address(0)) {
-            revert MixedPriceOracle_InvalidConfig();
-        }
+        // Requirements: the caller is allowed to set the config
+        require(ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE()), MixedPriceOracle_Unauthorized());
 
+        // Requirements: the api3 feed and eOracle feed are not zero
+        require(config.api3Feed != address(0) && config.eOracleFeed != address(0), MixedPriceOracle_InvalidConfig());
+
+        // Effects: set the price config
         configs[symbol] = config;
+
+        // Events: emit the config set event
         emit ConfigSet(symbol, config);
     }
 
     /// @notice Sets maximum allowed price delta
     /// @param _delta New max delta in basis points
     function setMaxPriceDelta(uint256 _delta) external {
-        // @audit use require instead of revert
-        if (!ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE())) {
-            revert MixedPriceOracle_Unauthorized();
-        }
-        if (_delta > PRICE_DELTA_EXP) revert MixedPriceOracle_DeltaTooHigh();
+        // Requirements: the caller is allowed to set the max price delta
+        require(ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE()), MixedPriceOracle_Unauthorized());
 
-        emit PriceDeltaUpdated(maxPriceDelta, _delta);
+        // Requirements: the max price delta is not greater than the price delta exponent
+        require(_delta <= PRICE_DELTA_EXP, MixedPriceOracle_DeltaTooHigh());
+
+        // Effects: set the max price delta
         maxPriceDelta = _delta;
+
+        // Events: emit the price delta updated event
+        emit PriceDeltaUpdated(maxPriceDelta, _delta);
     }
 
     /// @notice Sets maximum price delta for a specific symbol
     /// @param _delta New delta in basis points
     /// @param _symbol Symbol to update
     function setSymbolMaxPriceDelta(uint256 _delta, string calldata _symbol) external {
-        if (!ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE())) {
-            revert MixedPriceOracle_Unauthorized();
-        }
-        if (_delta > PRICE_DELTA_EXP) revert MixedPriceOracle_DeltaTooHigh();
+        // Requirements: the caller is allowed to set the symbol max price delta
+        require(ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE()), MixedPriceOracle_Unauthorized());
 
-        emit PriceSymbolDeltaUpdated(deltaPerSymbol[_symbol], _delta, _symbol);
+        // Requirements: the symbol max price delta is not greater than the price delta exponent
+        require(_delta <= PRICE_DELTA_EXP, MixedPriceOracle_DeltaTooHigh());
+
+        // Effects: set the symbol max price delta
         deltaPerSymbol[_symbol] = _delta;
+
+        // Events: emit the price symbol delta updated event
+        emit PriceSymbolDeltaUpdated(deltaPerSymbol[_symbol], _delta, _symbol);
     }
 
     // ----------- PUBLIC API ------------
@@ -185,31 +201,34 @@ contract MixedPriceOracleV4 is IOracleOperator {
     /// @return USD price with 18 decimals
     function _getPriceUSD(string memory symbol) internal view returns (uint256) {
         PriceConfig memory config = configs[symbol];
-        if (config.api3Feed == address(0) || config.eOracleFeed == address(0)) {
-            revert MixedPriceOracle_MissingFeed();
-        }
+        // Requirements: the api3 feed and eOracle feed are not zero
+        require(config.api3Feed != address(0) && config.eOracleFeed != address(0), MixedPriceOracle_MissingFeed());
 
-        // compute full USD prices from both oracle sources
+        // Interactions: compute full USD prices from both oracle sources
         (uint256 api3Usd, uint256 api3LastUpdate) = _getApi3Price(symbol);
         (uint256 eOracleUsd, uint256 eOracleLastUpdate) = _geteOraclePrice(symbol);
 
-        // delta
+        // Calculate the price delta
         uint256 delta = _absDiff(int256(api3Usd), int256(eOracleUsd));
         uint256 deltaBps = (delta * PRICE_DELTA_EXP) / eOracleUsd;
 
         uint256 deltaSymbol = deltaPerSymbol[symbol];
         if (deltaSymbol == 0) deltaSymbol = maxPriceDelta;
 
-        // staleness
+        // Check staleness
         uint256 _staleness = _getStaleness(symbol);
         bool api3Fresh = _isFresh(api3LastUpdate, _staleness);
+
+        // If API3 is stale or delta is greater than the symbol max price delta, return the eOracle price
         if (!api3Fresh || deltaBps > deltaSymbol) {
+            // Requirements: the eOracle feed is not stale
             require(_isFresh(eOracleLastUpdate, _staleness), MixedPriceOracle_eOracleStalePrice());
             return eOracleUsd;
-        } else {
-            require(_isFresh(api3LastUpdate, _staleness), MixedPriceOracle_ApiV3StalePrice());
-            return api3Usd;
         }
+
+        // Requirements: the API3 feed is not stale
+        require(_isFresh(api3LastUpdate, _staleness), MixedPriceOracle_ApiV3StalePrice());
+        return api3Usd;
     }
 
     /// @notice Retrieves price and last update from API3 feed

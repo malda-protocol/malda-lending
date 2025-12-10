@@ -74,22 +74,30 @@ contract MixedPriceOracleV3 is IOracleOperator {
         uint256 stalenessPeriod_
     ) {
         // @audit-question zero checks?
+
+        // Effects: set the roles
         ROLES = IRoles(roles_);
+
+        // Effects: set the staleness period
+        STALENESS_PERIOD = stalenessPeriod_;
+
         for (uint256 i = 0; i < symbols_.length; i++) {
+            // Effects: set the price config
             configs[symbols_[i]] = configs_[i];
         }
-        STALENESS_PERIOD = stalenessPeriod_;
     }
 
     /// @notice Sets a custom staleness period for a symbol
     /// @param symbol Symbol to update
     /// @param val New staleness value
     function setStaleness(string calldata symbol, uint256 val) external {
-        // @audit use require instead of revert
-        if (!ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE())) {
-            revert MixedPriceOracle_Unauthorized();
-        }
+        // Requirements: the caller is allowed to set the staleness
+        require(ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE()), MixedPriceOracle_Unauthorized());
+
+        // Effects: set the staleness
         stalenessPerSymbol[symbol] = val;
+
+        // Events: emit the staleness updated event
         emit StalenessUpdated(symbol, val);
     }
 
@@ -97,14 +105,16 @@ contract MixedPriceOracleV3 is IOracleOperator {
     /// @param symbol Symbol to configure
     /// @param config Price configuration
     function setConfig(string calldata symbol, IDefaultAdapter.PriceConfig calldata config) external {
-        // @audit use require instead of revert
-        if (!ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE())) {
-            revert MixedPriceOracle_Unauthorized();
-        }
-        if (config.defaultFeed == address(0)) {
-            revert MixedPriceOracle_InvalidConfig();
-        }
+        // Requirements: the caller is allowed to set the config
+        require(ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE()), MixedPriceOracle_Unauthorized());
+
+        // Requirements: the default feed is not zero
+        require(config.defaultFeed != address(0), MixedPriceOracle_InvalidConfig());
+
+        // Effects: set the price config
         configs[symbol] = config;
+
+        // Events: emit the config set event
         emit ConfigSet(symbol, config);
     }
 
@@ -115,6 +125,7 @@ contract MixedPriceOracleV3 is IOracleOperator {
         // ImTokenMinimal cast is needed for `.symbol()` call. No need to import a different interface
         string memory symbol = ImTokenMinimal(ImTokenMinimal(mToken).underlying()).symbol();
         IDefaultAdapter.PriceConfig memory config = configs[symbol];
+
         uint256 priceUsd = _getPriceUSD(symbol);
         return priceUsd * 10 ** (18 - config.underlyingDecimals);
     }
@@ -157,17 +168,14 @@ contract MixedPriceOracleV3 is IOracleOperator {
 
         IDefaultAdapter feed = IDefaultAdapter(config.defaultFeed);
 
-        // Get price and timestamp
         (, int256 price,, uint256 updatedAt,) = feed.latestRoundData();
+        // Requirements: the price is not zero
         require(price > 0, MixedPriceOracle_InvalidPrice());
 
-        // Check for staleness
+        // Requirements: the price is not stale
         require(block.timestamp - updatedAt < _getStaleness(symbol), MixedPriceOracle_StalePrice());
 
-        uint256 decimals = feed.decimals();
-        uint256 uPrice = uint256(price);
-
-        return (uPrice, decimals);
+        return (uint256(price), feed.decimals());
     }
 
     /// @notice Returns staleness for a symbol or default if not set

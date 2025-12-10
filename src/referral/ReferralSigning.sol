@@ -64,14 +64,24 @@ contract ReferralSigning {
     event ReferralRejected(address indexed referred, address indexed referrer, string reason);
 
     // ----------- ERRORS ------------
+    /// @notice Error thrown when the user is the same as the referrer
     error ReferralSigning_SameUser();
+
+    /// @notice Error thrown when the signature is invalid
     error ReferralSigning_InvalidSignature();
+
+    /// @notice Error thrown when the user has already been referred
     error ReferralSigning_UserAlreadyReferred();
+
+    /// @notice Error thrown when the referrer is a contract
     error ReferralSigning_ContractReferrerNotAllowed();
 
     // ----------- MODIFIERS ------------
+    /// @notice Modifier to check if the user is a new user
     modifier onlyNewUser() {
+        // Requirements: the user has not been referred
         if (isUserReferred[msg.sender]) {
+            // Events: emit the referral rejected event
             emit ReferralRejected(msg.sender, msg.sender, "Already referred");
             revert ReferralSigning_UserAlreadyReferred();
         }
@@ -83,12 +93,16 @@ contract ReferralSigning {
     /// @param signature User's signature proving consent
     /// @param referrer Address of the referrer
     function claimReferral(bytes calldata signature, address referrer) external onlyNewUser {
+        // Requirements: the user is not the same as the referrer
         if (msg.sender == referrer) {
+            // Events: emit the referral rejected event
             emit ReferralRejected(msg.sender, referrer, "Self-referral not allowed");
             revert ReferralSigning_SameUser();
         }
 
+        // Requirements: the referrer is not a contract
         if (referrer.code.length != 0) {
+            // Events: emit the referral rejected event
             emit ReferralRejected(msg.sender, referrer, "Contract referrers not allowed");
             revert ReferralSigning_ContractReferrerNotAllowed();
         }
@@ -96,12 +110,16 @@ contract ReferralSigning {
         bytes32 messageHash = keccak256(abi.encodePacked(msg.sender, referrer, nonces[msg.sender]));
         bytes32 ethSignedMessageHash = MessageHashUtils.toEthSignedMessageHash(messageHash);
 
+        // Interactions: recover the signer from the signature
         address signer = ethSignedMessageHash.recover(signature);
+        // Requirements: the signer matches the sender
         if (signer != msg.sender) {
+            // Events: emit the referral rejected event
             emit ReferralRejected(msg.sender, referrer, "Invalid signature");
             revert ReferralSigning_InvalidSignature();
         }
 
+        // Effects: set the referral data
         referredByRegistry[referrer][msg.sender] = true;
         referralsForUserRegistry[msg.sender] = referrer;
         referralRegistry[referrer].push(msg.sender);
@@ -109,6 +127,7 @@ contract ReferralSigning {
         isUserReferred[msg.sender] = true;
         nonces[msg.sender]++;
 
+        // Events: emit the referral claimed event
         emit ReferralClaimed(msg.sender, referrer);
     }
 }

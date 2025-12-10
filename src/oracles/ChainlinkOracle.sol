@@ -53,6 +53,7 @@ contract ChainlinkOracle is IOracleOperator {
     /// @param baseUnits_ Array of base units
     constructor(string[] memory symbols_, IAggregatorV3[] memory feeds_, uint256[] memory baseUnits_) {
         for (uint256 i = 0; i < symbols_.length; i++) {
+            // Effects: set the price feed and base units
             priceFeeds[symbols_[i]] = feeds_[i];
             baseUnits[symbols_[i]] = baseUnits_[i];
         }
@@ -65,7 +66,6 @@ contract ChainlinkOracle is IOracleOperator {
         uint256 feedDecimals = priceFeeds[symbol].decimals();
 
         (uint256 price,) = _getLatestPrice(symbol);
-
         return price * 10 ** (18 - feedDecimals);
     }
 
@@ -81,21 +81,21 @@ contract ChainlinkOracle is IOracleOperator {
     // ----------- PRIVATE ------------
     /// @notice Get the latest price for a symbol
     /// @param symbol The symbol to get price for
-    /// @return price The price
-    /// @return timeStamp The timestamp
+    /// @return answer The price
+    /// @return updatedAt The timestamp when the price was last updated
     function _getLatestPrice(string memory symbol) internal view returns (uint256, uint256) {
         require(address(priceFeeds[symbol]) != address(0), ChainlinkOracle_NoPriceFeed());
 
         (,
-            //uint80 roundID
-            int256 price, //uint256 startedAt
-            ,
-            uint256 timeStamp, //uint80 answeredInRound
+            /* uint80 roundID */
+            int256 answer, // price
+            , /* startedAt */
+            uint256 updatedAt,
+            /* uint80 answeredInRound */
         ) = priceFeeds[symbol].latestRoundData();
 
-        require(price > 0, ChainlinkOracle_ZeroPrice());
-        uint256 uPrice = uint256(price);
-
-        return (uPrice, timeStamp);
+        // Requirements: the price is not zero
+        require(answer > 0, ChainlinkOracle_ZeroPrice());
+        return (uint256(answer), updatedAt);
     }
 }

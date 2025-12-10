@@ -59,8 +59,10 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     // ----------- CONSTANTS ------------
     /// @notice closeFactorMantissa must be strictly greater than this value
     uint256 internal constant CLOSE_FACTOR_MIN_MANTISSA = 0.05e18; // 0.05
+
     /// @notice closeFactorMantissa must not exceed this value
     uint256 internal constant CLOSE_FACTOR_MAX_MANTISSA = 0.9e18; // 0.9
+
     /// @notice No collateralFactorMantissa may exceed this value
     uint256 internal constant COLLATERAL_FACTOR_MAX_MANTISSA = 0.9e18; // 0.95
 
@@ -133,11 +135,11 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     /// @param user Address of the user
     /// @param state Whitelist state
     event UserWhitelisted(address indexed user, bool state);
+
     /// @notice Emitted when whitelist is enabled
-
     event WhitelistEnabled();
-    /// @notice Emitted when whitelist is disabled
 
+    /// @notice Emitted when whitelist is disabled
     event WhitelistDisabled();
 
     /// @notice Emitted when pause status is changed
@@ -159,18 +161,22 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     /// @notice Emitted when an admin supports a market
     /// @param mToken Market listed
     event MarketListed(address mToken);
+
     /// @notice Emitted when an account enters a market
     /// @param mToken Market entered
     /// @param account Account entering
     event MarketEntered(address indexed mToken, address indexed account);
+
     /// @notice Emitted when an account exits a market
     /// @param mToken Market exited
     /// @param account Account exiting
     event MarketExited(address indexed mToken, address indexed account);
+
     /// @notice Emitted when close factor is changed by admin
     /// @param oldCloseFactorMantissa Previous close factor
     /// @param newCloseFactorMantissa New close factor
     event NewCloseFactor(uint256 oldCloseFactorMantissa, uint256 newCloseFactorMantissa);
+
     /// @notice Emitted when a collateral factor is changed by admin
     /// @param mToken Market address
     /// @param oldCollateralFactorMantissa Previous collateral factor
@@ -178,6 +184,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     event NewCollateralFactor(
         address indexed mToken, uint256 oldCollateralFactorMantissa, uint256 newCollateralFactorMantissa
     );
+
     /// @notice Emitted when liquidation incentive is changed by admin
     /// @param market Market address
     /// @param oldLiquidationIncentiveMantissa Previous incentive
@@ -185,6 +192,7 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     event NewLiquidationIncentive(
         address market, uint256 oldLiquidationIncentiveMantissa, uint256 newLiquidationIncentiveMantissa
     );
+
     /// @notice Emitted when price oracle is changed
     /// @param oldPriceOracle Previous price oracle
     /// @param newPriceOracle New price oracle
@@ -217,54 +225,79 @@ abstract contract OperatorStorage is IOperator, IOperatorDefender, ExponentialNo
     // ----------- ERRORS ------------
     /// @notice Error when action is paused
     error Operator_Paused();
+
     /// @notice Error when data mismatch occurs
     error Operator_Mismatch();
+
     /// @notice Error when caller is not admin
     error Operator_OnlyAdmin();
+
     /// @notice Error when oracle price is empty
     error Operator_EmptyPrice();
+
     /// @notice Error when wrong market is referenced
     error Operator_WrongMarket();
+
     /// @notice Error when input is invalid
     error Operator_InvalidInput();
+
     /// @notice Error when asset is not found
     error Operator_AssetNotFound();
+
     /// @notice Error when repay amount exceeds allowed
     error Operator_RepayingTooMuch();
+
     /// @notice Error when caller lacks admin or role permissions
     error Operator_OnlyAdminOrRole();
+
     /// @notice Error when market is not listed
     error Operator_MarketNotListed();
+
     /// @notice Error when user is blacklisted
     error Operator_UserBlacklisted();
+
     /// @notice Error when price fetch fails
     error Operator_PriceFetchFailed();
+
     /// @notice Error when sender must be token
     error Operator_SenderMustBeToken();
+
     /// @notice Error when user is not whitelisted
     error Operator_UserNotWhitelisted();
+
     /// @notice Error when market supply cap reached
     error Operator_MarketSupplyReached();
+
     /// @notice Error when repay amount invalid
     error Operator_RepayAmountNotValid();
+
     /// @notice Error when market already listed
     error Operator_MarketAlreadyListed();
+
     /// @notice Error when outflow volume reached
     error Operator_OutflowVolumeReached();
+
     /// @notice Error when roles operator invalid
     error Operator_InvalidRolesOperator();
+
     /// @notice Error when insufficient liquidity
     error Operator_InsufficientLiquidity();
+
     /// @notice Error when borrow size not met
     error Operator_MarketBorrowSizeNotMet();
+
     /// @notice Error when borrow cap reached
     error Operator_MarketBorrowCapReached();
+
     /// @notice Error when collateral factor invalid
     error Operator_InvalidCollateralFactor();
+
     /// @notice Error when blacklist operator invalid
     error Operator_InvalidBlacklistOperator();
+
     /// @notice Error when oracle underlying fetch fails
     error Operator_OracleUnderlyingFetchError();
+
     /// @notice Error when market has balance owed during deactivation
     error Operator_Deactivate_MarketBalanceOwed();
 }

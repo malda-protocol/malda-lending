@@ -53,15 +53,24 @@ contract BatchSubmitter is Ownable {
         address[] collateral;
     }
 
-    // Function selectors for supported operations
+    // ----------- CONSTANTS -----------
+    /// @notice The function selector for the supported `mintExternal` operation
     bytes4 internal constant MINT_SELECTOR = ImErc20Host.mintExternal.selector;
+
+    /// @notice The function selector for the supported `repayExternal` operation
     bytes4 internal constant REPAY_SELECTOR = ImErc20Host.repayExternal.selector;
+
+    /// @notice The function selector for the supported `outHere` operation
     bytes4 internal constant OUT_HERE_SELECTOR = ImTokenGateway.outHere.selector;
+
+    /// @notice The function selector for the supported `liquidateExternal` operation
     bytes4 internal constant LIQUIDATE_SELECTOR = ImErc20Host.liquidateExternal.selector;
 
+    // ----------- IMMUTABLES -----------
     /// @notice The roles contract for access control
     IRoles public immutable ROLES_OPERATOR;
 
+    // ----------- STATE VARIABLES -----------
     /// @notice The ZkVerifier contract
     IZkVerifier public verifier;
 
@@ -139,16 +148,18 @@ contract BatchSubmitter is Ownable {
     /// @notice Execute multiple operations in a single transaction
     /// @param data The batch process message data
     function batchProcess(BatchProcessMsg calldata data) external {
-        if (!ROLES_OPERATOR.isAllowedFor(msg.sender, ROLES_OPERATOR.PROOF_FORWARDER())) {
-            revert BatchSubmitter_CallerNotAllowed();
-        }
+        // Requirements: the caller must have permission to forward proof
+        require(
+            ROLES_OPERATOR.isAllowedFor(msg.sender, ROLES_OPERATOR.PROOF_FORWARDER()), BatchSubmitter_CallerNotAllowed()
+        );
 
+        // Interactions: verify the proof
         _verifyProof(data.journalData, data.seal);
 
+        // Decode the dynamic array of journals.
         bytes[] memory journals = abi.decode(data.journalData, (bytes[]));
 
         uint256 length = data.initHashes.length;
-
         for (uint256 i = 0; i < length; i++) {
             bytes[] memory singleJournal = new bytes[](1);
             singleJournal[0] = journals[data.startIndex + i];
@@ -161,8 +172,11 @@ contract BatchSubmitter is Ownable {
             if (selector == MINT_SELECTOR) {
                 uint256[] memory singleMinAmounts = new uint256[](1);
                 singleMinAmounts[0] = data.minAmountsOut[i];
+
+                // Interactions: mint the external
                 try ImErc20Host(data.mTokens[i])
                     .mintExternal(encodedJournal, "", singleAmount, singleMinAmounts, data.receivers[i]) {
+                    // Events: if successfully minted, emit the batch process success event
                     emit BatchProcessSuccess(
                         data.initHashes[i],
                         data.receivers[i],
@@ -172,6 +186,7 @@ contract BatchSubmitter is Ownable {
                         selector
                     );
                 } catch (bytes memory reason) {
+                    // Events: if failed to mint, emit the batch process failed event
                     emit BatchProcessFailed(
                         data.initHashes[i],
                         data.receivers[i],
@@ -183,7 +198,9 @@ contract BatchSubmitter is Ownable {
                     );
                 }
             } else if (selector == REPAY_SELECTOR) {
+                // Interactions: repay the external
                 try ImErc20Host(data.mTokens[i]).repayExternal(encodedJournal, "", singleAmount, data.receivers[i]) {
+                    // Events: if successfully repaid, emit the batch process success event
                     emit BatchProcessSuccess(
                         data.initHashes[i],
                         data.receivers[i],
@@ -193,6 +210,7 @@ contract BatchSubmitter is Ownable {
                         selector
                     );
                 } catch (bytes memory reason) {
+                    // Events: if failed to repay, emit the batch process failed event
                     emit BatchProcessFailed(
                         data.initHashes[i],
                         data.receivers[i],
@@ -204,7 +222,9 @@ contract BatchSubmitter is Ownable {
                     );
                 }
             } else if (selector == OUT_HERE_SELECTOR) {
+                // Interactions: out here
                 try ImTokenGateway(data.mTokens[i]).outHere(encodedJournal, "", singleAmount, data.receivers[i]) {
+                    // Events: if successfully out here, emit the batch process success event
                     emit BatchProcessSuccess(
                         data.initHashes[i],
                         data.receivers[i],
@@ -214,6 +234,7 @@ contract BatchSubmitter is Ownable {
                         selector
                     );
                 } catch (bytes memory reason) {
+                    // Events: if failed to out here, emit the batch process failed event
                     emit BatchProcessFailed(
                         data.initHashes[i],
                         data.receivers[i],
@@ -231,10 +252,12 @@ contract BatchSubmitter is Ownable {
                 address[] memory singleCollateral = new address[](1);
                 singleCollateral[0] = data.collateral[i];
 
+                // Interactions: liquidate the external
                 try ImErc20Host(data.mTokens[i])
                     .liquidateExternal(
                         encodedJournal, "", singleUserToLiquidate, singleAmount, singleCollateral, data.receivers[i]
                     ) {
+                    // Events: if successfully liquidated, emit the batch process success event
                     emit BatchProcessSuccess(
                         data.initHashes[i],
                         data.receivers[i],
@@ -244,9 +267,10 @@ contract BatchSubmitter is Ownable {
                         selector
                     );
                 } catch (bytes memory reason) {
-                    // If liquidate fails, try mint as fallback
+                    // Interactions: if liquidate fails, try mint as fallback
                     try ImErc20Host(data.mTokens[i])
                         .mintExternal(encodedJournal, "", singleAmount, new uint256[](1), data.receivers[i]) {
+                        // Events: if successfully minted, emit the batch process success event
                         emit BatchProcessSuccess(
                             data.initHashes[i],
                             data.receivers[i],
@@ -256,6 +280,7 @@ contract BatchSubmitter is Ownable {
                             MINT_SELECTOR
                         );
                     } catch (bytes memory) {
+                        // Events: if failed to mint, emit the batch process failed event
                         emit BatchProcessFailed(
                             data.initHashes[i], data.receivers[i], data.mTokens[i], data.amounts[i], 0, selector, reason
                         );
@@ -273,11 +298,10 @@ contract BatchSubmitter is Ownable {
     /// @param journalData The journal data to verify
     /// @param seal The seal data for verification
     function _verifyProof(bytes calldata journalData, bytes calldata seal) private view {
-        // @audit use require instead of revert
-        if (journalData.length == 0) {
-            revert BatchSubmitter_JournalNotValid();
-        }
+        // Requirements: the journal data is not empty
+        require(journalData.length > 0, BatchSubmitter_JournalNotValid());
 
+        // Interactions: verify the proof using the ZkVerifier contract
         verifier.verifyInput(journalData, seal);
     }
 }

@@ -322,14 +322,15 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
         uint256 reservesPrior = totalReserves;
         uint256 borrowIndexPrior = borrowIndex;
 
-        /* Calculate the current borrow interest rate */
+        // Interactions: calculate the current borrow interest rate
         uint256 borrowRateMantissa =
             IInterestRateModel(interestRateModel).getBorrowRate(cashPrior, borrowsPrior, reservesPrior);
         if (borrowRateMaxMantissa > 0) {
+            // Requirements: the borrow rate is not greater th the max borrow rate
             require(borrowRateMantissa <= borrowRateMaxMantissa, mt_BorrowRateTooHigh());
         }
 
-        /* Calculate the number of blocks elapsed since the last accrual */
+        // Calculate the number of blocks elapsed since the last accrual
         uint256 blockDelta = currentBlockTimestamp - accrualBlockTimestampPrior;
 
         /*
@@ -352,13 +353,13 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
         // EFFECTS & INTERACTIONS
         // (No safe failures beyond this point)
 
-        /* We write the previously calculated values into storage */
+        // Effects: write the previously calculated values into storage
         accrualBlockTimestamp = currentBlockTimestamp;
         borrowIndex = borrowIndexNew;
         totalBorrows = totalBorrowsNew;
         totalReserves = totalReservesNew;
 
-        /* We emit an AccrueInterest event */
+        // Events: emit the accrue interest event
         emit AccrueInterest(cashPrior, interestAccumulated, borrowIndexNew, totalBorrowsNew);
     }
 

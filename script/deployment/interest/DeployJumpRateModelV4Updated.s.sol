@@ -28,7 +28,7 @@ contract DeployJumpRateModelV4Updated is Script {
         uint256 jumpMultiplierPerYear;
     }
 
-    function run() public {
+    function run() public view {
         Deployer deployer = Deployer(payable(0x8F91616F05b3D74A8Ae56e43C585F0972Ccb91Df));
         InterestData memory data = InterestData({
             kink: 400000000000000000,

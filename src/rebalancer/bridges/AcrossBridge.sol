@@ -115,11 +115,18 @@ contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuar
     /// @param _spokePool Address of the Across spoke pool
     /// @param _rebalancer Address of the rebalancer contract
     constructor(address _roles, address _spokePool, address _rebalancer) BaseBridge(_roles) {
+        // Requirements: the spoke pool and rebalancer addresses are not zero
         require(_spokePool != address(0), AcrossBridge_AddressNotValid());
         require(_rebalancer != address(0), AcrossBridge_AddressNotValid());
+
+        // Effects: set the spoke pool addresses
         ACROSS_SPOKE_POOL = _spokePool;
-        MAX_SLIPPAGE = 1e4;
+
+        // Effects: set the rebalancer address
         REBALANCER = _rebalancer;
+
+        // Effects: set the max slippage
+        MAX_SLIPPAGE = 1e4;
     }
 
     // ----------- OWNER ------------
@@ -129,7 +136,11 @@ contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuar
     /// @param status Whether the relayer is whitelisted
     function setWhitelistedRelayer(uint32 _dstId, address _relayer, bool status) external onlyBridgeConfigurator {
         // @audit zero checks?
+
+        // Effects: set the relayer whitelist status
         whitelistedRelayers[_dstId][_relayer] = status;
+
+        // Events: emit the relayer whitelist status updated event
         emit WhitelistedRelayerStatusUpdated(msg.sender, _dstId, _relayer, status);
     }
 
@@ -146,14 +157,23 @@ contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuar
         onlySpokePool
         nonReentrant
     {
+        // Interactions: decode the message and get the market address
         address market = abi.decode(message, (address));
+        // Requirements: the market is whitelisted
         require(IRebalancer(REBALANCER).isMarketWhitelisted(market), AcrossBridge_InvalidReceiver());
+
+        // Interactions: get the underlying token of the market
         address _underlying = ImTokenMinimal(market).underlying();
+        // Requirements: the underlying token matches the token sent
         require(_underlying == tokenSent, AcrossBridge_TokenMismatch());
+
+        // Interactions: transfer the tokens to the market
         if (amount > 0) {
             IERC20(tokenSent).safeTransfer(market, amount);
         }
 
+        // @audit-question do we want to emit event when amount is 0?
+        // Events: emit the rebalanced event
         emit Rebalanced(market, amount);
     }
 
@@ -166,23 +186,30 @@ contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuar
         bytes calldata _message,
         bytes calldata /* _bridgeData */
     ) external payable onlyRebalancer {
-        // decode message & checks
         DecodedMessage memory msgData = _decodeMessage(_message);
+
+        // Requirements: the extracted amount matches the input amount
         require(_extractedAmount == msgData.inputAmount, BaseBridge_AmountMismatch());
+
+        // Requirements: the relayer is whitelisted
         require(whitelistedRelayers[_dstChainId][msgData.relayer], AcrossBridge_RelayerNotValid());
+
+        // Requirements: the output amount is greater than or equal to 90% of the input amount
         require(msgData.outputAmount >= (msgData.inputAmount * 90) / 100, AcrossBridge_MaxFeeExceeded());
 
-        // retrieve tokens from `Rebalancer`
+        // Interactions: transfer the tokens from the sender to the contract
         IERC20(_token).safeTransferFrom(msg.sender, address(this), msgData.inputAmount);
 
+        // Only check slippage if user could get less what they sent
         if (msgData.inputAmount > msgData.outputAmount) {
             uint256 maxSlippageInputAmount = msgData.inputAmount * MAX_SLIPPAGE / SLIPPAGE_PRECISION;
+            // Requirements: the slippage is not valid
             require(
                 msgData.inputAmount - msgData.outputAmount <= maxSlippageInputAmount, AcrossBridge_SlippageNotValid()
             );
         }
 
-        // approve and send with Across
+        // Interactions: deposit the tokens into the Across spoke pool
         _depositV3Now(_message, _token, _dstChainId, _market);
     }
 
@@ -220,8 +247,11 @@ contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuar
     /// @param _market Market address encoded in the message
     function _depositV3Now(bytes calldata _message, address _token, uint32 _dstChainId, address _market) private {
         DecodedMessage memory msgData = _decodeMessage(_message);
-        // approve and send with Across
+
+        // Interactions: approve the tokens to the spoke pool
         SafeApprove.safeApprove(_token, ACROSS_SPOKE_POOL, msgData.inputAmount);
+
+        // Interactions: deposit the tokens into the Across spoke pool
         IAcrossSpokePoolV3(ACROSS_SPOKE_POOL)
             .depositV3Now( // no need for `msg.value`; fee is taken from amount
                 msg.sender, //depositor

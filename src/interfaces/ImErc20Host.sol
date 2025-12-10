@@ -127,6 +127,10 @@ interface ImErc20Host {
     /// @param migrator The new migrator address
     event mErc20Host_MigratorUpdated(address indexed migrator);
 
+    /// @notice Emitted when gas helper address is updated
+    /// @param helper The new gas helper address
+    event mErc20Host_GasHelperUpdated(address indexed helper);
+
     // ----------- ERRORS -----------
     /// @notice Thrown when the chain id is not LINEA
     error mErc20Host_ProofGenerationInputNotValid();

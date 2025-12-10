@@ -39,6 +39,7 @@ import {HypernativeFirewallProtected} from "src/libraries/HypernativeFirewallPro
 /// @author Merge Layers Inc.
 /// @notice Access-controlled operator logic for mTokens
 contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable, HypernativeFirewallProtected {
+    // ----------- MODIFIERS ------------
     /// @notice Modifier to restrict access to allowed users only
     /// @param user The user address to check
     modifier onlyAllowedUser(address user) {
@@ -71,8 +72,12 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @notice Sets the blacklist operator
     /// @param _blacklister The blacklist operator address
     function setBlacklister(address _blacklister) external onlyOwner {
-        // @audit address zero check?
+        // @audit-question address zero check?
+
+        // Effects: set the blacklist operator
         blacklistOperator = IBlacklister(_blacklister);
+
+        // @audit-question emit an event?
     }
 
     /// @notice Sets min borrow size per market
@@ -80,11 +85,15 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @param amounts The new size
     function setBorrowSizeMin(address[] calldata mTokens, uint256[] calldata amounts) external onlyOwner {
         uint256 length = mTokens.length;
+        // Requirements: the lengths of the mTokens and amounts arrays are equal
         require(amounts.length == length, Operator_InvalidInput());
 
         for (uint256 i; i < length; ++i) {
+            // Effects: set the min borrow size for the market
             minBorrowSize[mTokens[i]] = amounts[i];
         }
+
+        // Events: emit the min borrow size set event
         emit MinBorrowSizeSet(mTokens, amounts);
     }
 
@@ -92,14 +101,20 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @param user The user address
     /// @param state The new state
     function setWhitelistedUser(address user, bool state) external onlyOwner {
+        // Effects: set the user whitelist status
         userWhitelisted[user] = state;
+
+        // Events: emit the user whitisted event
         emit UserWhitelisted(user, state);
     }
 
     /// @notice Sets the whitelist status
     /// @param status The new status
     function setWhitelistStatus(bool status) external onlyOwner {
+        // Effects: set the whitelist status
         whitelistEnabled = status;
+
+        // Events: emit the proper whitelist event
         if (status) emit WhitelistEnabled();
         else emit WhitelistDisabled();
     }
@@ -107,10 +122,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @notice Sets a new Operator for the market
     /// @param _roles The new operator address
     function setRolesOperator(address _roles) external onlyOwner {
+        // Requirements: the roles is not zero address
         require(_roles != address(0), Operator_InvalidInput());
 
+        // Effects: set the roles operator
         rolesOperator = IRoles(_roles);
 
+        // Events: emit the new roles operator event
         emit NewRolesOperator(address(rolesOperator), _roles);
     }
 
@@ -118,21 +136,31 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @dev Admin function to set a new price oracle
     /// @param newOracle Address of the new oracle
     function setPriceOracle(address newOracle) external onlyOwner {
+        // Requirements: the new oracle is not zero address
         require(newOracle != address(0), Operator_InvalidInput());
-        emit NewPriceOracle(oracleOperator, newOracle);
+
+        // Effects: set the price oracle
         oracleOperator = newOracle;
+
+        // Events: emit the new price oracle event
+        emit NewPriceOracle(oracleOperator, newOracle);
     }
 
     /// @notice Sets the closeFactor used when liquidating borrows
     /// @dev Admin function to set closeFactor
     /// @param newCloseFactorMantissa New close factor, scaled by 1e18
     function setCloseFactor(uint256 newCloseFactorMantissa) external onlyOwner {
+        // Requirements: the new close factor is not less than the min close factor and not greater than the max close factor
         require(
             newCloseFactorMantissa >= CLOSE_FACTOR_MIN_MANTISSA && newCloseFactorMantissa <= CLOSE_FACTOR_MAX_MANTISSA,
             Operator_InvalidInput()
         );
-        emit NewCloseFactor(closeFactorMantissa, newCloseFactorMantissa);
+
+        // Effects: set the close factor
         closeFactorMantissa = newCloseFactorMantissa;
+
+        // Events: emit the new close factor event
+        emit NewCloseFactor(closeFactorMantissa, newCloseFactorMantissa);
     }
 
     /// @notice Sets the collateralFactor for a market
@@ -140,26 +168,26 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @param mToken The market to set the factor on
     /// @param newCollateralFactorMantissa The new collateral factor, scaled by 1e18
     function setCollateralFactor(address mToken, uint256 newCollateralFactorMantissa) external onlyOwner {
-        // Verify market is listed
         IOperatorData.Market storage market = markets[address(mToken)];
+        // Requirements: the market is listed
         require(market.isListed, Operator_MarketNotListed());
 
-        Exp memory newCollateralFactorExp = Exp({mantissa: newCollateralFactorMantissa});
-
-        // Check collateral factor <= 0.9
         Exp memory highLimit = Exp({mantissa: COLLATERAL_FACTOR_MAX_MANTISSA});
-
+        Exp memory newCollateralFactorExp = Exp({mantissa: newCollateralFactorMantissa});
+        // Requirements: the new collateral factor is not greater than the max collateral factor (0.9)
         require(!lessThanExp(highLimit, newCollateralFactorExp), Operator_InvalidCollateralFactor());
 
-        if (newCollateralFactorMantissa != 0 && IOracleOperator(oracleOperator).getUnderlyingPrice(mToken) == 0) {
-            revert Operator_EmptyPrice();
-        }
+        // Requirements: the new collateral factor is not zero and the price is not zero
+        require(
+            newCollateralFactorMantissa == 0 || IOracleOperator(oracleOperator).getUnderlyingPrice(mToken) != 0,
+            Operator_EmptyPrice()
+        );
 
-        // Emit event with asset, old collateral factor, and new collateral factor
-        emit NewCollateralFactor(mToken, market.collateralFactorMantissa, newCollateralFactorMantissa);
-
-        // Set market's collateral factor to new collateral factor, remember old value
+        // Effects: set the market's collateral factor to the new collateral factor
         market.collateralFactorMantissa = newCollateralFactorMantissa;
+
+        // Events: emit the new collateral factor event
+        emit NewCollateralFactor(mToken, market.collateralFactorMantissa, newCollateralFactorMantissa);
     }
 
     /// @notice Sets liquidationIncentive
@@ -178,29 +206,37 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @dev Admin function to set isListed and add support for the market
     /// @param mToken The address of the market (token) to list
     function supportMarket(address mToken) external onlyOwner {
+        // Requirements: the market is not already listed
         require(!markets[address(mToken)].isListed, Operator_MarketAlreadyListed());
 
         IOperatorData.Market storage newMarket = markets[mToken];
+        // Effects: set the market as listed
         newMarket.isListed = true;
+        // Effects: set the market's collateral factor to 0
         newMarket.collateralFactorMantissa = 0;
 
+        // Requirements: the market is not already in the allMarkets array
         uint256 marketsLength = allMarkets.length;
-        for (uint256 i = 0; i < marketsLength;) {
+        for (uint256 i = 0; i < marketsLength; i++) {
             require(allMarkets[i] != mToken, Operator_MarketAlreadyListed());
-
-            unchecked {
-                ++i;
-            }
         }
+
+        // Effects: add the market to the allMarkets array
         allMarkets.push(mToken);
 
+        // Events: emit the market listed event
         emit MarketListed(mToken);
     }
 
     /// @notice Sets outflow volume time window
     /// @param newTimeWindow The new reset time window
     function setOutflowVolumeTimeWindow(uint256 newTimeWindow) external onlyOwner {
+        // @audit-question zero check?
+
+        // Events: emit the outflow time window updated event
         emit OutflowTimeWindowUpdated(outflowResetTimeWindow, newTimeWindow);
+
+        // Effects: set the outflow volume time window
         outflowResetTimeWindow = newTimeWindow;
     }
 
@@ -208,38 +244,50 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @dev when 0, it means there's no limit
     /// @param amount The new limit
     function setOutflowTimeLimitInUSD(uint256 amount) external onlyOwner {
+        // @audit-question zero check?
+
+        // Events: emit the outflow limit updated event
         emit OutflowLimitUpdated(msg.sender, limitPerTimePeriod, amount);
+
+        // Effects: set the outflow volume limit
         limitPerTimePeriod = amount;
     }
 
     /// @notice Resets outflow volume
     function resetOutflowVolume() external onlyOwner {
+        // Effects: reset the outflow volume
         cumulativeOutflowVolume = 0;
+
+        // Effects: reset the last outflow reset timestamp
         lastOutflowResetTimestamp = block.timestamp;
+
+        // Events: emit the outflow volume reset event
         emit OutflowVolumeReset();
     }
 
-    /// @notice Verifies outflow volule limit
-    /// @param amount The new limit
+    /// @notice Verifies outflow volume limit
+    /// @param amount The amount to check
     function checkOutflowVolumeLimit(uint256 amount) external {
+        // Requirements: the sender is a listed market
         require(markets[msg.sender].isListed, Operator_MarketNotListed());
 
-        // skip this check in case limit is disabled ( = 0)
+        // Skip this check in case limit is disabled ( = 0)
         if (limitPerTimePeriod > 0) {
-            // check if we need to reset it
+            // Check if we need to reset it
             if (block.timestamp > lastOutflowResetTimestamp + outflowResetTimeWindow) {
+                // Effects: reset the cumulative outflow volume
                 cumulativeOutflowVolume = 0;
+                // Effects: reset the last outflow reset timestamp
                 lastOutflowResetTimestamp = block.timestamp;
             }
 
-            // convert received amount to USD
+            // Interactions: convert received amount to USD
             uint256 amountInUSD = _convertMarketAmountToUSDValue(amount, msg.sender);
 
-            // check new cumulative limits
-            // @audit use custom error
-            if (cumulativeOutflowVolume + amountInUSD > limitPerTimePeriod) {
-                revert Operator_OutflowVolumeReached();
-            }
+            // Requirements: the new cumulative limits are not reached
+            require(cumulativeOutflowVolume + amountInUSD <= limitPerTimePeriod, Operator_OutflowVolumeReached());
+
+            // Effects: add the amount to the cumulative outflow volume
             cumulativeOutflowVolume += amountInUSD;
         }
     }
@@ -253,6 +301,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         external
         onlyFirewallApproved
     {
+        // Requirements: the sender is admin or has guardian borrow cap role
         require(
             msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_BORROW_CAP()),
             Operator_OnlyAdminOrRole()
@@ -260,16 +309,15 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
 
         uint256 numMarkets = mTokens.length;
         uint256 numBorrowCaps = newBorrowCaps.length;
-
+        // Requirements: check if lengths are not zero and equal
         require(numMarkets != 0 && numMarkets == numBorrowCaps, Operator_InvalidInput());
 
-        for (uint256 i; i < numMarkets;) {
+        for (uint256 i; i < numMarkets; i++) {
+            // Effects: set the borrow cap for the market
             borrowCaps[mTokens[i]] = newBorrowCaps[i];
-            emit NewBorrowCap(mTokens[i], newBorrowCaps[i]);
 
-            unchecked {
-                ++i;
-            }
+            // Events: emit the new borrow cap event
+            emit NewBorrowCap(mTokens[i], newBorrowCaps[i]);
         }
     }
 
@@ -282,6 +330,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         external
         onlyFirewallApproved
     {
+        // Requirements: the sender is admin or has guardian supply cap role
         require(
             msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_SUPPLY_CAP()),
             Operator_OnlyAdminOrRole()
@@ -289,15 +338,15 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
 
         uint256 numMarkets = mTokens.length;
         uint256 numSupplyCaps = newSupplyCaps.length;
+        // Requirements: check if lengths are not zero and equal
         require(numMarkets != 0 && numMarkets == numSupplyCaps, Operator_InvalidInput());
 
-        for (uint256 i; i < numMarkets;) {
+        for (uint256 i; i < numMarkets; i++) {
+            // Effects: set the supply cap for the market
             supplyCaps[mTokens[i]] = newSupplyCaps[i];
-            emit NewSupplyCap(mTokens[i], newSupplyCaps[i]);
 
-            unchecked {
-                ++i;
-            }
+            // Events: emit the new supply cap event
+            emit NewSupplyCap(mTokens[i], newSupplyCaps[i]);
         }
     }
 
@@ -307,16 +356,20 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         onlyFirewallApproved
     {
         if (state) {
+            // Requirements: if pausing, the caller is admin or has guardian pause role
             require(
                 msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_PAUSE()),
                 Operator_OnlyAdminOrRole()
             );
         } else {
-            // only admin can unpause
+            // Requirements: if unpausing, the caller is the owner
             require(msg.sender == owner(), Operator_OnlyAdmin());
         }
 
+        // Effects: set the paused state for the market and operation type
         _paused[mToken][_type] = state;
+
+        // Events: emit the action paused event
         emit ActionPaused(mToken, _type, state);
     }
 
@@ -325,14 +378,29 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @param _blacklistOperator The blacklist operator address
     /// @param _admin The admin address
     function initialize(address _rolesOperator, address _blacklistOperator, address _admin) external initializer {
+        // Requirements: the roles operator is not zero address
         require(_rolesOperator != address(0), Operator_InvalidRolesOperator());
+        // Requirements: the blacklist operator is not zero address
         require(_blacklistOperator != address(0), Operator_InvalidBlacklistOperator());
+        // Requirements: the admin is not zero address
         require(_admin != address(0), Operator_InvalidInput());
+
+        // Effects: initialize the owner
         __Ownable_init(_admin);
+
+        // Effects: set the roles operator
         rolesOperator = IRoles(_rolesOperator);
+
+        // Effects: set the blacklist operator
         blacklistOperator = IBlacklister(_blacklistOperator);
+
+        // Effects: set the outflow reset time window
         outflowResetTimeWindow = 1 hours;
+
+        // Effects: set the last outflow reset timestamp
         lastOutflowResetTimestamp = block.timestamp;
+
+        // Effects: set the outflow limit per time period
         limitPerTimePeriod = 0;
     }
 
@@ -344,65 +412,60 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         onlyFirewallApproved
     {
         uint256 len = _mTokens.length;
-        for (uint256 i = 0; i < len;) {
-            address __mToken = _mTokens[i];
-            _activateMarket(__mToken, msg.sender);
-
-            unchecked {
-                ++i;
-            }
+        for (uint256 i = 0; i < len; i++) {
+            // Interactions: activate the market
+            _activateMarket(_mTokens[i], msg.sender);
         }
     }
 
     /// @inheritdoc IOperator
     function enterMarketsWithSender(address _account) external override onlyAllowedUser(_account) {
-        //sender needs to be a listed market
         IOperatorData.Market storage market = markets[msg.sender];
+        // Requirements: the sender market is listed
         require(market.isListed, Operator_MarketNotListed());
+
+        // Interactions: activate the market
         _activateMarket(msg.sender, _account);
     }
 
     /// @inheritdoc IOperator
     function exitMarket(address _mToken) external override onlyFirewallApproved {
         IOperatorData.Market storage marketToExit = markets[_mToken];
-        /* Return  if the sender is not already 'in' the market */
+        // Return  if the sender is not already 'in' the market
         if (!marketToExit.accountMembership[msg.sender]) return;
 
-        /* Get sender tokensHeld and amountOwed underlying from the mToken */
+        // Interactions: get sender tokensHeld and amountOwed underlying from the mToken
         (uint256 tokensHeld, uint256 amountOwed,) = ImToken(_mToken).getAccountSnapshot(msg.sender);
 
+        // Requirements: the sender has no outstanding borrow balance
         require(amountOwed == 0, Operator_Deactivate_MarketBalanceOwed());
 
-        /* Redeem check */
+        // Requirements: redeem checks
         _beforeRedeem(_mToken, msg.sender, tokensHeld);
 
-        /* Set mToken account membership to false */
+        // Effects: set the mToken account membership to false
         delete marketToExit.accountMembership[msg.sender];
 
-        /* Delete mToken from the account's list of assets */
-        // load into memory for faster iteration
-        address[] memory userAssetList = accountAssets[msg.sender];
+        // Effects: delete mToken from the account's list of assets
+        address[] memory userAssetList = accountAssets[msg.sender]; // load into memory for faster iteration
         uint256 len = userAssetList.length;
         uint256 assetIndex = len;
-        for (uint256 i; i < len;) {
+        for (uint256 i; i < len; i++) {
             if (userAssetList[i] == _mToken) {
                 assetIndex = i;
                 break;
             }
-
-            unchecked {
-                ++i;
-            }
         }
 
-        // We *must* have found the asset in the list or our redundant data structure is broken
+        // Requirements: the asset is found in the list
         require(assetIndex < len, Operator_AssetNotFound());
 
-        // copy last item in list to location of item to be removed, reduce length by 1
+        // Effects: copy last item in list to location of item to be removed, reduce length by 1
         address[] storage storedList = accountAssets[msg.sender];
         storedList[assetIndex] = storedList[storedList.length - 1];
         storedList.pop();
 
+        // Events: emit the market exited event
         emit MarketExited(_mToken, msg.sender);
     }
 
@@ -414,11 +477,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         ifNotBlacklisted(dst)
         onlyFirewallApproved
     {
+        // Requirements: the transfer is not paused
         require(!_paused[mToken][OperationType.Transfer], Operator_Paused());
 
+        // Interactions: accrue interest
         ImToken(mToken).accrueInterest();
 
-        /* Get sender tokensHeld and amountOwed underlying from the mToken */
+        // Requirements: the before redeem checks pass
         _beforeRedeem(mToken, src, transferTokens);
     }
 
@@ -430,32 +495,40 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         ifNotBlacklisted(borrower)
         onlyFirewallApproved
     {
+        // Requirements: the borrow is not paused
         require(!_paused[mToken][OperationType.Borrow], Operator_Paused());
+        // Requirements: the market is listed
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
+        // If market is not activated, activate it
         if (!markets[mToken].accountMembership[borrower]) {
+            // Requirements: the sender is the market
             require(msg.sender == mToken, Operator_SenderMustBeToken());
 
+            // Interactions: activate the market
             _activateMarket(mToken, borrower);
+
+            // Requirements: the market is activated
             require(markets[mToken].accountMembership[borrower], Operator_WrongMarket());
         }
 
+        // Requirements: the oracle price is not zero
         require(IOracleOperator(oracleOperator).getUnderlyingPrice(mToken) != 0, Operator_EmptyPrice());
 
         uint256 borrowCap = borrowCaps[mToken];
-        // Borrow cap of 0 corresponds to unlimited borrowing
+        // Requirements: if borrow cap is not zero, the next total borrows is less than the borrow cap
         if (borrowCap != 0) {
             uint256 totalBorrows = ImToken(mToken).totalBorrows();
             uint256 nextTotalBorrows = add_(totalBorrows, borrowAmount);
             require(nextTotalBorrows < borrowCap, Operator_MarketBorrowCapReached());
         }
 
-        // Verify borrow size
+        // Requirements: the borrow size is met
         uint256 totalAccountBorrowCrt = ImToken(mToken).borrowBalanceStored(borrower);
         uint256 nextTotalAccountBorrow = add_(totalAccountBorrowCrt, borrowAmount);
         require(nextTotalAccountBorrow > minBorrowSize[mToken], Operator_MarketBorrowSizeNotMet());
 
-        // liquidity check
+        // Requirements: the liquidity check passes
         (, uint256 shortfall) = _getHypotheticalAccountLiquidity(borrower, mToken, 0, borrowAmount);
         require(shortfall == 0, Operator_InsufficientLiquidity());
     }
@@ -512,7 +585,10 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         onlyFirewallApproved
         onlyAllowedUser(minter)
     {
+        // Requirements: the mint is not paused
         require(!_paused[mToken][OperationType.Mint], Operator_Paused());
+
+        // Requirements: the market is listed
         require(markets[mToken].isListed, Operator_MarketNotListed());
     }
 
@@ -524,6 +600,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
             uint256 totalSupply = ImToken(mToken).totalSupply();
             Exp memory exchangeRate = Exp({mantissa: ImToken(mToken).exchangeRateStored()});
             uint256 totalAmount = mul_ScalarTruncate(exchangeRate, totalSupply);
+
+            // Requirements: the total amount is less than the supply cap
             require(totalAmount <= supplyCap, Operator_MarketSupplyReached());
         }
     }
@@ -547,7 +625,10 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         onlyAllowedUser(borrower)
         onlyFirewallApproved
     {
+        // Requirements: the repay is not paused
         require(!_paused[mToken][OperationType.Repay], Operator_Paused());
+
+        // Requirements: the market is listed
         require(markets[mToken].isListed, Operator_MarketNotListed());
     }
 
@@ -558,19 +639,25 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         address borrower,
         uint256 repayAmount
     ) external view override onlyFirewallApproved {
+        // Requirements: the liquidate is not paused
         require(!_paused[mTokenBorrowed][OperationType.Liquidate], Operator_Paused());
+
+        // Requirements: the borrowed market is listed
         require(markets[mTokenBorrowed].isListed, Operator_MarketNotListed());
+
+        // Requirements: the collateral market is listed
         require(markets[mTokenCollateral].isListed, Operator_MarketNotListed());
 
         uint256 borrowBalance = ImToken(mTokenBorrowed).borrowBalanceStored(borrower);
-
         if (_isDeprecated(mTokenBorrowed)) {
+            // Requirements: the repay amount is valid
             require(borrowBalance == repayAmount, Operator_RepayAmountNotValid());
         } else {
             (, uint256 shortfall) = _getHypotheticalAccountLiquidity(borrower, address(0), 0, 0);
+            // Requirements: the shortfall is greater than zero
             require(shortfall > 0, Operator_InsufficientLiquidity());
 
-            /* The liquidator may not repay more than what is allowed by the closeFactor */
+            // Requirements: the liquidator may not repay more than what is allowed by the closeFactor
             uint256 maxClose = mul_ScalarTruncate(Exp({mantissa: closeFactorMantissa}), borrowBalance);
             require(repayAmount <= maxClose, Operator_RepayingTooMuch());
         }
@@ -584,12 +671,18 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         ifNotBlacklisted(liquidator)
         onlyFirewallApproved
     {
+        // Requirements: the seize is not paused
         require(
             !_paused[mTokenCollateral][OperationType.Seize] && !_paused[mTokenBorrowed][OperationType.Seize],
             Operator_Paused()
         );
+        // Requirements: the borrowed market is listed
         require(markets[mTokenBorrowed].isListed, Operator_MarketNotListed());
+
+        // Requirements: the collateral market is listed
         require(markets[mTokenCollateral].isListed, Operator_MarketNotListed());
+
+        // Requirements: the collateral and borrowed markets have the same operator
         require(ImToken(mTokenCollateral).operator() == ImToken(mTokenBorrowed).operator(), Operator_Mismatch());
     }
 
@@ -600,7 +693,11 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         ImToken _market;
         for (uint256 i = 0; i < marketsLength; i++) {
             _market = ImToken(allMarkets[i]);
+
+            // If the market is deprecated, skip it
             if (_isDeprecated(address(_market))) continue;
+
+            // Interactions: convert the market volume to USD value
             uint256 totalMarketVolume = _market.totalUnderlying();
             sum += _convertMarketAmountToUSDValue(totalMarketVolume, address(_market));
         }
@@ -608,6 +705,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
 
     /// @inheritdoc IOperatorDefender
     function beforeRebalancing(address mToken) external view override onlyFirewallApproved {
+        // Requirements: the rebalancing is not paused
         require(!_paused[mToken][OperationType.Rebalancing], Operator_Paused());
     }
 
@@ -624,6 +722,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @return usdValue The USD value of the amount
     function _convertMarketAmountToUSDValue(uint256 amount, address mToken) internal view returns (uint256 usdValue) {
         uint256 oraclePriceMantissa = IOracleOperator(oracleOperator).getUnderlyingPrice(mToken);
+        // Requirements: the oracle price is not zero
         require(oraclePriceMantissa != 0, Operator_OracleUnderlyingFetchError());
 
         Exp memory oraclePrice = Exp({mantissa: oraclePriceMantissa});
@@ -635,11 +734,18 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @param borrower The borrower to activate the market for
     function _activateMarket(address _mToken, address borrower) private {
         IOperatorData.Market storage marketToJoin = markets[_mToken];
+        // Requirements: the market is listed
         require(marketToJoin.isListed, Operator_MarketNotListed());
 
+        // If market is not activated, activate it
         if (!marketToJoin.accountMembership[borrower]) {
+            // Effects: set the market account membership to true
             marketToJoin.accountMembership[borrower] = true;
+
+            // Effects: add the market to the account's list of assets
             accountAssets[borrower].push(_mToken);
+
+            // Events: emit the market entered event
             emit MarketEntered(_mToken, borrower);
         }
     }
@@ -649,13 +755,16 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @param redeemer The redeemer to check
     /// @param redeemTokens The number of tokens to redeem
     function _beforeRedeem(address mToken, address redeemer, uint256 redeemTokens) private view {
+        // Requirements: the redeem is not paused
         require(!_paused[mToken][OperationType.Redeem], Operator_Paused());
+
+        // Requirements: the market is listed
         require(markets[mToken].isListed, Operator_MarketNotListed());
 
-        /* If the redeemer is not 'in' the market, then we can bypass the liquidity check */
+        // If the redeemer is not 'in' the market, then we can bypass the liquidity check
         if (!markets[mToken].accountMembership[redeemer]) return;
 
-        // liquidity check
+        // Requirements: the liquidity check passes
         (, uint256 shortfall) = _getHypotheticalAccountLiquidity(redeemer, mToken, redeemTokens, 0);
         require(shortfall == 0, Operator_InsufficientLiquidity());
     }
@@ -676,17 +785,18 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         AccountLiquidityLocalVars memory vars; // Holds all our calculation results
 
         uint256 len = accountAssets[account].length;
-        for (uint256 i; i < len;) {
+        for (uint256 i; i < len; i++) {
             address _asset = accountAssets[account][i];
-            // Read the balances and exchange rate from the mToken
+            // Interactions: read the balances and exchange rate from the mToken
             (vars.mTokenBalance, vars.borrowBalance, vars.exchangeRateMantissa) =
                 ImToken(_asset).getAccountSnapshot(account);
 
             vars.collateralFactor = Exp({mantissa: markets[_asset].collateralFactorMantissa});
             vars.exchangeRate = Exp({mantissa: vars.exchangeRateMantissa});
 
-            // Get the normalized price of the asset
+            // Interactions: get the normalized price of the asset
             vars.oraclePriceMantissa = IOracleOperator(oracleOperator).getUnderlyingPrice(_asset);
+            // Requirements: the oracle price is not zero
             require(vars.oraclePriceMantissa != 0, Operator_OracleUnderlyingFetchError());
 
             vars.oraclePrice = Exp({mantissa: vars.oraclePriceMantissa});
@@ -712,10 +822,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
                 // sumBorrowPlusEffects += oraclePrice * borrowAmount
                 vars.sumBorrowPlusEffects =
                     mul_ScalarTruncateAddUInt(vars.oraclePrice, borrowAmount, vars.sumBorrowPlusEffects);
-            }
-
-            unchecked {
-                ++i;
             }
         }
 

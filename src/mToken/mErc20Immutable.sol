@@ -52,6 +52,9 @@ contract mErc20Immutable is mErc20 {
         uint8 decimals_,
         address payable admin_
     ) {
+        // @audit-question zero checks?
+
+        // Effects: set the admin
         admin = payable(msg.sender);
 
         // Initialize the market
@@ -59,8 +62,10 @@ contract mErc20Immutable is mErc20 {
             underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_
         );
 
-        // Set the proper admin now that initialization is done
+        // Requirements: the admin is not zero address
         require(admin_ != address(0), mErc20Immutable_AdminNotValid());
+
+        // Effects: set the proper admin, now that initialization is done
         admin = admin_;
     }
 }

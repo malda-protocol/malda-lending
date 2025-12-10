@@ -51,7 +51,10 @@ abstract contract mErc20 is mToken, ImErc20 {
     /// @param token The address of the ERC-20 token to sweep
     /// @param amount The amount of tokens to sweep
     function sweepToken(IERC20 token, uint256 amount) external onlyAdmin {
+        // Requirements: the token is not the underlying
         require(address(token) != underlying, mErc20_TokenNotValid());
+
+        // Interactions: transfer the tokens to the admin
         token.safeTransfer(admin, amount);
     }
 
@@ -114,11 +117,15 @@ abstract contract mErc20 is mToken, ImErc20 {
         string memory symbol_,
         uint8 decimals_
     ) internal {
+        // @audit-question zero checks?
+
         // mToken initialize does the bulk of the work
         _initializeMToken(operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_);
 
-        // Set underlying and sanity check it
+        // Effects: set the underlying
         underlying = underlying_;
+
+        // Interactions: get the total supply of the underlying tokens (sanity check)
         ImTokenMinimal(underlying).totalSupply();
     }
 
@@ -127,9 +134,16 @@ abstract contract mErc20 is mToken, ImErc20 {
     /// @param amount Amount to transfer
     /// @return Amount actually transferred to the protocol
     function _doTransferIn(address from, uint256 amount) internal virtual override returns (uint256) {
+        // Interactions: get the balance before the transfer
         uint256 balanceBefore = IERC20(underlying).balanceOf(address(this));
+
+        // Interactions: transfer the underlying tokens to the contract
         IERC20(underlying).safeTransferFrom(from, address(this), amount);
+
+        // Interactions: get the balance after the transfer
         uint256 balanceAfter = IERC20(underlying).balanceOf(address(this));
+
+        // Return actual transferred amount
         return balanceAfter - balanceBefore;
     }
 
@@ -137,6 +151,7 @@ abstract contract mErc20 is mToken, ImErc20 {
     /// @param to Recipient address
     /// @param amount Amount to transfer
     function _doTransferOut(address payable to, uint256 amount) internal virtual override {
+        // Interactions: transfer the underlying tokens to the recipient
         IERC20(underlying).safeTransfer(to, amount);
     }
 

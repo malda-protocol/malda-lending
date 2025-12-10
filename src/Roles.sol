@@ -94,8 +94,13 @@ contract Roles is Ownable, IRoles {
     /// @param _role the bytes32 role.
     /// @param _allowed the new status.
     function allowFor(address _contract, bytes32 _role, bool _allowed) external onlyOwner {
+        // Requirements: the contract address and role are not zero
         require(_contract != address(0) && _role != bytes32(0), Roles_InputNotValid());
+
+        // Effects: set the role allowance
         _roles[_contract][_role] = _allowed;
+
+        // Events: emit the allowed event
         emit Allowed(_contract, _role, _allowed);
     }
 

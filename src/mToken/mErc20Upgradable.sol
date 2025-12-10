@@ -30,6 +30,10 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 /// @author Merge Layers Inc.
 /// @notice Upgradable flavor of mErc20 with initializer support
 abstract contract mErc20Upgradable is mErc20, Initializable {
+    // ----------- ERRORS ------------
+    /// @notice Error thrown when the admin is not valid
+    error mErc20Upgradable_AdminNotValid();
+
     /// @notice Disables initializers on deployment
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -55,9 +59,16 @@ abstract contract mErc20Upgradable is mErc20, Initializable {
         uint8 decimals_,
         address payable admin_
     ) internal {
+        // @audit-question zero checks?
+
         _initializeMErc20(
             underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_
         );
+
+        // Requirements: the admin is not zero address
+        require(admin_ != address(0), mErc20Upgradable_AdminNotValid());
+
+        // Effects: set the admin
         admin = admin_;
     }
 }

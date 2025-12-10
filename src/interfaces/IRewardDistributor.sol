@@ -101,11 +101,11 @@ interface IRewardDistributor {
     event BorrowIndexNotified(address indexed rewardToken, address indexed mToken);
 
     // ----------- ACTIONS -----------
-    /// @notice Notifies supply index
+    /// @notice Updates supply indices for all reward tokens on a market
     /// @param mToken Market token
     function notifySupplyIndex(address mToken) external;
 
-    /// @notice Notifies borrow index
+    /// @notice Updates borrow indices for all reward tokens on a market
     /// @param mToken Market token
     function notifyBorrowIndex(address mToken) external;
 
