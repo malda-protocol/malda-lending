@@ -110,7 +110,6 @@ contract BatchSubmitter is Ownable {
     event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
 
     // ----------- ERRORS -----------
-
     /// @notice Error thrown when caller is not allowed
     error BatchSubmitter_CallerNotAllowed();
 
@@ -128,9 +127,16 @@ contract BatchSubmitter is Ownable {
     /// @param _zkVerifier The ZkVerifier contract address
     /// @param owner_ The owner address
     constructor(address _roles, address _zkVerifier, address owner_) Ownable(owner_) {
+        // Requirements: the roles address is not zero
         require(_roles != address(0), BatchSubmitter_AddressNotValid());
+
+        // Requirements: the ZkVerifier address is not zero
         require(_zkVerifier != address(0), BatchSubmitter_AddressNotValid());
+
+        // Effects: set the roles operator
         ROLES_OPERATOR = IRoles(_roles);
+
+        // Effects: set the ZkVerifier
         verifier = IZkVerifier(_zkVerifier);
     }
 
@@ -138,8 +144,13 @@ contract BatchSubmitter is Ownable {
     /// @notice Updates IZkVerifier address
     /// @param _zkVerifier the verifier address
     function updateZkVerifier(address _zkVerifier) external onlyOwner {
+        // Requirements: the ZkVerifier address is not zero
         require(_zkVerifier != address(0), BatchSubmitter_AddressNotValid());
+
+        // Events: emit the ZkVerifier updated event
         emit ZkVerifierUpdated(address(verifier), _zkVerifier);
+
+        // Effects: set the ZkVerifier
         verifier = IZkVerifier(_zkVerifier);
     }
 

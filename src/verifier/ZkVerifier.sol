@@ -61,8 +61,13 @@ contract ZkVerifier is Ownable, IZkVerifier {
     event VerifierSet(address indexed oldVerifier, address indexed newVerifier);
 
     // ----------- ERRORS ------------
+    /// @notice Error thrown when the image id is not valid
     error ZkVerifier_ImageNotValid();
+
+    /// @notice Error thrown when the input is not valid
     error ZkVerifier_InputNotValid();
+
+    /// @notice Error thrown when the verifier is not set
     error ZkVerifier_VerifierNotSet();
 
     /// @notice Initializes the verifier wrapper

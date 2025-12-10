@@ -37,7 +37,8 @@ contract Blacklister is OwnableUpgradeable, IBlacklister {
     /// @notice The roles operator contract
     IRoles public rolesOperator;
 
-    /// @notice Modifier to restrict access to owner or guardian
+    // ----------- MODIFIERS ------------
+    /// @notice Modifier to restrict access to owner or has guardian blacklist role
     modifier onlyOwnerOrGuardian() {
         // Requirements: caller is owner or has guardian blacklist role
         require(

@@ -40,11 +40,20 @@ abstract contract ExponentialNoError {
         uint256 mantissa;
     }
 
+    // ----------- CONSTANTS ------------
+    /// @notice Scale factor for exponential calculations
     uint256 internal constant EXP_SCALE = 1e18;
+
+    /// @notice Scale factor for double precision calculations
     uint256 internal constant DOUBLE_SCALE = 1e36;
+
+    /// @notice Half of the scale factor for exponential calculations
     uint256 internal constant HALF_EXP_SCALE = EXP_SCALE / 2;
+
+    /// @notice Mantissa value for one
     uint256 internal constant MANTISSA_ONE = EXP_SCALE;
 
+    // ----------- FUNCTIONS ------------
     /// @dev Truncates the given exp to a whole number value.
     ///      For example, truncate(Exp{mantissa: 15 * EXP_SCALE}) = 15
     /// @param exp The exp to truncate.

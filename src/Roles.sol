@@ -78,6 +78,7 @@ contract Roles is Ownable, IRoles {
     /// @notice Role assignment mapping: contract => role => allowed
     mapping(address contractAddress => mapping(bytes32 roleIdentifier => bool allowed)) private _roles;
 
+    // ----------- EVENTS ------------
     /// @notice Emitted when role allowance is updated
     /// @param _contract The contract being updated
     /// @param _role The role identifier

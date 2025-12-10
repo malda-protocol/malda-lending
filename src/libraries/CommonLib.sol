@@ -29,6 +29,7 @@ import {IGasFeesHelper} from "src/interfaces/IGasFeesHelper.sol";
 /// @author Merge Layers Inc.
 /// @notice Shared helper utilities for validation and math
 library CommonLib {
+    // ----------- ERRORS ------------
     /// @notice Thrown when array lengths mismatch
     error CommonLib_LengthMismatch();
 
@@ -41,6 +42,7 @@ library CommonLib {
     /// @notice Thrown when provided gas fee is insufficient
     error NotEnoughGasFee();
 
+    // ----------- FUNCTIONS ------------
     /// @notice Checks a host to extension call for validity
     /// @param amount Amount being transferred
     /// @param dstChainId Destination chain id

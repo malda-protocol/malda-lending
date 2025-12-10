@@ -23,12 +23,14 @@ interface IToken {
 /// @author Merge Layers Inc.
 /// @notice Library for safely setting ERC20 approvals
 library SafeApprove {
+    // ----------- ERRORS ------------
     /// @notice Thrown when target is not a contract
     error SafeApprove_NoContract();
 
     /// @notice Thrown when an approve call fails
     error SafeApprove_Failed();
 
+    // ----------- FUNCTIONS ------------
     /// @notice Safely sets allowance to zero then desired value
     /// @param token Token to approve
     /// @param to Spender address

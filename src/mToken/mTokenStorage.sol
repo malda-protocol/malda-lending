@@ -46,6 +46,7 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
         uint256 interestIndex;
     }
 
+    // ----------- CONSTANTS ------------
     /// @notice Maximum fraction of interest that can be set aside for reserves
     uint256 internal constant RESERVE_FACTOR_MAX_MANTISSA = 1e18;
 

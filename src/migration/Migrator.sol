@@ -40,17 +40,19 @@ contract Migrator is ExponentialNoError {
         uint256 borrowAmount;
     }
 
+    // ----------- CONSTANTS ------------
     /// @notice Mendi Comptroller address
     address public constant MENDI_COMPTROLLER = 0x1b4d3b0421dDc1eB216D230Bc01527422Fb93103;
 
+    // ----------- IMMUTABLES ------------
     /// @notice Malda Operator address
     address public immutable MALDA_OPERATOR;
 
+    // ----------- STORAGE ------------
     /// @notice Mapping of allowed markets
     mapping(address market => bool allowed) public allowedMarkets;
 
     // ----------- ERRORS -----------
-
     /// @notice Error thrown when address is not valid
     error Migrator_AddressNotValid();
 
@@ -60,8 +62,13 @@ contract Migrator is ExponentialNoError {
     /// @notice Initializes the migrator with the operator address
     /// @param _operator Address of the Malda operator
     constructor(address _operator) {
+        // Requirements: the operator address is not zero
         require(_operator != address(0), Migrator_AddressNotValid());
+
+        // Effects: set the operator address
         MALDA_OPERATOR = _operator;
+
+        // Effects: set the allowed markets
         allowedMarkets[0x1eEa258B505cd6381171c1075EC6934F8D0Faf3b] = true;
         allowedMarkets[0x6AECeD8e67964Eb6d0Ae7B159D27eF07F6c11b99] = true;
         allowedMarkets[0x66DfCBf23319D68bdF0cB57797Fcc0A64d2265f8] = true;

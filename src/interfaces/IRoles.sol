@@ -27,8 +27,11 @@ pragma solidity =0.8.28;
 /// @author Merge Layers Inc.
 /// @notice Interface for protocol role management
 interface IRoles {
+    // ----------- ERRORS ------------
+    /// @notice Error thrown when input is not valid
     error Roles_InputNotValid();
 
+    // ----------- VIEW ------------
     /// @notice Returns REBALANCER role
     /// @return role REBALANCER role identifier
     function REBALANCER() external view returns (bytes32 role);

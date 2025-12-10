@@ -32,7 +32,6 @@ import {ImTokenOperationTypes} from "./ImToken.sol";
 /// @notice Gateway interface for cross-chain mToken operations
 interface ImTokenGateway {
     // ----------- EVENTS -----------
-
     /// @notice Emitted when a user updates allowed callers
     /// @param sender The caller updating permissions
     /// @param caller The address whose status is updated

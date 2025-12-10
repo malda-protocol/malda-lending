@@ -26,12 +26,10 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 /// @notice Helper contract for managing gas fees
 contract DefaultGasHelper is Ownable {
     // ----------- STORAGE ------------
-
     /// @notice Mapping of chain IDs to gas fees
     mapping(uint32 chainId => uint256 fee) public gasFees;
 
     // ----------- EVENTS ------------
-
     /// @notice Event emitted when gas fee is updated
     /// @param dstChainId The destination chain ID
     /// @param amount The gas fee amount

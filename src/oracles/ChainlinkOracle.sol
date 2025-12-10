@@ -28,12 +28,10 @@ import {IAggregatorV3} from "src/interfaces/external/chainlink/IAggregatorV3.sol
 /// @notice Oracle contract using Chainlink price feeds
 contract ChainlinkOracle is IOracleOperator {
     // ----------- CONSTANTS ------------
-
     /// @notice Number of decimals for price
     uint8 public constant DECIMALS = 18;
 
     // ----------- STORAGE ------------
-
     /// @notice Mapping of symbols to price feeds
     mapping(string symbol => IAggregatorV3 feed) public priceFeeds;
 
@@ -41,9 +39,9 @@ contract ChainlinkOracle is IOracleOperator {
     mapping(string symbol => uint256 units) public baseUnits;
 
     // ----------- ERRORS ------------
-
     /// @notice Error thrown when no price feed is found
     error ChainlinkOracle_NoPriceFeed();
+
     /// @notice Error thrown when price is zero
     error ChainlinkOracle_ZeroPrice();
 

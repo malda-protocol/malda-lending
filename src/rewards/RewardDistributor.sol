@@ -41,10 +41,11 @@ contract RewardDistributor is
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable
 {
-    // ----------- STORAGE ------------
+    // ----------- CONSTANTS ------------
     /// @notice Initial index used when starting accruals
     uint224 public constant REWARD_INITIAL_INDEX = 1e36;
 
+    // ----------- STORAGE ------------
     /// @inheritdoc IRewardDistributor
     address public operator;
 
@@ -66,16 +67,22 @@ contract RewardDistributor is
     // ----------- ERRORS ------------
     /// @notice Error thrown when the caller is not the operator
     error RewardDistributor_OnlyOperator();
+
     /// @notice Error thrown when the transfer fails
     error RewardDistributor_TransferFailed();
+
     /// @notice Error thrown when the reward token is not valid
     error RewardDistributor_RewardNotValid();
+
     /// @notice Error thrown when the address is not valid
     error RewardDistributor_AddressNotValid();
+
     /// @notice Error thrown when the address is already registered
     error RewardDistributor_AddressAlreadyRegistered();
+
     /// @notice Error thrown when the supply speed array length mismatch
     error RewardDistributor_SupplySpeedArrayLengthMismatch();
+
     /// @notice Error thrown when the borrow speed array length mismatch
     error RewardDistributor_BorrowSpeedArrayLengthMismatch();
 

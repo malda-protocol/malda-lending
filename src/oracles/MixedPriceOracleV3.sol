@@ -22,7 +22,6 @@ import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
 /// @notice Mixed price oracle contract
 contract MixedPriceOracleV3 is IOracleOperator {
     // ----------- IMMUTABLES ------------
-
     /// @notice Staleness period
     uint256 public immutable STALENESS_PERIOD;
 
@@ -30,13 +29,13 @@ contract MixedPriceOracleV3 is IOracleOperator {
     IRoles public immutable ROLES;
 
     // ----------- STORAGE ------------
-
     /// @notice Mapping of symbols to price configs
     mapping(string symbol => IDefaultAdapter.PriceConfig config) public configs;
 
     /// @notice Mapping of symbols to staleness periods
     mapping(string symbol => uint256 staleness) public stalenessPerSymbol;
 
+    // ----------- EVENTS ------------
     /// @notice Emitted when a configuration is set for a symbol
     /// @param symbol Symbol being configured
     /// @param config Price configuration applied
@@ -47,6 +46,7 @@ contract MixedPriceOracleV3 is IOracleOperator {
     /// @param val New staleness value
     event StalenessUpdated(string symbol, uint256 val);
 
+    // ----------- ERRORS ------------
     /// @notice Error thrown when caller lacks required role
     error MixedPriceOracle_Unauthorized();
 

@@ -42,7 +42,6 @@ interface IInterestRateModel {
     event BlocksPerYearUpdated(uint256 blocksPerYear);
 
     // ----------- ERRORS ------------
-
     /// @notice Error thrown when multiplier is not valid
     error JumpRateModelV4_MultiplierNotValid();
 

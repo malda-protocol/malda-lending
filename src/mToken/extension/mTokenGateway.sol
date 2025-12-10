@@ -45,7 +45,6 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     using SafeERC20 for IERC20;
 
     // ----------- CONSTANTS -----------
-
     /// @notice Linea chain ID
     uint32 private constant LINEA_CHAIN_ID = 59144;
 

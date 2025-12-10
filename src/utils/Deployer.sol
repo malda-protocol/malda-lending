@@ -30,8 +30,10 @@ import {CREATE3} from "src/libraries/CREATE3.sol";
 /// @author Malda Protocol
 /// @notice Minimal helper to precompute and deploy contracts via CREATE3 with two-step admin handover.
 contract Deployer {
+    // ----------- STORAGE ------------
     /// @notice Current admin authorized to deploy and manage ownership
     address public admin;
+
     /// @notice Pending admin address that can accept control
     address public pendingAdmin;
 
@@ -52,6 +54,7 @@ contract Deployer {
     /// @notice Error thrown when the caller is not the admin
     error NotAuthorized(address admin, address sender);
 
+    // ----------- MODIFIERS ------------
     /// @notice Modifier to check if the caller is the admin
     modifier onlyAdmin() {
         // Requirements: the caller is the admin

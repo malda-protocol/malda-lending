@@ -51,6 +51,7 @@ interface IWrappedNative {
 /// @author Malda Protocol
 /// @notice Wraps native coins and supplies to host or extension markets in a single call.
 contract WrapAndSupply {
+    // ----------- IMMUTABLES ------------
     /// @notice The wrapped native coin contract
     IWrappedNative public immutable WRAPPED_NATIVE;
 
@@ -63,7 +64,10 @@ contract WrapAndSupply {
     event WrappedAndSupplied(address indexed sender, address indexed receiver, address indexed market, uint256 amount);
 
     // ----------- ERRORS ------------
+    /// @notice Error thrown when the address is not valid
     error WrapAndSupply_AddressNotValid();
+
+    /// @notice Error thrown when the amount is not valid
     error WrapAndSupply_AmountNotValid();
 
     /// @notice Initializes the helper with the wrapped native token address

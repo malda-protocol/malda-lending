@@ -37,13 +37,14 @@ import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
 /// @author Merge Layers Inc.
 /// @notice Manages pausing operations across deployed markets
 contract Pauser is Ownable, IPauser {
-    // ----------- STORAGE ------------
+    // ----------- IMMUTABLES ------------
     /// @notice Roles contract reference
     IRoles public immutable ROLES;
 
     /// @notice Operator contract reference
     IOperator public immutable OPERATOR;
 
+    // ----------- STORAGE ------------
     /// @notice List of contracts that can be paused
     PausableContract[] public pausableContracts;
 

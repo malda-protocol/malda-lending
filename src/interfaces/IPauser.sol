@@ -40,8 +40,10 @@ interface IPauser is ImTokenOperationTypes {
         PausableType contractType;
     }
 
+    // ----------- EVENTS ------------
     /// @notice Emitted when all markets are paused
     event PauseAll();
+
     /// @notice Emitted when a market is paused
     /// @param market The paused market
     event MarketPaused(address indexed market);
@@ -60,6 +62,7 @@ interface IPauser is ImTokenOperationTypes {
     /// @param pauseType The operation type paused
     event MarketPausedFor(address indexed market, OperationType pauseType);
 
+    // ----------- ERRORS ------------
     /// @notice Error when entry is not found
     error Pauser_EntryNotFound();
 
@@ -75,6 +78,7 @@ interface IPauser is ImTokenOperationTypes {
     /// @notice Error when contract is not enabled
     error Pauser_ContractNotEnabled();
 
+    // ----------- EXTERNAL ------------
     /// @notice Pauses all operations for a market
     /// @param _market the mToken address
     function emergencyPauseMarket(address _market) external;

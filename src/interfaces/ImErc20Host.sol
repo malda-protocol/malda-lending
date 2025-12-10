@@ -28,7 +28,6 @@ pragma solidity =0.8.28;
 /// @notice Interface for host-side mERC20 cross-chain operations
 interface ImErc20Host {
     // ----------- EVENTS -----------
-
     /// @notice Emitted when a user updates allowed callers
     /// @param sender The caller updating permission
     /// @param caller The address whose status is updated

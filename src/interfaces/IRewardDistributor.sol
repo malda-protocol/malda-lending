@@ -56,6 +56,7 @@ interface IRewardDistributorData {
 /// @author Merge Layers Inc.
 /// @notice Interface for reward distribution operations
 interface IRewardDistributor {
+    // ----------- EVENTS ------------
     /// @notice Emitted when reward is accrued for a user
     /// @param rewardToken Reward token address
     /// @param user User address

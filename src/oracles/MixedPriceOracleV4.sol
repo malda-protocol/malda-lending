@@ -26,15 +26,18 @@ contract MixedPriceOracleV4 is IOracleOperator {
         uint256 underlyingDecimals;
     }
 
+    // ----------- CONSTANTS ------------
     /// @notice Price delta exponent (basis points denominator)
     uint256 public constant PRICE_DELTA_EXP = 1e5;
 
+    // ----------- IMMUTABLES ------------
     /// @notice Default staleness period applied to feeds
     uint256 public immutable STALENESS_PERIOD;
 
     /// @notice Roles contract reference
     IRoles public immutable ROLES;
 
+    // ----------- STORAGE ------------
     /// @notice Mapping of symbols to price configs
     mapping(string symbol => PriceConfig config) public configs;
 

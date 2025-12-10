@@ -29,9 +29,11 @@ import {BytesLib} from "src/libraries/BytesLib.sol";
 /// @author Merge Layers Inc.
 /// @notice Utility library for encoding and decoding mToken journals
 library mTokenProofDecoderLib {
+    // ----------- CONSTANTS ------------
     /// @notice Encoded journal entry size in bytes
     uint256 public constant ENTRY_SIZE = 113; // 112 + 1 for L1inclusion
 
+    // ----------- ERRORS ------------
     /// @notice Thrown when chain is not found
     error mTokenProofDecoderLib_ChainNotFound();
 
@@ -41,6 +43,7 @@ library mTokenProofDecoderLib {
     /// @notice Thrown when L1 inclusion flag is invalid
     error mTokenProofDecoderLib_InvalidInclusion();
 
+    // ----------- FUNCTIONS ------------
     /// @notice Decodes encoded journal data into fields
     /// @param journalData Packed journal bytes
     /// @return sender Journal sender

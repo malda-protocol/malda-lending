@@ -44,7 +44,6 @@ interface IRebalancer {
         bytes bridgeData;
     }
     // ----------- EVENTS ------------
-
     /// @notice Emitted when bridge whitelist status changes
     /// @param bridge Bridge address
     /// @param status Whitelist status

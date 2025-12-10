@@ -49,10 +49,11 @@ contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuar
         uint32 exclusivityDeadline;
     }
 
-    // ----------- STORAGE ------------
+    // ----------- CONSTANTS ------------
     /// @notice Precision used for slippage calculations
     uint256 private constant SLIPPAGE_PRECISION = 1e5;
 
+    // ----------- IMMUTABLES ------------
     /// @notice Across spoke pool address
     address public immutable ACROSS_SPOKE_POOL;
 
@@ -62,6 +63,7 @@ contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuar
     /// @notice Rebalancer contract address
     address public immutable REBALANCER;
 
+    // ----------- STORAGE ------------
     /// @notice Whitelisted relayers per destination chain
     mapping(uint32 dstChainId => mapping(address relayer => bool isWhitelisted)) public whitelistedRelayers;
 
@@ -105,7 +107,10 @@ contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuar
     /// @notice Error thrown when relayer fee exceeds maximum
     error AcrossBridge_MaxFeeExceeded();
 
+    // ----------- MODIFIERS ------------
+    /// @notice Modifier to restrict access to only the spoke pool
     modifier onlySpokePool() {
+        // Requirements: the caller is the spoke pool
         require(msg.sender == ACROSS_SPOKE_POOL, AcrossBridge_NotAuthorized());
         _;
     }
