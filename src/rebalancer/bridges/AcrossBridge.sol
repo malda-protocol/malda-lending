@@ -141,6 +141,7 @@ contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuar
     /// @param status Whether the relayer is whitelisted
     function setWhitelistedRelayer(uint32 _dstId, address _relayer, bool status) external onlyBridgeConfigurator {
         // @audit zero checks?
+        // sure
 
         // Effects: set the relayer whitelist status
         whitelistedRelayers[_dstId][_relayer] = status;
@@ -178,6 +179,7 @@ contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuar
         }
 
         // @audit-question do we want to emit event when amount is 0?
+        // Sure, it can be moved inside the `if` check
         // Events: emit the rebalanced event
         emit Rebalanced(market, amount);
     }

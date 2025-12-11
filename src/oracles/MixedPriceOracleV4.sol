@@ -101,6 +101,7 @@ contract MixedPriceOracleV4 is IOracleOperator {
     /// @param stalenessPeriod_ Default staleness period
     constructor(string[] memory symbols_, PriceConfig[] memory configs_, address roles_, uint256 stalenessPeriod_) {
         // @audit-question zero checks?
+        // sure
 
         // Effects: set the roles
         ROLES = IRoles(roles_);

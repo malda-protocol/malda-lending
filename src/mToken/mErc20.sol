@@ -118,7 +118,7 @@ abstract contract mErc20 is mToken, ImErc20 {
         uint8 decimals_
     ) internal {
         // @audit-question zero checks?
-
+        // a: Contract size issue
         // mToken initialize does the bulk of the work
         _initializeMToken(operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_);
 

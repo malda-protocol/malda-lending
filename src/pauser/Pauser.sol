@@ -63,6 +63,7 @@ contract Pauser is Ownable, IPauser {
         require(_roles != address(0), Pauser_AddressNotValid());
 
         // @audit-question zero check for operator?
+        // sure
 
         // Effects: set the roles and operator
         ROLES = IRoles(_roles);

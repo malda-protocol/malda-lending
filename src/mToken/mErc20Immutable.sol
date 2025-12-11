@@ -53,6 +53,7 @@ contract mErc20Immutable is mErc20 {
         address payable admin_
     ) {
         // @audit-question zero checks?
+        // a: Contract size issue
 
         // Effects: set the admin
         admin = payable(msg.sender);

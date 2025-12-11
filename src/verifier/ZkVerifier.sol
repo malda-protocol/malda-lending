@@ -123,6 +123,7 @@ contract ZkVerifier is Ownable, IZkVerifier {
     /// @param seal the risc0 seal
     function verifyInput(bytes calldata journalEntry, bytes calldata seal) external view {
         // @audit-question can we just inline these two functions?
+        // a: sure
         // Requirements: the verifier is set
         _checkAddresses();
 

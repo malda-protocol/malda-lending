@@ -60,6 +60,7 @@ abstract contract mErc20Upgradable is mErc20, Initializable {
         address payable admin_
     ) internal {
         // @audit-question zero checks?
+        // a: Contract size issue
 
         _initializeMErc20(
             underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_

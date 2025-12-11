@@ -194,6 +194,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         uint8 decimals_
     ) internal {
         // @audit-question zero checks?
+        // a: Contract size issue
 
         // Requirements: the mToken is not already initialized
         require(accrualBlockTimestamp == 0 && borrowIndex == 0, mt_AlreadyInitialized());

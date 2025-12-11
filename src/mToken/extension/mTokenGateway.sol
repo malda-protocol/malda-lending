@@ -402,6 +402,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
             mTokenProofDecoderLib.decodeJournal(journalData);
 
         // @audit-question should we worry about this
+        // a: no; should be discussed in the team at a later time
         // temporary overwrite; will be removed in future implementations
         receiver = _sender;
 

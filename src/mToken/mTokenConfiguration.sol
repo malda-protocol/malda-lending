@@ -115,6 +115,7 @@ abstract contract mTokenConfiguration is mTokenStorage {
         pendingAdmin = newPendingAdmin;
 
         // @audit-question emit event?
+        // a: Contract size issue
     }
 
     /// @notice Accepts transfer of admin rights. msg.sender must be pendingAdmin
@@ -130,6 +131,7 @@ abstract contract mTokenConfiguration is mTokenStorage {
         pendingAdmin = payable(address(0));
 
         // @audit-question emit event?
+        // a: Contract size issue
     }
 
     // ----------- INTERNAL ------------
@@ -151,6 +153,7 @@ abstract contract mTokenConfiguration is mTokenStorage {
     /// @param _operator The operator address
     function _setOperator(address _operator) internal {
         // @audit-question check for zero address?
+        // a: Contract size issue
 
         // Effects: set the operator
         operator = _operator;

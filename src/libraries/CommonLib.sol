@@ -57,6 +57,7 @@ library CommonLib {
         IGasFeesHelper gasHelper
     ) internal view {
         // @audit use custom error
+        // a: sure
         if (amount == 0) revert AmountNotValid();
         if (!allowedChains[dstChainId]) revert ChainNotValid();
 

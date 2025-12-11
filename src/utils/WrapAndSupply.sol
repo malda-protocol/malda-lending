@@ -91,14 +91,17 @@ contract WrapAndSupply {
         require(underlying == address(WRAPPED_NATIVE), WrapAndSupply_AddressNotValid());
 
         // @audit-question why not check other addresses for zero address, especially the receiver?
+        // a: can be added
 
         // Interactions: wrap the native coin into its wrapped version
         uint256 amount = msg.value;
         _wrap(amount);
 
         // @audit-question why not use safeApprove?
+        // a: can be added
         // Interactions: approve the underlying to the market
         IERC20(underlying).approve(mToken, 0); // @audit-question why approve 0 first?
+        // a: some tokens might require to reset approval 
         IERC20(underlying).approve(mToken, amount);
 
         // Interactions: supply the underlying to the host market
@@ -127,14 +130,17 @@ contract WrapAndSupply {
 
         // Interactions: approve the underlying to the market
         IERC20(underlying).approve(mTokenGateway, 0); // @audit-question why approve 0 first?
+        // a: some tokens might require to reset approval 
         IERC20(underlying).approve(mTokenGateway, amount);
 
         // Interactions: supply the underlying to the extension market
         // @audit-question shouldn't we check the mTokenGateway somehow?
+        // a: i don't think it's needed
         // slither-disable-next-line arbitrary-send-eth
         ImTokenGateway(mTokenGateway).supplyOnHost{value: _gasFee}(amount, receiver, selector);
 
         // @audit-question why no event?
+        // a: can be added
     }
 
     // ----------- PRIVATE ------------

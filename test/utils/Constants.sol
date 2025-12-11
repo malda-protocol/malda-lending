@@ -11,6 +11,7 @@ pragma solidity =0.8.28;
 abstract contract Constants {
     // ----------- GENERIC ------------
     uint256 public constant SMALL = 1 ether; // @audit-question a lot of fuzz runs failed when this was at 10, is 1 okay?
+    // a: sure
     uint256 public constant MEDIUM = 100 ether;
     uint256 public constant LARGE = 1000 ether;
 

@@ -81,6 +81,8 @@ contract MigrationTests is Base_Integration_Test {
     function testCollectAllMendiPositions() external pure {
         return;
         // @audit-question unreachable code
+        // a: I suggest having a task to test Migrator more thoroughly tbh
+        //    was commented out because the positions and markets were not in sync (not fully deployed) at that point
         // vm.prank(USER_V1);
         // Migrator.Position[] memory positions = migrator.getAllPositions(USER_V1);
 

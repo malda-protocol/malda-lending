@@ -34,6 +34,7 @@ contract CrosschainLiquidationTest is DeployBaseRelease {
         sizes[0] = 1;
 
         // @audit-question remove?
+        // a: let's keep it for when this test is re-done as it wasn't working
         /**
          * console.log("Setting min borrow size ...");
          * vm.startBroadcast(key);

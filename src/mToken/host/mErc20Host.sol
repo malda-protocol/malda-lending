@@ -395,6 +395,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
         // @audit-question should we worry about this
+        // a: no; should be discussed in the team at a later time
         // temporary overwrite; will be removed in future implementations
         receiver = _sender;
 
@@ -437,6 +438,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
         // @audit-question should we worry about this
+        // a: no; should be discussed in the team at a later time
         // temporary overwrite; will be removed in future implementations
         receiver = _sender;
 
@@ -468,6 +470,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
         // @audit-question should we worry about this
+        // a: no; should be discussed in the team at a later time
         // temporary overwrite; will be removed in future implementations
         receiver = _sender;
 

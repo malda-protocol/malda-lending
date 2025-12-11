@@ -73,11 +73,13 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @param _blacklister The blacklist operator address
     function setBlacklister(address _blacklister) external onlyOwner {
         // @audit-question address zero check?
+        // sure, if size allows it
 
         // Effects: set the blacklist operator
         blacklistOperator = IBlacklister(_blacklister);
 
         // @audit-question emit an event?
+        // sure, if size allows it
     }
 
     /// @notice Sets min borrow size per market
@@ -232,6 +234,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @param newTimeWindow The new reset time window
     function setOutflowVolumeTimeWindow(uint256 newTimeWindow) external onlyOwner {
         // @audit-question zero check?
+        // sure, if size allows it
 
         // Events: emit the outflow time window updated event
         emit OutflowTimeWindowUpdated(outflowResetTimeWindow, newTimeWindow);
@@ -245,6 +248,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @param amount The new limit
     function setOutflowTimeLimitInUSD(uint256 amount) external onlyOwner {
         // @audit-question zero check?
+        // sure, if size allows it
 
         // Events: emit the outflow limit updated event
         emit OutflowLimitUpdated(msg.sender, limitPerTimePeriod, amount);

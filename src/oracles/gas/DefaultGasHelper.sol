@@ -45,6 +45,7 @@ contract DefaultGasHelper is Ownable {
     /// @param amount The gas fee amount
     function setGasFee(uint32 dstChainId, uint256 amount) external onlyOwner {
         // @audit-question zero check?
+        // sure
 
         // Effects: set the gas fee
         gasFees[dstChainId] = amount;

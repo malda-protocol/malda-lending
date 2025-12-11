@@ -68,6 +68,7 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         string memory name_
     ) Ownable(owner_) {
         // @audit-question check zero values?
+        // a: sure
 
         // Effects: set blocks per year, name, and update jump rate model
         blocksPerYear = blocksPerYear_;
@@ -110,6 +111,7 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
     /// @param blocksPerYear_ The new estimated eth blocks per year.
     function updateBlocksPerYear(uint256 blocksPerYear_) external onlyOwner {
         // @audit-question check zero values?
+        // a: sure
 
         // Effects: update blocks per year
         blocksPerYear = blocksPerYear_;
@@ -127,6 +129,7 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         returns (uint256)
     {
         // @audit-question check the calculation, reordered to preserve precision (multiply before dividing)
+        // a: I would keep the initial one since it was audited
         return (utilizationRate(cash, borrows, reserves)
                 * getBorrowRate(cash, borrows, reserves)
                 * (1e18 - reserveFactorMantissa)) / 1e36;
@@ -175,6 +178,7 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         uint256 kink_
     ) private {
         // @audit-question check zero values?
+        // a: sure
 
         // Effects: update jump rate model parameters
         baseRatePerBlock = basePerBlock_;
@@ -198,6 +202,7 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         uint256 kink_
     ) private {
         // @audit-question check zero values?
+        // a: sure
 
         // Effects: update jump rate model parameters
         baseRatePerBlock = baseRatePerYear / blocksPerYear;
