@@ -591,3 +591,4 @@ Cross-Chain Management
 ```solidity
     CHAINS_MANAGER – Can update the list of allowed destination chains on mErc20Host. Required for calling updateAllowedChain
 ```
+TEST - Testing PR template integration
