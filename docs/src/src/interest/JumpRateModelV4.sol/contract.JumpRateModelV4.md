@@ -1,8 +1,11 @@
 # JumpRateModelV4
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/interest/JumpRateModelV4.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/interest/JumpRateModelV4.sol)
 
 **Inherits:**
-[IInterestRateModel](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IInterestRateModel.sol/interface.IInterestRateModel.md), Ownable
+[IInterestRateModel](/src/interfaces/IInterestRateModel.sol/interface.IInterestRateModel.md), Ownable
+
+**Title:**
+JumpRateModelV4
 
 **Author:**
 Merge Layers Inc.

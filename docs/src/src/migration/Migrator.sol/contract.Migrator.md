@@ -1,8 +1,11 @@
 # Migrator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/migration/Migrator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/migration/Migrator.sol)
 
 **Inherits:**
-[ExponentialNoError](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.md)
+[ExponentialNoError](/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.md)
+
+**Title:**
+Migrator
 
 **Author:**
 Merge Layers Inc.

@@ -1,8 +1,8 @@
 # ILayerZeroEndpointV2
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol)
 
 **Inherits:**
-[IMessageLibManager](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/external/layerzero/v2/IMessageLibManager.sol/interface.IMessageLibManager.md), [IMessagingComposer](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/external/layerzero/v2/IMessagingComposer.sol/interface.IMessagingComposer.md), [IMessagingChannel](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/external/layerzero/v2/IMessagingChannel.sol/interface.IMessagingChannel.md), [IMessagingContext](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/external/layerzero/v2/IMessagingContext.sol/interface.IMessagingContext.md)
+[IMessageLibManager](/src/interfaces/external/layerzero/v2/IMessageLibManager.sol/interface.IMessageLibManager.md), [IMessagingComposer](/src/interfaces/external/layerzero/v2/IMessagingComposer.sol/interface.IMessagingComposer.md), [IMessagingChannel](/src/interfaces/external/layerzero/v2/IMessagingChannel.sol/interface.IMessagingChannel.md), [IMessagingContext](/src/interfaces/external/layerzero/v2/IMessagingContext.sol/interface.IMessagingContext.md)
 
 
 ## Functions

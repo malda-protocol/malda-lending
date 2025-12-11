@@ -1,8 +1,11 @@
 # ZkVerifier
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/verifier/ZkVerifier.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/verifier/ZkVerifier.sol)
 
 **Inherits:**
-Ownable, [IZkVerifier](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/verifier/ZkVerifier.sol/interface.IZkVerifier.md)
+Ownable, [IZkVerifier](/src/verifier/ZkVerifier.sol/interface.IZkVerifier.md)
+
+**Title:**
+Zero-knowledge verifier wrapper
 
 **Author:**
 Malda Protocol

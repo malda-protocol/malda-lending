@@ -1,5 +1,5 @@
 # MessagingReceipt
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol)
 
 
 ```solidity

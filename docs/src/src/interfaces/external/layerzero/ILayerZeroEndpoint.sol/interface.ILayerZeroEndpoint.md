@@ -1,8 +1,8 @@
 # ILayerZeroEndpoint
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/interfaces/external/layerzero/ILayerZeroEndpoint.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/interfaces/external/layerzero/ILayerZeroEndpoint.sol)
 
 **Inherits:**
-[ILayerZeroUserApplicationConfig](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/external/layerzero/ILayerZeroUserApplicationConfig.sol/interface.ILayerZeroUserApplicationConfig.md)
+[ILayerZeroUserApplicationConfig](/src/interfaces/external/layerzero/ILayerZeroUserApplicationConfig.sol/interface.ILayerZeroUserApplicationConfig.md)
 
 is imported from
 (https://github.com/LayerZero-Labs/LayerZero/blob/main/contracts/interfaces/ILayerZeroEndpoint.sol)

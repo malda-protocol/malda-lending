@@ -1,8 +1,11 @@
 # MixedPriceOracleV4
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/oracles/MixedPriceOracleV4.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/oracles/MixedPriceOracleV4.sol)
 
 **Inherits:**
-[IOracleOperator](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IOracleOperator.sol/interface.IOracleOperator.md)
+[IOracleOperator](/src/interfaces/IOracleOperator.sol/interface.IOracleOperator.md)
+
+**Title:**
+MixedPriceOracleV4
 
 **Author:**
 Merge Layers Inc.

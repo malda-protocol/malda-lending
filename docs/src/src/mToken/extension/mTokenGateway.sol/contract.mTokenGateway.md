@@ -1,8 +1,11 @@
 # mTokenGateway
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/mToken/extension/mTokenGateway.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/mToken/extension/mTokenGateway.sol)
 
 **Inherits:**
-OwnableUpgradeable, [ImTokenGateway](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/ImTokenGateway.sol/interface.ImTokenGateway.md), [ImTokenOperationTypes](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.md), [HypernativeFirewallProtected](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.md)
+OwnableUpgradeable, [ImTokenGateway](/src/interfaces/ImTokenGateway.sol/interface.ImTokenGateway.md), [ImTokenOperationTypes](/src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.md), [HypernativeFirewallProtected](/src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.md)
+
+**Title:**
+mTokenGateway
 
 **Author:**
 Merge Layers Inc.
@@ -284,19 +287,10 @@ function disableWhitelist() external onlyOwner;
 
 ### setPaused
 
-Set pause for a specific operation
-
 
 ```solidity
 function setPaused(OperationType _type, bool state) external override;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_type`|`OperationType`|The pause operation type|
-|`state`|`bool`|The pause operation status|
-
 
 ### extractForRebalancing
 
@@ -447,24 +441,10 @@ function outHere(bytes calldata journalData, bytes calldata seal, uint256[] call
 
 ### isPaused
 
-Returns pause state for operation
-
 
 ```solidity
 function isPaused(OperationType _type) external view returns (bool);
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_type`|`OperationType`|The operation type|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`bool`|paused True if paused|
-
 
 ### getProofData
 

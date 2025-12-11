@@ -1,8 +1,11 @@
 # mErc20Upgradable
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/mToken/mErc20Upgradable.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/mToken/mErc20Upgradable.sol)
 
 **Inherits:**
-[mErc20](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/mToken/mErc20.sol/abstract.mErc20.md), Initializable
+[mErc20](/src/mToken/mErc20.sol/abstract.mErc20.md), Initializable
+
+**Title:**
+Upgradable mErc20
 
 **Author:**
 Merge Layers Inc.

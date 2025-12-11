@@ -1,8 +1,11 @@
 # mTokenConfiguration
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/mToken/mTokenConfiguration.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/mToken/mTokenConfiguration.sol)
 
 **Inherits:**
-[mTokenStorage](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/mToken/mTokenStorage.sol/abstract.mTokenStorage.md)
+[mTokenStorage](/src/mToken/mTokenStorage.sol/abstract.mTokenStorage.md)
+
+**Title:**
+mTokenConfiguration
 
 **Author:**
 Merge Layers Inc.

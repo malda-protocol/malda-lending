@@ -1,8 +1,11 @@
 # mErc20
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/mToken/mErc20.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/mToken/mErc20.sol)
 
 **Inherits:**
-[mToken](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/mToken/mToken.sol/abstract.mToken.md), [ImErc20](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/ImErc20.sol/interface.ImErc20.md)
+[mToken](/src/mToken/mToken.sol/abstract.mToken.md), [ImErc20](/src/interfaces/ImErc20.sol/interface.ImErc20.md)
+
+**Title:**
+Malda's mErc20 Contract
 
 **Author:**
 Merge Layers Inc.

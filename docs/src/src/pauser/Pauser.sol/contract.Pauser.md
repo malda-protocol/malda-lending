@@ -1,8 +1,11 @@
 # Pauser
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/pauser/Pauser.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/pauser/Pauser.sol)
 
 **Inherits:**
-Ownable, [IPauser](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IPauser.sol/interface.IPauser.md)
+Ownable, [IPauser](/src/interfaces/IPauser.sol/interface.IPauser.md)
+
+**Title:**
+Pauser
 
 **Author:**
 Merge Layers Inc.
@@ -122,19 +125,10 @@ function emergencyPauseMarket(address _market) external;
 
 ### emergencyPauseMarketFor
 
-Pauses a specific operation for a market
-
 
 ```solidity
 function emergencyPauseMarketFor(address _market, ImTokenOperationTypes.OperationType _pauseType) external;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_market`|`address`|the mToken address|
-|`_pauseType`|`ImTokenOperationTypes.OperationType`|the operation type|
-
 
 ### emergencyPauseAll
 

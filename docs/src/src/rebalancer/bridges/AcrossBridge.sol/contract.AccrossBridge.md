@@ -1,8 +1,11 @@
 # AccrossBridge
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/rebalancer/bridges/AcrossBridge.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/rebalancer/bridges/AcrossBridge.sol)
 
 **Inherits:**
-[BaseBridge](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.md), [IBridge](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IBridge.sol/interface.IBridge.md), [IAcrossReceiverV3](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/external/across/IAcrossReceiverV3.sol/interface.IAcrossReceiverV3.md), ReentrancyGuard
+[BaseBridge](/src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.md), [IBridge](/src/interfaces/IBridge.sol/interface.IBridge.md), [IAcrossReceiverV3](/src/interfaces/external/across/IAcrossReceiverV3.sol/interface.IAcrossReceiverV3.md), ReentrancyGuard
+
+**Title:**
+AcrossBridge
 
 **Author:**
 Merge Layers Inc.

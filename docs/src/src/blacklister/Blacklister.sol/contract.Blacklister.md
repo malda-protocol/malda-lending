@@ -1,8 +1,11 @@
 # Blacklister
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/blacklister/Blacklister.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/blacklister/Blacklister.sol)
 
 **Inherits:**
-OwnableUpgradeable, [IBlacklister](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IBlacklister.sol/interface.IBlacklister.md)
+OwnableUpgradeable, [IBlacklister](/src/interfaces/IBlacklister.sol/interface.IBlacklister.md)
+
+**Title:**
+Blacklister
 
 **Author:**
 Merge Layers Inc.
@@ -119,7 +122,7 @@ function unblacklist(address user, uint256 index) external override onlyOwnerOrG
 |Name|Type|Description|
 |----|----|-----------|
 |`user`|`address`|The address to unblacklist|
-|`index`|`uint256`||
+|`index`|`uint256`|The index of the user in blacklist array|
 
 
 ### getBlacklistedAddresses

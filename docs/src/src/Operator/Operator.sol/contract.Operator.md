@@ -1,8 +1,11 @@
 # Operator
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/Operator/Operator.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/Operator/Operator.sol)
 
 **Inherits:**
-[OperatorStorage](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/Operator/OperatorStorage.sol/abstract.OperatorStorage.md), [ImTokenOperationTypes](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.md), OwnableUpgradeable, [HypernativeFirewallProtected](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.md)
+[OperatorStorage](/src/Operator/OperatorStorage.sol/abstract.OperatorStorage.md), [ImTokenOperationTypes](/src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.md), OwnableUpgradeable, [HypernativeFirewallProtected](/src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.md)
+
+**Title:**
+Operator core controller
 
 **Author:**
 Merge Layers Inc.

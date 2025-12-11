@@ -1,16 +1,13 @@
 [book]
-language = "en"
 src = "src"
-title = "Malda"
+title = ""
 
 [output.html]
-preferred-dark-theme = "ayu"
-default-theme = "dark"
-no-section-label = false
+no-section-label = true
 additional-js = ["solidity.min.js"]
 additional-css = ["book.css"]
 mathjax-support = true
 git-repository-url = "https://github.com/malda-protocol/malda-lending"
 
 [output.html.fold]
-enable = false
+enable = true

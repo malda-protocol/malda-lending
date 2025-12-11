@@ -1,8 +1,11 @@
 # mErc20Host
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/mToken/host/mErc20Host.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/mToken/host/mErc20Host.sol)
 
 **Inherits:**
-[mErc20Upgradable](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/mToken/mErc20Upgradable.sol/abstract.mErc20Upgradable.md), [ImErc20Host](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/ImErc20Host.sol/interface.ImErc20Host.md), [ImTokenOperationTypes](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.md)
+[mErc20Upgradable](/src/mToken/mErc20Upgradable.sol/abstract.mErc20Upgradable.md), [ImErc20Host](/src/interfaces/ImErc20Host.sol/interface.ImErc20Host.md), [ImTokenOperationTypes](/src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.md)
+
+**Title:**
+mErc20Host
 
 **Author:**
 Merge Layers Inc.

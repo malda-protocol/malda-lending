@@ -1,8 +1,11 @@
 # Rebalancer
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/034fc0e2fca466a96bdb4527b71e15ddea321646/src/rebalancer/Rebalancer.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/rebalancer/Rebalancer.sol)
 
 **Inherits:**
-[IRebalancer](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/interfaces/IRebalancer.sol/interface.IRebalancer.md), [HypernativeFirewallProtected](/Users/igorroncevic/Work/malda/malda-lending/docs/src/src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.md), ReentrancyGuard
+[IRebalancer](/src/interfaces/IRebalancer.sol/interface.IRebalancer.md), [HypernativeFirewallProtected](/src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.md), ReentrancyGuard
+
+**Title:**
+Cross-chain rebalancer
 
 **Author:**
 Malda Protocol
