@@ -51,8 +51,6 @@ interface IRebalancer {
     event AllowedTokensUpdated(address indexed bridge, bool status, address[] list);
     event MarketListUpdated(address[] list, bool status);
     event NewAdmin(address indexed acc);
-    event NewSaveAddress(address indexed save);
-
 
     // ----------- ERRORS ------------
     error Rebalancer_NotAuthorized();
