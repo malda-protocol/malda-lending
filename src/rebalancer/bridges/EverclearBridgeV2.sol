@@ -26,57 +26,9 @@ import {SafeApprove} from "src/libraries/SafeApprove.sol";
 import {BytesLib} from "src/libraries/BytesLib.sol";
 
 import {IBridge} from "src/interfaces/IBridge.sol";
+import {IFeeAdapterV2} from "src/interfaces/external/everclear/IFeeAdapterV2.sol";
 
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
-
-interface IFeeAdapterV2 {
-  struct FeeParams {
-    uint256 fee;
-    uint256 deadline;
-    bytes sig;
-  }
-
-  struct Intent {
-    bytes32 initiator;
-    bytes32 receiver;
-    bytes32 inputAsset;
-    bytes32 outputAsset;
-    uint32 origin;
-    uint64 nonce;
-    uint48 timestamp;
-    uint48 ttl;
-    uint256 amount;
-    uint256 amountOutMin;
-    uint32[] destinations;
-    bytes data;
-  }
-
-  /**
-   * @notice Creates a new intent with fees
-   * @param _destinations Array of destination domains, preference ordered
-   * @param _receiver Address of the receiver on the destination chain
-   * @param _inputAsset Address of the input asset
-   * @param _outputAsset Address of the output asset
-   * @param _amount Amount of input asset to use for the intent
-   * @param _amountOutMin Amount expected in the outputAsset
-   * @param _ttl Time-to-live for the intent in seconds
-   * @param _data Additional data for the intent
-   * @param _feeParams Fee parameters including fee amount, deadline, and signature
-   * @return _intentId The ID of the created intent
-   * @return _intent The created intent object
-   */
-  function newIntent(
-    uint32[] memory _destinations,
-    bytes32 _receiver,
-    address _inputAsset,
-    bytes32 _outputAsset,
-    uint256 _amount,
-    uint256 _amountOutMin,
-    uint48 _ttl,
-    bytes calldata _data,
-    FeeParams calldata _feeParams
-  ) external payable returns (bytes32, Intent memory);
-}
 
 
 contract EverclearBridgeV2 is BaseBridge, IBridge {
@@ -86,6 +38,8 @@ contract EverclearBridgeV2 is BaseBridge, IBridge {
     // ----------- STORAGE ------------
     IFeeAdapterV2 public everclearFeeAdapter;
 
+    // Will be used for initiating a call to 
+    // https://github.com/everclearorg/monorepo/blob/dev/packages/contracts/src/interfaces/intent/IFeeAdapterV2.sol#L129
     struct IntentParams {
         uint32[] destinations;
         bytes32 receiver;
