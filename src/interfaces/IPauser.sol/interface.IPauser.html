@@ -180,12 +180,17 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="ipauser"><a class="header" href="#ipauser">IPauser</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/7a23b10e38c28369e52c48691752a05b7b5b2051/src/interfaces/IPauser.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/fa8e4a69adeb0809f258627361a102a153a0b8f2/src/interfaces/IPauser.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.html">ImTokenOperationTypes</a></p>
+<p><strong>Title:</strong>
+IPauser</p>
+<p><strong>Author:</strong>
+Merge Layers Inc.</p>
+<p>Interface for pausing market operations</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="emergencypausemarket"><a class="header" href="#emergencypausemarket">emergencyPauseMarket</a></h3>
-<p>pauses all operations for a market</p>
+<p>Pauses all operations for a market</p>
 <pre><code class="language-solidity">function emergencyPauseMarket(address _market) external;
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -194,7 +199,7 @@
 </tbody></table>
 </div>
 <h3 id="emergencypausemarketfor"><a class="header" href="#emergencypausemarketfor">emergencyPauseMarketFor</a></h3>
-<p>pauses a specific operation for a market</p>
+<p>Pauses a specific operation for a market</p>
 <pre><code class="language-solidity">function emergencyPauseMarketFor(address _market, OperationType _pauseType) external;
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -204,39 +209,71 @@
 </tbody></table>
 </div>
 <h3 id="emergencypauseall"><a class="header" href="#emergencypauseall">emergencyPauseAll</a></h3>
-<p>pauses all operations for all registered markets</p>
+<p>Pauses all operations for all registered markets</p>
 <pre><code class="language-solidity">function emergencyPauseAll() external;
 </code></pre>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="pauseall"><a class="header" href="#pauseall">PauseAll</a></h3>
+<p>Emitted when all markets are paused</p>
 <pre><code class="language-solidity">event PauseAll();
 </code></pre>
 <h3 id="marketpaused"><a class="header" href="#marketpaused">MarketPaused</a></h3>
+<p>Emitted when a market is paused</p>
 <pre><code class="language-solidity">event MarketPaused(address indexed market);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>market</code></td><td><code>address</code></td><td>The paused market</td></tr>
+</tbody></table>
+</div>
 <h3 id="marketremoved"><a class="header" href="#marketremoved">MarketRemoved</a></h3>
+<p>Emitted when a market is removed</p>
 <pre><code class="language-solidity">event MarketRemoved(address indexed market);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>market</code></td><td><code>address</code></td><td>The market removed</td></tr>
+</tbody></table>
+</div>
 <h3 id="marketadded"><a class="header" href="#marketadded">MarketAdded</a></h3>
+<p>Emitted when a market is added</p>
 <pre><code class="language-solidity">event MarketAdded(address indexed market, PausableType marketType);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>market</code></td><td><code>address</code></td><td>The market added</td></tr>
+<tr><td><code>marketType</code></td><td><code>PausableType</code></td><td>The market type</td></tr>
+</tbody></table>
+</div>
 <h3 id="marketpausedfor"><a class="header" href="#marketpausedfor">MarketPausedFor</a></h3>
+<p>Emitted when a specific operation is paused for a market</p>
 <pre><code class="language-solidity">event MarketPausedFor(address indexed market, OperationType pauseType);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>market</code></td><td><code>address</code></td><td>The market paused</td></tr>
+<tr><td><code>pauseType</code></td><td><code>OperationType</code></td><td>The operation type paused</td></tr>
+</tbody></table>
+</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="pauser_entrynotfound"><a class="header" href="#pauser_entrynotfound">Pauser_EntryNotFound</a></h3>
+<p>Error when entry is not found</p>
 <pre><code class="language-solidity">error Pauser_EntryNotFound();
 </code></pre>
 <h3 id="pauser_notauthorized"><a class="header" href="#pauser_notauthorized">Pauser_NotAuthorized</a></h3>
+<p>Error when caller lacks authorization</p>
 <pre><code class="language-solidity">error Pauser_NotAuthorized();
 </code></pre>
 <h3 id="pauser_addressnotvalid"><a class="header" href="#pauser_addressnotvalid">Pauser_AddressNotValid</a></h3>
+<p>Error when provided address is invalid</p>
 <pre><code class="language-solidity">error Pauser_AddressNotValid();
 </code></pre>
 <h3 id="pauser_alreadyregistered"><a class="header" href="#pauser_alreadyregistered">Pauser_AlreadyRegistered</a></h3>
+<p>Error when market already registered</p>
 <pre><code class="language-solidity">error Pauser_AlreadyRegistered();
 </code></pre>
 <h3 id="pauser_contractnotenabled"><a class="header" href="#pauser_contractnotenabled">Pauser_ContractNotEnabled</a></h3>
+<p>Error when contract is not enabled</p>
 <pre><code class="language-solidity">error Pauser_ContractNotEnabled();
 </code></pre>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>

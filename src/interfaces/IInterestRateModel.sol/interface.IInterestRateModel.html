@@ -180,15 +180,22 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="iinterestratemodel"><a class="header" href="#iinterestratemodel">IInterestRateModel</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/7a23b10e38c28369e52c48691752a05b7b5b2051/src/interfaces/IInterestRateModel.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/fa8e4a69adeb0809f258627361a102a153a0b8f2/src/interfaces/IInterestRateModel.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IInterestRateModel</p>
+<p><strong>Author:</strong>
+Merge Layers Inc.</p>
 <p>Interface for the interest rate contracts</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="isinterestratemodel"><a class="header" href="#isinterestratemodel">isInterestRateModel</a></h3>
 <p>Should return true</p>
 <pre><code class="language-solidity">function isInterestRateModel() external view returns (bool);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>isModel True when contract implements interest rate model</td></tr>
+</tbody></table>
+</div>
 <h3 id="blocksperyear"><a class="header" href="#blocksperyear">blocksPerYear</a></h3>
 <p>The approximate number of blocks per year that is assumed by the interest rate model</p>
 <pre><code class="language-solidity">function blocksPerYear() external view returns (uint256);
@@ -243,22 +250,6 @@ IInterestRateModel</p>
 <tr><td><code>&lt;none&gt;</code></td><td><code>string</code></td><td>The name of the interest rate model</td></tr>
 </tbody></table>
 </div>
-<h3 id="utilizationrate"><a class="header" href="#utilizationrate">utilizationRate</a></h3>
-<p>Calculates the utilization rate of the market</p>
-<pre><code class="language-solidity">function utilizationRate(uint256 cash, uint256 borrows, uint256 reserves) external pure returns (uint256);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>cash</code></td><td><code>uint256</code></td><td>The total cash in the market</td></tr>
-<tr><td><code>borrows</code></td><td><code>uint256</code></td><td>The total borrows in the market</td></tr>
-<tr><td><code>reserves</code></td><td><code>uint256</code></td><td>The total reserves in the market</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The utilization rate as a mantissa between [0, 1e18]</td></tr>
-</tbody></table>
-</div>
 <h3 id="getborrowrate"><a class="header" href="#getborrowrate">getBorrowRate</a></h3>
 <p>Returns the current borrow rate per block for the market</p>
 <pre><code class="language-solidity">function getBorrowRate(uint256 cash, uint256 borrows, uint256 reserves) external view returns (uint256);
@@ -295,6 +286,22 @@ IInterestRateModel</p>
 <tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The current supply rate per block, scaled by 1e18</td></tr>
 </tbody></table>
 </div>
+<h3 id="utilizationrate"><a class="header" href="#utilizationrate">utilizationRate</a></h3>
+<p>Calculates the utilization rate of the market</p>
+<pre><code class="language-solidity">function utilizationRate(uint256 cash, uint256 borrows, uint256 reserves) external pure returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>cash</code></td><td><code>uint256</code></td><td>The total cash in the market</td></tr>
+<tr><td><code>borrows</code></td><td><code>uint256</code></td><td>The total borrows in the market</td></tr>
+<tr><td><code>reserves</code></td><td><code>uint256</code></td><td>The total reserves in the market</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The utilization rate as a mantissa between [0, 1e18]</td></tr>
+</tbody></table>
+</div>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="newinterestparams"><a class="header" href="#newinterestparams">NewInterestParams</a></h3>
 <p>Emitted when interest rate parameters are updated</p>
@@ -310,6 +317,25 @@ IInterestRateModel</p>
 <tr><td><code>kink</code></td><td><code>uint256</code></td><td>The utilization point where the jump multiplier is applied</td></tr>
 </tbody></table>
 </div>
+<h3 id="blocksperyearupdated"><a class="header" href="#blocksperyearupdated">BlocksPerYearUpdated</a></h3>
+<p>Emitted when blocks per year is updated</p>
+<pre><code class="language-solidity">event BlocksPerYearUpdated(uint256 blocksPerYear);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>blocksPerYear</code></td><td><code>uint256</code></td><td>The new blocks per year value</td></tr>
+</tbody></table>
+</div>
+<h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
+<h3 id="jumpratemodelv4_multipliernotvalid"><a class="header" href="#jumpratemodelv4_multipliernotvalid">JumpRateModelV4_MultiplierNotValid</a></h3>
+<p>Error thrown when multiplier is not valid</p>
+<pre><code class="language-solidity">error JumpRateModelV4_MultiplierNotValid();
+</code></pre>
+<h3 id="jumpratemodelv4_inputnotvalid"><a class="header" href="#jumpratemodelv4_inputnotvalid">JumpRateModelV4_InputNotValid</a></h3>
+<p>Error thrown when input is not valid</p>
+<pre><code class="language-solidity">error JumpRateModelV4_InputNotValid();
+</code></pre>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

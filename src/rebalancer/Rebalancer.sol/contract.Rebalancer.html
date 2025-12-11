@@ -180,165 +180,242 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="rebalancer"><a class="header" href="#rebalancer">Rebalancer</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/7a23b10e38c28369e52c48691752a05b7b5b2051/src/rebalancer/Rebalancer.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/fa8e4a69adeb0809f258627361a102a153a0b8f2/src/rebalancer/Rebalancer.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-<a href="/src/interfaces/IRebalancer.sol/interface.IRebalancer.html">IRebalancer</a>, <a href="/src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.html">HypernativeFirewallProtected</a></p>
+<a href="/src/interfaces/IRebalancer.sol/interface.IRebalancer.html">IRebalancer</a>, <a href="/src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.html">HypernativeFirewallProtected</a>, ReentrancyGuard</p>
+<p><strong>Title:</strong>
+Cross-chain rebalancer</p>
+<p><strong>Author:</strong>
+Malda Protocol</p>
+<p>Manages bridge interactions and transfer size limits for cross-chain rebalancing.</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="roles"><a class="header" href="#roles">roles</a></h3>
+<p>Roles contract used for access control</p>
 <pre><code class="language-solidity">IRoles public roles
 </code></pre>
 <h3 id="nonce"><a class="header" href="#nonce">nonce</a></h3>
+<p>Incremental nonce used for logging messages</p>
 <pre><code class="language-solidity">uint256 public nonce
 </code></pre>
 <h3 id="logs"><a class="header" href="#logs">logs</a></h3>
-<pre><code class="language-solidity">mapping(uint32 =&gt; mapping(uint256 =&gt; Msg)) public logs
+<p>Sent messages indexed by destination chain and nonce</p>
+<pre><code class="language-solidity">mapping(uint32 chainId =&gt; mapping(uint256 nonce =&gt; Msg message)) public logs
 </code></pre>
 <h3 id="whitelistedbridges"><a class="header" href="#whitelistedbridges">whitelistedBridges</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; bool) public whitelistedBridges
+<p>Bridge whitelist status</p>
+<pre><code class="language-solidity">mapping(address bridge =&gt; bool whitelisted) public whitelistedBridges
 </code></pre>
 <h3 id="allowedtokensperbridge"><a class="header" href="#allowedtokensperbridge">allowedTokensPerBridge</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; mapping(address =&gt; bool)) public allowedTokensPerBridge
+<p>Allowed tokens per bridge</p>
+<pre><code class="language-solidity">mapping(address bridge =&gt; mapping(address token =&gt; bool allowed)) public allowedTokensPerBridge
 </code></pre>
 <h3 id="whitelisteddestinations"><a class="header" href="#whitelisteddestinations">whitelistedDestinations</a></h3>
-<pre><code class="language-solidity">mapping(uint32 =&gt; bool) public whitelistedDestinations
+<p>Destination chain whitelist status</p>
+<pre><code class="language-solidity">mapping(uint32 dstChainId =&gt; bool whitelisted) public whitelistedDestinations
 </code></pre>
 <h3 id="allowedlist"><a class="header" href="#allowedlist">allowedList</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; bool) public allowedList
+<p>Markets allowed for rebalancing</p>
+<pre><code class="language-solidity">mapping(address market =&gt; bool allowed) public allowedList
 </code></pre>
 <h3 id="admin"><a class="header" href="#admin">admin</a></h3>
+<p>Admin address with elevated permissions</p>
 <pre><code class="language-solidity">address public admin
 </code></pre>
 <h3 id="saveaddress"><a class="header" href="#saveaddress">saveAddress</a></h3>
+<p>Address used to sweep saved assets</p>
 <pre><code class="language-solidity">address public saveAddress
 </code></pre>
 <h3 id="maxtransfersizes"><a class="header" href="#maxtransfersizes">maxTransferSizes</a></h3>
-<pre><code class="language-solidity">mapping(uint32 =&gt; mapping(address =&gt; uint256)) public maxTransferSizes
+<p>Per-chain token maximum transfer size</p>
+<pre><code class="language-solidity">mapping(uint32 dstChainId =&gt; mapping(address token =&gt; uint256 maxSize)) public maxTransferSizes
 </code></pre>
 <h3 id="mintransfersizes"><a class="header" href="#mintransfersizes">minTransferSizes</a></h3>
-<pre><code class="language-solidity">mapping(uint32 =&gt; mapping(address =&gt; uint256)) public minTransferSizes
+<p>Per-chain token minimum transfer size</p>
+<pre><code class="language-solidity">mapping(uint32 dstChainId =&gt; mapping(address token =&gt; uint256 minSize)) public minTransferSizes
 </code></pre>
 <h3 id="currenttransfersize"><a class="header" href="#currenttransfersize">currentTransferSize</a></h3>
-<pre><code class="language-solidity">mapping(uint32 =&gt; mapping(address =&gt; TransferInfo)) public currentTransferSize
+<p>Rolling transfer info for size-window enforcement</p>
+<pre><code class="language-solidity">mapping(uint32 dstChainId =&gt; mapping(address token =&gt; TransferInfo transferInfo)) public currentTransferSize
 </code></pre>
 <h3 id="whitelistedmarkets"><a class="header" href="#whitelistedmarkets">whitelistedMarkets</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; bool) public whitelistedMarkets
+<p>Market whitelist status</p>
+<pre><code class="language-solidity">mapping(address market =&gt; bool whitelisted) public whitelistedMarkets
 </code></pre>
 <h3 id="transfertimewindow"><a class="header" href="#transfertimewindow">transferTimeWindow</a></h3>
+<p>Duration of the rolling transfer size window</p>
 <pre><code class="language-solidity">uint256 public transferTimeWindow
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<pre><code class="language-solidity">constructor(address _roles, address _saveAddress, address _admin, bytes memory initData) ;
+<p>Initializes the Rebalancer</p>
+<pre><code class="language-solidity">constructor(address _roles, address _saveAddress, address _admin) ;
 </code></pre>
-<h3 id="initfirewall"><a class="header" href="#initfirewall">initFirewall</a></h3>
-<pre><code class="language-solidity">function initFirewall(address _firewall) external;
-</code></pre>
-<h3 id="setadmin"><a class="header" href="#setadmin">setAdmin</a></h3>
-<pre><code class="language-solidity">function setAdmin(address _account) external;
-</code></pre>
-<h3 id="setsaveaddress"><a class="header" href="#setsaveaddress">setSaveAddress</a></h3>
-<pre><code class="language-solidity">function setSaveAddress(address _save) external;
-</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_roles</code></td><td><code>address</code></td><td>Roles contract</td></tr>
+<tr><td><code>_saveAddress</code></td><td><code>address</code></td><td>Address to sweep saved assets to</td></tr>
+<tr><td><code>_admin</code></td><td><code>address</code></td><td>Admin address</td></tr>
+</tbody></table>
+</div>
 <h3 id="setallowedtokens"><a class="header" href="#setallowedtokens">setAllowedTokens</a></h3>
-<pre><code class="language-solidity">function setAllowedTokens(address bridge, address[] memory tokens, bool status)
-    external
-    onlyFirewallApprovedAllowEOA;
+<p>Set allowed tokens for a bridge</p>
+<pre><code class="language-solidity">function setAllowedTokens(address bridge, address[] calldata tokens, bool status) external onlyFirewallApproved;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>bridge</code></td><td><code>address</code></td><td>Bridge address</td></tr>
+<tr><td><code>tokens</code></td><td><code>address[]</code></td><td>Token list to allow/disallow</td></tr>
+<tr><td><code>status</code></td><td><code>bool</code></td><td>Allowance status</td></tr>
+</tbody></table>
+</div>
 <h3 id="setmarketstatus"><a class="header" href="#setmarketstatus">setMarketStatus</a></h3>
-<pre><code class="language-solidity">function setMarketStatus(address[] memory list, bool status) public onlyFirewallApprovedAllowEOA;
+<p>Batch whitelist/unwhitelist markets</p>
+<pre><code class="language-solidity">function setMarketStatus(address[] calldata list, bool status) external onlyFirewallApproved;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>list</code></td><td><code>address[]</code></td><td>Market addresses</td></tr>
+<tr><td><code>status</code></td><td><code>bool</code></td><td>Whitelist status</td></tr>
+</tbody></table>
+</div>
 <h3 id="setallowlist"><a class="header" href="#setallowlist">setAllowList</a></h3>
-<pre><code class="language-solidity">function setAllowList(address[] memory list, bool status) external onlyFirewallApprovedAllowEOA;
+<p>Batch set allow-list status for markets</p>
+<pre><code class="language-solidity">function setAllowList(address[] calldata list, bool status) external onlyFirewallApproved;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>list</code></td><td><code>address[]</code></td><td>Market addresses</td></tr>
+<tr><td><code>status</code></td><td><code>bool</code></td><td>Allow list status</td></tr>
+</tbody></table>
+</div>
 <h3 id="setwhitelistedbridgestatus"><a class="header" href="#setwhitelistedbridgestatus">setWhitelistedBridgeStatus</a></h3>
-<pre><code class="language-solidity">function setWhitelistedBridgeStatus(address _bridge, bool _status) external onlyFirewallApprovedAllowEOA;
+<p>Set whitelist status for a bridge</p>
+<pre><code class="language-solidity">function setWhitelistedBridgeStatus(address _bridge, bool status_) external onlyFirewallApproved;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_bridge</code></td><td><code>address</code></td><td>Bridge address</td></tr>
+<tr><td><code>status_</code></td><td><code>bool</code></td><td>Whitelist status</td></tr>
+</tbody></table>
+</div>
 <h3 id="setwhitelisteddestination"><a class="header" href="#setwhitelisteddestination">setWhitelistedDestination</a></h3>
-<pre><code class="language-solidity">function setWhitelistedDestination(uint32 _dstId, bool _status) external onlyFirewallApprovedAllowEOA;
+<p>Set whitelist status for a destination chain</p>
+<pre><code class="language-solidity">function setWhitelistedDestination(uint32 _dstId, bool status_) external onlyFirewallApproved;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_dstId</code></td><td><code>uint32</code></td><td>Destination chain id</td></tr>
+<tr><td><code>status_</code></td><td><code>bool</code></td><td>Whitelist status</td></tr>
+</tbody></table>
+</div>
 <h3 id="saveeth"><a class="header" href="#saveeth">saveEth</a></h3>
-<pre><code class="language-solidity">function saveEth() external onlyFirewallApprovedAllowEOA;
+<p>Sweep native ETH to the configured save address</p>
+<pre><code class="language-solidity">function saveEth() external onlyFirewallApproved;
 </code></pre>
 <h3 id="savetokens"><a class="header" href="#savetokens">saveTokens</a></h3>
+<p>Sweep stray tokens to the given market</p>
 <pre><code class="language-solidity">function saveTokens(address token, address market) external;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>token</code></td><td><code>address</code></td><td>Token address to sweep</td></tr>
+<tr><td><code>market</code></td><td><code>address</code></td><td>Market to receive tokens</td></tr>
+</tbody></table>
+</div>
 <h3 id="setmintransfersize"><a class="header" href="#setmintransfersize">setMinTransferSize</a></h3>
-<pre><code class="language-solidity">function setMinTransferSize(uint32 _dstChainId, address _token, uint256 _limit)
-    external
-    onlyFirewallApprovedAllowEOA;
+<p>Set minimum transfer size for a destination/token</p>
+<pre><code class="language-solidity">function setMinTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external onlyFirewallApproved;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_dstChainId</code></td><td><code>uint32</code></td><td>Destination chain id</td></tr>
+<tr><td><code>_token</code></td><td><code>address</code></td><td>Token address</td></tr>
+<tr><td><code>_limit</code></td><td><code>uint256</code></td><td>Minimum size</td></tr>
+</tbody></table>
+</div>
 <h3 id="setmaxtransfersize"><a class="header" href="#setmaxtransfersize">setMaxTransferSize</a></h3>
-<pre><code class="language-solidity">function setMaxTransferSize(uint32 _dstChainId, address _token, uint256 _limit)
-    external
-    onlyFirewallApprovedAllowEOA;
+<p>Set maximum transfer size for a destination/token</p>
+<pre><code class="language-solidity">function setMaxTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external onlyFirewallApproved;
 </code></pre>
-<h3 id="ismarketwhitelisted"><a class="header" href="#ismarketwhitelisted">isMarketWhitelisted</a></h3>
-<p>returns if a market is whitelisted</p>
-<pre><code class="language-solidity">function isMarketWhitelisted(address market) external view returns (bool);
-</code></pre>
-<h3 id="isbridgewhitelisted"><a class="header" href="#isbridgewhitelisted">isBridgeWhitelisted</a></h3>
-<p>returns if a bridge implementation is whitelisted</p>
-<pre><code class="language-solidity">function isBridgeWhitelisted(address bridge) external view returns (bool);
-</code></pre>
-<h3 id="isdestinationwhitelisted"><a class="header" href="#isdestinationwhitelisted">isDestinationWhitelisted</a></h3>
-<p>returns if a destination is whitelisted</p>
-<pre><code class="language-solidity">function isDestinationWhitelisted(uint32 dstId) external view returns (bool);
-</code></pre>
-<h3 id="firewallregister"><a class="header" href="#firewallregister">firewallRegister</a></h3>
-<pre><code class="language-solidity">function firewallRegister(address _account) public override(HypernativeFirewallProtected);
-</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_dstChainId</code></td><td><code>uint32</code></td><td>Destination chain id</td></tr>
+<tr><td><code>_token</code></td><td><code>address</code></td><td>Token address</td></tr>
+<tr><td><code>_limit</code></td><td><code>uint256</code></td><td>Maximum size</td></tr>
+</tbody></table>
+</div>
 <h3 id="sendmsg"><a class="header" href="#sendmsg">sendMsg</a></h3>
-<p>sends a bridge message</p>
+<p>Sends a bridge message</p>
 <pre><code class="language-solidity">function sendMsg(address _bridge, address _market, uint256 _amount, Msg calldata _msg)
     external
     payable
-    onlyFirewallApprovedAllowEOA;
+    onlyFirewallApproved
+    nonReentrant;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>_bridge</code></td><td><code>address</code></td><td></td></tr>
-<tr><td><code>_market</code></td><td><code>address</code></td><td>the market to rebalance from address</td></tr>
-<tr><td><code>_amount</code></td><td><code>uint256</code></td><td>the amount to rebalance</td></tr>
-<tr><td><code>_msg</code></td><td><code>Msg</code></td><td></td></tr>
+<tr><td><code>_market</code></td><td><code>address</code></td><td>The market to rebalance from address</td></tr>
+<tr><td><code>_amount</code></td><td><code>uint256</code></td><td>The amount to rebalance</td></tr>
+<tr><td><code>_msg</code></td><td><code>Msg</code></td><td>The message data</td></tr>
 </tbody></table>
 </div>
-<h3 id="_sendmsgprechecks"><a class="header" href="#_sendmsgprechecks">_sendMsgPreChecks</a></h3>
-<pre><code class="language-solidity">function _sendMsgPreChecks(address _bridge, address _market, uint256 _amount, Msg calldata _msg) internal;
+<h3 id="ismarketwhitelisted"><a class="header" href="#ismarketwhitelisted">isMarketWhitelisted</a></h3>
+<p>Returns if a market is whitelisted</p>
+<pre><code class="language-solidity">function isMarketWhitelisted(address market) external view returns (bool);
 </code></pre>
-<h3 id="_setmarketstatus"><a class="header" href="#_setmarketstatus">_setMarketStatus</a></h3>
-<pre><code class="language-solidity">function _setMarketStatus(address[] memory list, bool status) internal;
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>market</code></td><td><code>address</code></td><td>Market address</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>whitelisted True if whitelisted</td></tr>
+</tbody></table>
+</div>
+<h3 id="isbridgewhitelisted"><a class="header" href="#isbridgewhitelisted">isBridgeWhitelisted</a></h3>
+<p>Returns if a bridge implementation is whitelisted</p>
+<pre><code class="language-solidity">function isBridgeWhitelisted(address bridge) external view returns (bool);
 </code></pre>
-<h3 id="_setallowlist"><a class="header" href="#_setallowlist">_setAllowList</a></h3>
-<pre><code class="language-solidity">function _setAllowList(address[] memory list, bool status) internal;
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>bridge</code></td><td><code>address</code></td><td>Bridge address</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>whitelisted True if whitelisted</td></tr>
+</tbody></table>
+</div>
+<h3 id="isdestinationwhitelisted"><a class="header" href="#isdestinationwhitelisted">isDestinationWhitelisted</a></h3>
+<p>Returns if a destination is whitelisted</p>
+<pre><code class="language-solidity">function isDestinationWhitelisted(uint32 dstId) external view returns (bool);
 </code></pre>
-<h3 id="_setwhitelistedbridgestatus"><a class="header" href="#_setwhitelistedbridgestatus">_setWhitelistedBridgeStatus</a></h3>
-<pre><code class="language-solidity">function _setWhitelistedBridgeStatus(address _bridge, bool _status) internal;
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>dstId</code></td><td><code>uint32</code></td><td>Destination chain ID</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>whitelisted True if whitelisted</td></tr>
+</tbody></table>
+</div>
+<h3 id="firewallregister"><a class="header" href="#firewallregister">firewallRegister</a></h3>
+<p>Registers an account with the firewall</p>
+<pre><code class="language-solidity">function firewallRegister(address _account) public override(HypernativeFirewallProtected);
 </code></pre>
-<h3 id="_setwhitelisteddestination"><a class="header" href="#_setwhitelisteddestination">_setWhitelistedDestination</a></h3>
-<pre><code class="language-solidity">function _setWhitelistedDestination(uint32 _dstId, bool _status) internal;
-</code></pre>
-<h3 id="_setallowedtokens"><a class="header" href="#_setallowedtokens">_setAllowedTokens</a></h3>
-<pre><code class="language-solidity">function _setAllowedTokens(address bridge, address[] memory tokens, bool status) internal;
-</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_account</code></td><td><code>address</code></td><td>Account to register</td></tr>
+</tbody></table>
+</div>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
 <h3 id="transferinfo"><a class="header" href="#transferinfo">TransferInfo</a></h3>
 <pre><code class="language-solidity">struct TransferInfo {
     uint256 size;
     uint256 timestamp;
-}
-</code></pre>
-<h3 id="initinfo"><a class="header" href="#initinfo">InitInfo</a></h3>
-<pre><code class="language-solidity">struct InitInfo {
-    BridgeTokens[] bridgeTokens;
-    address[] markets;
-    address[] bridges;
-    uint32[] destinations;
-}
-</code></pre>
-<h3 id="bridgetokens"><a class="header" href="#bridgetokens">BridgeTokens</a></h3>
-<pre><code class="language-solidity">struct BridgeTokens {
-    address bridge;
-    address[] tokens;
 }
 </code></pre>
 
