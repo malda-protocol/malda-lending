@@ -180,64 +180,41 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="mtokenconfiguration"><a class="header" href="#mtokenconfiguration">mTokenConfiguration</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/006e7207a8c587502ee41c83bd202883590d7199/src/mToken/mTokenConfiguration.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/7a23b10e38c28369e52c48691752a05b7b5b2051/src/mToken/mTokenConfiguration.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/mToken/mTokenStorage.sol/abstract.mTokenStorage.html">mTokenStorage</a></p>
-<p><strong>Title:</strong>
-mTokenConfiguration</p>
-<p><strong>Author:</strong>
-Merge Layers Inc.</p>
-<p>Configuration helpers for mToken markets</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="onlyadmin"><a class="header" href="#onlyadmin">onlyAdmin</a></h3>
 <pre><code class="language-solidity">modifier onlyAdmin() ;
 </code></pre>
 <h3 id="setoperator"><a class="header" href="#setoperator">setOperator</a></h3>
 <p>Sets a new Operator for the market</p>
+<p>Admin function to set a new operator</p>
 <pre><code class="language-solidity">function setOperator(address _operator) external onlyAdmin;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_operator</code></td><td><code>address</code></td><td>The new operator address</td></tr>
-</tbody></table>
-</div>
 <h3 id="setrolesoperator"><a class="header" href="#setrolesoperator">setRolesOperator</a></h3>
-<p>Sets a new Roles operator for the market</p>
+<p>Sets a new Operator for the market</p>
+<p>Admin function to set a new operator</p>
 <pre><code class="language-solidity">function setRolesOperator(address _roles) external onlyAdmin;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_roles</code></td><td><code>address</code></td><td>The roles contract address</td></tr>
-</tbody></table>
-</div>
 <h3 id="setinterestratemodel"><a class="header" href="#setinterestratemodel">setInterestRateModel</a></h3>
-<p>Accrues interest and updates the interest rate model using _setInterestRateModelFresh</p>
+<p>accrues interest and updates the interest rate model using _setInterestRateModelFresh</p>
+<p>Admin function to accrue interest and update the interest rate model</p>
 <pre><code class="language-solidity">function setInterestRateModel(address newInterestRateModel) external onlyAdmin;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>newInterestRateModel</code></td><td><code>address</code></td><td>The new interest rate model to use</td></tr>
+<tr><td><code>newInterestRateModel</code></td><td><code>address</code></td><td>the new interest rate model to use</td></tr>
 </tbody></table>
 </div>
 <h3 id="setborrowratemaxmantissa"><a class="header" href="#setborrowratemaxmantissa">setBorrowRateMaxMantissa</a></h3>
-<p>Sets the maximum borrow rate mantissa</p>
 <pre><code class="language-solidity">function setBorrowRateMaxMantissa(uint256 maxMantissa) external onlyAdmin;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>maxMantissa</code></td><td><code>uint256</code></td><td>The new max mantissa</td></tr>
-</tbody></table>
-</div>
 <h3 id="setreservefactor"><a class="header" href="#setreservefactor">setReserveFactor</a></h3>
-<p>Accrues interest and sets a new reserve factor for the protocol using _setReserveFactorFresh</p>
+<p>accrues interest and sets a new reserve factor for the protocol using _setReserveFactorFresh</p>
 <p>Admin function to accrue interest and set a new reserve factor</p>
 <pre><code class="language-solidity">function setReserveFactor(uint256 newReserveFactorMantissa) external onlyAdmin;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>newReserveFactorMantissa</code></td><td><code>uint256</code></td><td>The new reserve factor mantissa</td></tr>
-</tbody></table>
-</div>
 <h3 id="setpendingadmin"><a class="header" href="#setpendingadmin">setPendingAdmin</a></h3>
 <p>Begins transfer of admin rights. The newPendingAdmin must call <code>_acceptAdmin</code> to finalize the transfer.</p>
 <p>Admin function to begin change of admin. The newPendingAdmin must call <code>_acceptAdmin</code> to finalize the transfer.</p>
@@ -254,24 +231,19 @@ Merge Layers Inc.</p>
 <pre><code class="language-solidity">function acceptAdmin() external;
 </code></pre>
 <h3 id="_setinterestratemodel"><a class="header" href="#_setinterestratemodel">_setInterestRateModel</a></h3>
-<p>Updates the interest rate model (*requires fresh interest accrual)</p>
+<p>updates the interest rate model (*requires fresh interest accrual)</p>
 <p>Admin function to update the interest rate model</p>
 <pre><code class="language-solidity">function _setInterestRateModel(address newInterestRateModel) internal;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>newInterestRateModel</code></td><td><code>address</code></td><td>The new interest rate model to use</td></tr>
+<tr><td><code>newInterestRateModel</code></td><td><code>address</code></td><td>the new interest rate model to use</td></tr>
 </tbody></table>
 </div>
 <h3 id="_setoperator"><a class="header" href="#_setoperator">_setOperator</a></h3>
-<p>Sets the Operator contract address</p>
 <pre><code class="language-solidity">function _setOperator(address _operator) internal;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_operator</code></td><td><code>address</code></td><td>The operator address</td></tr>
-</tbody></table>
-</div>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

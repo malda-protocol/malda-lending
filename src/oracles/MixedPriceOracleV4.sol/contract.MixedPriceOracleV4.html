@@ -180,280 +180,104 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="mixedpriceoraclev4"><a class="header" href="#mixedpriceoraclev4">MixedPriceOracleV4</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/006e7207a8c587502ee41c83bd202883590d7199/src/oracles/MixedPriceOracleV4.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/7a23b10e38c28369e52c48691752a05b7b5b2051/src/oracles/MixedPriceOracleV4.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/interfaces/IOracleOperator.sol/interface.IOracleOperator.html">IOracleOperator</a></p>
-<p><strong>Title:</strong>
-MixedPriceOracleV4</p>
-<p><strong>Author:</strong>
-Merge Layers Inc.</p>
-<p>Mixed price oracle using dual feeds and staleness checks</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
-<h3 id="price_delta_exp"><a class="header" href="#price_delta_exp">PRICE_DELTA_EXP</a></h3>
-<p>Price delta exponent (basis points denominator)</p>
-<pre><code class="language-solidity">uint256 public constant PRICE_DELTA_EXP = 1e5
-</code></pre>
 <h3 id="staleness_period"><a class="header" href="#staleness_period">STALENESS_PERIOD</a></h3>
-<p>Default staleness period applied to feeds</p>
 <pre><code class="language-solidity">uint256 public immutable STALENESS_PERIOD
 </code></pre>
-<h3 id="roles"><a class="header" href="#roles">ROLES</a></h3>
-<p>Roles contract reference</p>
-<pre><code class="language-solidity">IRoles public immutable ROLES
-</code></pre>
 <h3 id="configs"><a class="header" href="#configs">configs</a></h3>
-<p>Mapping of symbols to price configs</p>
-<pre><code class="language-solidity">mapping(string symbol =&gt; PriceConfig config) public configs
+<pre><code class="language-solidity">mapping(string =&gt; PriceConfig) public configs
 </code></pre>
 <h3 id="stalenesspersymbol"><a class="header" href="#stalenesspersymbol">stalenessPerSymbol</a></h3>
-<p>Mapping of symbols to custom staleness</p>
-<pre><code class="language-solidity">mapping(string symbol =&gt; uint256 staleness) public stalenessPerSymbol
+<pre><code class="language-solidity">mapping(string =&gt; uint256) public stalenessPerSymbol
 </code></pre>
 <h3 id="deltapersymbol"><a class="header" href="#deltapersymbol">deltaPerSymbol</a></h3>
-<p>Mapping of symbols to custom price deltas</p>
-<pre><code class="language-solidity">mapping(string symbol =&gt; uint256 delta) public deltaPerSymbol
+<pre><code class="language-solidity">mapping(string =&gt; uint256) public deltaPerSymbol
 </code></pre>
 <h3 id="maxpricedelta"><a class="header" href="#maxpricedelta">maxPriceDelta</a></h3>
-<p>Maximum allowed delta in basis points for price comparison</p>
 <pre><code class="language-solidity">uint256 public maxPriceDelta = 1.5e3
+</code></pre>
+<h3 id="price_delta_exp"><a class="header" href="#price_delta_exp">PRICE_DELTA_EXP</a></h3>
+<pre><code class="language-solidity">uint256 public constant PRICE_DELTA_EXP = 1e5
+</code></pre>
+<h3 id="roles"><a class="header" href="#roles">roles</a></h3>
+<pre><code class="language-solidity">IRoles public immutable roles
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<p>Initializes the oracle with configs, roles, and staleness</p>
 <pre><code class="language-solidity">constructor(string[] memory symbols_, PriceConfig[] memory configs_, address roles_, uint256 stalenessPeriod_) ;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>symbols_</code></td><td><code>string[]</code></td><td>Symbols being configured</td></tr>
-<tr><td><code>configs_</code></td><td><code>PriceConfig[]</code></td><td>Price configs for symbols</td></tr>
-<tr><td><code>roles_</code></td><td><code>address</code></td><td>Roles contract address</td></tr>
-<tr><td><code>stalenessPeriod_</code></td><td><code>uint256</code></td><td>Default staleness period</td></tr>
-</tbody></table>
-</div>
 <h3 id="setstaleness"><a class="header" href="#setstaleness">setStaleness</a></h3>
-<p>Sets a custom staleness for a symbol</p>
-<pre><code class="language-solidity">function setStaleness(string calldata symbol, uint256 val) external;
+<pre><code class="language-solidity">function setStaleness(string memory symbol, uint256 val) external;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>symbol</code></td><td><code>string</code></td><td>Symbol to update</td></tr>
-<tr><td><code>val</code></td><td><code>uint256</code></td><td>New staleness value</td></tr>
-</tbody></table>
-</div>
 <h3 id="setconfig"><a class="header" href="#setconfig">setConfig</a></h3>
-<p>Sets price configuration for a symbol</p>
-<pre><code class="language-solidity">function setConfig(string calldata symbol, PriceConfig calldata config) external;
+<pre><code class="language-solidity">function setConfig(string memory symbol, PriceConfig memory config) external;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>symbol</code></td><td><code>string</code></td><td>Symbol to configure</td></tr>
-<tr><td><code>config</code></td><td><code>PriceConfig</code></td><td>Price configuration</td></tr>
-</tbody></table>
-</div>
 <h3 id="setmaxpricedelta"><a class="header" href="#setmaxpricedelta">setMaxPriceDelta</a></h3>
-<p>Sets maximum allowed price delta</p>
 <pre><code class="language-solidity">function setMaxPriceDelta(uint256 _delta) external;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_delta</code></td><td><code>uint256</code></td><td>New max delta in basis points</td></tr>
-</tbody></table>
-</div>
 <h3 id="setsymbolmaxpricedelta"><a class="header" href="#setsymbolmaxpricedelta">setSymbolMaxPriceDelta</a></h3>
-<p>Sets maximum price delta for a specific symbol</p>
 <pre><code class="language-solidity">function setSymbolMaxPriceDelta(uint256 _delta, string calldata _symbol) external;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_delta</code></td><td><code>uint256</code></td><td>New delta in basis points</td></tr>
-<tr><td><code>_symbol</code></td><td><code>string</code></td><td>Symbol to update</td></tr>
-</tbody></table>
-</div>
 <h3 id="getprice"><a class="header" href="#getprice">getPrice</a></h3>
-<p>Returns price for an mToken</p>
-<pre><code class="language-solidity">function getPrice(address mToken) external view returns (uint256);
+<pre><code class="language-solidity">function getPrice(address mToken) public view returns (uint256);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>mToken</code></td><td><code>address</code></td><td>Address of the mToken</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>Price denominated in USD with 18 decimals</td></tr>
-</tbody></table>
-</div>
 <h3 id="getunderlyingprice"><a class="header" href="#getunderlyingprice">getUnderlyingPrice</a></h3>
-<p>Returns underlying price for an mToken</p>
 <pre><code class="language-solidity">function getUnderlyingPrice(address mToken) external view override returns (uint256);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>mToken</code></td><td><code>address</code></td><td>Address of the mToken</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>Price denominated in USD with 18 decimals adjusted for underlying decimals</td></tr>
-</tbody></table>
-</div>
 <h3 id="_getpriceusd"><a class="header" href="#_getpriceusd">_getPriceUSD</a></h3>
-<p>Returns USD price for a symbol using dual feeds</p>
 <pre><code class="language-solidity">function _getPriceUSD(string memory symbol) internal view returns (uint256);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>symbol</code></td><td><code>string</code></td><td>Token symbol</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>USD price with 18 decimals</td></tr>
-</tbody></table>
-</div>
 <h3 id="_getapi3price"><a class="header" href="#_getapi3price">_getApi3Price</a></h3>
-<p>Retrieves price and last update from API3 feed</p>
 <pre><code class="language-solidity">function _getApi3Price(string memory symbol) internal view returns (uint256 price, uint256 lastUpdate);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>symbol</code></td><td><code>string</code></td><td>Token symbol</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>price</code></td><td><code>uint256</code></td><td>Price scaled to 18 decimals</td></tr>
-<tr><td><code>lastUpdate</code></td><td><code>uint256</code></td><td>Timestamp of last update</td></tr>
-</tbody></table>
-</div>
 <h3 id="_geteoracleprice"><a class="header" href="#_geteoracleprice">_geteOraclePrice</a></h3>
-<p>Retrieves price and last update from eOracle feed</p>
 <pre><code class="language-solidity">function _geteOraclePrice(string memory symbol) internal view returns (uint256 price, uint256 lastUpdate);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>symbol</code></td><td><code>string</code></td><td>Token symbol</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>price</code></td><td><code>uint256</code></td><td>Price scaled to 18 decimals</td></tr>
-<tr><td><code>lastUpdate</code></td><td><code>uint256</code></td><td>Timestamp of last update</td></tr>
-</tbody></table>
-</div>
 <h3 id="_isfresh"><a class="header" href="#_isfresh">_isFresh</a></h3>
-<p>Checks if price data is fresh</p>
 <pre><code class="language-solidity">function _isFresh(uint256 updatedAt, uint256 staleness) internal view returns (bool);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>updatedAt</code></td><td><code>uint256</code></td><td>Timestamp of last update</td></tr>
-<tr><td><code>staleness</code></td><td><code>uint256</code></td><td>Allowed staleness threshold</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>True if data is within staleness window</td></tr>
-</tbody></table>
-</div>
-<h3 id="_getstaleness"><a class="header" href="#_getstaleness">_getStaleness</a></h3>
-<p>Returns staleness for a symbol or default</p>
-<pre><code class="language-solidity">function _getStaleness(string memory symbol) internal view returns (uint256);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>symbol</code></td><td><code>string</code></td><td>Token symbol</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>Staleness period in seconds</td></tr>
-</tbody></table>
-</div>
 <h3 id="_absdiff"><a class="header" href="#_absdiff">_absDiff</a></h3>
-<p>Absolute difference between two int256 values</p>
 <pre><code class="language-solidity">function _absDiff(int256 a, int256 b) internal pure returns (uint256);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>a</code></td><td><code>int256</code></td><td>First value</td></tr>
-<tr><td><code>b</code></td><td><code>int256</code></td><td>Second value</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>Absolute difference as uint256</td></tr>
-</tbody></table>
-</div>
+<h3 id="_getstaleness"><a class="header" href="#_getstaleness">_getStaleness</a></h3>
+<pre><code class="language-solidity">function _getStaleness(string memory symbol) internal view returns (uint256);
+</code></pre>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="configset"><a class="header" href="#configset">ConfigSet</a></h3>
-<p>Emitted when a config is set for a symbol</p>
 <pre><code class="language-solidity">event ConfigSet(string symbol, PriceConfig config);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>symbol</code></td><td><code>string</code></td><td>Symbol being configured</td></tr>
-<tr><td><code>config</code></td><td><code>PriceConfig</code></td><td>Price config stored</td></tr>
-</tbody></table>
-</div>
 <h3 id="stalenessupdated"><a class="header" href="#stalenessupdated">StalenessUpdated</a></h3>
-<p>Emitted when staleness is updated for a symbol</p>
 <pre><code class="language-solidity">event StalenessUpdated(string symbol, uint256 val);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>symbol</code></td><td><code>string</code></td><td>Symbol being updated</td></tr>
-<tr><td><code>val</code></td><td><code>uint256</code></td><td>New staleness period</td></tr>
-</tbody></table>
-</div>
 <h3 id="pricedeltaupdated"><a class="header" href="#pricedeltaupdated">PriceDeltaUpdated</a></h3>
-<p>Emitted when global price delta is updated</p>
 <pre><code class="language-solidity">event PriceDeltaUpdated(uint256 oldVal, uint256 newVal);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>oldVal</code></td><td><code>uint256</code></td><td>Previous delta value</td></tr>
-<tr><td><code>newVal</code></td><td><code>uint256</code></td><td>New delta value</td></tr>
-</tbody></table>
-</div>
 <h3 id="pricesymboldeltaupdated"><a class="header" href="#pricesymboldeltaupdated">PriceSymbolDeltaUpdated</a></h3>
-<p>Emitted when symbol price delta is updated</p>
 <pre><code class="language-solidity">event PriceSymbolDeltaUpdated(uint256 oldVal, uint256 newVal, string symbol);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>oldVal</code></td><td><code>uint256</code></td><td>Previous delta</td></tr>
-<tr><td><code>newVal</code></td><td><code>uint256</code></td><td>New delta</td></tr>
-<tr><td><code>symbol</code></td><td><code>string</code></td><td>Symbol affected</td></tr>
-</tbody></table>
-</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="mixedpriceoracle_unauthorized"><a class="header" href="#mixedpriceoracle_unauthorized">MixedPriceOracle_Unauthorized</a></h3>
-<p>Error thrown when caller is unauthorized</p>
 <pre><code class="language-solidity">error MixedPriceOracle_Unauthorized();
 </code></pre>
 <h3 id="mixedpriceoracle_apiv3staleprice"><a class="header" href="#mixedpriceoracle_apiv3staleprice">MixedPriceOracle_ApiV3StalePrice</a></h3>
-<p>Error thrown when API3 feed price is stale</p>
 <pre><code class="language-solidity">error MixedPriceOracle_ApiV3StalePrice();
 </code></pre>
 <h3 id="mixedpriceoracle_eoraclestaleprice"><a class="header" href="#mixedpriceoracle_eoraclestaleprice">MixedPriceOracle_eOracleStalePrice</a></h3>
-<p>Error thrown when eOracle feed price is stale</p>
 <pre><code class="language-solidity">error MixedPriceOracle_eOracleStalePrice();
 </code></pre>
 <h3 id="mixedpriceoracle_invalidprice"><a class="header" href="#mixedpriceoracle_invalidprice">MixedPriceOracle_InvalidPrice</a></h3>
-<p>Error thrown when price returned is invalid</p>
 <pre><code class="language-solidity">error MixedPriceOracle_InvalidPrice();
 </code></pre>
 <h3 id="mixedpriceoracle_invalidconfig"><a class="header" href="#mixedpriceoracle_invalidconfig">MixedPriceOracle_InvalidConfig</a></h3>
-<p>Error thrown when provided config is invalid</p>
 <pre><code class="language-solidity">error MixedPriceOracle_InvalidConfig();
 </code></pre>
 <h3 id="mixedpriceoracle_deltatoohigh"><a class="header" href="#mixedpriceoracle_deltatoohigh">MixedPriceOracle_DeltaTooHigh</a></h3>
-<p>Error thrown when delta exceeds allowed max</p>
 <pre><code class="language-solidity">error MixedPriceOracle_DeltaTooHigh();
 </code></pre>
 <h3 id="mixedpriceoracle_missingfeed"><a class="header" href="#mixedpriceoracle_missingfeed">MixedPriceOracle_MissingFeed</a></h3>
-<p>Error thrown when required feed is missing</p>
 <pre><code class="language-solidity">error MixedPriceOracle_MissingFeed();
 </code></pre>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>

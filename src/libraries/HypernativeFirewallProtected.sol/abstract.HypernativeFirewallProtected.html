@@ -180,209 +180,83 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="hypernativefirewallprotected"><a class="header" href="#hypernativefirewallprotected">HypernativeFirewallProtected</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/006e7207a8c587502ee41c83bd202883590d7199/src/libraries/HypernativeFirewallProtected.sol">Git Source</a></p>
-<p><strong>Title:</strong>
-HypernativeFirewallProtected</p>
-<p><strong>Author:</strong>
-Merge Layers Inc.</p>
-<p>Abstract contract that provides firewall protection for the contract</p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/7a23b10e38c28369e52c48691752a05b7b5b2051/src/libraries/HypernativeFirewallProtected.sol">Git Source</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="hypernative_oracle_storage_slot"><a class="header" href="#hypernative_oracle_storage_slot">HYPERNATIVE_ORACLE_STORAGE_SLOT</a></h3>
-<p>Storage slot for the firewall address</p>
 <pre><code class="language-solidity">bytes32 private constant HYPERNATIVE_ORACLE_STORAGE_SLOT =
     bytes32(uint256(keccak256(&quot;eip1967.hypernative.firewall&quot;)) - 1)
 </code></pre>
 <h3 id="hypernative_admin_storage_slot"><a class="header" href="#hypernative_admin_storage_slot">HYPERNATIVE_ADMIN_STORAGE_SLOT</a></h3>
-<p>Storage slot for the firewall admin address</p>
 <pre><code class="language-solidity">bytes32 private constant HYPERNATIVE_ADMIN_STORAGE_SLOT =
     bytes32(uint256(keccak256(&quot;eip1967.hypernative.admin&quot;)) - 1)
 </code></pre>
 <h3 id="hypernative_mode_storage_slot"><a class="header" href="#hypernative_mode_storage_slot">HYPERNATIVE_MODE_STORAGE_SLOT</a></h3>
-<p>Storage slot for the firewall strict mode</p>
 <pre><code class="language-solidity">bytes32 private constant HYPERNATIVE_MODE_STORAGE_SLOT =
     bytes32(uint256(keccak256(&quot;eip1967.hypernative.is_strict_mode&quot;)) - 1)
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
-<h3 id="onlyfirewallapproved"><a class="header" href="#onlyfirewallapproved">onlyFirewallApproved</a></h3>
-<p>Modifier to restrict access to only approved firewall addresses</p>
-<pre><code class="language-solidity">modifier onlyFirewallApproved() ;
-</code></pre>
-<h3 id="onlyfirewallapprovedalloweoa"><a class="header" href="#onlyfirewallapprovedalloweoa">onlyFirewallApprovedAllowEOA</a></h3>
-<p>Modifier to restrict access to only approved firewall addresses and EOAs</p>
-<pre><code class="language-solidity">modifier onlyFirewallApprovedAllowEOA() ;
-</code></pre>
-<h3 id="onlynotblacklistedeoa"><a class="header" href="#onlynotblacklistedeoa">onlyNotBlacklistedEOA</a></h3>
-<p>Modifier to restrict access to only not blacklisted EOAs</p>
-<pre><code class="language-solidity">modifier onlyNotBlacklistedEOA() ;
-</code></pre>
 <h3 id="onlyfirewalladmin"><a class="header" href="#onlyfirewalladmin">onlyFirewallAdmin</a></h3>
-<p>Modifier to restrict access to only the firewall admin</p>
 <pre><code class="language-solidity">modifier onlyFirewallAdmin() ;
 </code></pre>
+<h3 id="onlyfirewallapprovedalloweoa"><a class="header" href="#onlyfirewallapprovedalloweoa">onlyFirewallApprovedAllowEOA</a></h3>
+<pre><code class="language-solidity">modifier onlyFirewallApprovedAllowEOA() ;
+</code></pre>
+<h3 id="hypernativefirewalladmin"><a class="header" href="#hypernativefirewalladmin">hypernativeFirewallAdmin</a></h3>
+<pre><code class="language-solidity">function hypernativeFirewallAdmin() public view returns (address);
+</code></pre>
 <h3 id="firewallregister"><a class="header" href="#firewallregister">firewallRegister</a></h3>
-<p>Function to register an account with the firewall</p>
 <pre><code class="language-solidity">function firewallRegister(address _account) public virtual;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_account</code></td><td><code>address</code></td><td>The account to register</td></tr>
-</tbody></table>
-</div>
 <h3 id="setfirewall"><a class="header" href="#setfirewall">setFirewall</a></h3>
-<p>Function to set the firewall</p>
 <p>Admin only function, sets new firewall admin. set to address(0) to revoke firewall</p>
 <pre><code class="language-solidity">function setFirewall(address _firewall) public onlyFirewallAdmin;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_firewall</code></td><td><code>address</code></td><td>The new firewall address</td></tr>
-</tbody></table>
-</div>
 <h3 id="setisstrictmode"><a class="header" href="#setisstrictmode">setIsStrictMode</a></h3>
-<p>Function to set the strict mode</p>
 <pre><code class="language-solidity">function setIsStrictMode(bool _mode) public onlyFirewallAdmin;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_mode</code></td><td><code>bool</code></td><td>The strict mode</td></tr>
-</tbody></table>
-</div>
 <h3 id="changefirewalladmin"><a class="header" href="#changefirewalladmin">changeFirewallAdmin</a></h3>
-<p>Function to change the firewall admin</p>
 <pre><code class="language-solidity">function changeFirewallAdmin(address _newAdmin) public onlyFirewallAdmin;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_newAdmin</code></td><td><code>address</code></td><td>The new firewall admin address</td></tr>
-</tbody></table>
-</div>
-<h3 id="hypernativefirewalladmin"><a class="header" href="#hypernativefirewalladmin">hypernativeFirewallAdmin</a></h3>
-<p>Function to get the firewall admin</p>
-<pre><code class="language-solidity">function hypernativeFirewallAdmin() public view returns (address);
+<h3 id="_firewallgate"><a class="header" href="#_firewallgate">_firewallGate</a></h3>
+<pre><code class="language-solidity">function _firewallGate(address sender) internal;
 </code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>address</code></td><td>The firewall admin address</td></tr>
-</tbody></table>
-</div>
 <h3 id="_inithypernativefirewall"><a class="header" href="#_inithypernativefirewall">_initHypernativeFirewall</a></h3>
-<p>Internal function to initialize the firewall</p>
 <pre><code class="language-solidity">function _initHypernativeFirewall(address _firewall, address _admin) internal;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_firewall</code></td><td><code>address</code></td><td>The firewall address</td></tr>
-<tr><td><code>_admin</code></td><td><code>address</code></td><td>The firewall admin address</td></tr>
-</tbody></table>
-</div>
 <h3 id="_changefirewalladmin"><a class="header" href="#_changefirewalladmin">_changeFirewallAdmin</a></h3>
-<p>Internal function to change the firewall admin</p>
 <pre><code class="language-solidity">function _changeFirewallAdmin(address _newAdmin) internal;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_newAdmin</code></td><td><code>address</code></td><td>The new firewall admin address</td></tr>
-</tbody></table>
-</div>
 <h3 id="_setaddressbyslot"><a class="header" href="#_setaddressbyslot">_setAddressBySlot</a></h3>
-<p>Internal function to set the address in the slot</p>
-<pre><code class="language-solidity">function _setAddressBySlot(bytes32 slot, address newAddress) internal;
+<pre><code class="language-solidity">function _setAddressBySlot(bytes32 slot, address newAddress) private;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>slot</code></td><td><code>bytes32</code></td><td>The slot to set the address in</td></tr>
-<tr><td><code>newAddress</code></td><td><code>address</code></td><td>The address to set in the slot</td></tr>
-</tbody></table>
-</div>
 <h3 id="_setvaluebyslot"><a class="header" href="#_setvaluebyslot">_setValueBySlot</a></h3>
-<p>Internal function to set the value in the slot</p>
-<pre><code class="language-solidity">function _setValueBySlot(bytes32 _slot, uint256 _value) internal;
+<pre><code class="language-solidity">function _setValueBySlot(bytes32 _slot, uint256 _value) private;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_slot</code></td><td><code>bytes32</code></td><td>The slot to set the value in</td></tr>
-<tr><td><code>_value</code></td><td><code>uint256</code></td><td>The value to set in the slot</td></tr>
-</tbody></table>
-</div>
-<h3 id="_getaddressbyslot"><a class="header" href="#_getaddressbyslot">_getAddressBySlot</a></h3>
-<p>Internal function to get the address from the slot</p>
-<pre><code class="language-solidity">function _getAddressBySlot(bytes32 slot) internal view returns (address addr);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>slot</code></td><td><code>bytes32</code></td><td>The slot to get the address from</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>addr</code></td><td><code>address</code></td><td>The address from the slot</td></tr>
-</tbody></table>
-</div>
-<h3 id="_getvaluebyslot"><a class="header" href="#_getvaluebyslot">_getValueBySlot</a></h3>
-<p>Internal function to get the value from the slot</p>
-<pre><code class="language-solidity">function _getValueBySlot(bytes32 _slot) internal view returns (uint256 value);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_slot</code></td><td><code>bytes32</code></td><td>The slot to get the value from</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>value</code></td><td><code>uint256</code></td><td>The value from the slot</td></tr>
-</tbody></table>
-</div>
 <h3 id="_hypernativefirewallisstrictmode"><a class="header" href="#_hypernativefirewallisstrictmode">_hypernativeFirewallIsStrictMode</a></h3>
-<p>Internal function to get the strict mode</p>
 <pre><code class="language-solidity">function _hypernativeFirewallIsStrictMode() private view returns (bool);
 </code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>The strict mode</td></tr>
-</tbody></table>
-</div>
 <h3 id="_hypernativefirewall"><a class="header" href="#_hypernativefirewall">_hypernativeFirewall</a></h3>
-<p>Internal function to get the firewall address</p>
 <pre><code class="language-solidity">function _hypernativeFirewall() private view returns (address);
 </code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>address</code></td><td>The firewall address</td></tr>
-</tbody></table>
-</div>
+<h3 id="_getaddressbyslot"><a class="header" href="#_getaddressbyslot">_getAddressBySlot</a></h3>
+<pre><code class="language-solidity">function _getAddressBySlot(bytes32 slot) internal view returns (address addr);
+</code></pre>
+<h3 id="_getvaluebyslot"><a class="header" href="#_getvaluebyslot">_getValueBySlot</a></h3>
+<pre><code class="language-solidity">function _getValueBySlot(bytes32 _slot) internal view returns (uint256 value);
+</code></pre>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="firewalladminchanged"><a class="header" href="#firewalladminchanged">FirewallAdminChanged</a></h3>
-<p>Emitted when the firewall admin is changed</p>
 <pre><code class="language-solidity">event FirewallAdminChanged(address indexed previousAdmin, address indexed newAdmin);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>previousAdmin</code></td><td><code>address</code></td><td>The previous firewall admin address</td></tr>
-<tr><td><code>newAdmin</code></td><td><code>address</code></td><td>The new firewall admin address</td></tr>
-</tbody></table>
-</div>
 <h3 id="firewalladdresschanged"><a class="header" href="#firewalladdresschanged">FirewallAddressChanged</a></h3>
-<p>Emitted when the firewall address is changed</p>
 <pre><code class="language-solidity">event FirewallAddressChanged(address indexed previousFirewall, address indexed newFirewall);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>previousFirewall</code></td><td><code>address</code></td><td>The previous firewall address</td></tr>
-<tr><td><code>newFirewall</code></td><td><code>address</code></td><td>The new firewall address</td></tr>
-</tbody></table>
-</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
-<h3 id="hypernativefirewallprotected_callernoteoa"><a class="header" href="#hypernativefirewallprotected_callernoteoa">HypernativeFirewallProtected_CallerNotEOA</a></h3>
-<p>Thrown when the caller is not an EOA</p>
-<pre><code class="language-solidity">error HypernativeFirewallProtected_CallerNotEOA();
+<h3 id="hypernativefirewallprotected_notadmin"><a class="header" href="#hypernativefirewallprotected_notadmin">HypernativeFirewallProtected_NotAdmin</a></h3>
+<pre><code class="language-solidity">error HypernativeFirewallProtected_NotAdmin();
 </code></pre>
-<h3 id="hypernativefirewallprotected_callernotfirewalladmin"><a class="header" href="#hypernativefirewallprotected_callernotfirewalladmin">HypernativeFirewallProtected_CallerNotFirewallAdmin</a></h3>
-<p>Thrown when the caller is not the firewall admin</p>
-<pre><code class="language-solidity">error HypernativeFirewallProtected_CallerNotFirewallAdmin();
-</code></pre>
-<h3 id="hypernativefirewallprotected_addressnotvalid"><a class="header" href="#hypernativefirewallprotected_addressnotvalid">HypernativeFirewallProtected_AddressNotValid</a></h3>
-<p>Thrown when the address is not valid</p>
-<pre><code class="language-solidity">error HypernativeFirewallProtected_AddressNotValid();
+<h3 id="hypernativefirewallprotected_notvalid"><a class="header" href="#hypernativefirewallprotected_notvalid">HypernativeFirewallProtected_NotValid</a></h3>
+<pre><code class="language-solidity">error HypernativeFirewallProtected_NotValid();
 </code></pre>
 
                     </main>

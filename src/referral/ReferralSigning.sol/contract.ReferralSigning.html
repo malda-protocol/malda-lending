@@ -180,89 +180,51 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="referralsigning"><a class="header" href="#referralsigning">ReferralSigning</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/006e7207a8c587502ee41c83bd202883590d7199/src/referral/ReferralSigning.sol">Git Source</a></p>
-<p><strong>Title:</strong>
-Referral signing contract</p>
-<p><strong>Author:</strong>
-Malda Protocol</p>
-<p>Manages user referrals with signature-based verification</p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/7a23b10e38c28369e52c48691752a05b7b5b2051/src/referral/ReferralSigning.sol">Git Source</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="referredbyregistry"><a class="header" href="#referredbyregistry">referredByRegistry</a></h3>
-<p>Tracks if a user was referred by a specific referrer</p>
 <pre><code class="language-solidity">mapping(address referredBy =&gt; mapping(address user =&gt; bool wasReferred)) public referredByRegistry
 </code></pre>
 <h3 id="referralsforuserregistry"><a class="header" href="#referralsforuserregistry">referralsForUserRegistry</a></h3>
-<p>Maps users to their referrer</p>
 <pre><code class="language-solidity">mapping(address user =&gt; address referredBy) public referralsForUserRegistry
 </code></pre>
 <h3 id="referralregistry"><a class="header" href="#referralregistry">referralRegistry</a></h3>
-<p>Lists all users referred by a referrer</p>
 <pre><code class="language-solidity">mapping(address referredBy =&gt; address[] users) public referralRegistry
 </code></pre>
 <h3 id="totalreferred"><a class="header" href="#totalreferred">totalReferred</a></h3>
-<p>Total number of users referred by a referrer</p>
 <pre><code class="language-solidity">mapping(address referredBy =&gt; uint256 total) public totalReferred
 </code></pre>
 <h3 id="isuserreferred"><a class="header" href="#isuserreferred">isUserReferred</a></h3>
-<p>Tracks if a user has been referred</p>
 <pre><code class="language-solidity">mapping(address user =&gt; bool wasReferred) public isUserReferred
 </code></pre>
 <h3 id="nonces"><a class="header" href="#nonces">nonces</a></h3>
-<p>Nonce for each user to prevent replay attacks</p>
 <pre><code class="language-solidity">mapping(address user =&gt; uint256 nonce) public nonces
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="onlynewuser"><a class="header" href="#onlynewuser">onlyNewUser</a></h3>
-<p>Modifier to check if the user is a new user</p>
 <pre><code class="language-solidity">modifier onlyNewUser() ;
 </code></pre>
 <h3 id="claimreferral"><a class="header" href="#claimreferral">claimReferral</a></h3>
-<p>Claims a referral with signature verification</p>
 <pre><code class="language-solidity">function claimReferral(bytes calldata signature, address referrer) external onlyNewUser;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>signature</code></td><td><code>bytes</code></td><td>User's signature proving consent</td></tr>
-<tr><td><code>referrer</code></td><td><code>address</code></td><td>Address of the referrer</td></tr>
-</tbody></table>
-</div>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="referralclaimed"><a class="header" href="#referralclaimed">ReferralClaimed</a></h3>
-<p>Emitted when a referral is successfully claimed</p>
 <pre><code class="language-solidity">event ReferralClaimed(address indexed referred, address indexed referrer);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>referred</code></td><td><code>address</code></td><td>The referred user</td></tr>
-<tr><td><code>referrer</code></td><td><code>address</code></td><td>The referrer</td></tr>
-</tbody></table>
-</div>
 <h3 id="referralrejected"><a class="header" href="#referralrejected">ReferralRejected</a></h3>
-<p>Emitted when a referral claim is rejected</p>
 <pre><code class="language-solidity">event ReferralRejected(address indexed referred, address indexed referrer, string reason);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>referred</code></td><td><code>address</code></td><td>The referred user</td></tr>
-<tr><td><code>referrer</code></td><td><code>address</code></td><td>The referrer</td></tr>
-<tr><td><code>reason</code></td><td><code>string</code></td><td>Rejection reason</td></tr>
-</tbody></table>
-</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="referralsigning_sameuser"><a class="header" href="#referralsigning_sameuser">ReferralSigning_SameUser</a></h3>
-<p>Error thrown when the user is the same as the referrer</p>
 <pre><code class="language-solidity">error ReferralSigning_SameUser();
 </code></pre>
 <h3 id="referralsigning_invalidsignature"><a class="header" href="#referralsigning_invalidsignature">ReferralSigning_InvalidSignature</a></h3>
-<p>Error thrown when the signature is invalid</p>
 <pre><code class="language-solidity">error ReferralSigning_InvalidSignature();
 </code></pre>
 <h3 id="referralsigning_useralreadyreferred"><a class="header" href="#referralsigning_useralreadyreferred">ReferralSigning_UserAlreadyReferred</a></h3>
-<p>Error thrown when the user has already been referred</p>
 <pre><code class="language-solidity">error ReferralSigning_UserAlreadyReferred();
 </code></pre>
 <h3 id="referralsigning_contractreferrernotallowed"><a class="header" href="#referralsigning_contractreferrernotallowed">ReferralSigning_ContractReferrerNotAllowed</a></h3>
-<p>Error thrown when the referrer is a contract</p>
 <pre><code class="language-solidity">error ReferralSigning_ContractReferrerNotAllowed();
 </code></pre>
 
