@@ -152,7 +152,7 @@ contract CCTPHelperTest is Test {
 
     function test_createAndBurn_revert_zero_amount() public {
         vm.prank(user);
-        vm.expectRevert(CCTPHelper.CCTPHeloer_AmountZero.selector);
+        vm.expectRevert(CCTPHelper.CCTPHelper_AmountZero.selector);
 
         helper.exposedCreateAndBurn(
             address(token),
@@ -166,7 +166,7 @@ contract CCTPHelperTest is Test {
 
     function test_createAndBurn_revert_zero_receiver() public {
         vm.prank(user);
-        vm.expectRevert(CCTPHelper.CCTPHeloer_AddressZero.selector);
+        vm.expectRevert(CCTPHelper.CCTPHelper_AddressZero.selector);
 
         helper.exposedCreateAndBurn(
             address(token),
@@ -209,12 +209,12 @@ contract CCTPHelperTest is Test {
     function test_handleDestinationMsg_revert_receive_fail() public {
         transmitter.setShouldSucceed(false);
 
-        vm.expectRevert(CCTPHelper.CCTPHeloer_ReceiveFailed.selector);
+        vm.expectRevert(CCTPHelper.CCTPHelper_ReceiveFailed.selector);
         helper.exposedHandleDestinationMsg("msg", "att");
     }
 
     function test_handleDestinationMsg_revert_short_message() public {
-        vm.expectRevert(CCTPHelper.CCTPHeloer_MsgTooShort.selector);
+        vm.expectRevert(CCTPHelper.CCTPHelper_MsgTooShort.selector);
         helper.exposedHandleDestinationMsg(new bytes(10), "att");
     }
 
@@ -240,7 +240,7 @@ contract CCTPHelperTest is Test {
             badHook
         );
 
-        vm.expectRevert(CCTPHelper.CCTPHeloer_PayloadMismatch.selector);
+        vm.expectRevert(CCTPHelper.CCTPHelper_PayloadMismatch.selector);
         helper.exposedHandleDestinationMsg(fakeCCTPMessage, "att");
     }
 

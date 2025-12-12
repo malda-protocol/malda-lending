@@ -35,8 +35,8 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
 
     // ----------- STORAGE ------------
     address public immutable rebalancer;
-    mapping(uint32 => uint32) public chainIdToDomain; //chain to cctp domain
-
+    mapping(uint32 chainId => uint32 cctpDomain) public chainIdToDomain; 
+    
     // ----------- EVENTS ------------
     event Rebalanced(address indexed market, uint256 amount);
     event DomainMappingUpdated(
@@ -51,7 +51,6 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
     error CCTPBridge_TokenMismatch();
     error CCTPBridge_NotImplemented();
     error CCTPBridge_DomainNotSet();
-    error CCTPBridge_LocalDomainNotSet();
 
     constructor(
         address _roles,
@@ -62,7 +61,7 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
         BaseBridge(_roles)
         CCTPHelper(_tokenMessenger, _messageTransmitter)
     {
-        if (_rebalancer == address(0)) revert CCTPBridge_AddressNotValid();
+        require(_rebalancer != address(0), CCTPBridge_AddressNotValid());
         rebalancer = _rebalancer;
     }
 
@@ -89,21 +88,8 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
         bytes memory,
         bytes memory
     ) external pure override returns (uint256) {
+        // Fee automatically deducted
         revert CCTPBridge_NotImplemented();
-    }
-
-    function getDomainFromChainId(uint32 chainId)
-        public
-        view
-        returns (uint32)
-    {
-        uint32 domain = chainIdToDomain[chainId];
-        return domain;
-    }
-
-    function localDomain() public view returns (uint32) {
-        uint32 domain = chainIdToDomain[uint32(block.chainid)];
-        return domain;
     }
 
     // ----------- SOURCE CHAIN ------------
@@ -117,8 +103,8 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
     ) external payable override onlyRebalancer {
         require(_extractedAmount > 0, BaseBridge_AmountMismatch());
 
-        uint32 dstDomain = getDomainFromChainId(_dstChainId);
-        uint32 srcDomain = localDomain();
+        uint32 dstDomain = chainIdToDomain[_dstChainId];
+        uint32 srcDomain = chainIdToDomain[uint32(block.chainid)];
 
         bytes memory payload = abi.encode(_market);
 
@@ -145,13 +131,11 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
         );
 
         address market = abi.decode(msgData.payload, (address));
-        if (!IRebalancer(rebalancer).isMarketWhitelisted(market)) {
-            revert CCTPBridge_InvalidReceiver();
-        }
+        require(IRebalancer(rebalancer).isMarketWhitelisted(market), CCTPBridge_InvalidReceiver());
 
         address underlying = ImTokenMinimal(market).underlying();
         address tokenSent = address(uint160(uint256(msgData.token)));
-        if (underlying != tokenSent) revert CCTPBridge_TokenMismatch();
+        require(underlying == tokenSent, CCTPBridge_TokenMismatch());
 
         if (msgData.amount > 0) {
             IERC20(tokenSent).safeTransfer(market, msgData.amount);

@@ -120,10 +120,6 @@ contract CCTPBridgeHarness is CCTPBridge {
     function harnessSetAcceptedToken(address token, bool allowed) external {
         acceptedTokens[token] = allowed;
     }
-
-    function harnessLocalDomain() external view returns (uint32) {
-        return localDomain();
-    }
 }
 
 contract CCTPBridgeTest is Test {
@@ -319,7 +315,7 @@ contract CCTPBridgeTest is Test {
             hook
         );
 
-        vm.expectRevert(CCTPHelper.CCTPHeloer_ReceiveFailed.selector);
+        vm.expectRevert(CCTPHelper.CCTPHelper_ReceiveFailed.selector);
         bridge.handleCCTPMessage(fakeCCTPMessage, "att");
     }
 
