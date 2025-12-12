@@ -140,7 +140,8 @@ contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuar
     /// @param _relayer The relayer address to update
     /// @param status Whether the relayer is whitelisted
     function setWhitelistedRelayer(uint32 _dstId, address _relayer, bool status) external onlyBridgeConfigurator {
-        // @audit zero checks?
+        // Requirements: the relayer address is not zero
+        require(_relayer != address(0), AcrossBridge_AddressNotValid());
 
         // Effects: set the relayer whitelist status
         whitelistedRelayers[_dstId][_relayer] = status;
@@ -175,11 +176,9 @@ contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuar
         // Interactions: transfer the tokens to the market
         if (amount > 0) {
             IERC20(tokenSent).safeTransfer(market, amount);
+            // Events: emit the rebalanced event
+            emit Rebalanced(market, amount);
         }
-
-        // @audit-question do we want to emit event when amount is 0?
-        // Events: emit the rebalanced event
-        emit Rebalanced(market, amount);
     }
 
     /// @inheritdoc IBridge

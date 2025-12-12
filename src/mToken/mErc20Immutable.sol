@@ -52,8 +52,6 @@ contract mErc20Immutable is mErc20 {
         uint8 decimals_,
         address payable admin_
     ) {
-        // @audit-question zero checks?
-
         // Effects: set the admin
         admin = payable(msg.sender);
 

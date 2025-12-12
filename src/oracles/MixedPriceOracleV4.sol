@@ -13,6 +13,7 @@ import {IRoles} from "src/interfaces/IRoles.sol";
 import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {IOracleOperator} from "src/interfaces/IOracleOperator.sol";
 import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
+import {CommonLib} from "src/libraries/CommonLib.sol";
 
 /// @title MixedPriceOracleV4
 /// @author Merge Layers Inc.
@@ -94,13 +95,29 @@ contract MixedPriceOracleV4 is IOracleOperator {
     /// @notice Error thrown when required feed is missing
     error MixedPriceOracle_MissingFeed();
 
+    /// @notice Error thrown when roles contract address is invalid
+    error MixedPriceOracle_AddressNotValid();
+
+    // ----------- MODIFIERS ------------
+    /// @notice Modifier to check if the caller has specific role
+    /// @param role Role identifier to check
+    modifier onlyRole(bytes32 role) {
+        // Requirements: the caller has the specified role
+        _onlyRole(role);
+        _;
+    }
+
     /// @notice Initializes the oracle with configs, roles, and staleness
     /// @param symbols_ Symbols being configured
     /// @param configs_ Price configs for symbols
     /// @param roles_ Roles contract address
     /// @param stalenessPeriod_ Default staleness period
     constructor(string[] memory symbols_, PriceConfig[] memory configs_, address roles_, uint256 stalenessPeriod_) {
-        // @audit-question zero checks?
+        // Requirements: the roles contract address is not zero
+        require(roles_ != address(0), MixedPriceOracle_AddressNotValid());
+
+        // Requirements: the symbols and configs lengths match
+        CommonLib.checkLengthMatch(symbols_.length, configs_.length);
 
         // Effects: set the roles
         ROLES = IRoles(roles_);
@@ -118,10 +135,7 @@ contract MixedPriceOracleV4 is IOracleOperator {
     /// @notice Sets a custom staleness for a symbol
     /// @param symbol Symbol to update
     /// @param val New staleness value
-    function setStaleness(string calldata symbol, uint256 val) external {
-        // Requirements: the caller is allowed to set the staleness
-        require(ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE()), MixedPriceOracle_Unauthorized());
-
+    function setStaleness(string calldata symbol, uint256 val) external onlyRole(ROLES.GUARDIAN_ORACLE()) {
         // Effects: set the staleness
         stalenessPerSymbol[symbol] = val;
 
@@ -132,10 +146,7 @@ contract MixedPriceOracleV4 is IOracleOperator {
     /// @notice Sets price configuration for a symbol
     /// @param symbol Symbol to configure
     /// @param config Price configuration
-    function setConfig(string calldata symbol, PriceConfig calldata config) external {
-        // Requirements: the caller is allowed to set the config
-        require(ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE()), MixedPriceOracle_Unauthorized());
-
+    function setConfig(string calldata symbol, PriceConfig calldata config) external onlyRole(ROLES.GUARDIAN_ORACLE()) {
         // Requirements: the api3 feed and eOracle feed are not zero
         require(config.api3Feed != address(0) && config.eOracleFeed != address(0), MixedPriceOracle_InvalidConfig());
 
@@ -148,35 +159,32 @@ contract MixedPriceOracleV4 is IOracleOperator {
 
     /// @notice Sets maximum allowed price delta
     /// @param _delta New max delta in basis points
-    function setMaxPriceDelta(uint256 _delta) external {
-        // Requirements: the caller is allowed to set the max price delta
-        require(ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE()), MixedPriceOracle_Unauthorized());
-
+    function setMaxPriceDelta(uint256 _delta) external onlyRole(ROLES.GUARDIAN_ORACLE()) {
         // Requirements: the max price delta is not greater than the price delta exponent
         require(_delta <= PRICE_DELTA_EXP, MixedPriceOracle_DeltaTooHigh());
 
-        // Effects: set the max price delta
-        maxPriceDelta = _delta;
-
         // Events: emit the price delta updated event
         emit PriceDeltaUpdated(maxPriceDelta, _delta);
+
+        // Effects: set the max price delta
+        maxPriceDelta = _delta;
     }
 
     /// @notice Sets maximum price delta for a specific symbol
     /// @param _delta New delta in basis points
     /// @param _symbol Symbol to update
-    function setSymbolMaxPriceDelta(uint256 _delta, string calldata _symbol) external {
-        // Requirements: the caller is allowed to set the symbol max price delta
-        require(ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE()), MixedPriceOracle_Unauthorized());
-
+    function setSymbolMaxPriceDelta(uint256 _delta, string calldata _symbol)
+        external
+        onlyRole(ROLES.GUARDIAN_ORACLE())
+    {
         // Requirements: the symbol max price delta is not greater than the price delta exponent
         require(_delta <= PRICE_DELTA_EXP, MixedPriceOracle_DeltaTooHigh());
 
-        // Effects: set the symbol max price delta
-        deltaPerSymbol[_symbol] = _delta;
-
         // Events: emit the price symbol delta updated event
         emit PriceSymbolDeltaUpdated(deltaPerSymbol[_symbol], _delta, _symbol);
+
+        // Effects: set the symbol max price delta
+        deltaPerSymbol[_symbol] = _delta;
     }
 
     // ----------- PUBLIC API ------------
@@ -199,6 +207,13 @@ contract MixedPriceOracleV4 is IOracleOperator {
     }
 
     // ----------- CORE LOGIC ------------
+    /// @notice Ensures caller has specific role
+    /// @param role Role identifier to check
+    function _onlyRole(bytes32 role) internal view {
+        // Requirements: the caller has the specified role
+        require(ROLES.isAllowedFor(msg.sender, role), MixedPriceOracle_Unauthorized());
+    }
+
     /// @notice Returns USD price for a symbol using dual feeds
     /// @param symbol Token symbol
     /// @return USD price with 18 decimals

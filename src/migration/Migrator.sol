@@ -196,9 +196,8 @@ contract Migrator is ExponentialNoError {
                 );
 
                 uint256 underlyingBalanceAfter = underlying.balanceOf(address(this));
-                if (underlyingBalanceAfter - underlyingBalanceBefore < v1Balance) {
-                    revert Migrator_RedeemAmountNotValid();
-                }
+                // Requirements: the underlying balance after is greater than or equal to the underlying balance before
+                require(underlyingBalanceAfter - underlyingBalanceBefore >= v1Balance, Migrator_RedeemAmountNotValid());
 
                 // Transfer to v2
                 underlying.safeTransfer(position.maldaMarket, position.collateralUnderlyingAmount);

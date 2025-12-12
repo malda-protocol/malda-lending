@@ -80,7 +80,7 @@ contract MigrationTests is Base_Integration_Test {
 
     function testCollectAllMendiPositions() external pure {
         return;
-        // @audit-question unreachable code
+        // TODO @Cosmin leave for now
         // vm.prank(USER_V1);
         // Migrator.Position[] memory positions = migrator.getAllPositions(USER_V1);
 

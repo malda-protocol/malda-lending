@@ -62,7 +62,8 @@ contract Pauser is Ownable, IPauser {
         // Requirements: the roles contract address is not zero
         require(_roles != address(0), Pauser_AddressNotValid());
 
-        // @audit-question zero check for operator?
+        // Requirements: the operator contract address is not zero
+        require(_operator != address(0), Pauser_AddressNotValid());
 
         // Effects: set the roles and operator
         ROLES = IRoles(_roles);
@@ -99,7 +100,7 @@ contract Pauser is Ownable, IPauser {
     /// @param _contract the pausable contract
     function removePausableMarket(address _contract) external onlyOwner {
         // Requirements: the contract is registered
-        if (!registeredContracts[_contract]) revert Pauser_EntryNotFound();
+        require(registeredContracts[_contract], Pauser_EntryNotFound());
 
         // Interactions: find the index of the contract
         uint256 index = _findIndex(_contract);

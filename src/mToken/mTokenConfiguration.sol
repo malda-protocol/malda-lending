@@ -50,13 +50,13 @@ abstract contract mTokenConfiguration is mTokenStorage {
     /// @param _roles The roles contract address
     function setRolesOperator(address _roles) external onlyAdmin {
         // Requirements: the roles are not zero address
-        require(_roles != address(0), mt_InvalidInput());
-
-        // Effects: set the roles operator
-        rolesOperator = IRoles(_roles);
+        require(_roles != address(0), mt_AddressNotValid());
 
         // Events: emit the roles operator updated event
         emit NewRolesOperator(address(rolesOperator), _roles);
+
+        // Effects: set the roles operator
+        rolesOperator = IRoles(_roles);
     }
 
     /// @notice Accrues interest and updates the interest rate model using _setInterestRateModelFresh
@@ -97,11 +97,11 @@ abstract contract mTokenConfiguration is mTokenStorage {
         // Requirements: the new reserve factor mantissa is less than the max reserve factor mantissa
         require(newReserveFactorMantissa <= RESERVE_FACTOR_MAX_MANTISSA, mt_ReserveFactorTooHigh());
 
-        // Effects: set the reserve factor mantissa
-        reserveFactorMantissa = newReserveFactorMantissa;
-
         // Events: emit the new reserve factor event
         emit NewReserveFactor(reserveFactorMantissa, newReserveFactorMantissa);
+
+        // Effects: set the reserve factor mantissa
+        reserveFactorMantissa = newReserveFactorMantissa;
     }
 
     /// @notice Begins transfer of admin rights. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.
@@ -109,12 +109,13 @@ abstract contract mTokenConfiguration is mTokenStorage {
     /// @param newPendingAdmin New pending admin.
     function setPendingAdmin(address payable newPendingAdmin) external onlyAdmin {
         // Requirements: the new pending admin is not zero address
-        require(newPendingAdmin != address(0), mTokenConfiguration_AddressNotValid());
+        require(newPendingAdmin != address(0), mt_AddressNotValid());
 
         // Effects: set the pending admin
         pendingAdmin = newPendingAdmin;
 
-        // @audit-question emit event?
+        // Events: emit the pending admin updated event
+        emit NewPendingAdmin(newPendingAdmin);
     }
 
     /// @notice Accepts transfer of admin rights. msg.sender must be pendingAdmin
@@ -129,7 +130,8 @@ abstract contract mTokenConfiguration is mTokenStorage {
         // Effects: clear the pending admin
         pendingAdmin = payable(address(0));
 
-        // @audit-question emit event?
+        // Events: emit the admin updated event
+        emit AdminAccepted(admin);
     }
 
     // ----------- INTERNAL ------------
@@ -140,22 +142,23 @@ abstract contract mTokenConfiguration is mTokenStorage {
         // Requirements: ensure invoking newInterestRateModel.isInterestRateModel() returns true
         require(IInterestRateModel(newInterestRateModel).isInterestRateModel(), mt_MarketMethodNotValid());
 
-        // Effects: set the interest rate model
-        interestRateModel = newInterestRateModel;
-
         // Events: emit the new interest rate model event
         emit NewMarketInterestRateModel(interestRateModel, newInterestRateModel);
+
+        // Effects: set the interest rate model
+        interestRateModel = newInterestRateModel;
     }
 
     /// @notice Sets the Operator contract address
     /// @param _operator The operator address
     function _setOperator(address _operator) internal {
-        // @audit-question check for zero address?
-
-        // Effects: set the operator
-        operator = _operator;
+        // Requirements: the operator is not zero address
+        require(_operator != address(0), mt_OperatorNotValid());
 
         // Events: emit the operator updated event
         emit NewOperator(operator, _operator);
+
+        // Effects: set the operator
+        operator = _operator;
     }
 }

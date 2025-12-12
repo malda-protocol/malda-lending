@@ -59,8 +59,6 @@ abstract contract mErc20Upgradable is mErc20, Initializable {
         uint8 decimals_,
         address payable admin_
     ) internal {
-        // @audit-question zero checks?
-
         _initializeMErc20(
             underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_
         );

@@ -117,7 +117,14 @@ abstract contract mErc20 is mToken, ImErc20 {
         string memory symbol_,
         uint8 decimals_
     ) internal {
-        // @audit-question zero checks?
+        // Requirements: the underlying is not zero address
+        require(underlying_ != address(0), mt_AddressNotValid());
+
+        // Requirements: the operator is not zero address
+        require(operator_ != address(0), mt_AddressNotValid());
+
+        // Requirements: the interest rate model is not zero address
+        require(interestRateModel_ != address(0), mt_AddressNotValid());
 
         // mToken initialize does the bulk of the work
         _initializeMToken(operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_);

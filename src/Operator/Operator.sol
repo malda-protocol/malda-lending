@@ -39,6 +39,15 @@ import {HypernativeFirewallProtected} from "src/libraries/HypernativeFirewallPro
 /// @author Merge Layers Inc.
 /// @notice Access-controlled operator logic for mTokens
 contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable, HypernativeFirewallProtected {
+    // ----------- EVENTS ------------
+    /// @notice Emitted when blacklist operator is updated
+    /// @param newBlacklister The new blacklist operator address
+    event NewBlacklister(address indexed newBlacklister);
+
+    // ----------- ERRORS ------------
+    /// @notice Error thrown when address is not valid
+    error Operator_AddressNotValid();
+
     // ----------- MODIFIERS ------------
     /// @notice Modifier to restrict access to allowed users only
     /// @param user The user address to check
@@ -72,12 +81,14 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @notice Sets the blacklist operator
     /// @param _blacklister The blacklist operator address
     function setBlacklister(address _blacklister) external onlyOwner {
-        // @audit-question address zero check?
+        // Requirements: the blacklist operator is not zero address
+        require(_blacklister != address(0), Operator_AddressNotValid());
 
         // Effects: set the blacklist operator
         blacklistOperator = IBlacklister(_blacklister);
 
-        // @audit-question emit an event?
+        // Events: emit the new blacklist operator event
+        emit NewBlacklister(_blacklister);
     }
 
     /// @notice Sets min borrow size per market
@@ -125,11 +136,11 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         // Requirements: the roles is not zero address
         require(_roles != address(0), Operator_InvalidInput());
 
-        // Effects: set the roles operator
-        rolesOperator = IRoles(_roles);
-
         // Events: emit the new roles operator event
         emit NewRolesOperator(address(rolesOperator), _roles);
+
+        // Effects: set the roles operator
+        rolesOperator = IRoles(_roles);
     }
 
     /// @notice Sets a new price oracle
@@ -139,11 +150,11 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         // Requirements: the new oracle is not zero address
         require(newOracle != address(0), Operator_InvalidInput());
 
-        // Effects: set the price oracle
-        oracleOperator = newOracle;
-
         // Events: emit the new price oracle event
         emit NewPriceOracle(oracleOperator, newOracle);
+
+        // Effects: set the price oracle
+        oracleOperator = newOracle;
     }
 
     /// @notice Sets the closeFactor used when liquidating borrows
@@ -156,11 +167,11 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
             Operator_InvalidInput()
         );
 
-        // Effects: set the close factor
-        closeFactorMantissa = newCloseFactorMantissa;
-
         // Events: emit the new close factor event
         emit NewCloseFactor(closeFactorMantissa, newCloseFactorMantissa);
+
+        // Effects: set the close factor
+        closeFactorMantissa = newCloseFactorMantissa;
     }
 
     /// @notice Sets the collateralFactor for a market
@@ -183,11 +194,11 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
             Operator_EmptyPrice()
         );
 
-        // Effects: set the market's collateral factor to the new collateral factor
-        market.collateralFactorMantissa = newCollateralFactorMantissa;
-
         // Events: emit the new collateral factor event
         emit NewCollateralFactor(mToken, market.collateralFactorMantissa, newCollateralFactorMantissa);
+
+        // Effects: set the market's collateral factor to the new collateral factor
+        market.collateralFactorMantissa = newCollateralFactorMantissa;
     }
 
     /// @notice Sets liquidationIncentive
@@ -231,7 +242,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @notice Sets outflow volume time window
     /// @param newTimeWindow The new reset time window
     function setOutflowVolumeTimeWindow(uint256 newTimeWindow) external onlyOwner {
-        // @audit-question zero check?
+        // Requirements: the new time window is not zero
+        require(newTimeWindow != 0, Operator_InvalidInput());
 
         // Events: emit the outflow time window updated event
         emit OutflowTimeWindowUpdated(outflowResetTimeWindow, newTimeWindow);
@@ -244,7 +256,8 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @dev when 0, it means there's no limit
     /// @param amount The new limit
     function setOutflowTimeLimitInUSD(uint256 amount) external onlyOwner {
-        // @audit-question zero check?
+        // Requirements: the new limit is not zero
+        require(amount != 0, Operator_InvalidInput());
 
         // Events: emit the outflow limit updated event
         emit OutflowLimitUpdated(msg.sender, limitPerTimePeriod, amount);

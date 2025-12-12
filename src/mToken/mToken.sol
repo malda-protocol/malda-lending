@@ -193,10 +193,18 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         string memory symbol_,
         uint8 decimals_
     ) internal {
-        // @audit-question zero checks?
+        // Requirements: the name is not empty
+        require(bytes(name_).length > 0, mt_NameNotValid());
+
+        // Requirements: the symbol is not empty
+        require(bytes(symbol_).length > 0, mt_SymbolNotValid());
+
+        // Requirements: the decimals are not zero
+        require(decimals_ > 0, mt_DecimalsNotValid());
 
         // Requirements: the mToken is not already initialized
         require(accrualBlockTimestamp == 0 && borrowIndex == 0, mt_AlreadyInitialized());
+
         // Requirements: the initial exchange rate is greater than 0
         require(initialExchangeRateMantissa_ > 0, mt_ExchangeRateNotValid());
 
@@ -614,7 +622,8 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
             redeemTokens = divUp_(redeemAmountIn, exchangeRate);
             redeemAmount = redeemAmountIn;
         }
-        if (redeemTokens == 0 && redeemAmount == 0) revert mt_RedeemEmpty();
+        // Requirements: the redeem tokens and redeem amount are not zero
+        require(redeemTokens != 0 && redeemAmount != 0, mt_RedeemEmpty());
 
         // Interactions: check if the redeem hooks pass
         IOperatorDefender(operator).beforeMTokenRedeem(address(this), redeemer, redeemTokens);

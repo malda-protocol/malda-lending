@@ -209,11 +209,11 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         // Requirements: the ZkVerifier is not zero address
         require(_zkVerifier != address(0), mErc20Host_AddressNotValid());
 
-        // Effects: set the ZkVerifier
-        verifier = IZkVerifier(_zkVerifier);
-
         // Events: emit the ZkVerifier updated event
         emit ZkVerifierUpdated(address(verifier), _zkVerifier);
+
+        // Effects: set the ZkVerifier
+        verifier = IZkVerifier(_zkVerifier);
     }
 
     // ----------- PUBLIC ------------
@@ -394,7 +394,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
-        // @audit-question should we worry about this
+        // TODO @Cosmin Keep until we allow self-sequencing
         // temporary overwrite; will be removed in future implementations
         receiver = _sender;
 
@@ -436,7 +436,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
-        // @audit-question should we worry about this
+        // TODO @Cosmin Keep until we allow self-sequencing
         // temporary overwrite; will be removed in future implementations
         receiver = _sender;
 
@@ -467,7 +467,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         (address _sender, address _market, uint256 _accAmountIn,, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(singleJournal);
 
-        // @audit-question should we worry about this
+        // TODO @Cosmin Keep until we allow self-sequencing
         // temporary overwrite; will be removed in future implementations
         receiver = _sender;
 
@@ -499,9 +499,8 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     /// @notice Ensures caller is admin or has specific role
     /// @param _role Role identifier to check
     function _onlyAdminOrRole(bytes32 _role) internal view {
-        if (msg.sender != admin && !_isAllowedFor(msg.sender, _role)) {
-            revert mErc20Host_CallerNotAllowed();
-        }
+        // Requirements: the caller is admin or has the specified role
+        require(msg.sender == admin || _isAllowedFor(msg.sender, _role), mErc20Host_CallerNotAllowed());
     }
 
     /// @notice Performs basic proof call checks

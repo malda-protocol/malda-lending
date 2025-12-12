@@ -122,24 +122,10 @@ contract ZkVerifier is Ownable, IZkVerifier {
     /// @param journalEntry the risc0 journal entry
     /// @param seal the risc0 seal
     function verifyInput(bytes calldata journalEntry, bytes calldata seal) external view {
-        // @audit-question can we just inline these two functions?
         // Requirements: the verifier is set
-        _checkAddresses();
+        require(address(verifier) != address(0), ZkVerifier_VerifierNotSet());
 
         // Interactions: verify the input
-        __verify(journalEntry, seal);
-    }
-
-    // ----------- PRIVATE ------------
-    /// @notice Ensures verifier is configured
-    function _checkAddresses() private view {
-        require(address(verifier) != address(0), ZkVerifier_VerifierNotSet());
-    }
-
-    /// @notice Internal verification against the configured image
-    /// @param journalEntry the Risc0 journal entry
-    /// @param seal the Risc0 seal
-    function __verify(bytes calldata journalEntry, bytes calldata seal) private view {
         verifier.verify(seal, imageId, sha256(journalEntry));
     }
 }

@@ -48,6 +48,9 @@ interface IInterestRateModel {
     /// @notice Error thrown when input is not valid
     error JumpRateModelV4_InputNotValid();
 
+    /// @notice Error thrown when zero value is not allowed
+    error JumpRateModelV4_ZeroValueNotAllowed();
+
     // ----------- VIEW ------------
 
     /// @notice Should return true

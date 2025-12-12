@@ -16,6 +16,7 @@ import {IRoles} from "src/interfaces/IRoles.sol";
 import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {IOracleOperator} from "src/interfaces/IOracleOperator.sol";
 import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
+import {CommonLib} from "src/libraries/CommonLib.sol";
 
 /// @title MixedPriceOracleV3
 /// @author Merge Layers Inc.
@@ -62,6 +63,18 @@ contract MixedPriceOracleV3 is IOracleOperator {
     /// @notice Error thrown when configuration is invalid
     error MixedPriceOracle_InvalidConfig();
 
+    /// @notice Error thrown when roles contract address is invalid
+    error MixedPriceOracle_AddressNotValid();
+
+    // ----------- MODIFIERS ------------
+    /// @notice Modifier to check if the caller has specific role
+    /// @param role Role identifier to check
+    modifier onlyRole(bytes32 role) {
+        // Requirements: the caller has the specified role
+        _onlyRole(role);
+        _;
+    }
+
     /// @notice Initializes the oracle with symbols, configs, roles, and default staleness
     /// @param symbols_ Array of token symbols
     /// @param configs_ Array of price configs for symbols
@@ -73,7 +86,11 @@ contract MixedPriceOracleV3 is IOracleOperator {
         address roles_,
         uint256 stalenessPeriod_
     ) {
-        // @audit-question zero checks?
+        // Requirements: the roles contract address is not zero
+        require(roles_ != address(0), MixedPriceOracle_AddressNotValid());
+
+        // Requirements: the symbols and configs lengths match
+        CommonLib.checkLengthMatch(symbols_.length, configs_.length);
 
         // Effects: set the roles
         ROLES = IRoles(roles_);
@@ -90,10 +107,7 @@ contract MixedPriceOracleV3 is IOracleOperator {
     /// @notice Sets a custom staleness period for a symbol
     /// @param symbol Symbol to update
     /// @param val New staleness value
-    function setStaleness(string calldata symbol, uint256 val) external {
-        // Requirements: the caller is allowed to set the staleness
-        require(ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE()), MixedPriceOracle_Unauthorized());
-
+    function setStaleness(string calldata symbol, uint256 val) external onlyRole(ROLES.GUARDIAN_ORACLE()) {
         // Effects: set the staleness
         stalenessPerSymbol[symbol] = val;
 
@@ -104,10 +118,10 @@ contract MixedPriceOracleV3 is IOracleOperator {
     /// @notice Sets a price configuration for a symbol
     /// @param symbol Symbol to configure
     /// @param config Price configuration
-    function setConfig(string calldata symbol, IDefaultAdapter.PriceConfig calldata config) external {
-        // Requirements: the caller is allowed to set the config
-        require(ROLES.isAllowedFor(msg.sender, ROLES.GUARDIAN_ORACLE()), MixedPriceOracle_Unauthorized());
-
+    function setConfig(string calldata symbol, IDefaultAdapter.PriceConfig calldata config)
+        external
+        onlyRole(ROLES.GUARDIAN_ORACLE())
+    {
         // Requirements: the default feed is not zero
         require(config.defaultFeed != address(0), MixedPriceOracle_InvalidConfig());
 
@@ -164,11 +178,15 @@ contract MixedPriceOracleV3 is IOracleOperator {
         view
         returns (uint256, uint256)
     {
-        if (config.defaultFeed == address(0)) revert("missing priceFeed");
+        // Requirements: the default feed is not zero
+        require(config.defaultFeed != address(0), MixedPriceOracle_InvalidConfig());
 
+        // Interactions: get the feed
         IDefaultAdapter feed = IDefaultAdapter(config.defaultFeed);
 
+        // Interactions: get the latest price
         (, int256 price,, uint256 updatedAt,) = feed.latestRoundData();
+
         // Requirements: the price is not zero
         require(price > 0, MixedPriceOracle_InvalidPrice());
 
@@ -184,5 +202,12 @@ contract MixedPriceOracleV3 is IOracleOperator {
     function _getStaleness(string memory symbol) internal view returns (uint256) {
         uint256 _registered = stalenessPerSymbol[symbol];
         return _registered > 0 ? _registered : STALENESS_PERIOD;
+    }
+
+    /// @notice Ensures caller has specific role
+    /// @param role Role identifier to check
+    function _onlyRole(bytes32 role) internal view {
+        // Requirements: the caller has the specified role
+        require(ROLES.isAllowedFor(msg.sender, role), MixedPriceOracle_Unauthorized());
     }
 }

@@ -133,6 +133,14 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     /// @param newOperator New operator address
     event NewOperator(address indexed oldOperator, address indexed newOperator);
 
+    /// @notice Event emitted when pending admin is updated
+    /// @param pendingAdmin The new pending admin address
+    event NewPendingAdmin(address indexed pendingAdmin);
+
+    /// @notice Event emitted when admin is accepted
+    /// @param admin The new admin address
+    event AdminAccepted(address indexed admin);
+
     // ----------- TOKENS EVENTS ------------
     /// @notice EIP20 Transfer event
     /// @param from Sender address
@@ -299,7 +307,19 @@ abstract contract mTokenStorage is ImToken, ExponentialNoError {
     error mt_CollateralBlockTimestampNotValid();
 
     /// @notice Thrown when configuration address is invalid
-    error mTokenConfiguration_AddressNotValid();
+    error mt_AddressNotValid();
+
+    /// @notice Thrown when address is not valid
+    error mt_OperatorNotValid();
+
+    /// @notice Error thrown when name is not valid
+    error mt_NameNotValid();
+
+    /// @notice Error thrown when symbol is not valid
+    error mt_SymbolNotValid();
+
+    /// @notice Error thrown when decimals are not valid
+    error mt_DecimalsNotValid();
 
     // ----------- VIRTUAL ------------
     /// @inheritdoc ImToken

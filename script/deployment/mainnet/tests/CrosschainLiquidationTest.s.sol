@@ -33,7 +33,8 @@ contract CrosschainLiquidationTest is DeployBaseRelease {
         mTokens[0] = MARKET;
         sizes[0] = 1;
 
-        // @audit-question remove?
+        // TODO @Cosmin This wasn't working because the sequencer was not picking up events for cross chain liquidation.
+        // When sequencer is ready, we shoudl retest it. And this test just runs through all the operations needed
         /**
          * console.log("Setting min borrow size ...");
          * vm.startBroadcast(key);

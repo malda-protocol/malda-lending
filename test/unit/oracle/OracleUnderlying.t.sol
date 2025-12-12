@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
+import {Roles} from "src/Roles.sol";
 import {MixedPriceOracleV3} from "src/oracles/MixedPriceOracleV3.sol";
 import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
 import {Test} from "forge-std/Test.sol";
@@ -118,7 +119,7 @@ contract MixedPriceOracleV3_Test is Operator, Test {
             defaultFeed: address(ethPerBTCOracle), toSymbol: "ETH", underlyingDecimals: bitcoinDecimals
         });
 
-        address roles = address(0);
+        address roles = address(new Roles(address(this)));
         uint256 stalenessPeriod = 100;
 
         mixedPriceOracle = new MixedPriceOracleV3(symbols, configs, roles, stalenessPeriod);

@@ -23,8 +23,7 @@ pragma solidity =0.8.28;
 |_|_|_|__|__|_____|____/|__|__|
 */
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
+import {SafeApprove} from "src/libraries/SafeApprove.sol";
 import {ImErc20} from "src/interfaces/ImErc20.sol";
 import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
@@ -51,6 +50,8 @@ interface IWrappedNative {
 /// @author Malda Protocol
 /// @notice Wraps native coins and supplies to host or extension markets in a single call.
 contract WrapAndSupply {
+    using SafeApprove for address;
+
     // ----------- IMMUTABLES ------------
     /// @notice The wrapped native coin contract
     IWrappedNative public immutable WRAPPED_NATIVE;
@@ -86,20 +87,19 @@ contract WrapAndSupply {
     /// @param receiver The mToken receiver
     /// @param minAmount The minimum amount of mTokens expected
     function wrapAndSupplyOnHostMarket(address mToken, address receiver, uint256 minAmount) external payable {
+        // Requirements: the receiver is not zero address
+        require(receiver != address(0), WrapAndSupply_AddressNotValid());
+
         // Requirements: the underlying must be the wrapped native coin
         address underlying = ImTokenMinimal(mToken).underlying();
         require(underlying == address(WRAPPED_NATIVE), WrapAndSupply_AddressNotValid());
-
-        // @audit-question why not check other addresses for zero address, especially the receiver?
 
         // Interactions: wrap the native coin into its wrapped version
         uint256 amount = msg.value;
         _wrap(amount);
 
-        // @audit-question why not use safeApprove?
         // Interactions: approve the underlying to the market
-        IERC20(underlying).approve(mToken, 0); // @audit-question why approve 0 first?
-        IERC20(underlying).approve(mToken, amount);
+        underlying.safeApprove(mToken, amount);
 
         // Interactions: supply the underlying to the host market
         ImErc20(mToken).mint(amount, receiver, minAmount);
@@ -113,11 +113,12 @@ contract WrapAndSupply {
     /// @param receiver The receiver
     /// @param selector The host chain function selector
     function wrapAndSupplyOnExtensionMarket(address mTokenGateway, address receiver, bytes4 selector) external payable {
+        // Requirements: the receiver is not zero address
+        require(receiver != address(0), WrapAndSupply_AddressNotValid());
+
         // Requirements: the underlying must be the wrapped native coin
         address underlying = ImTokenGateway(mTokenGateway).underlying();
         require(underlying == address(WRAPPED_NATIVE), WrapAndSupply_AddressNotValid());
-
-        // @audit-question why not check other addresses for zero address, especially the receiver?
 
         uint256 _gasFee = ImTokenGateway(mTokenGateway).gasFee();
 
@@ -126,15 +127,14 @@ contract WrapAndSupply {
         _wrap(amount);
 
         // Interactions: approve the underlying to the market
-        IERC20(underlying).approve(mTokenGateway, 0); // @audit-question why approve 0 first?
-        IERC20(underlying).approve(mTokenGateway, amount);
+        underlying.safeApprove(mTokenGateway, amount);
 
         // Interactions: supply the underlying to the extension market
-        // @audit-question shouldn't we check the mTokenGateway somehow?
         // slither-disable-next-line arbitrary-send-eth
         ImTokenGateway(mTokenGateway).supplyOnHost{value: _gasFee}(amount, receiver, selector);
 
-        // @audit-question why no event?
+        // Events: emit the wrapped and supplied event
+        emit WrappedAndSupplied(msg.sender, receiver, mTokenGateway, amount);
     }
 
     // ----------- PRIVATE ------------

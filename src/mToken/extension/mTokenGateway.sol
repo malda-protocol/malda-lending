@@ -271,11 +271,11 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         // Requirements: the ZK verifier is not zero address
         require(_zkVerifier != address(0), mTokenGateway_AddressNotValid());
 
-        // Effects: set the ZK verifier
-        verifier = IZkVerifier(_zkVerifier);
-
         // Events: emit the ZK verifier updated event
         emit ZkVerifierUpdated(address(verifier), _zkVerifier);
+
+        // Effects: set the ZK verifier
+        verifier = IZkVerifier(_zkVerifier);
     }
 
     // ----------- EXTERNAL ------------
@@ -401,7 +401,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         (address _sender, address _market,, uint256 _accAmountOut, uint32 _chainId, uint32 _dstChainId,) =
             mTokenProofDecoderLib.decodeJournal(journalData);
 
-        // @audit-question should we worry about this
+        // TODO @Cosmin Keep until we allow self-sequencing
         // temporary overwrite; will be removed in future implementations
         receiver = _sender;
 

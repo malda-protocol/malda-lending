@@ -56,20 +56,24 @@ library CommonLib {
         mapping(uint32 => bool) storage allowedChains,
         IGasFeesHelper gasHelper
     ) internal view {
-        // @audit use custom error
-        if (amount == 0) revert AmountNotValid();
-        if (!allowedChains[dstChainId]) revert ChainNotValid();
+        // Requirements: amount cannot be zero
+        require(amount != 0, AmountNotValid());
+
+        // Requirements: destination chain id is allowed
+        require(allowedChains[dstChainId], ChainNotValid());
 
         uint256 requiredGas = address(gasHelper) != address(0) ? gasHelper.gasFees(dstChainId) : 0;
 
-        if (msgValue < requiredGas) revert NotEnoughGasFee();
+        // Requirements: message value is sufficient
+        require(msgValue >= requiredGas, NotEnoughGasFee());
     }
 
     /// @notice Ensures two lengths match
     /// @param l1 First length
     /// @param l2 Second length
     function checkLengthMatch(uint256 l1, uint256 l2) internal pure {
-        if (l1 != l2) revert CommonLib_LengthMismatch();
+        // Requirements: lengths must match
+        require(l1 == l2, CommonLib_LengthMismatch());
     }
 
     /// @notice Ensures three lengths match
@@ -77,7 +81,8 @@ library CommonLib {
     /// @param l2 Second length
     /// @param l3 Third length
     function checkLengthMatch(uint256 l1, uint256 l2, uint256 l3) internal pure {
-        if (l1 != l2 || l2 != l3) revert CommonLib_LengthMismatch();
+        // Requirements: lengths must match
+        require(l1 == l2 && l2 == l3, CommonLib_LengthMismatch());
     }
 
     /// @notice Computes sum of an array

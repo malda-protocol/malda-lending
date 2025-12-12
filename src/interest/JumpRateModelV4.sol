@@ -52,7 +52,7 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
 
     /// @notice Construct an interest rate model
     /// @param blocksPerYear_ The estimated number of blocks per year
-    /// @param baseRatePerBlock_ The base APR, scaled by 1e18
+    /// @param baseRatePerBlock_ The base APR, scaled by 1e18 (can be zero)
     /// @param multiplierPerBlock_ The rate increase in interest wrt utilization, scaled by 1e18
     /// @param jumpMultiplierPerBlock_ The multiplier per block after utilization point
     /// @param kink_ The utilization point where the jump multiplier applies
@@ -67,11 +67,16 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         address owner_,
         string memory name_
     ) Ownable(owner_) {
-        // @audit-question check zero values?
+        // Requirements: name cannot be empty
+        require(bytes(name_).length > 0, JumpRateModelV4_ZeroValueNotAllowed());
 
-        // Effects: set blocks per year, name, and update jump rate model
-        blocksPerYear = blocksPerYear_;
+        // Effects: set the name
         name = name_;
+
+        // Effects: update blocks per year
+        _updateBlocksPerYear(blocksPerYear_);
+
+        // Effects: update jump rate model
         _updateJumpRateModelWithoutComputation(baseRatePerBlock_, multiplierPerBlock_, jumpMultiplierPerBlock_, kink_);
     }
 
@@ -109,13 +114,7 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
     /// @notice Updates the blocksPerYear in order to make interest calculations simpler
     /// @param blocksPerYear_ The new estimated eth blocks per year.
     function updateBlocksPerYear(uint256 blocksPerYear_) external onlyOwner {
-        // @audit-question check zero values?
-
-        // Effects: update blocks per year
-        blocksPerYear = blocksPerYear_;
-
-        // Events: emit blocks per year updated event
-        emit BlocksPerYearUpdated(blocksPerYear_);
+        _updateBlocksPerYear(blocksPerYear_);
     }
 
     // ----------- PUBLIC ------------
@@ -126,7 +125,6 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         override
         returns (uint256)
     {
-        // @audit-question check the calculation, reordered to preserve precision (multiply before dividing)
         return (utilizationRate(cash, borrows, reserves)
                 * getBorrowRate(cash, borrows, reserves)
                 * (1e18 - reserveFactorMantissa)) / 1e36;
@@ -163,8 +161,21 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
     }
 
     // ----------- PRIVATE ------------
+    /// @notice Internal function to update blocks per year
+    /// @param blocksPerYear_ The new estimated eth blocks per year.
+    function _updateBlocksPerYear(uint256 blocksPerYear_) private {
+        // Requirements: blocks per year cannot be zero
+        require(blocksPerYear_ != 0, JumpRateModelV4_ZeroValueNotAllowed());
+
+        // Effects: update blocks per year
+        blocksPerYear = blocksPerYear_;
+
+        // Events: emit blocks per year updated event
+        emit BlocksPerYearUpdated(blocksPerYear_);
+    }
+
     /// @notice Internal function to update jump rate model parameters without computation
-    /// @param basePerBlock_ The base rate per block
+    /// @param basePerBlock_ The base rate per block (can be zero)
     /// @param multiplierPerBlock_ The multiplier per block
     /// @param jumpMultiplierPerBlock_ The jump multiplier per block
     /// @param kink_ The kink utilization point
@@ -174,7 +185,14 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         uint256 jumpMultiplierPerBlock_,
         uint256 kink_
     ) private {
-        // @audit-question check zero values?
+        // Requirements: multiplier per block cannot be zero
+        require(multiplierPerBlock_ != 0, JumpRateModelV4_ZeroValueNotAllowed());
+
+        // Requirements: jump multiplier per block cannot be zero
+        require(jumpMultiplierPerBlock_ != 0, JumpRateModelV4_ZeroValueNotAllowed());
+
+        // Requirements: kink cannot be zero
+        require(kink_ != 0, JumpRateModelV4_ZeroValueNotAllowed());
 
         // Effects: update jump rate model parameters
         baseRatePerBlock = basePerBlock_;
@@ -197,7 +215,17 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         uint256 jumpMultiplierPerYear,
         uint256 kink_
     ) private {
-        // @audit-question check zero values?
+        // Requirements: base rate per block cannot be zero
+        require(baseRatePerYear != 0, JumpRateModelV4_ZeroValueNotAllowed());
+
+        // Requirements: multiplier per block cannot be zero
+        require(multiplierPerYear != 0, JumpRateModelV4_ZeroValueNotAllowed());
+
+        // Requirements: jump multiplier per block cannot be zero
+        require(jumpMultiplierPerYear != 0, JumpRateModelV4_ZeroValueNotAllowed());
+
+        // Requirements: kink cannot be zero
+        require(kink_ != 0, JumpRateModelV4_ZeroValueNotAllowed());
 
         // Effects: update jump rate model parameters
         baseRatePerBlock = baseRatePerYear / blocksPerYear;

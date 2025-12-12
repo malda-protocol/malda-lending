@@ -71,8 +71,7 @@ contract InitialMint is DeployBaseRelease {
             // Mint into RECEIVER
             m.mint(10_000, RECEIVER, 0);
 
-            // @audit-question possibly introduce try-catch to handle transfer failure
-            // Transfer minted market tokens to burn address (@audit-question why not just call burn?)
+            // Transfer minted market tokens to burn address (no burn function on mToken)
             bool success = IERC20(address(m)).transfer(address(0), m.balanceOf(RECEIVER));
             require(success, "Transfer failed");
             vm.stopBroadcast();

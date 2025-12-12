@@ -28,7 +28,8 @@ interface IHypernativeFirewall {
 
 /// @title HypernativeFirewallProtected
 /// @author Merge Layers Inc.
-/// @notice Abstract contract that provides firewall protection for the contract
+/// @notice Abstract contract that provides firewall protection for the contract.
+/// @dev Inherited from Hypernative and refactored it for our needs, but without changing the core logic.
 abstract contract HypernativeFirewallProtected {
     // ----------- CONSTANTS ------------
     /// @notice Storage slot for the firewall address
@@ -76,7 +77,6 @@ abstract contract HypernativeFirewallProtected {
 
         // If firewall is set, validate the context interaction
         IHypernativeFirewall firewall = IHypernativeFirewall(firewallAddress);
-        // @audit-question is using tx.origin a recommended pattern? it's generally frowned upon
         // solhint-disable-next-line avoid-tx-origin
         firewall.validateForbiddenContextInteraction(tx.origin, msg.sender);
         _;
@@ -96,7 +96,6 @@ abstract contract HypernativeFirewallProtected {
         firewall.validateBlacklistedAccountInteraction(msg.sender);
 
         // If the caller is an EOA, validate the context interaction
-        // @audit-question is using tx.origin a recommended pattern? it's generally frowned upon
         // solhint-disable-next-line avoid-tx-origin
         if (tx.origin == msg.sender && msg.sender.code.length == 0) {
             _;
@@ -104,7 +103,6 @@ abstract contract HypernativeFirewallProtected {
         }
 
         // Validate the context interaction
-        // @audit-question is using tx.origin a recommended pattern? it's generally frowned upon
         // solhint-disable-next-line avoid-tx-origin
         firewall.validateForbiddenContextInteraction(tx.origin, msg.sender);
         _;
@@ -121,7 +119,7 @@ abstract contract HypernativeFirewallProtected {
 
         // If firewall is set, validate the blacklisted account interaction
         IHypernativeFirewall firewall = IHypernativeFirewall(firewallAddress);
-        // @audit-question is using tx.origin a recommended pattern? it's generally frowned upon
+
         // solhint-disable-next-line avoid-tx-origin
         require(msg.sender == tx.origin && msg.sender.code.length == 0, HypernativeFirewallProtected_CallerNotEOA());
         firewall.validateBlacklistedAccountInteraction(msg.sender);
