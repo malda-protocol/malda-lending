@@ -145,8 +145,8 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
 
         if (msgData.amount > 0) {
             IERC20(tokenSent).safeTransfer(market, msgData.amount);
+            emit Rebalanced(market, msgData.amount);
         }
 
-        emit Rebalanced(market, msgData.amount);
     }
 }
