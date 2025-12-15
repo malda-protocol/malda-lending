@@ -180,76 +180,157 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="iroles"><a class="header" href="#iroles">IRoles</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/6da3402491b0597592e7ce77df035b59e43e1167/src/interfaces/IRoles.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d9480fb0a24c563b8effa73f4da1ac575cd76d0b/src/interfaces/IRoles.sol">Git Source</a></p>
+<p><strong>Title:</strong>
+IRoles</p>
+<p><strong>Author:</strong>
+Merge Layers Inc.</p>
+<p>Interface for protocol role management</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="rebalancer"><a class="header" href="#rebalancer">REBALANCER</a></h3>
 <p>Returns REBALANCER role</p>
-<pre><code class="language-solidity">function REBALANCER() external view returns (bytes32);
+<pre><code class="language-solidity">function REBALANCER() external view returns (bytes32 role);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>REBALANCER role identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="rebalancer_eoa"><a class="header" href="#rebalancer_eoa">REBALANCER_EOA</a></h3>
 <p>Returns REBALANCER_EOA role</p>
-<pre><code class="language-solidity">function REBALANCER_EOA() external view returns (bytes32);
+<pre><code class="language-solidity">function REBALANCER_EOA() external view returns (bytes32 role);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>REBALANCER_EOA role identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="guardian_pause"><a class="header" href="#guardian_pause">GUARDIAN_PAUSE</a></h3>
 <p>Returns GUARDIAN_PAUSE role</p>
-<pre><code class="language-solidity">function GUARDIAN_PAUSE() external view returns (bytes32);
+<pre><code class="language-solidity">function GUARDIAN_PAUSE() external view returns (bytes32 role);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>GUARDIAN_PAUSE role identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="guardian_bridge"><a class="header" href="#guardian_bridge">GUARDIAN_BRIDGE</a></h3>
 <p>Returns GUARDIAN_BRIDGE role</p>
-<pre><code class="language-solidity">function GUARDIAN_BRIDGE() external view returns (bytes32);
+<pre><code class="language-solidity">function GUARDIAN_BRIDGE() external view returns (bytes32 role);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>GUARDIAN_BRIDGE role identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="guardian_borrow_cap"><a class="header" href="#guardian_borrow_cap">GUARDIAN_BORROW_CAP</a></h3>
 <p>Returns GUARDIAN_BORROW_CAP role</p>
-<pre><code class="language-solidity">function GUARDIAN_BORROW_CAP() external view returns (bytes32);
+<pre><code class="language-solidity">function GUARDIAN_BORROW_CAP() external view returns (bytes32 role);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>GUARDIAN_BORROW_CAP role identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="guardian_supply_cap"><a class="header" href="#guardian_supply_cap">GUARDIAN_SUPPLY_CAP</a></h3>
 <p>Returns GUARDIAN_SUPPLY_CAP role</p>
-<pre><code class="language-solidity">function GUARDIAN_SUPPLY_CAP() external view returns (bytes32);
+<pre><code class="language-solidity">function GUARDIAN_SUPPLY_CAP() external view returns (bytes32 role);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>GUARDIAN_SUPPLY_CAP role identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="guardian_reserve"><a class="header" href="#guardian_reserve">GUARDIAN_RESERVE</a></h3>
 <p>Returns GUARDIAN_RESERVE role</p>
-<pre><code class="language-solidity">function GUARDIAN_RESERVE() external view returns (bytes32);
+<pre><code class="language-solidity">function GUARDIAN_RESERVE() external view returns (bytes32 role);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>GUARDIAN_RESERVE role identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="proof_forwarder"><a class="header" href="#proof_forwarder">PROOF_FORWARDER</a></h3>
 <p>Returns PROOF_FORWARDER role</p>
-<pre><code class="language-solidity">function PROOF_FORWARDER() external view returns (bytes32);
+<pre><code class="language-solidity">function PROOF_FORWARDER() external view returns (bytes32 role);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>PROOF_FORWARDER role identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="proof_batch_forwarder"><a class="header" href="#proof_batch_forwarder">PROOF_BATCH_FORWARDER</a></h3>
 <p>Returns PROOF_BATCH_FORWARDER role</p>
-<pre><code class="language-solidity">function PROOF_BATCH_FORWARDER() external view returns (bytes32);
+<pre><code class="language-solidity">function PROOF_BATCH_FORWARDER() external view returns (bytes32 role);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>PROOF_BATCH_FORWARDER role identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="sequencer"><a class="header" href="#sequencer">SEQUENCER</a></h3>
 <p>Returns SEQUENCER role</p>
-<pre><code class="language-solidity">function SEQUENCER() external view returns (bytes32);
+<pre><code class="language-solidity">function SEQUENCER() external view returns (bytes32 role);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>SEQUENCER role identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="pause_manager"><a class="header" href="#pause_manager">PAUSE_MANAGER</a></h3>
 <p>Returns PAUSE_MANAGER role</p>
-<pre><code class="language-solidity">function PAUSE_MANAGER() external view returns (bytes32);
+<pre><code class="language-solidity">function PAUSE_MANAGER() external view returns (bytes32 role);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>PAUSE_MANAGER role identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="chains_manager"><a class="header" href="#chains_manager">CHAINS_MANAGER</a></h3>
 <p>Returns CHAINS_MANAGER role</p>
-<pre><code class="language-solidity">function CHAINS_MANAGER() external view returns (bytes32);
+<pre><code class="language-solidity">function CHAINS_MANAGER() external view returns (bytes32 role);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>CHAINS_MANAGER role identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="guardian_oracle"><a class="header" href="#guardian_oracle">GUARDIAN_ORACLE</a></h3>
 <p>Returns GUARDIAN_ORACLE role</p>
-<pre><code class="language-solidity">function GUARDIAN_ORACLE() external view returns (bytes32);
+<pre><code class="language-solidity">function GUARDIAN_ORACLE() external view returns (bytes32 role);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>GUARDIAN_ORACLE role identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="guardian_blacklist"><a class="header" href="#guardian_blacklist">GUARDIAN_BLACKLIST</a></h3>
 <p>Returns GUARDIAN_BLACKLIST role</p>
-<pre><code class="language-solidity">function GUARDIAN_BLACKLIST() external view returns (bytes32);
+<pre><code class="language-solidity">function GUARDIAN_BLACKLIST() external view returns (bytes32 role);
 </code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>role</code></td><td><code>bytes32</code></td><td>GUARDIAN_BLACKLIST role identifier</td></tr>
+</tbody></table>
+</div>
 <h3 id="isallowedfor"><a class="header" href="#isallowedfor">isAllowedFor</a></h3>
 <p>Returns allowance status for a contract and a role</p>
-<pre><code class="language-solidity">function isAllowedFor(address _contract, bytes32 _role) external view returns (bool);
+<pre><code class="language-solidity">function isAllowedFor(address _contract, bytes32 _role) external view returns (bool isAllowed);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_contract</code></td><td><code>address</code></td><td>the contract address</td></tr>
-<tr><td><code>_role</code></td><td><code>bytes32</code></td><td>the bytes32 role</td></tr>
+<tr><td><code>_contract</code></td><td><code>address</code></td><td>The contract address</td></tr>
+<tr><td><code>_role</code></td><td><code>bytes32</code></td><td>The bytes32 role</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>isAllowed</code></td><td><code>bool</code></td><td>True if allowed</td></tr>
 </tbody></table>
 </div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="roles_inputnotvalid"><a class="header" href="#roles_inputnotvalid">Roles_InputNotValid</a></h3>
+<p>Error thrown when input is not valid</p>
 <pre><code class="language-solidity">error Roles_InputNotValid();
 </code></pre>
 

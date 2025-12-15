@@ -180,54 +180,125 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="deployer"><a class="header" href="#deployer">Deployer</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/6da3402491b0597592e7ce77df035b59e43e1167/src/utils/Deployer.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d9480fb0a24c563b8effa73f4da1ac575cd76d0b/src/utils/Deployer.sol">Git Source</a></p>
+<p><strong>Title:</strong>
+CREATE3-based deployer with admin control</p>
+<p><strong>Author:</strong>
+Malda Protocol</p>
+<p>Minimal helper to precompute and deploy contracts via CREATE3 with two-step admin handover.</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="admin"><a class="header" href="#admin">admin</a></h3>
+<p>Current admin authorized to deploy and manage ownership</p>
 <pre><code class="language-solidity">address public admin
 </code></pre>
 <h3 id="pendingadmin"><a class="header" href="#pendingadmin">pendingAdmin</a></h3>
+<p>Pending admin address that can accept control</p>
 <pre><code class="language-solidity">address public pendingAdmin
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="onlyadmin"><a class="header" href="#onlyadmin">onlyAdmin</a></h3>
+<p>Modifier to check if the caller is the admin</p>
 <pre><code class="language-solidity">modifier onlyAdmin() ;
 </code></pre>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
+<p>Initializes the deployer</p>
 <pre><code class="language-solidity">constructor(address _admin) ;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_admin</code></td><td><code>address</code></td><td>Address that will control deployments</td></tr>
+</tbody></table>
+</div>
 <h3 id="receive"><a class="header" href="#receive">receive</a></h3>
+<p>Accepts plain ETH transfers</p>
 <pre><code class="language-solidity">receive() external payable;
 </code></pre>
 <h3 id="setpendingadmin"><a class="header" href="#setpendingadmin">setPendingAdmin</a></h3>
+<p>Propose a new admin that must later accept</p>
 <pre><code class="language-solidity">function setPendingAdmin(address newAdmin) external onlyAdmin;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>newAdmin</code></td><td><code>address</code></td><td>Address proposed as the next admin</td></tr>
+</tbody></table>
+</div>
 <h3 id="saveeth"><a class="header" href="#saveeth">saveEth</a></h3>
-<pre><code class="language-solidity">function saveEth() external;
+<p>Withdraws all ETH to the admin</p>
+<pre><code class="language-solidity">function saveEth() external onlyAdmin;
 </code></pre>
 <h3 id="setnewadmin"><a class="header" href="#setnewadmin">setNewAdmin</a></h3>
-<pre><code class="language-solidity">function setNewAdmin(address _addr) external;
+<p>Directly sets a new admin (without pending/accept)</p>
+<pre><code class="language-solidity">function setNewAdmin(address _addr) external onlyAdmin;
 </code></pre>
-<h3 id="precompute"><a class="header" href="#precompute">precompute</a></h3>
-<pre><code class="language-solidity">function precompute(bytes32 salt) external view returns (address);
-</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_addr</code></td><td><code>address</code></td><td>New admin address</td></tr>
+</tbody></table>
+</div>
 <h3 id="create"><a class="header" href="#create">create</a></h3>
-<pre><code class="language-solidity">function create(bytes32 salt, bytes memory code) external payable onlyAdmin returns (address);
+<p>Deploys a contract using CREATE3</p>
+<pre><code class="language-solidity">function create(bytes32 salt, bytes calldata code) external payable onlyAdmin returns (address deployed);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>salt</code></td><td><code>bytes32</code></td><td>Deterministic salt used for CREATE3</td></tr>
+<tr><td><code>code</code></td><td><code>bytes</code></td><td>Creation bytecode to deploy</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>deployed</code></td><td><code>address</code></td><td>The deployed contract address</td></tr>
+</tbody></table>
+</div>
 <h3 id="acceptadmin"><a class="header" href="#acceptadmin">acceptAdmin</a></h3>
+<p>Allows the pending admin to accept control</p>
 <pre><code class="language-solidity">function acceptAdmin() external;
 </code></pre>
+<h3 id="precompute"><a class="header" href="#precompute">precompute</a></h3>
+<p>Precomputes the deployment address for a given salt</p>
+<pre><code class="language-solidity">function precompute(bytes32 salt) external view returns (address);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>salt</code></td><td><code>bytes32</code></td><td>Deterministic salt used for CREATE3</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>address</code></td><td>The address that would be deployed</td></tr>
+</tbody></table>
+</div>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="adminset"><a class="header" href="#adminset">AdminSet</a></h3>
+<p>Emitted when admin is updated</p>
 <pre><code class="language-solidity">event AdminSet(address indexed _admin);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_admin</code></td><td><code>address</code></td><td>New admin address</td></tr>
+</tbody></table>
+</div>
 <h3 id="pendingadminset"><a class="header" href="#pendingadminset">PendingAdminSet</a></h3>
+<p>Emitted when pending admin is set</p>
 <pre><code class="language-solidity">event PendingAdminSet(address indexed _admin);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_admin</code></td><td><code>address</code></td><td>Pending admin address</td></tr>
+</tbody></table>
+</div>
 <h3 id="adminaccepted"><a class="header" href="#adminaccepted">AdminAccepted</a></h3>
+<p>Emitted when pending admin accepts control</p>
 <pre><code class="language-solidity">event AdminAccepted(address indexed _admin);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_admin</code></td><td><code>address</code></td><td>The admin address that just accepted</td></tr>
+</tbody></table>
+</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="notauthorized"><a class="header" href="#notauthorized">NotAuthorized</a></h3>
+<p>Error thrown when the caller is not the admin</p>
 <pre><code class="language-solidity">error NotAuthorized(address admin, address sender);
 </code></pre>
 
