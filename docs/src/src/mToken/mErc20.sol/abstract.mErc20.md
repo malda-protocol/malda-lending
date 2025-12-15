@@ -1,14 +1,8 @@
 # mErc20
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/mToken/mErc20.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\mToken\mErc20.sol)
 
 **Inherits:**
-[mToken](/src/mToken/mToken.sol/abstract.mToken.md), [ImErc20](/src/interfaces/ImErc20.sol/interface.ImErc20.md)
-
-**Title:**
-Malda's mErc20 Contract
-
-**Author:**
-Merge Layers Inc.
+[mToken](/src\mToken\mToken.sol\abstract.mToken.md), [ImErc20](/src\interfaces\ImErc20.sol\interface.ImErc20.md)
 
 mTokens which wrap an EIP-20 underlying
 
@@ -19,11 +13,40 @@ Underlying asset for this mToken
 
 
 ```solidity
-address public underlying
+address public underlying;
 ```
 
 
 ## Functions
+### _initializeMErc20
+
+Initialize the new money market
+
+
+```solidity
+function _initializeMErc20(
+    address underlying_,
+    address operator_,
+    address interestRateModel_,
+    uint256 initialExchangeRateMantissa_,
+    string memory name_,
+    string memory symbol_,
+    uint8 decimals_
+) internal;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`underlying_`|`address`|The address of the underlying asset|
+|`operator_`|`address`|The address of the Operator|
+|`interestRateModel_`|`address`|The address of the interest rate model|
+|`initialExchangeRateMantissa_`|`uint256`|The initial exchange rate, scaled by 1e18|
+|`name_`|`string`|ERC-20 name of this token|
+|`symbol_`|`string`|ERC-20 symbol of this token|
+|`decimals_`|`uint8`|ERC-20 decimal precision of this token|
+
+
 ### sweepToken
 
 A public function to sweep accidental ERC-20 transfers to this contract. Tokens are sent to admin (timelock)
@@ -37,14 +60,14 @@ function sweepToken(IERC20 token, uint256 amount) external onlyAdmin;
 |Name|Type|Description|
 |----|----|-----------|
 |`token`|`IERC20`|The address of the ERC-20 token to sweep|
-|`amount`|`uint256`|The amount of tokens to sweep|
+|`amount`|`uint256`||
 
 
 ### mint
 
 Sender supplies assets into the market and receives mTokens in exchange
 
-Accrues interest whether or not the operation succeeds, unless reverted
+*Accrues interest whether or not the operation succeeds, unless reverted*
 
 
 ```solidity
@@ -63,7 +86,7 @@ function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) extern
 
 Sender redeems mTokens in exchange for the underlying asset
 
-Accrues interest whether or not the operation succeeds, unless reverted
+*Accrues interest whether or not the operation succeeds, unless reverted*
 
 
 ```solidity
@@ -80,7 +103,7 @@ function redeem(uint256 redeemTokens) external;
 
 Sender redeems mTokens in exchange for a specified amount of underlying asset
 
-Accrues interest whether or not the operation succeeds, unless reverted
+*Accrues interest whether or not the operation succeeds, unless reverted*
 
 
 ```solidity
@@ -122,12 +145,6 @@ function repay(uint256 repayAmount) external returns (uint256);
 |----|----|-----------|
 |`repayAmount`|`uint256`|The amount to repay, or type(uint256).max for the full outstanding amount|
 
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|repaymentAmount The actual amount repaid|
-
 
 ### repayBehalf
 
@@ -144,16 +161,11 @@ function repayBehalf(address borrower, uint256 repayAmount) external returns (ui
 |`borrower`|`address`|the account with the debt being payed off|
 |`repayAmount`|`uint256`|The amount to repay, or type(uint256).max for the full outstanding amount|
 
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|repaymentAmount The actual amount repaid|
-
 
 ### liquidate
 
-The sender liquidates the borrowers collateral and transfers seized assets to the liquidator
+The sender liquidates the borrowers collateral.
+The collateral seized is transferred to the liquidator.
 
 
 ```solidity
@@ -170,7 +182,7 @@ function liquidate(address borrower, uint256 repayAmount, address mTokenCollater
 
 ### addReserves
 
-The sender adds to reserves
+The sender adds to reserves.
 
 
 ```solidity
@@ -183,78 +195,11 @@ function addReserves(uint256 addAmount) external;
 |`addAmount`|`uint256`|The amount fo underlying token to add as reserves|
 
 
-### _initializeMErc20
-
-Initialize the new money market
-
-
-```solidity
-function _initializeMErc20(
-    address underlying_,
-    address operator_,
-    address interestRateModel_,
-    uint256 initialExchangeRateMantissa_,
-    string memory name_,
-    string memory symbol_,
-    uint8 decimals_
-) internal;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`underlying_`|`address`|The address of the underlying asset|
-|`operator_`|`address`|The address of the Operator|
-|`interestRateModel_`|`address`|The address of the interest rate model|
-|`initialExchangeRateMantissa_`|`uint256`|The initial exchange rate, scaled by 1e18|
-|`name_`|`string`|ERC-20 name of this token|
-|`symbol_`|`string`|ERC-20 symbol of this token|
-|`decimals_`|`uint8`|ERC-20 decimal precision of this token|
-
-
-### _doTransferIn
-
-Performs a transfer in, reverting upon failure
-
-
-```solidity
-function _doTransferIn(address from, uint256 amount) internal virtual override returns (uint256);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`from`|`address`|Sender address|
-|`amount`|`uint256`|Amount to transfer|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|Amount actually transferred to the protocol|
-
-
-### _doTransferOut
-
-Performs a transfer out to a recipient
-
-
-```solidity
-function _doTransferOut(address payable to, uint256 amount) internal virtual override;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`to`|`address payable`|Recipient address|
-|`amount`|`uint256`|Amount to transfer|
-
-
 ### _getCashPrior
 
 Gets balance of this contract in terms of the underlying
 
-This excludes the value of the current message, if any
+*This excludes the value of the current message, if any*
 
 
 ```solidity
@@ -267,10 +212,29 @@ function _getCashPrior() internal view virtual override returns (uint256);
 |`<none>`|`uint256`|The quantity of underlying tokens owned by this contract|
 
 
+### _doTransferIn
+
+*Performs a transfer in, reverting upon failure. Returns the amount actually transferred to the protocol, in case of a fee.
+This may revert due to insufficient balance or insufficient allowance.*
+
+
+```solidity
+function _doTransferIn(address from, uint256 amount) internal virtual override returns (uint256);
+```
+
+### _doTransferOut
+
+*Performs a transfer out, ideally returning an explanatory error code upon failure rather than reverting.
+If caller has not called checked protocol's balance, may revert due to insufficient cash held in the contract.
+If caller has checked protocol's balance, and verified it is >= amount, this should not revert in normal conditions.*
+
+
+```solidity
+function _doTransferOut(address payable to, uint256 amount) internal virtual override;
+```
+
 ## Errors
 ### mErc20_TokenNotValid
-Error thrown when token is not valid
-
 
 ```solidity
 error mErc20_TokenNotValid();

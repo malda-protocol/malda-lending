@@ -1,85 +1,57 @@
 # Pauser
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/pauser/Pauser.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\pauser\Pauser.sol)
 
 **Inherits:**
-Ownable, [IPauser](/src/interfaces/IPauser.sol/interface.IPauser.md)
-
-**Title:**
-Pauser
-
-**Author:**
-Merge Layers Inc.
-
-Manages pausing operations across deployed markets
+Ownable, [IPauser](/src\interfaces\IPauser.sol\interface.IPauser.md)
 
 
 ## State Variables
-### ROLES
-Roles contract reference
-
+### roles
 
 ```solidity
-IRoles public immutable ROLES
+IRoles public immutable roles;
 ```
 
 
-### OPERATOR
-Operator contract reference
-
+### operator
 
 ```solidity
-IOperator public immutable OPERATOR
+IOperator public immutable operator;
 ```
 
 
 ### pausableContracts
-List of contracts that can be paused
-
 
 ```solidity
-PausableContract[] public pausableContracts
+PausableContract[] public pausableContracts;
 ```
 
 
 ### registeredContracts
-Tracks whether a contract is registered as pausable
-
 
 ```solidity
-mapping(address _contract => bool _registered) public registeredContracts
+mapping(address _contract => bool _registered) public registeredContracts;
 ```
 
 
 ### contractTypes
-Contract type for each registered market
-
 
 ```solidity
-mapping(address _contract => PausableType _type) public contractTypes
+mapping(address _contract => PausableType _type) public contractTypes;
 ```
 
 
 ## Functions
 ### constructor
 
-Sets initial configuration for roles, operator, and owner
-
 
 ```solidity
-constructor(address _roles, address _operator, address owner_) Ownable(owner_);
+constructor(address _roles, address _operator, address _owner) Ownable(_owner);
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_roles`|`address`|Address of the roles contract|
-|`_operator`|`address`|Address of the operator contract|
-|`owner_`|`address`|Owner address of the pauser contract|
-
 
 ### addPausableMarket
 
-Add pausable contract
+add pauable contract
 
 
 ```solidity
@@ -95,7 +67,7 @@ function addPausableMarket(address _contract, PausableType _contractType) extern
 
 ### removePausableMarket
 
-Removes pausable contract
+removes pauable contract
 
 
 ```solidity
@@ -110,7 +82,7 @@ function removePausableMarket(address _contract) external onlyOwner;
 
 ### emergencyPauseMarket
 
-Pauses all operations for a market
+pauses all operations for a market
 
 
 ```solidity
@@ -125,14 +97,23 @@ function emergencyPauseMarket(address _market) external;
 
 ### emergencyPauseMarketFor
 
+pauses a specific operation for a market
+
 
 ```solidity
 function emergencyPauseMarketFor(address _market, ImTokenOperationTypes.OperationType _pauseType) external;
 ```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_market`|`address`|the mToken address|
+|`_pauseType`|`ImTokenOperationTypes.OperationType`|the operation type|
+
 
 ### emergencyPauseAll
 
-Pauses all operations for all registered markets
+pauses all operations for all registered markets
 
 
 ```solidity
@@ -141,69 +122,29 @@ function emergencyPauseAll() external;
 
 ### _pauseAllMarketOperations
 
-Pauses all market operations for a given market
-
 
 ```solidity
 function _pauseAllMarketOperations(address _market) private;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_market`|`address`|The market to pause|
-
 
 ### _pauseMarketOperation
-
-Pauses a specific market operation type
 
 
 ```solidity
 function _pauseMarketOperation(address _market, ImTokenOperationTypes.OperationType _pauseType) private;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_market`|`address`|The market to pause|
-|`_pauseType`|`ImTokenOperationTypes.OperationType`|The operation type to pause|
-
 
 ### _pause
-
-Performs pause logic depending on contract type
 
 
 ```solidity
 function _pause(address _market, ImTokenOperationTypes.OperationType _pauseType) private;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_market`|`address`|The market address to pause|
-|`_pauseType`|`ImTokenOperationTypes.OperationType`|The operation type to pause|
-
 
 ### _findIndex
-
-Finds the index of a market within the pausableContracts array
 
 
 ```solidity
 function _findIndex(address _address) private view returns (uint256);
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_address`|`address`|The market address to search for|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|index The index of the market|
-
 

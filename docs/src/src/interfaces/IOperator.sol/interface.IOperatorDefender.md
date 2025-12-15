@@ -1,13 +1,5 @@
 # IOperatorDefender
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/interfaces/IOperator.sol)
-
-**Title:**
-Operator defender interface
-
-**Author:**
-Merge Layers Inc.
-
-Hooks for Operator validation logic
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\interfaces\IOperator.sol)
 
 
 ## Functions
@@ -24,40 +16,6 @@ function beforeRebalancing(address mToken) external;
 |Name|Type|Description|
 |----|----|-----------|
 |`mToken`|`address`|The market to verify the transfer against|
-
-
-### beforeMTokenBorrow
-
-Checks if the account should be allowed to borrow the underlying asset of the given market
-
-
-```solidity
-function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`mToken`|`address`|The market to verify the borrow against|
-|`borrower`|`address`|The account which would borrow the asset|
-|`borrowAmount`|`uint256`|The amount of underlying the account would borrow|
-
-
-### checkOutflowVolumeLimit
-
-Checks if new used amount is within the limits of the outflow volume limit
-
-Sender must be a listed market
-
-
-```solidity
-function checkOutflowVolumeLimit(uint256 amount) external;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|New amount|
 
 
 ### beforeMTokenTransfer
@@ -78,13 +36,44 @@ function beforeMTokenTransfer(address mToken, address src, address dst, uint256 
 |`transferTokens`|`uint256`|The number of mTokens to transfer|
 
 
+### beforeMTokenMint
+
+Checks if the account should be allowed to mint tokens in the given market
+
+
+```solidity
+function beforeMTokenMint(address mToken, address minter) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market to verify the mint against|
+|`minter`|`address`|The account which would get the minted tokens|
+
+
+### afterMTokenMint
+
+Validates mint and reverts on rejection. May emit logs.
+
+
+```solidity
+function afterMTokenMint(address mToken) external view;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|Asset being minted|
+
+
 ### beforeMTokenRedeem
 
 Checks if the account should be allowed to redeem tokens in the given market
 
 
 ```solidity
-function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external view;
+function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemTokens) external;
 ```
 **Parameters**
 
@@ -95,13 +84,30 @@ function beforeMTokenRedeem(address mToken, address redeemer, uint256 redeemToke
 |`redeemTokens`|`uint256`|The number of mTokens to exchange for the underlying asset in the market|
 
 
+### beforeMTokenBorrow
+
+Checks if the account should be allowed to borrow the underlying asset of the given market
+
+
+```solidity
+function beforeMTokenBorrow(address mToken, address borrower, uint256 borrowAmount) external;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`mToken`|`address`|The market to verify the borrow against|
+|`borrower`|`address`|The account which would borrow the asset|
+|`borrowAmount`|`uint256`|The amount of underlying the account would borrow|
+
+
 ### beforeMTokenRepay
 
 Checks if the account should be allowed to repay a borrow in the given market
 
 
 ```solidity
-function beforeMTokenRepay(address mToken, address borrower) external view;
+function beforeMTokenRepay(address mToken, address borrower) external;
 ```
 **Parameters**
 
@@ -117,12 +123,9 @@ Checks if the liquidation should be allowed to occur
 
 
 ```solidity
-function beforeMTokenLiquidate(
-    address mTokenBorrowed,
-    address mTokenCollateral,
-    address borrower,
-    uint256 repayAmount
-) external view;
+function beforeMTokenLiquidate(address mTokenBorrowed, address mTokenCollateral, address borrower, uint256 repayAmount)
+    external
+    view;
 ```
 **Parameters**
 
@@ -140,7 +143,8 @@ Checks if the seizing of assets should be allowed to occur
 
 
 ```solidity
-function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator) external view;
+function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, address liquidator, address borrower)
+    external;
 ```
 **Parameters**
 
@@ -149,37 +153,23 @@ function beforeMTokenSeize(address mTokenCollateral, address mTokenBorrowed, add
 |`mTokenCollateral`|`address`|Asset which was used as collateral and will be seized|
 |`mTokenBorrowed`|`address`|Asset which was borrowed by the borrower|
 |`liquidator`|`address`|The address repaying the borrow and seizing the collateral|
+|`borrower`|`address`|The address of the borrower|
 
 
-### beforeMTokenMint
+### checkOutflowVolumeLimit
 
-Checks if the account should be allowed to mint tokens in the given market
+Checks if new used amount is within the limits of the outflow volume limit
+
+*Sender must be a listed market*
 
 
 ```solidity
-function beforeMTokenMint(address mToken, address minter, address receiver) external view;
+function checkOutflowVolumeLimit(uint256 amount) external;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
-|`mToken`|`address`|The market to verify the mint against|
-|`minter`|`address`|The account which would supplies the assets|
-|`receiver`|`address`|The account which would get the minted tokens|
-
-
-### afterMTokenMint
-
-Validates mint and reverts on rejection. May emit logs.
-
-
-```solidity
-function afterMTokenMint(address mToken) external view;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`mToken`|`address`|Asset being minted|
+|`amount`|`uint256`|New amount|
 
 

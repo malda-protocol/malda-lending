@@ -1,16 +1,25 @@
 # IBridge
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/interfaces/IBridge.sol)
-
-**Title:**
-IBridge
-
-**Author:**
-Merge Layers Inc.
-
-Interface for rebalancing bridge implementations
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\interfaces\IBridge.sol)
 
 
 ## Functions
+### getFee
+
+computes fee for bridge operation
+
+
+```solidity
+function getFee(uint32 _dstChainId, bytes memory _message, bytes memory _bridgeData) external view returns (uint256);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_dstChainId`|`uint32`|destination chain id|
+|`_message`|`bytes`|operation message data|
+|`_bridgeData`|`bytes`|specific bridge data|
+
+
 ### sendMsg
 
 rebalance through bridge
@@ -22,8 +31,8 @@ function sendMsg(
     address _market,
     uint32 _dstChainId,
     address _token,
-    bytes calldata _message,
-    bytes calldata _bridgeData
+    bytes memory _message,
+    bytes memory _bridgeData
 ) external payable;
 ```
 **Parameters**
@@ -36,31 +45,5 @@ function sendMsg(
 |`_token`|`address`|the token to rebalance|
 |`_message`|`bytes`|operation message data|
 |`_bridgeData`|`bytes`|specific bridge datas|
-
-
-### getFee
-
-computes fee for bridge operation
-
-
-```solidity
-function getFee(uint32 _dstChainId, bytes calldata _message, bytes calldata _bridgeData)
-    external
-    view
-    returns (uint256);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_dstChainId`|`uint32`|destination chain id|
-|`_message`|`bytes`|operation message data|
-|`_bridgeData`|`bytes`|specific bridge data|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|fee Computed bridge fee|
 
 

@@ -1,16 +1,8 @@
 # mErc20Immutable
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/mToken/mErc20Immutable.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\mToken\mErc20Immutable.sol)
 
 **Inherits:**
-[mErc20](/src/mToken/mErc20.sol/abstract.mErc20.md)
-
-**Title:**
-mErc20Immutable
-
-**Author:**
-Merge Layers Inc.
-
-Immutable mErc20 contract
+[mErc20](/src\mToken\mErc20.sol\abstract.mErc20.md)
 
 
 ## Functions
@@ -29,7 +21,7 @@ constructor(
     string memory symbol_,
     uint8 decimals_,
     address payable admin_
-) ;
+);
 ```
 **Parameters**
 
@@ -44,13 +36,4 @@ constructor(
 |`decimals_`|`uint8`|ERC-20 decimal precision of this token|
 |`admin_`|`address payable`|Address of the administrator of this token|
 
-
-## Errors
-### mErc20Immutable_AdminNotValid
-Error thrown when admin is not valid
-
-
-```solidity
-error mErc20Immutable_AdminNotValid();
-```
 

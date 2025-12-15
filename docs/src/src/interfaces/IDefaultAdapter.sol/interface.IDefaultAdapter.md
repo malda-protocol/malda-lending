@@ -1,34 +1,16 @@
 # IDefaultAdapter
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/interfaces/IDefaultAdapter.sol)
-
-**Title:**
-IDefaultAdapter
-
-**Author:**
-Merge Layers Inc.
-
-Default price adapter interface used for oracle feeds
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\interfaces\IDefaultAdapter.sol)
 
 
 ## Functions
 ### decimals
 
-Returns the decimals for the price feed
-
 
 ```solidity
 function decimals() external view returns (uint8);
 ```
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint8`|decimalsCount Number of decimals|
-
 
 ### latestRoundData
-
-Returns the latest round data from the feed
 
 
 ```solidity
@@ -37,53 +19,27 @@ function latestRoundData()
     view
     returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
 ```
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`roundId`|`uint80`|Round identifier|
-|`answer`|`int256`|Feed answer|
-|`startedAt`|`uint256`|Round start timestamp|
-|`updatedAt`|`uint256`|Round update timestamp|
-|`answeredInRound`|`uint80`|The round in which the answer was computed|
-
 
 ### latestAnswer
-
-Returns the latest answer
 
 
 ```solidity
 function latestAnswer() external view returns (int256);
 ```
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`int256`|answer Latest feed answer|
-
 
 ### latestTimestamp
-
-Returns the latest timestamp
 
 
 ```solidity
 function latestTimestamp() external view returns (uint256);
 ```
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|timestamp Latest update timestamp|
-
 
 ## Structs
 ### PriceConfig
 
 ```solidity
 struct PriceConfig {
-    address defaultFeed; // chainlink & eOracle
+    address defaultFeed;
     string toSymbol;
     uint256 underlyingDecimals;
 }

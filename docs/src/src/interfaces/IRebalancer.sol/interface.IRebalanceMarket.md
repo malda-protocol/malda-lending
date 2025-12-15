@@ -1,28 +1,12 @@
 # IRebalanceMarket
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/interfaces/IRebalancer.sol)
-
-**Title:**
-IRebalanceMarket
-
-**Author:**
-Merge Layers Inc.
-
-Interface for markets supporting rebalancing extractions
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\interfaces\IRebalancer.sol)
 
 
 ## Functions
 ### extractForRebalancing
 
-Extract amount to be used for rebalancing
-
 
 ```solidity
 function extractForRebalancing(uint256 amount) external;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|Amount to extract|
-
 

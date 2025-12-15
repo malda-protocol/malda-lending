@@ -1,29 +1,19 @@
 # mErc20Upgradable
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/mToken/mErc20Upgradable.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\mToken\mErc20Upgradable.sol)
 
 **Inherits:**
-[mErc20](/src/mToken/mErc20.sol/abstract.mErc20.md), Initializable
-
-**Title:**
-Upgradable mErc20
-
-**Author:**
-Merge Layers Inc.
-
-Upgradable flavor of mErc20 with initializer support
+[mErc20](/src\mToken\mErc20.sol\abstract.mErc20.md), Initializable
 
 
 ## Functions
 ### constructor
-
-Disables initializers on deployment
 
 **Note:**
 oz-upgrades-unsafe-allow: constructor
 
 
 ```solidity
-constructor() ;
+constructor();
 ```
 
 ### _proxyInitialize
@@ -54,15 +44,6 @@ function _proxyInitialize(
 |`name_`|`string`|ERC-20 name of this token|
 |`symbol_`|`string`|ERC-20 symbol of this token|
 |`decimals_`|`uint8`|ERC-20 decimal precision of this token|
-|`admin_`|`address payable`|Address of the administrator|
+|`admin_`|`address payable`||
 
-
-## Errors
-### mErc20Upgradable_AdminNotValid
-Error thrown when the admin is not valid
-
-
-```solidity
-error mErc20Upgradable_AdminNotValid();
-```
 

@@ -1,80 +1,57 @@
 # ExponentialNoError
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/utils/ExponentialNoError.sol)
-
-**Title:**
-Exponential module for storing fixed-precision decimals
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\utils\ExponentialNoError.sol)
 
 **Author:**
 Compound
 
 Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
-Thus, if we wanted to store the 5.1, mantissa would store 5.1e18.
-That is: `Exp({mantissa: 5100000000000000000})`.
+Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
+`Exp({mantissa: 5100000000000000000})`.
 
 
 ## State Variables
-### EXP_SCALE
-Scale factor for exponential calculations
-
+### expScale
 
 ```solidity
-uint256 internal constant EXP_SCALE = 1e18
+uint256 constant expScale = 1e18;
 ```
 
 
-### DOUBLE_SCALE
-Scale factor for double precision calculations
-
+### doubleScale
 
 ```solidity
-uint256 internal constant DOUBLE_SCALE = 1e36
+uint256 constant doubleScale = 1e36;
 ```
 
 
-### HALF_EXP_SCALE
-Half of the scale factor for exponential calculations
-
+### halfExpScale
 
 ```solidity
-uint256 internal constant HALF_EXP_SCALE = EXP_SCALE / 2
+uint256 constant halfExpScale = expScale / 2;
 ```
 
 
-### MANTISSA_ONE
-Mantissa value for one
-
+### mantissaOne
 
 ```solidity
-uint256 internal constant MANTISSA_ONE = EXP_SCALE
+uint256 constant mantissaOne = expScale;
 ```
 
 
 ## Functions
 ### truncate
 
-Truncates the given exp to a whole number value.
-For example, truncate(Exp{mantissa: 15 * EXP_SCALE}) = 15
+*Truncates the given exp to a whole number value.
+For example, truncate(Exp{mantissa: 15 * expScale}) = 15*
 
 
 ```solidity
 function truncate(Exp memory exp) internal pure returns (uint256);
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`exp`|`Exp`|The exp to truncate.|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|The truncated value.|
-
 
 ### mul_ScalarTruncate
 
-Multiply an Exp by a scalar, then truncate to return an unsigned integer.
+*Multiply an Exp by a scalar, then truncate to return an unsigned integer.*
 
 
 ```solidity
@@ -83,7 +60,7 @@ function mul_ScalarTruncate(Exp memory a, uint256 scalar) internal pure returns 
 
 ### mul_ScalarTruncateAddUInt
 
-Multiply an Exp by a scalar, truncate, then add an to an unsigned integer, returning an unsigned integer.
+*Multiply an Exp by a scalar, truncate, then add an to an unsigned integer, returning an unsigned integer.*
 
 
 ```solidity
@@ -92,7 +69,7 @@ function mul_ScalarTruncateAddUInt(Exp memory a, uint256 scalar, uint256 addend)
 
 ### lessThanExp
 
-Checks if first Exp is less than second Exp.
+*Checks if first Exp is less than second Exp.*
 
 
 ```solidity
@@ -101,7 +78,7 @@ function lessThanExp(Exp memory left, Exp memory right) internal pure returns (b
 
 ### lessThanOrEqualExp
 
-Checks if left Exp <= right Exp.
+*Checks if left Exp <= right Exp.*
 
 
 ```solidity
@@ -110,7 +87,7 @@ function lessThanOrEqualExp(Exp memory left, Exp memory right) internal pure ret
 
 ### greaterThanExp
 
-Checks if left Exp > right Exp.
+*Checks if left Exp > right Exp.*
 
 
 ```solidity
@@ -119,7 +96,7 @@ function greaterThanExp(Exp memory left, Exp memory right) internal pure returns
 
 ### isZeroExp
 
-returns true if Exp is exactly zero
+*returns true if Exp is exactly zero*
 
 
 ```solidity
@@ -278,20 +255,6 @@ function div_(uint256 a, Double memory b) internal pure returns (uint256);
 
 ```solidity
 function div_(uint256 a, uint256 b) internal pure returns (uint256);
-```
-
-### divUp_
-
-
-```solidity
-function divUp_(uint256 a, uint256 b) internal pure returns (uint256);
-```
-
-### divUp_
-
-
-```solidity
-function divUp_(uint256 a, Exp memory b) internal pure returns (uint256);
 ```
 
 ### fraction

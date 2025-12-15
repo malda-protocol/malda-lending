@@ -1,4 +1,4 @@
 
 
 # Contents
-- [RewardDistributor](RewardDistributor.sol/contract.RewardDistributor.md)
+- [RewardDistributor](RewardDistributor.sol\contract.RewardDistributor.md)

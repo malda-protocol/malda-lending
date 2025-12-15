@@ -1,188 +1,108 @@
 # Blacklister
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/blacklister/Blacklister.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\blacklister\Blacklister.sol)
 
 **Inherits:**
-OwnableUpgradeable, [IBlacklister](/src/interfaces/IBlacklister.sol/interface.IBlacklister.md)
-
-**Title:**
-Blacklister
-
-**Author:**
-Merge Layers Inc.
-
-Contract for managing blacklisted addresses
+OwnableUpgradeable, [IBlacklister](/src\interfaces\IBlacklister.sol\interface.IBlacklister.md)
 
 
 ## State Variables
 ### isBlacklisted
-Mapping of addresses to their blacklist status
-
 
 ```solidity
-mapping(address user => bool isBlacklisted) public isBlacklisted
+mapping(address => bool) public isBlacklisted;
 ```
 
 
 ### _blacklistedList
-List of blacklisted addresses
-
 
 ```solidity
-address[] private _blacklistedList
+address[] private _blacklistedList;
 ```
 
 
 ### rolesOperator
-The roles operator contract
-
 
 ```solidity
-IRoles public rolesOperator
+IRoles public rolesOperator;
 ```
 
 
 ## Functions
-### onlyOwnerOrGuardian
-
-Modifier to restrict access to owner or has guardian blacklist role
-
-
-```solidity
-modifier onlyOwnerOrGuardian() ;
-```
-
 ### constructor
-
-Disables initializers on implementation contract
 
 **Note:**
 oz-upgrades-unsafe-allow: constructor
 
 
 ```solidity
-constructor() ;
+constructor();
 ```
 
 ### initialize
-
-Initialize the contract
 
 
 ```solidity
 function initialize(address payable _owner, address _roles) external initializer;
 ```
-**Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`_owner`|`address payable`|The owner address|
-|`_roles`|`address`|The roles contract address|
-
-
-### blacklist
-
-Blacklists a user immediately (onlyOwner).
+### onlyOwnerOrGuardian
 
 
 ```solidity
-function blacklist(address user) external override onlyOwnerOrGuardian;
+modifier onlyOwnerOrGuardian();
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The address to blacklist|
-
-
-### unblacklist
-
-Removes a user from the blacklist (onlyOwner).
-
-
-```solidity
-function unblacklist(address user) external override onlyOwnerOrGuardian;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The address to unblacklist|
-
-
-### unblacklist
-
-Removes a user from the blacklist (onlyOwner).
-
-
-```solidity
-function unblacklist(address user, uint256 index) external override onlyOwnerOrGuardian;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The address to unblacklist|
-|`index`|`uint256`|The index of the user in blacklist array|
-
 
 ### getBlacklistedAddresses
-
-Returns the list of currently blacklisted addresses.
 
 
 ```solidity
 function getBlacklistedAddresses() external view returns (address[] memory);
 ```
-**Returns**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`address[]`|blacklistedAddresses Array of blacklisted addresses|
+### blacklist
 
+
+```solidity
+function blacklist(address user) external override onlyOwnerOrGuardian;
+```
+
+### unblacklist
+
+
+```solidity
+function unblacklist(address user) external override onlyOwnerOrGuardian;
+```
 
 ### _addToBlacklist
-
-Internal function to add an address to blacklist
 
 
 ```solidity
 function _addToBlacklist(address user) internal;
 ```
-**Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The address to blacklist|
-
-
-### _removeFromBlacklist
-
-Internal function to remove an address from blacklist list
+### _removeFromBlacklistList
 
 
 ```solidity
-function _removeFromBlacklist(address user) internal;
+function _removeFromBlacklistList(address user) internal;
 ```
-**Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The address to remove|
-
-
-### _removeFromBlacklist
-
-Internal function to remove an address from blacklist list by index
-
+## Errors
+### Blacklister_AlreadyBlacklisted
 
 ```solidity
-function _removeFromBlacklist(address user, uint256 index) internal;
+error Blacklister_AlreadyBlacklisted();
 ```
-**Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The address to remove|
-|`index`|`uint256`|The index in the blacklist array|
+### Blacklister_NotBlacklisted
 
+```solidity
+error Blacklister_NotBlacklisted();
+```
+
+### Blacklister_NotAllowed
+
+```solidity
+error Blacklister_NotAllowed();
+```
 

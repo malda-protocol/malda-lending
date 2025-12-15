@@ -1,4 +1,4 @@
 
 
 # Contents
-- [Pauser](Pauser.sol/contract.Pauser.md)
+- [Pauser](Pauser.sol\contract.Pauser.md)

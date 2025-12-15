@@ -1,14 +1,11 @@
 # ILayerZeroOFT
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\interfaces\external\layerzero\v2\ILayerZeroOFT.sol)
 
-**Title:**
-IOFT
+*Interface for the OftChain (OFT) token.*
 
-Interface for the OftChain (OFT) token.
+*Does not inherit ERC20 to accommodate usage by OFTAdapter as well.*
 
-Does not inherit ERC20 to accommodate usage by OFTAdapter as well.
-
-This specific interface ID is '0x02e49c2c'.
+*This specific interface ID is '0x02e49c2c'.*
 
 
 ## Functions
@@ -16,12 +13,12 @@ This specific interface ID is '0x02e49c2c'.
 
 Retrieves interfaceID and the version of the OFT.
 
-interfaceId: This specific interface ID is '0x02e49c2c'.
+*interfaceId: This specific interface ID is '0x02e49c2c'.*
 
-version: Indicates a cross-chain compatible msg encoding with other OFTs.
+*version: Indicates a cross-chain compatible msg encoding with other OFTs.*
 
-If a new feature is added to the OFT cross-chain msg encoding, the version will be incremented.
-ie. localOFT version(x,1) CAN send messages to remoteOFT version(x,1)
+*If a new feature is added to the OFT cross-chain msg encoding, the version will be incremented.
+ie. localOFT version(x,1) CAN send messages to remoteOFT version(x,1)*
 
 
 ```solidity
@@ -54,8 +51,8 @@ function token() external view returns (address);
 
 Indicates whether the OFT contract requires approval of the 'token()' to send.
 
-Allows things like wallet implementers to determine integration requirements,
-without understanding the underlying token implementation.
+*Allows things like wallet implementers to determine integration requirements,
+without understanding the underlying token implementation.*
 
 
 ```solidity
@@ -113,9 +110,9 @@ function quoteOFT(SendParam calldata _sendParam)
 
 Provides a quote for the send() operation.
 
-MessagingFee: LayerZero msg fee
+*MessagingFee: LayerZero msg fee
 - nativeFee: The native fee.
-- lzTokenFee: The lzToken fee.
+- lzTokenFee: The lzToken fee.*
 
 
 ```solidity
@@ -139,10 +136,10 @@ function quoteSend(SendParam calldata _sendParam, bool _payInLzToken) external v
 
 Executes the send() operation.
 
-MessagingReceipt: LayerZero msg receipt
+*MessagingReceipt: LayerZero msg receipt
 - guid: The unique identifier for the sent message.
 - nonce: The nonce of the sent message.
-- fee: The LayerZero fee incurred for the message.
+- fee: The LayerZero fee incurred for the message.*
 
 
 ```solidity
@@ -171,31 +168,15 @@ function send(SendParam calldata _sendParam, MessagingFee calldata _fee, address
 ### OFTSent
 
 ```solidity
-event OFTSent( // GUID of the OFT message.
-    // Destination Endpoint ID.
-    // Address of the sender on the src chain.
-    // Amount of tokens sent in local decimals.
-    // Amount of tokens received in local decimals.
-    bytes32 indexed guid,
-    uint32 dstEid,
-    address indexed fromAddress,
-    uint256 amountSentLD,
-    uint256 amountReceivedLD
+event OFTSent(
+    bytes32 indexed guid, uint32 dstEid, address indexed fromAddress, uint256 amountSentLD, uint256 amountReceivedLD
 );
 ```
 
 ### OFTReceived
 
 ```solidity
-event OFTReceived( // GUID of the OFT message.
-    // Source Endpoint ID.
-    // Address of the recipient on the dst chain.
-    // Amount of tokens received in local decimals.
-    bytes32 indexed guid,
-    uint32 srcEid,
-    address indexed toAddress,
-    uint256 amountReceivedLD
-);
+event OFTReceived(bytes32 indexed guid, uint32 srcEid, address indexed toAddress, uint256 amountReceivedLD);
 ```
 
 ## Errors

@@ -1,5 +1,5 @@
 # IAcrossSpokePoolV3
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/interfaces/external/across/IAcrossSpokePoolV3.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\interfaces\external\across\IAcrossSpokePoolV3.sol)
 
 
 ## Functions
@@ -283,29 +283,17 @@ STRUCTS               *
 
 ```solidity
 struct V3RelayData {
-    // The address that made the deposit on the origin chain.
     address depositor;
-    // The recipient address on the destination chain.
     address recipient;
-    // This is the exclusive relayer who can fill the deposit before the exclusivity deadline.
     address exclusiveRelayer;
-    // Token that is deposited on origin chain by depositor.
     address inputToken;
-    // Token that is received on destination chain by recipient.
     address outputToken;
-    // The amount of input token deposited by depositor.
     uint256 inputAmount;
-    // The amount of output token to be received by recipient.
     uint256 outputAmount;
-    // Origin chain id.
     uint256 originChainId;
-    // The id uniquely identifying this deposit on the origin chain.
     uint32 depositId;
-    // The timestamp on the destination chain after which this deposit can no longer be filled.
     uint32 fillDeadline;
-    // The timestamp on the destination chain after which any relayer can fill the deposit.
     uint32 exclusivityDeadline;
-    // Data that is forwarded to the recipient.
     bytes message;
 }
 ```
@@ -362,11 +350,7 @@ enum FillStatus {
 ```solidity
 enum FillType {
     FastFill,
-    // Fast fills are normal fills that do not replace a slow fill request.
     ReplacedSlowFill,
-    // Replaced slow fills are fast fills that replace a slow fill request. This type is used by the Dataworker
-    // to know when to send excess funds from the SpokePool to the HubPool because they can no longer be used
-    // for a slow fill execution.
     SlowFill
 }
 ```

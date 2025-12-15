@@ -1,16 +1,83 @@
 # ImTokenGateway
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/interfaces/ImTokenGateway.sol)
-
-**Title:**
-ImTokenGateway
-
-**Author:**
-Merge Layers Inc.
-
-Gateway interface for cross-chain mToken operations
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\interfaces\ImTokenGateway.sol)
 
 
 ## Functions
+### rolesOperator
+
+Roles
+
+
+```solidity
+function rolesOperator() external view returns (IRoles);
+```
+
+### blacklistOperator
+
+Blacklist
+
+
+```solidity
+function blacklistOperator() external view returns (IBlacklister);
+```
+
+### underlying
+
+Returns the address of the underlying token
+
+
+```solidity
+function underlying() external view returns (address);
+```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`address`|The address of the underlying token|
+
+
+### isPaused
+
+returns pause state for operation
+
+
+```solidity
+function isPaused(ImTokenOperationTypes.OperationType _type) external view returns (bool);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_type`|`ImTokenOperationTypes.OperationType`|the operation type|
+
+
+### accAmountIn
+
+Returns accumulated amount in per user
+
+
+```solidity
+function accAmountIn(address user) external view returns (uint256);
+```
+
+### accAmountOut
+
+Returns accumulated amount out per user
+
+
+```solidity
+function accAmountOut(address user) external view returns (uint256);
+```
+
+### getProofData
+
+Returns the proof data journal
+
+
+```solidity
+function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
+```
+
 ### extractForRebalancing
 
 Extract amount to be used for rebalancing operation
@@ -75,26 +142,6 @@ function supplyOnHost(uint256 amount, address receiver, bytes4 lineaSelector) ex
 |`lineaSelector`|`bytes4`|The method selector to be called on Linea by our relayer. If empty, user has to submit it|
 
 
-### liquidate
-
-Liquidate a user
-
-
-```solidity
-function liquidate(address userToLiquidate, uint256 liquidateAmount, address collateral, address receiver)
-    external
-    payable;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`userToLiquidate`|`address`|The user to liquidate|
-|`liquidateAmount`|`uint256`|The amount to liquidate|
-|`collateral`|`address`|The collateral address|
-|`receiver`|`address`|The receiver address|
-
-
 ### outHere
 
 Extract tokens
@@ -114,152 +161,6 @@ function outHere(bytes calldata journalData, bytes calldata seal, uint256[] memo
 |`receiver`|`address`|The receiver address|
 
 
-### rolesOperator
-
-Roles
-
-
-```solidity
-function rolesOperator() external view returns (IRoles roles);
-```
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`roles`|`IRoles`|Roles operator contract|
-
-
-### blacklistOperator
-
-Blacklist operator
-
-
-```solidity
-function blacklistOperator() external view returns (IBlacklister blacklister);
-```
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`blacklister`|`IBlacklister`|Blacklister contract|
-
-
-### underlying
-
-Returns the address of the underlying token
-
-
-```solidity
-function underlying() external view returns (address underlyingToken);
-```
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`underlyingToken`|`address`|The address of the underlying token|
-
-
-### isPaused
-
-Returns pause state for operation
-
-
-```solidity
-function isPaused(ImTokenOperationTypes.OperationType _type) external view returns (bool paused);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_type`|`ImTokenOperationTypes.OperationType`|The operation type|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`paused`|`bool`|True if paused|
-
-
-### accAmountIn
-
-Returns accumulated amount in per user
-
-
-```solidity
-function accAmountIn(address user) external view returns (uint256 amountIn);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|User address|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amountIn`|`uint256`|Accumulated amount in|
-
-
-### accAmountOut
-
-Returns accumulated amount out per user
-
-
-```solidity
-function accAmountOut(address user) external view returns (uint256 amountOut);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|User address|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amountOut`|`uint256`|Accumulated amount out|
-
-
-### getProofData
-
-Returns the proof data journal
-
-
-```solidity
-function getProofData(address user, uint32 dstId) external view returns (uint256 dataRoot, uint256 journalHash);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|User address|
-|`dstId`|`uint32`|Destination chain identifier|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`dataRoot`|`uint256`|The proof data root|
-|`journalHash`|`uint256`|The proof journal hash|
-
-
-### gasFee
-
-Returns the gas fee for Linea
-
-
-```solidity
-function gasFee() external view returns (uint256 fee);
-```
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`fee`|`uint256`|Gas fee amount|
-
-
 ## Events
 ### AllowedCallerUpdated
 Emitted when a user updates allowed callers
@@ -268,14 +169,6 @@ Emitted when a user updates allowed callers
 ```solidity
 event AllowedCallerUpdated(address indexed sender, address indexed caller, bool status);
 ```
-
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`sender`|`address`|The caller updating permissions|
-|`caller`|`address`|The address whose status is updated|
-|`status`|`bool`|Whether the caller is allowed|
 
 ### mTokenGateway_Supplied
 Emitted when a supply operation is initiated
@@ -294,47 +187,6 @@ event mTokenGateway_Supplied(
 );
 ```
 
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`from`|`address`|Sender on source chain|
-|`receiver`|`address`|Receiver on destination|
-|`accAmountIn`|`uint256`|Accumulated amount in|
-|`accAmountOut`|`uint256`|Accumulated amount out|
-|`amount`|`uint256`|Supplied amount|
-|`srcChainId`|`uint32`|Source chain ID|
-|`dstChainId`|`uint32`|Destination chain ID|
-|`lineaMethodSelector`|`bytes4`|Linea method selector|
-
-### mTokenGateway_Liquidate
-Emitted when a liquidate operation is initiated
-
-
-```solidity
-event mTokenGateway_Liquidate(
-    address indexed from,
-    address indexed receiver,
-    uint256 amount,
-    uint32 srcChainId,
-    uint32 dstChainId,
-    address userToLiquidate,
-    address collateral
-);
-```
-
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`from`|`address`|Sender on source chain|
-|`receiver`|`address`|Receiver of seized collateral|
-|`amount`|`uint256`|Liquidation amount|
-|`srcChainId`|`uint32`|Source chain ID|
-|`dstChainId`|`uint32`|Destination chain ID|
-|`userToLiquidate`|`address`|User being liquidated|
-|`collateral`|`address`|Collateral market address|
-
 ### mTokenGateway_Extracted
 Emitted when an extract was finalized
 
@@ -351,19 +203,6 @@ event mTokenGateway_Extracted(
     uint32 dstChainId
 );
 ```
-
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`msgSender`|`address`|Sender on host chain|
-|`srcSender`|`address`|Sender on source chain|
-|`receiver`|`address`|Receiver of funds|
-|`accAmountIn`|`uint256`|Accumulated amount in|
-|`accAmountOut`|`uint256`|Accumulated amount out|
-|`amount`|`uint256`|Amount extracted|
-|`srcChainId`|`uint32`|Source chain ID|
-|`dstChainId`|`uint32`|Destination chain ID|
 
 ### mTokenGateway_Skipped
 Emitted when a proof was skipped
@@ -382,19 +221,6 @@ event mTokenGateway_Skipped(
 );
 ```
 
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`msgSender`|`address`|Sender on host chain|
-|`srcSender`|`address`|Sender on source chain|
-|`receiver`|`address`|Receiver of funds|
-|`accAmountIn`|`uint256`|Accumulated amount in|
-|`accAmountOut`|`uint256`|Accumulated amount out|
-|`amount`|`uint256`|Amount skipped|
-|`srcChainId`|`uint32`|Source chain ID|
-|`dstChainId`|`uint32`|Destination chain ID|
-
 ### mTokenGateway_GasFeeUpdated
 Emitted when the gas fee is updated
 
@@ -403,68 +229,31 @@ Emitted when the gas fee is updated
 event mTokenGateway_GasFeeUpdated(uint256 amount);
 ```
 
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|New gas fee amount|
-
 ### mTokenGateway_PausedState
-Emitted when pause state changes
-
 
 ```solidity
 event mTokenGateway_PausedState(ImTokenOperationTypes.OperationType indexed _type, bool _status);
 ```
 
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_type`|`ImTokenOperationTypes.OperationType`|Operation type paused/unpaused|
-|`_status`|`bool`|Pause status|
-
 ### ZkVerifierUpdated
-Emitted when zk verifier is updated
-
 
 ```solidity
 event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
 ```
 
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`oldVerifier`|`address`|Previous verifier|
-|`newVerifier`|`address`|New verifier|
-
 ### mTokenGateway_UserWhitelisted
-Emitted when user whitelist status changes
-
 
 ```solidity
 event mTokenGateway_UserWhitelisted(address indexed user, bool status);
 ```
 
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|User address|
-|`status`|`bool`|Whitelist status|
-
 ### mTokenGateway_WhitelistEnabled
-Emitted when whitelist is enabled
-
 
 ```solidity
 event mTokenGateway_WhitelistEnabled();
 ```
 
 ### mTokenGateway_WhitelistDisabled
-Emitted when whitelist is disabled
-
 
 ```solidity
 event mTokenGateway_WhitelistDisabled();

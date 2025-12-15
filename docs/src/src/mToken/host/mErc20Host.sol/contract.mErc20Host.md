@@ -1,88 +1,59 @@
 # mErc20Host
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/mToken/host/mErc20Host.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\mToken\host\mErc20Host.sol)
 
 **Inherits:**
-[mErc20Upgradable](/src/mToken/mErc20Upgradable.sol/abstract.mErc20Upgradable.md), [ImErc20Host](/src/interfaces/ImErc20Host.sol/interface.ImErc20Host.md), [ImTokenOperationTypes](/src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.md)
-
-**Title:**
-mErc20Host
-
-**Author:**
-Merge Layers Inc.
-
-Host contract for mErc20 tokens
+[mErc20Upgradable](/src\mToken\mErc20Upgradable.sol\abstract.mErc20Upgradable.md), [ImErc20Host](/src\interfaces\ImErc20Host.sol\interface.ImErc20Host.md), [ImTokenOperationTypes](/src\interfaces\ImToken.sol\interface.ImTokenOperationTypes.md)
 
 
 ## State Variables
-### acc
-Mapping of chain IDs to accumulated amounts
-
+### migrator
 
 ```solidity
-mapping(uint32 chainId => Accumulated accumulated) internal acc
+address public migrator;
+```
+
+
+### acc
+
+```solidity
+mapping(uint32 => Accumulated) internal acc;
 ```
 
 
 ### allowedCallers
-Mapping of allowed callers
-
 
 ```solidity
-mapping(address caller => mapping(address target => bool allowed)) public allowedCallers
+mapping(address => mapping(address => bool)) public allowedCallers;
 ```
 
 
 ### allowedChains
-Mapping of allowed chains
-
 
 ```solidity
-mapping(uint32 chainId => bool allowed) public allowedChains
+mapping(uint32 => bool) public allowedChains;
 ```
 
 
 ### verifier
-The ZkVerifier contract
-
 
 ```solidity
-IZkVerifier public verifier
+IZkVerifier public verifier;
 ```
 
 
 ### gasHelper
-The gas fees helper contract
-
 
 ```solidity
-IGasFeesHelper public gasHelper
-```
-
-
-### migrator
-Migrator address
-
-
-```solidity
-address public migrator
-```
-
-
-### __gap
-
-```solidity
-uint256[50] private __gap
+IGasFeesHelper public gasHelper;
 ```
 
 
 ## Functions
 ### onlyMigrator
 
-Modifier to restrict access to migrator only
-
 
 ```solidity
-modifier onlyMigrator() ;
+modifier onlyMigrator();
 ```
 
 ### initialize
@@ -96,7 +67,6 @@ function initialize(
     address operator_,
     address interestRateModel_,
     uint256 initialExchangeRateMantissa_,
-    // note: these have to remain as 'memory' to avoid stack-depth issues
     string memory name_,
     string memory symbol_,
     uint8 decimals_,
@@ -118,8 +88,17 @@ function initialize(
 |`decimals_`|`uint8`|ERC-20 decimal precision of this token|
 |`admin_`|`address payable`|Address of the administrator of this token|
 |`zkVerifier_`|`address`|The IZkVerifier address|
-|`roles_`|`address`|The IRoles address|
+|`roles_`|`address`||
 
+
+### getProofData
+
+Returns the proof data journal
+
+
+```solidity
+function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
+```
 
 ### updateAllowedChain
 
@@ -127,14 +106,14 @@ Updates an allowed chain status
 
 
 ```solidity
-function updateAllowedChain(uint32 _chainId, bool status_) external;
+function updateAllowedChain(uint32 _chainId, bool _status) external;
 ```
 **Parameters**
 
 |Name|Type|Description|
 |----|----|-----------|
 |`_chainId`|`uint32`|the chain id|
-|`status_`|`bool`|the new status|
+|`_status`|`bool`|the new status|
 
 
 ### extractForRebalancing
@@ -326,7 +305,7 @@ Mints mTokens during migration without requiring underlying transfer
 
 
 ```solidity
-function mintOrBorrowMigration(bool isMint, uint256 amount, address receiver, address borrower, uint256 minAmount)
+function mintOrBorrowMigration(bool mint, uint256 amount, address receiver, address borrower, uint256 minAmount)
     external
     onlyMigrator;
 ```
@@ -334,39 +313,98 @@ function mintOrBorrowMigration(bool isMint, uint256 amount, address receiver, ad
 
 |Name|Type|Description|
 |----|----|-----------|
-|`isMint`|`bool`||
+|`mint`|`bool`|Mint or borrow|
 |`amount`|`uint256`|The amount of underlying to be accounted for|
 |`receiver`|`address`|The address that will receive the mTokens or the underlying in case of borrowing|
 |`borrower`|`address`|The address that borrow is executed for|
 |`minAmount`|`uint256`|The min amount of underlying to be accounted for|
 
 
-### getProofData
-
-Returns the proof data journal
+### _onlyAdminOrRole
 
 
 ```solidity
-function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
+function _onlyAdminOrRole(bytes32 _role) internal view;
 ```
-**Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`user`|`address`|The user address for the proof|
-|`dstId`|`uint32`|The destination chain identifier|
+### _decodeJournals
 
-**Returns**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|dataRoot The proof data root|
-|`<none>`|`uint256`|journalHash The proof journal hash|
+```solidity
+function _decodeJournals(bytes calldata data) internal pure returns (bytes[] memory);
+```
 
+### _checkOutflow
+
+
+```solidity
+function _checkOutflow(uint256 amount) internal;
+```
+
+### _checkProofCall
+
+
+```solidity
+function _checkProofCall(uint32 dstChainId, uint32 chainId, address market, address sender) internal view;
+```
+
+### _checkSender
+
+
+```solidity
+function _checkSender(address msgSender, address srcSender) internal view;
+```
+
+### _getGasFees
+
+
+```solidity
+function _getGasFees(uint32 dstChain) internal view returns (uint256);
+```
+
+### _isAllowedFor
+
+
+```solidity
+function _isAllowedFor(address _sender, bytes32 role) internal view returns (bool);
+```
+
+### _getChainsManagerRole
+
+
+```solidity
+function _getChainsManagerRole() internal view returns (bytes32);
+```
+
+### _getProofForwarderRole
+
+
+```solidity
+function _getProofForwarderRole() internal view returns (bytes32);
+```
+
+### _getBatchProofForwarderRole
+
+
+```solidity
+function _getBatchProofForwarderRole() internal view returns (bytes32);
+```
+
+### _getSequencerRole
+
+
+```solidity
+function _getSequencerRole() internal view returns (bytes32);
+```
+
+### _verifyProof
+
+
+```solidity
+function _verifyProof(bytes calldata journalData, bytes calldata seal) internal view;
+```
 
 ### _liquidateExternal
-
-Processes a single liquidateExternal call from decoded journal
 
 
 ```solidity
@@ -378,229 +416,29 @@ function _liquidateExternal(
     address receiver
 ) internal;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`singleJournal`|`bytes`|Encoded journal entry|
-|`userToLiquidate`|`address`|Account to be liquidated|
-|`liquidateAmount`|`uint256`|Amount to liquidate|
-|`collateral`|`address`|Collateral address to seize|
-|`receiver`|`address`|Receiver of seized collateral|
-
 
 ### _mintExternal
-
-Processes a single mintExternal call from decoded journal
 
 
 ```solidity
 function _mintExternal(bytes memory singleJournal, uint256 mintAmount, uint256 minAmountOut, address receiver)
     internal;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`singleJournal`|`bytes`|Encoded journal entry|
-|`mintAmount`|`uint256`|Amount to mint|
-|`minAmountOut`|`uint256`|Minimum amount out allowed|
-|`receiver`|`address`|Receiver address|
-
 
 ### _repayExternal
-
-Processes a single repayExternal call from decoded journal
 
 
 ```solidity
 function _repayExternal(bytes memory singleJournal, uint256 repayAmount, address receiver) internal;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`singleJournal`|`bytes`|Encoded journal entry|
-|`repayAmount`|`uint256`|Amount to repay|
-|`receiver`|`address`|Receiver address|
-
-
-### _checkOutflow
-
-Validates outflow limits via defender
-
-
-```solidity
-function _checkOutflow(uint256 amount) internal;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|Amount to check|
-
-
-### _onlyAdminOrRole
-
-Ensures caller is admin or has specific role
-
-
-```solidity
-function _onlyAdminOrRole(bytes32 _role) internal view;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_role`|`bytes32`|Role identifier to check|
-
-
-### _checkJournalData
-
-Performs basic proof call checks
-
-
-```solidity
-function _checkJournalData(uint32 dstChainId, uint32 chainId, address market, address sender) internal view;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`dstChainId`|`uint32`|Destination chain id|
-|`chainId`|`uint32`|Source chain id|
-|`market`|`address`|Market address encoded in proof|
-|`sender`|`address`|Sender extracted from proof|
-
-
-### _isAllowedFor
-
-Checks if sender has specified role
-
-
-```solidity
-function _isAllowedFor(address _sender, bytes32 role) internal view returns (bool);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_sender`|`address`|Address to check|
-|`role`|`bytes32`|Role identifier|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`bool`|True if allowed|
-
-
-### _getChainsManagerRole
-
-Retrieves chains manager role id
-
-
-```solidity
-function _getChainsManagerRole() internal view returns (bytes32);
-```
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`bytes32`|Role identifier|
-
-
-### _getProofForwarderRole
-
-Retrieves proof forwarder role id
-
-
-```solidity
-function _getProofForwarderRole() internal view returns (bytes32);
-```
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`bytes32`|Role identifier|
-
-
-### _getBatchProofForwarderRole
-
-Retrieves batch proof forwarder role id
-
-
-```solidity
-function _getBatchProofForwarderRole() internal view returns (bytes32);
-```
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`bytes32`|Role identifier|
-
-
-### _getSequencerRole
-
-Retrieves sequencer role id
-
-
-```solidity
-function _getSequencerRole() internal view returns (bytes32);
-```
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`bytes32`|Role identifier|
-
-
-### _verifyProof
-
-Verifies proof data and checks inclusion constraints
-
-
-```solidity
-function _verifyProof(bytes calldata journalData, bytes calldata seal) internal view;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`journalData`|`bytes`|Encoded journal data|
-|`seal`|`bytes`|Zk proof seal|
-
-
-### _decodeJournals
-
-Decodes encoded journals data
-
-
-```solidity
-function _decodeJournals(bytes calldata data) internal pure returns (bytes[] memory);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`data`|`bytes`|Encoded journal data|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`bytes[]`|Decoded journals array|
-
 
 ## Structs
 ### Accumulated
-Struct for accumulated amounts per chain
-
 
 ```solidity
 struct Accumulated {
-    mapping(address chain => uint256 amount) inPerChain;
-    mapping(address chain => uint256 amount) outPerChain;
+    mapping(address => uint256) inPerChain;
+    mapping(address => uint256) outPerChain;
 }
 ```
 

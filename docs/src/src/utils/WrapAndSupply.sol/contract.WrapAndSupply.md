@@ -1,40 +1,22 @@
 # WrapAndSupply
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/utils/WrapAndSupply.sol)
-
-**Title:**
-WrapAndSupply
-
-**Author:**
-Malda Protocol
-
-Wraps native coins and supplies to host or extension markets in a single call.
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\utils\WrapAndSupply.sol)
 
 
 ## State Variables
-### WRAPPED_NATIVE
-The wrapped native coin contract
-
+### wrappedNative
 
 ```solidity
-IWrappedNative public immutable WRAPPED_NATIVE
+IWrappedNative public immutable wrappedNative;
 ```
 
 
 ## Functions
 ### constructor
 
-Initializes the helper with the wrapped native token address
-
 
 ```solidity
-constructor(address _wrappedNative) ;
+constructor(address _wrappedNative);
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_wrappedNative`|`address`|Wrapped native token (e.g., WETH) contract address|
-
 
 ### wrapAndSupplyOnHostMarket
 
@@ -50,7 +32,7 @@ function wrapAndSupplyOnHostMarket(address mToken, address receiver, uint256 min
 |----|----|-----------|
 |`mToken`|`address`|The market address|
 |`receiver`|`address`|The mToken receiver|
-|`minAmount`|`uint256`|The minimum amount of mTokens expected|
+|`minAmount`|`uint256`||
 
 
 ### wrapAndSupplyOnExtensionMarket
@@ -65,56 +47,33 @@ function wrapAndSupplyOnExtensionMarket(address mTokenGateway, address receiver,
 
 |Name|Type|Description|
 |----|----|-----------|
-|`mTokenGateway`|`address`|The extension market address|
+|`mTokenGateway`|`address`|The market address|
 |`receiver`|`address`|The receiver|
 |`selector`|`bytes4`|The host chain function selector|
 
 
 ### _wrap
 
-Wraps a native coin into its wrapped version
-
 
 ```solidity
-function _wrap(uint256 amountToWrap) private;
+function _wrap() private returns (uint256);
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amountToWrap`|`uint256`|The amount of native coin to wrap|
-
 
 ## Events
 ### WrappedAndSupplied
-Emitted when native assets are wrapped and supplied to a market
-
 
 ```solidity
 event WrappedAndSupplied(address indexed sender, address indexed receiver, address indexed market, uint256 amount);
 ```
 
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`sender`|`address`|The caller providing native funds|
-|`receiver`|`address`|The account receiving the minted mTokens|
-|`market`|`address`|The market that received the wrapped assets|
-|`amount`|`uint256`|The amount of native coin wrapped and supplied|
-
 ## Errors
 ### WrapAndSupply_AddressNotValid
-Error thrown when the address is not valid
-
 
 ```solidity
 error WrapAndSupply_AddressNotValid();
 ```
 
 ### WrapAndSupply_AmountNotValid
-Error thrown when the amount is not valid
-
 
 ```solidity
 error WrapAndSupply_AmountNotValid();

@@ -1,19 +1,30 @@
 # CommonLib
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/libraries/CommonLib.sol)
-
-**Title:**
-CommonLib
-
-**Author:**
-Merge Layers Inc.
-
-Shared helper utilities for validation and math
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\libraries\CommonLib.sol)
 
 
 ## Functions
-### checkHostToExtension
+### checkLengthMatch
 
-Checks a host to extension call for validity
+
+```solidity
+function checkLengthMatch(uint256 l1, uint256 l2) internal pure;
+```
+
+### checkLengthMatch
+
+
+```solidity
+function checkLengthMatch(uint256 l1, uint256 l2, uint256 l3) internal pure;
+```
+
+### computeSum
+
+
+```solidity
+function computeSum(uint256[] calldata values) internal pure returns (uint256 sum);
+```
+
+### checkHostToExtension
 
 
 ```solidity
@@ -25,99 +36,27 @@ function checkHostToExtension(
     IGasFeesHelper gasHelper
 ) internal view;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`amount`|`uint256`|Amount being transferred|
-|`dstChainId`|`uint32`|Destination chain id|
-|`msgValue`|`uint256`|Message value provided|
-|`allowedChains`|`mapping(uint32 => bool)`|Mapping of allowed chain ids|
-|`gasHelper`|`IGasFeesHelper`|Gas helper contract|
-
-
-### checkLengthMatch
-
-Ensures two lengths match
-
-
-```solidity
-function checkLengthMatch(uint256 l1, uint256 l2) internal pure;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`l1`|`uint256`|First length|
-|`l2`|`uint256`|Second length|
-
-
-### checkLengthMatch
-
-Ensures three lengths match
-
-
-```solidity
-function checkLengthMatch(uint256 l1, uint256 l2, uint256 l3) internal pure;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`l1`|`uint256`|First length|
-|`l2`|`uint256`|Second length|
-|`l3`|`uint256`|Third length|
-
-
-### computeSum
-
-Computes sum of an array
-
-
-```solidity
-function computeSum(uint256[] calldata values) internal pure returns (uint256 sum);
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`values`|`uint256[]`|Array of values|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`sum`|`uint256`|Total sum|
-
 
 ## Errors
 ### CommonLib_LengthMismatch
-Thrown when array lengths mismatch
-
 
 ```solidity
 error CommonLib_LengthMismatch();
 ```
 
 ### AmountNotValid
-Thrown when amount is invalid
-
 
 ```solidity
 error AmountNotValid();
 ```
 
 ### ChainNotValid
-Thrown when chain id is not allowed
-
 
 ```solidity
 error ChainNotValid();
 ```
 
 ### NotEnoughGasFee
-Thrown when provided gas fee is insufficient
-
 
 ```solidity
 error NotEnoughGasFee();

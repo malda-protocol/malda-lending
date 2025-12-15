@@ -1,16 +1,8 @@
 # mTokenConfiguration
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/mToken/mTokenConfiguration.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\mToken\mTokenConfiguration.sol)
 
 **Inherits:**
-[mTokenStorage](/src/mToken/mTokenStorage.sol/abstract.mTokenStorage.md)
-
-**Title:**
-mTokenConfiguration
-
-**Author:**
-Merge Layers Inc.
-
-Configuration helpers for mToken markets
+[mTokenStorage](/src\mToken\mTokenStorage.sol\abstract.mTokenStorage.md)
 
 
 ## Functions
@@ -18,42 +10,36 @@ Configuration helpers for mToken markets
 
 
 ```solidity
-modifier onlyAdmin() ;
+modifier onlyAdmin();
 ```
 
 ### setOperator
 
 Sets a new Operator for the market
 
+*Admin function to set a new operator*
+
 
 ```solidity
 function setOperator(address _operator) external onlyAdmin;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_operator`|`address`|The new operator address|
-
 
 ### setRolesOperator
 
-Sets a new Roles operator for the market
+Sets a new Operator for the market
+
+*Admin function to set a new operator*
 
 
 ```solidity
 function setRolesOperator(address _roles) external onlyAdmin;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_roles`|`address`|The roles contract address|
-
 
 ### setInterestRateModel
 
-Accrues interest and updates the interest rate model using _setInterestRateModelFresh
+accrues interest and updates the interest rate model using _setInterestRateModelFresh
+
+*Admin function to accrue interest and update the interest rate model*
 
 
 ```solidity
@@ -63,46 +49,32 @@ function setInterestRateModel(address newInterestRateModel) external onlyAdmin;
 
 |Name|Type|Description|
 |----|----|-----------|
-|`newInterestRateModel`|`address`|The new interest rate model to use|
+|`newInterestRateModel`|`address`|the new interest rate model to use|
 
 
 ### setBorrowRateMaxMantissa
-
-Sets the maximum borrow rate mantissa
 
 
 ```solidity
 function setBorrowRateMaxMantissa(uint256 maxMantissa) external onlyAdmin;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`maxMantissa`|`uint256`|The new max mantissa|
-
 
 ### setReserveFactor
 
-Accrues interest and sets a new reserve factor for the protocol using _setReserveFactorFresh
+accrues interest and sets a new reserve factor for the protocol using _setReserveFactorFresh
 
-Admin function to accrue interest and set a new reserve factor
+*Admin function to accrue interest and set a new reserve factor*
 
 
 ```solidity
 function setReserveFactor(uint256 newReserveFactorMantissa) external onlyAdmin;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`newReserveFactorMantissa`|`uint256`|The new reserve factor mantissa|
-
 
 ### setPendingAdmin
 
 Begins transfer of admin rights. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.
 
-Admin function to begin change of admin. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.
+*Admin function to begin change of admin. The newPendingAdmin must call `_acceptAdmin` to finalize the transfer.*
 
 
 ```solidity
@@ -119,7 +91,7 @@ function setPendingAdmin(address payable newPendingAdmin) external onlyAdmin;
 
 Accepts transfer of admin rights. msg.sender must be pendingAdmin
 
-Admin function for pending admin to accept role and update admin
+*Admin function for pending admin to accept role and update admin*
 
 
 ```solidity
@@ -128,9 +100,9 @@ function acceptAdmin() external;
 
 ### _setInterestRateModel
 
-Updates the interest rate model (*requires fresh interest accrual)
+updates the interest rate model (*requires fresh interest accrual)
 
-Admin function to update the interest rate model
+*Admin function to update the interest rate model*
 
 
 ```solidity
@@ -140,21 +112,13 @@ function _setInterestRateModel(address newInterestRateModel) internal;
 
 |Name|Type|Description|
 |----|----|-----------|
-|`newInterestRateModel`|`address`|The new interest rate model to use|
+|`newInterestRateModel`|`address`|the new interest rate model to use|
 
 
 ### _setOperator
-
-Sets the Operator contract address
 
 
 ```solidity
 function _setOperator(address _operator) internal;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_operator`|`address`|The operator address|
-
 

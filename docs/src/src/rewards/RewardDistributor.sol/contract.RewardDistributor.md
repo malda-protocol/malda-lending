@@ -1,25 +1,15 @@
 # RewardDistributor
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/rewards/RewardDistributor.sol)
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\rewards\RewardDistributor.sol)
 
 **Inherits:**
-[IRewardDistributor](/src/interfaces/IRewardDistributor.sol/interface.IRewardDistributor.md), [ExponentialNoError](/src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.md), Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
-
-**Title:**
-Reward distribution manager
-
-**Author:**
-Malda Protocol
-
-Distributes reward tokens to suppliers and borrowers across markets.
+[IRewardDistributor](/src\interfaces\IRewardDistributor.sol\interface.IRewardDistributor.md), [ExponentialNoError](/src\utils\ExponentialNoError.sol\abstract.ExponentialNoError.md), Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable
 
 
 ## State Variables
 ### REWARD_INITIAL_INDEX
-Initial index used when starting accruals
-
 
 ```solidity
-uint224 public constant REWARD_INITIAL_INDEX = 1e36
+uint224 public constant REWARD_INITIAL_INDEX = 1e36;
 ```
 
 
@@ -28,7 +18,7 @@ The operator that rewards are distributed to
 
 
 ```solidity
-address public operator
+address public operator;
 ```
 
 
@@ -37,8 +27,7 @@ The Reward state for each reward token for each market
 
 
 ```solidity
-mapping(address rewardToken => mapping(address mToken => IRewardDistributorData.RewardMarketState marketState))
-    public rewardMarketState
+mapping(address => mapping(address => IRewardDistributorData.RewardMarketState)) public rewardMarketState;
 ```
 
 
@@ -47,9 +36,7 @@ The Reward state for each reward token for each account
 
 
 ```solidity
-mapping(
-    address rewardToken => mapping(address account => IRewardDistributorData.RewardAccountState accountState)
-) public rewardAccountState
+mapping(address => mapping(address => IRewardDistributorData.RewardAccountState)) public rewardAccountState;
 ```
 
 
@@ -58,164 +45,84 @@ Added reward tokens
 
 
 ```solidity
-address[] public rewardTokens
+address[] public rewardTokens;
 ```
 
 
 ### isRewardToken
+Flag to check if reward token added before
+
 
 ```solidity
-mapping(address rewardToken => bool status) public isRewardToken
+mapping(address => bool) public isRewardToken;
 ```
 
 
 ## Functions
 ### onlyOperator
 
-Modifier to check if the caller is the operator
-
 
 ```solidity
-modifier onlyOperator() ;
+modifier onlyOperator();
 ```
 
 ### constructor
-
-Disable initializers for the implementation
 
 **Note:**
 oz-upgrades-unsafe-allow: constructor
 
 
 ```solidity
-constructor() ;
+constructor();
 ```
-
-### setOperator
-
-Sets the operator allowed to notify indices
-
-
-```solidity
-function setOperator(address _operator) external onlyOwner;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_operator`|`address`|Operator address|
-
-
-### notifySupplyIndex
-
-Updates supply indices for all reward tokens on a market
-
-
-```solidity
-function notifySupplyIndex(address mToken) external override onlyOperator;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`mToken`|`address`|Market token|
-
-
-### notifyBorrowIndex
-
-Updates borrow indices for all reward tokens on a market
-
-
-```solidity
-function notifyBorrowIndex(address mToken) external override onlyOperator;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`mToken`|`address`|Market token|
-
-
-### notifySupplier
-
-Accrues supplier rewards for all reward tokens on a market
-
-
-```solidity
-function notifySupplier(address mToken, address supplier) external override onlyOperator;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`mToken`|`address`|Market address|
-|`supplier`|`address`|Supplier address|
-
-
-### notifyBorrower
-
-Accrues borrower rewards for all reward tokens on a market
-
-
-```solidity
-function notifyBorrower(address mToken, address borrower) external override onlyOperator;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`mToken`|`address`|Market address|
-|`borrower`|`address`|Borrower address|
-
-
-### initialize
-
-Initializes the upgradeable contract
-
-
-```solidity
-function initialize(address _owner) public initializer;
-```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`_owner`|`address`|Owner address|
-
 
 ### claim
-
-Claims rewards for a list of holders across all reward tokens
 
 
 ```solidity
 function claim(address[] memory holders) public override nonReentrant;
 ```
-**Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`holders`|`address[]`|Account list to claim for|
+### getBlockTimestamp
 
+Get block timestamp
+
+
+```solidity
+function getBlockTimestamp() public view override returns (uint32);
+```
+
+### getRewardTokens
+
+Added reward tokens
+
+
+```solidity
+function getRewardTokens() public view override returns (address[] memory);
+```
+
+### initialize
+
+
+```solidity
+function initialize(address _owner) public initializer;
+```
+
+### setOperator
+
+
+```solidity
+function setOperator(address _operator) external onlyOwner;
+```
 
 ### whitelistToken
-
-Whitelists a new reward token
 
 
 ```solidity
 function whitelistToken(address rewardToken_) public onlyOwner;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`rewardToken_`|`address`|Reward token address|
-
 
 ### updateRewardSpeeds
-
-Updates reward speeds for multiple markets
 
 
 ```solidity
@@ -226,221 +133,137 @@ function updateRewardSpeeds(
     uint256[] memory borrowSpeeds
 ) public onlyOwner;
 ```
-**Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`rewardToken_`|`address`|Reward token address|
-|`mTokens`|`address[]`|Market addresses|
-|`supplySpeeds`|`uint256[]`|Supply speeds per market|
-|`borrowSpeeds`|`uint256[]`|Borrow speeds per market|
-
-
-### getBlockTimestamp
-
-Get block timestamp
+### grantReward
 
 
 ```solidity
-function getBlockTimestamp() public view override returns (uint32);
+function grantReward(address token, address user, uint256 amount) public onlyOwner;
 ```
-**Returns**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint32`|timestamp Current block timestamp|
+### notifySupplyIndex
 
-
-### getRewardTokens
-
-Added reward tokens
+Notifies supply index
 
 
 ```solidity
-function getRewardTokens() public view override returns (address[] memory);
+function notifySupplyIndex(address mToken) external override onlyOperator;
 ```
-**Returns**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`address[]`|rewardTokens Array of reward token addresses|
+### notifyBorrowIndex
 
-
-### _claim
-
-Claims rewards for holders for a given token
+Notifies borrow index
 
 
 ```solidity
-function _claim(address rewardToken, address[] memory holders) internal;
+function notifyBorrowIndex(address mToken) external override onlyOperator;
 ```
-**Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`rewardToken`|`address`|Reward token address|
-|`holders`|`address[]`|Holder list|
+### notifySupplier
 
-
-### _grantReward
-
-Transfers accrued rewards to a user
+Notifies supplier
 
 
 ```solidity
-function _grantReward(address token, address user, uint256 amount) internal returns (uint256);
+function notifySupplier(address mToken, address supplier) external override onlyOperator;
 ```
-**Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`token`|`address`|Reward token|
-|`user`|`address`|Recipient address|
-|`amount`|`uint256`|Amount to grant|
+### notifyBorrower
 
-**Returns**
+Notifies borrower
 
-|Name|Type|Description|
-|----|----|-----------|
-|`<none>`|`uint256`|Remaining amount (if transfer not fully executed)|
 
+```solidity
+function notifyBorrower(address mToken, address borrower) external override onlyOperator;
+```
 
 ### _updateRewardSpeed
-
-Updates supply/borrow speed and indexes for a market
 
 
 ```solidity
 function _updateRewardSpeed(address rewardToken, address mToken, uint256 supplySpeed, uint256 borrowSpeed) private;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`rewardToken`|`address`|Reward token address|
-|`mToken`|`address`|Market address|
-|`supplySpeed`|`uint256`|New supply speed|
-|`borrowSpeed`|`uint256`|New borrow speed|
-
 
 ### _notifySupplyIndex
-
-Updates supply index for a reward token/market pair
 
 
 ```solidity
 function _notifySupplyIndex(address rewardToken, address mToken) private;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`rewardToken`|`address`|Reward token address|
-|`mToken`|`address`|Market address|
-
 
 ### _notifyBorrowIndex
-
-Updates borrow index for a reward token/market pair
 
 
 ```solidity
 function _notifyBorrowIndex(address rewardToken, address mToken) private;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`rewardToken`|`address`|Reward token address|
-|`mToken`|`address`|Market address|
-
 
 ### _notifySupplier
-
-Accrues supplier rewards for a market
 
 
 ```solidity
 function _notifySupplier(address rewardToken, address mToken, address supplier) private;
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`rewardToken`|`address`|Reward token address|
-|`mToken`|`address`|Market address|
-|`supplier`|`address`|Supplier address|
-
 
 ### _notifyBorrower
-
-Accrues borrower rewards for a market
 
 
 ```solidity
 function _notifyBorrower(address rewardToken, address mToken, address borrower) private;
 ```
-**Parameters**
 
-|Name|Type|Description|
-|----|----|-----------|
-|`rewardToken`|`address`|Reward token address|
-|`mToken`|`address`|Market address|
-|`borrower`|`address`|Borrower address|
+### _claim
 
+
+```solidity
+function _claim(address rewardToken, address[] memory holders) internal;
+```
+
+### _grantReward
+
+
+```solidity
+function _grantReward(address token, address user, uint256 amount) internal returns (uint256);
+```
 
 ## Errors
 ### RewardDistributor_OnlyOperator
-Error thrown when the caller is not the operator
-
 
 ```solidity
 error RewardDistributor_OnlyOperator();
 ```
 
 ### RewardDistributor_TransferFailed
-Error thrown when the transfer fails
-
 
 ```solidity
 error RewardDistributor_TransferFailed();
 ```
 
 ### RewardDistributor_RewardNotValid
-Error thrown when the reward token is not valid
-
 
 ```solidity
 error RewardDistributor_RewardNotValid();
 ```
 
 ### RewardDistributor_AddressNotValid
-Error thrown when the address is not valid
-
 
 ```solidity
 error RewardDistributor_AddressNotValid();
 ```
 
 ### RewardDistributor_AddressAlreadyRegistered
-Error thrown when the address is already registered
-
 
 ```solidity
 error RewardDistributor_AddressAlreadyRegistered();
 ```
 
 ### RewardDistributor_SupplySpeedArrayLengthMismatch
-Error thrown when the supply speed array length mismatch
-
 
 ```solidity
 error RewardDistributor_SupplySpeedArrayLengthMismatch();
 ```
 
 ### RewardDistributor_BorrowSpeedArrayLengthMismatch
-Error thrown when the borrow speed array length mismatch
-
 
 ```solidity
 error RewardDistributor_BorrowSpeedArrayLengthMismatch();

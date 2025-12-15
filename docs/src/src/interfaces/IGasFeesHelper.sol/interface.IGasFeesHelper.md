@@ -1,34 +1,12 @@
 # IGasFeesHelper
-[Git Source](https://github.com/malda-protocol/malda-lending/blob/aa475cf1d928c29ffb1040de375822affeac4243/src/interfaces/IGasFeesHelper.sol)
-
-**Title:**
-IGasFeesHelper
-
-**Author:**
-Merge Layers Inc.
-
-Interface for retrieving per-chain gas fee configuration
+[Git Source](https://github.com/malda-protocol/malda-lending/blob/ae9b756ce0322e339daafd68cf97592f5de2033d/src\interfaces\IGasFeesHelper.sol)
 
 
 ## Functions
 ### gasFees
 
-Returns the gas fee for a destination chain
-
 
 ```solidity
-function gasFees(uint32 dstChainId) external view returns (uint256 fee);
+function gasFees(uint32 dstChainId) external view returns (uint256);
 ```
-**Parameters**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`dstChainId`|`uint32`|Destination chain identifier|
-
-**Returns**
-
-|Name|Type|Description|
-|----|----|-----------|
-|`fee`|`uint256`|Gas fee amount|
-
 
