@@ -269,13 +269,13 @@ abstract contract CCTPHelper {
         pure
         returns (CCTPMessage memory message)
     {
-        if (encoded.length < 147) revert CCTPHelper_MsgTooShort();
+        require(encoded.length >= 147, CCTPHelper_MsgTooShort());
 
         uint256 offset = 0;
 
         // payloadId
         uint8 payloadId = uint8(encoded[0]);
-        if (payloadId != 1) revert CCTPHelper_PayloadMismatch();
+        require(payloadId == 1, CCTPHelper_PayloadMismatch());
         offset = 1;
 
         // token (32 bytes)
@@ -311,8 +311,7 @@ abstract contract CCTPHelper {
         offset += 2;
 
         // check length: encoded must be EXACTLY offset + payloadLen
-        if (encoded.length != offset + payloadLen)
-            revert CCTPHelper_LengthMismatch();
+        require(encoded.length == offset + payloadLen, CCTPHelper_LengthMismatch());
 
         // payload
         bytes memory payload = encoded.slice(offset, payloadLen);

@@ -36,6 +36,7 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
     // ----------- STORAGE ------------
     address public immutable rebalancer;
     mapping(uint32 chainId => uint32 cctpDomain) public chainIdToDomain; 
+    mapping(uint32 chainId => bool isSet) public domainSet;
     
     // ----------- EVENTS ------------
     event Rebalanced(address indexed market, uint256 amount);
@@ -71,6 +72,7 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
         onlyBridgeConfigurator
     {
         chainIdToDomain[chainId] = domain;
+        domainSet[chainId] = true;
         emit DomainMappingUpdated(chainId, domain);
     }
 
@@ -105,6 +107,10 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
 
         uint32 dstDomain = chainIdToDomain[_dstChainId];
         uint32 srcDomain = chainIdToDomain[uint32(block.chainid)];
+        require(
+            domainSet[_dstChainId] && domainSet[uint32(block.chainid)],
+            CCTPBridge_DomainNotSet()
+        );
 
         bytes memory payload = abi.encode(_market);
 

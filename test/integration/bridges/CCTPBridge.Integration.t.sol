@@ -92,7 +92,8 @@ contract CCTPBridgeIntegration is Test {
         uint256 balBeforeBridge = IERC20(MAINNET_USDC).balanceOf(address(bridge));
 
         address fakeMarket = address(0xCAFE);
-
+        bridge.setDomainMapping(uint32(block.chainid), ETH_DOMAIN);
+        bridge.setDomainMapping(BASE_CHAINID, BASE_DOMAIN);
         bridge.sendMsg(
             amount,
             fakeMarket,

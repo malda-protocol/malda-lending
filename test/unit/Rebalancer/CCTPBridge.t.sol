@@ -115,6 +115,7 @@ contract CCTPBridgeHarness is CCTPBridge {
 
     function harnessSetDomain(uint32 chainId, uint32 domain) external {
         chainIdToDomain[chainId] = domain;
+        domainSet[chainId] = true;
     }
 
     function harnessSetAcceptedToken(address token, bool allowed) external {
@@ -205,6 +206,31 @@ contract CCTPBridgeTest is Test {
         );
     }
 
+    function test_sendMsg_revert_domain_not_set_dst() public {
+        // srcDomain set, dstDomain NOT set
+        CCTPBridgeHarness bridge2 = new CCTPBridgeHarness(
+            address(roles),
+            address(messenger),
+            address(transmitter),
+            address(rebalancer)
+        );
+
+        bridge2.harnessSetAcceptedToken(address(token), true);
+        bridge2.harnessSetDomain(uint32(block.chainid), srcDomain);
+        // bridge2.harnessSetDomain(dstChainId, dstDomain); // intentionally missing
+
+        vm.prank(address(rebalancer));
+        vm.expectRevert(CCTPBridge.CCTPBridge_DomainNotSet.selector);
+        bridge2.sendMsg(
+            1000,
+            address(market),
+            dstChainId,
+            address(token),
+            "",
+            ""
+        );
+    }
+
     function test_handleCCTPMessage_success() public {
         uint256 amount = 500;
         token.mint(address(bridge), amount);
@@ -237,6 +263,50 @@ contract CCTPBridgeTest is Test {
 
         assertEq(token.balanceOf(address(market)), balanceBeforeMarket + amount);
         assertEq(token.balanceOf(address(bridge)), balanceBeforeBridge - amount);
+    }
+
+    function test_sendMsg_revert_domain_not_set_src() public {
+        // dstDomain set, srcDomain NOT set
+        CCTPBridgeHarness bridge2 = new CCTPBridgeHarness(
+            address(roles),
+            address(messenger),
+            address(transmitter),
+            address(rebalancer)
+        );
+
+        bridge2.harnessSetAcceptedToken(address(token), true);
+        bridge2.harnessSetDomain(dstChainId, dstDomain);
+
+        vm.prank(address(rebalancer));
+        vm.expectRevert(CCTPBridge.CCTPBridge_DomainNotSet.selector);
+        bridge2.sendMsg(
+            1000,
+            address(market),
+            dstChainId,
+            address(token),
+            "",
+            ""
+        );
+    }
+
+    function test_sendMsg_domain_set_ok() public {
+        uint256 amount = 1000;
+
+        bridge.harnessSetAcceptedToken(address(token), true);
+        bridge.harnessSetDomain(uint32(block.chainid), srcDomain);
+        bridge.harnessSetDomain(dstChainId, dstDomain);
+
+        vm.prank(address(rebalancer));
+        bridge.sendMsg(
+            amount,
+            address(market),
+            dstChainId,
+            address(token),
+            "",
+            ""
+        );
+
+        assertEq(messenger.lastDst(), dstDomain);
     }
 
     function test_handleCCTPMessage_revert_not_whitelisted() public {
