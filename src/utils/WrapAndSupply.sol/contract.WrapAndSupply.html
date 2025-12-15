@@ -180,27 +180,15 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="wrapandsupply"><a class="header" href="#wrapandsupply">WrapAndSupply</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/50f664ba036827416c3384322445dab6d32b6db9/src/utils/WrapAndSupply.sol">Git Source</a></p>
-<p><strong>Title:</strong>
-WrapAndSupply</p>
-<p><strong>Author:</strong>
-Malda Protocol</p>
-<p>Wraps native coins and supplies to host or extension markets in a single call.</p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/6da3402491b0597592e7ce77df035b59e43e1167/src/utils/WrapAndSupply.sol">Git Source</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
-<h3 id="wrapped_native"><a class="header" href="#wrapped_native">WRAPPED_NATIVE</a></h3>
-<p>The wrapped native coin contract</p>
-<pre><code class="language-solidity">IWrappedNative public immutable WRAPPED_NATIVE
+<h3 id="wrappednative"><a class="header" href="#wrappednative">wrappedNative</a></h3>
+<pre><code class="language-solidity">IWrappedNative public immutable wrappedNative
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<p>Initializes the helper with the wrapped native token address</p>
 <pre><code class="language-solidity">constructor(address _wrappedNative) ;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_wrappedNative</code></td><td><code>address</code></td><td>Wrapped native token (e.g., WETH) contract address</td></tr>
-</tbody></table>
-</div>
 <h3 id="wrapandsupplyonhostmarket"><a class="header" href="#wrapandsupplyonhostmarket">wrapAndSupplyOnHostMarket</a></h3>
 <p>Wraps a native coin into its wrapped version and supplies on a host market</p>
 <pre><code class="language-solidity">function wrapAndSupplyOnHostMarket(address mToken, address receiver, uint256 minAmount) external payable;
@@ -209,7 +197,7 @@ Malda Protocol</p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>mToken</code></td><td><code>address</code></td><td>The market address</td></tr>
 <tr><td><code>receiver</code></td><td><code>address</code></td><td>The mToken receiver</td></tr>
-<tr><td><code>minAmount</code></td><td><code>uint256</code></td><td>The minimum amount of mTokens expected</td></tr>
+<tr><td><code>minAmount</code></td><td><code>uint256</code></td><td></td></tr>
 </tbody></table>
 </div>
 <h3 id="wrapandsupplyonextensionmarket"><a class="header" href="#wrapandsupplyonextensionmarket">wrapAndSupplyOnExtensionMarket</a></h3>
@@ -218,40 +206,23 @@ Malda Protocol</p>
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>mTokenGateway</code></td><td><code>address</code></td><td>The extension market address</td></tr>
+<tr><td><code>mTokenGateway</code></td><td><code>address</code></td><td>The market address</td></tr>
 <tr><td><code>receiver</code></td><td><code>address</code></td><td>The receiver</td></tr>
 <tr><td><code>selector</code></td><td><code>bytes4</code></td><td>The host chain function selector</td></tr>
 </tbody></table>
 </div>
 <h3 id="_wrap"><a class="header" href="#_wrap">_wrap</a></h3>
-<p>Wraps a native coin into its wrapped version</p>
 <pre><code class="language-solidity">function _wrap(uint256 amountToWrap) private;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>amountToWrap</code></td><td><code>uint256</code></td><td>The amount of native coin to wrap</td></tr>
-</tbody></table>
-</div>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="wrappedandsupplied"><a class="header" href="#wrappedandsupplied">WrappedAndSupplied</a></h3>
-<p>Emitted when native assets are wrapped and supplied to a market</p>
 <pre><code class="language-solidity">event WrappedAndSupplied(address indexed sender, address indexed receiver, address indexed market, uint256 amount);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>sender</code></td><td><code>address</code></td><td>The caller providing native funds</td></tr>
-<tr><td><code>receiver</code></td><td><code>address</code></td><td>The account receiving the minted mTokens</td></tr>
-<tr><td><code>market</code></td><td><code>address</code></td><td>The market that received the wrapped assets</td></tr>
-<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The amount of native coin wrapped and supplied</td></tr>
-</tbody></table>
-</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="wrapandsupply_addressnotvalid"><a class="header" href="#wrapandsupply_addressnotvalid">WrapAndSupply_AddressNotValid</a></h3>
-<p>Error thrown when the address is not valid</p>
 <pre><code class="language-solidity">error WrapAndSupply_AddressNotValid();
 </code></pre>
 <h3 id="wrapandsupply_amountnotvalid"><a class="header" href="#wrapandsupply_amountnotvalid">WrapAndSupply_AmountNotValid</a></h3>
-<p>Error thrown when the amount is not valid</p>
 <pre><code class="language-solidity">error WrapAndSupply_AmountNotValid();
 </code></pre>
 

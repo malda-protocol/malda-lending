@@ -180,51 +180,33 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="batchsubmitter"><a class="header" href="#batchsubmitter">BatchSubmitter</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/50f664ba036827416c3384322445dab6d32b6db9/src/mToken/BatchSubmitter.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/6da3402491b0597592e7ce77df035b59e43e1167/src/mToken/BatchSubmitter.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable</p>
-<p><strong>Title:</strong>
-BatchSubmitter</p>
-<p><strong>Author:</strong>
-Merge Layers Inc.</p>
-<p>Contract for batch processing multiple operations</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
+<h3 id="rolesoperator"><a class="header" href="#rolesoperator">rolesOperator</a></h3>
+<p>The roles contract for access control</p>
+<pre><code class="language-solidity">IRoles public immutable rolesOperator
+</code></pre>
+<h3 id="verifier"><a class="header" href="#verifier">verifier</a></h3>
+<pre><code class="language-solidity">IZkVerifier public verifier
+</code></pre>
 <h3 id="mint_selector"><a class="header" href="#mint_selector">MINT_SELECTOR</a></h3>
-<p>The function selector for the supported <code>mintExternal</code> operation</p>
 <pre><code class="language-solidity">bytes4 internal constant MINT_SELECTOR = ImErc20Host.mintExternal.selector
 </code></pre>
 <h3 id="repay_selector"><a class="header" href="#repay_selector">REPAY_SELECTOR</a></h3>
-<p>The function selector for the supported <code>repayExternal</code> operation</p>
 <pre><code class="language-solidity">bytes4 internal constant REPAY_SELECTOR = ImErc20Host.repayExternal.selector
 </code></pre>
 <h3 id="out_here_selector"><a class="header" href="#out_here_selector">OUT_HERE_SELECTOR</a></h3>
-<p>The function selector for the supported <code>outHere</code> operation</p>
 <pre><code class="language-solidity">bytes4 internal constant OUT_HERE_SELECTOR = ImTokenGateway.outHere.selector
 </code></pre>
 <h3 id="liquidate_selector"><a class="header" href="#liquidate_selector">LIQUIDATE_SELECTOR</a></h3>
-<p>The function selector for the supported <code>liquidateExternal</code> operation</p>
 <pre><code class="language-solidity">bytes4 internal constant LIQUIDATE_SELECTOR = ImErc20Host.liquidateExternal.selector
-</code></pre>
-<h3 id="roles_operator"><a class="header" href="#roles_operator">ROLES_OPERATOR</a></h3>
-<p>The roles contract for access control</p>
-<pre><code class="language-solidity">IRoles public immutable ROLES_OPERATOR
-</code></pre>
-<h3 id="verifier"><a class="header" href="#verifier">verifier</a></h3>
-<p>The ZkVerifier contract</p>
-<pre><code class="language-solidity">IZkVerifier public verifier
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<p>Constructor</p>
-<pre><code class="language-solidity">constructor(address _roles, address _zkVerifier, address owner_) Ownable(owner_);
+<pre><code class="language-solidity">constructor(address _roles, address _zkVerifier, address _owner) Ownable(_owner);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_roles</code></td><td><code>address</code></td><td>The roles contract address</td></tr>
-<tr><td><code>_zkVerifier</code></td><td><code>address</code></td><td>The ZkVerifier contract address</td></tr>
-<tr><td><code>owner_</code></td><td><code>address</code></td><td>The owner address</td></tr>
-</tbody></table>
-</div>
 <h3 id="updatezkverifier"><a class="header" href="#updatezkverifier">updateZkVerifier</a></h3>
 <p>Updates IZkVerifier address</p>
 <pre><code class="language-solidity">function updateZkVerifier(address _zkVerifier) external onlyOwner;
@@ -238,11 +220,6 @@ Merge Layers Inc.</p>
 <p>Execute multiple operations in a single transaction</p>
 <pre><code class="language-solidity">function batchProcess(BatchProcessMsg calldata data) external;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>data</code></td><td><code>BatchProcessMsg</code></td><td>The batch process message data</td></tr>
-</tbody></table>
-</div>
 <h3 id="_verifyproof"><a class="header" href="#_verifyproof">_verifyProof</a></h3>
 <p>Verifies the proof using ZkVerifier</p>
 <pre><code class="language-solidity">function _verifyProof(bytes calldata journalData, bytes calldata seal) private view;
@@ -255,7 +232,6 @@ Merge Layers Inc.</p>
 </div>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="batchprocessfailed"><a class="header" href="#batchprocessfailed">BatchProcessFailed</a></h3>
-<p>Event emitted when batch process fails</p>
 <pre><code class="language-solidity">event BatchProcessFailed(
     bytes32 initHash,
     address receiver,
@@ -266,63 +242,39 @@ Merge Layers Inc.</p>
     bytes reason
 );
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>initHash</code></td><td><code>bytes32</code></td><td>The initialization hash</td></tr>
-<tr><td><code>receiver</code></td><td><code>address</code></td><td>The receiver address</td></tr>
-<tr><td><code>mToken</code></td><td><code>address</code></td><td>The mToken address</td></tr>
-<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The amount</td></tr>
-<tr><td><code>minAmountOut</code></td><td><code>uint256</code></td><td>The minimum amount out</td></tr>
-<tr><td><code>selector</code></td><td><code>bytes4</code></td><td>The function selector</td></tr>
-<tr><td><code>reason</code></td><td><code>bytes</code></td><td>The failure reason</td></tr>
-</tbody></table>
-</div>
 <h3 id="batchprocesssuccess"><a class="header" href="#batchprocesssuccess">BatchProcessSuccess</a></h3>
-<p>Event emitted when batch process succeeds</p>
 <pre><code class="language-solidity">event BatchProcessSuccess(
     bytes32 initHash, address receiver, address mToken, uint256 amount, uint256 minAmountOut, bytes4 selector
 );
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>initHash</code></td><td><code>bytes32</code></td><td>The initialization hash</td></tr>
-<tr><td><code>receiver</code></td><td><code>address</code></td><td>The receiver address</td></tr>
-<tr><td><code>mToken</code></td><td><code>address</code></td><td>The mToken address</td></tr>
-<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The amount</td></tr>
-<tr><td><code>minAmountOut</code></td><td><code>uint256</code></td><td>The minimum amount out</td></tr>
-<tr><td><code>selector</code></td><td><code>bytes4</code></td><td>The function selector</td></tr>
-</tbody></table>
-</div>
 <h3 id="zkverifierupdated"><a class="header" href="#zkverifierupdated">ZkVerifierUpdated</a></h3>
-<p>Event emitted when ZkVerifier is updated</p>
 <pre><code class="language-solidity">event ZkVerifierUpdated(address indexed oldVerifier, address indexed newVerifier);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>oldVerifier</code></td><td><code>address</code></td><td>The old verifier address</td></tr>
-<tr><td><code>newVerifier</code></td><td><code>address</code></td><td>The new verifier address</td></tr>
-</tbody></table>
-</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="batchsubmitter_callernotallowed"><a class="header" href="#batchsubmitter_callernotallowed">BatchSubmitter_CallerNotAllowed</a></h3>
-<p>Error thrown when caller is not allowed</p>
 <pre><code class="language-solidity">error BatchSubmitter_CallerNotAllowed();
 </code></pre>
 <h3 id="batchsubmitter_journalnotvalid"><a class="header" href="#batchsubmitter_journalnotvalid">BatchSubmitter_JournalNotValid</a></h3>
-<p>Error thrown when journal is not valid</p>
 <pre><code class="language-solidity">error BatchSubmitter_JournalNotValid();
 </code></pre>
 <h3 id="batchsubmitter_invalidselector"><a class="header" href="#batchsubmitter_invalidselector">BatchSubmitter_InvalidSelector</a></h3>
-<p>Error thrown when selector is invalid</p>
 <pre><code class="language-solidity">error BatchSubmitter_InvalidSelector();
 </code></pre>
 <h3 id="batchsubmitter_addressnotvalid"><a class="header" href="#batchsubmitter_addressnotvalid">BatchSubmitter_AddressNotValid</a></h3>
-<p>Error thrown when address is not valid</p>
 <pre><code class="language-solidity">error BatchSubmitter_AddressNotValid();
 </code></pre>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
 <h3 id="batchprocessmsg"><a class="header" href="#batchprocessmsg">BatchProcessMsg</a></h3>
-<p>Parameters used to process a batch of operations</p>
+<p>receiver Funds receiver/performed on
+journalData The encoded journal data
+seal The seal data for verification
+mTokens Array of mToken addresses
+amounts Array of amounts for each operation
+selectors Array of function selectors for each operation
+startIndex Start index for processing journals
+endIndex End index for processing journals (exclusive)
+userToLiquidate Array of users to liquidate (for liquidateExternal operations)
+collateral Array of collateral addresses (for liquidateExternal operations)</p>
 <pre><code class="language-solidity">struct BatchProcessMsg {
     address[] receivers;
     bytes journalData;
@@ -337,21 +289,7 @@ Merge Layers Inc.</p>
     address[] collateral;
 }
 </code></pre>
-<p><strong>Properties</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>receivers</code></td><td><code>address[]</code></td><td>Funds receivers</td></tr>
-<tr><td><code>journalData</code></td><td><code>bytes</code></td><td>Encoded journal data</td></tr>
-<tr><td><code>seal</code></td><td><code>bytes</code></td><td>Seal data for verification</td></tr>
-<tr><td><code>mTokens</code></td><td><code>address[]</code></td><td>Array of mToken addresses</td></tr>
-<tr><td><code>amounts</code></td><td><code>uint256[]</code></td><td>Array of amounts for each operation</td></tr>
-<tr><td><code>minAmountsOut</code></td><td><code>uint256[]</code></td><td>Array of minimum output amounts</td></tr>
-<tr><td><code>selectors</code></td><td><code>bytes4[]</code></td><td>Array of function selectors for each operation</td></tr>
-<tr><td><code>initHashes</code></td><td><code>bytes32[]</code></td><td>Array of initial hashes for journals</td></tr>
-<tr><td><code>startIndex</code></td><td><code>uint256</code></td><td>Start index for processing journals</td></tr>
-<tr><td><code>userToLiquidate</code></td><td><code>address[]</code></td><td>Array of users to liquidate (for liquidateExternal operations)</td></tr>
-<tr><td><code>collateral</code></td><td><code>address[]</code></td><td>Array of collateral addresses (for liquidateExternal operations)</td></tr>
-</tbody></table>
-</div>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

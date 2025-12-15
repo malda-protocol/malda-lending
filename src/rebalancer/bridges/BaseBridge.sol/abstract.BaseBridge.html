@@ -180,50 +180,32 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="basebridge"><a class="header" href="#basebridge">BaseBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/50f664ba036827416c3384322445dab6d32b6db9/src/rebalancer/bridges/BaseBridge.sol">Git Source</a></p>
-<p><strong>Title:</strong>
-Base bridge contract</p>
-<p><strong>Author:</strong>
-Malda Protocol</p>
-<p>Abstract base for cross-chain bridge implementations with role-based access control</p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/6da3402491b0597592e7ce77df035b59e43e1167/src/rebalancer/bridges/BaseBridge.sol">Git Source</a></p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="roles"><a class="header" href="#roles">roles</a></h3>
-<p>Roles contract for access control</p>
 <pre><code class="language-solidity">IRoles public roles
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
+<h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
+<pre><code class="language-solidity">constructor(address _roles) ;
+</code></pre>
 <h3 id="onlybridgeconfigurator"><a class="header" href="#onlybridgeconfigurator">onlyBridgeConfigurator</a></h3>
-<p>Modifier to check if the caller is the bridge configurator</p>
 <pre><code class="language-solidity">modifier onlyBridgeConfigurator() ;
 </code></pre>
 <h3 id="onlyrebalancer"><a class="header" href="#onlyrebalancer">onlyRebalancer</a></h3>
-<p>Modifier to check if the caller is the rebalancer</p>
 <pre><code class="language-solidity">modifier onlyRebalancer() ;
 </code></pre>
-<h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<p>Initializes the base bridge</p>
-<pre><code class="language-solidity">constructor(address _roles) ;
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_roles</code></td><td><code>address</code></td><td>Roles contract address</td></tr>
-</tbody></table>
-</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="basebridge_notauthorized"><a class="header" href="#basebridge_notauthorized">BaseBridge_NotAuthorized</a></h3>
-<p>Error thrown when caller is not authorized</p>
 <pre><code class="language-solidity">error BaseBridge_NotAuthorized();
 </code></pre>
 <h3 id="basebridge_amountmismatch"><a class="header" href="#basebridge_amountmismatch">BaseBridge_AmountMismatch</a></h3>
-<p>Error thrown when amount mismatch</p>
 <pre><code class="language-solidity">error BaseBridge_AmountMismatch();
 </code></pre>
 <h3 id="basebridge_amountnotvalid"><a class="header" href="#basebridge_amountnotvalid">BaseBridge_AmountNotValid</a></h3>
-<p>Error thrown when amount is not valid</p>
 <pre><code class="language-solidity">error BaseBridge_AmountNotValid();
 </code></pre>
 <h3 id="basebridge_addressnotvalid"><a class="header" href="#basebridge_addressnotvalid">BaseBridge_AddressNotValid</a></h3>
-<p>Error thrown when address is not valid</p>
 <pre><code class="language-solidity">error BaseBridge_AddressNotValid();
 </code></pre>
 
