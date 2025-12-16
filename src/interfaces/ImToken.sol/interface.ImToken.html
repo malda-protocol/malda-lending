@@ -180,15 +180,50 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="imtoken"><a class="header" href="#imtoken">ImToken</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/d15ff3c1d50acfc253ed84f7170579f51492673b/src/interfaces/ImToken.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/24fa2411f3c445827207e1d3227c659d09eb85ea/src/interfaces/ImToken.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/interfaces/ImToken.sol/interface.ImTokenMinimal.html">ImTokenMinimal</a></p>
-<p><strong>Title:</strong>
-ImToken</p>
-<p><strong>Author:</strong>
-Merge Layers Inc.</p>
-<p>Core mToken interface with state views and actions</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
+<h3 id="rolesoperator"><a class="header" href="#rolesoperator">rolesOperator</a></h3>
+<p>Roles manager</p>
+<pre><code class="language-solidity">function rolesOperator() external view returns (IRoles);
+</code></pre>
+<h3 id="admin"><a class="header" href="#admin">admin</a></h3>
+<p>Administrator for this contract</p>
+<pre><code class="language-solidity">function admin() external view returns (address payable);
+</code></pre>
+<h3 id="pendingadmin"><a class="header" href="#pendingadmin">pendingAdmin</a></h3>
+<p>Pending administrator for this contract</p>
+<pre><code class="language-solidity">function pendingAdmin() external view returns (address payable);
+</code></pre>
+<h3 id="operator"><a class="header" href="#operator">operator</a></h3>
+<p>Contract which oversees inter-mToken operations</p>
+<pre><code class="language-solidity">function operator() external view returns (address);
+</code></pre>
+<h3 id="interestratemodel"><a class="header" href="#interestratemodel">interestRateModel</a></h3>
+<p>Model which tells what the current interest rate should be</p>
+<pre><code class="language-solidity">function interestRateModel() external view returns (address);
+</code></pre>
+<h3 id="reservefactormantissa"><a class="header" href="#reservefactormantissa">reserveFactorMantissa</a></h3>
+<p>Fraction of interest currently set aside for reserves</p>
+<pre><code class="language-solidity">function reserveFactorMantissa() external view returns (uint256);
+</code></pre>
+<h3 id="accrualblocktimestamp"><a class="header" href="#accrualblocktimestamp">accrualBlockTimestamp</a></h3>
+<p>Block timestamp that interest was last accrued at</p>
+<pre><code class="language-solidity">function accrualBlockTimestamp() external view returns (uint256);
+</code></pre>
+<h3 id="borrowindex"><a class="header" href="#borrowindex">borrowIndex</a></h3>
+<p>Accumulator of the total earned interest rate since the opening of the market</p>
+<pre><code class="language-solidity">function borrowIndex() external view returns (uint256);
+</code></pre>
+<h3 id="totalborrows"><a class="header" href="#totalborrows">totalBorrows</a></h3>
+<p>Total amount of outstanding borrows of the underlying in this market</p>
+<pre><code class="language-solidity">function totalBorrows() external view returns (uint256);
+</code></pre>
+<h3 id="totalreserves"><a class="header" href="#totalreserves">totalReserves</a></h3>
+<p>Total amount of reserves of the underlying held in this market</p>
+<pre><code class="language-solidity">function totalReserves() external view returns (uint256);
+</code></pre>
 <h3 id="transfer"><a class="header" href="#transfer">transfer</a></h3>
 <p>Transfers <code>amount</code> tokens to the <code>dst</code> address</p>
 <pre><code class="language-solidity">function transfer(address dst, uint256 amount) external returns (bool);
@@ -201,7 +236,7 @@ Merge Layers Inc.</p>
 </div>
 <p><strong>Returns</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>success Whether the transfer was successful or not</td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>Whether the transfer was successful or not</td></tr>
 </tbody></table>
 </div>
 <h3 id="transferfrom"><a class="header" href="#transferfrom">transferFrom</a></h3>
@@ -217,7 +252,7 @@ Merge Layers Inc.</p>
 </div>
 <p><strong>Returns</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>success Whether the transfer was successful or not</td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>Whether the transfer was successful or not</td></tr>
 </tbody></table>
 </div>
 <h3 id="approve"><a class="header" href="#approve">approve</a></h3>
@@ -232,7 +267,36 @@ Merge Layers Inc.</p>
 </div>
 <p><strong>Returns</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>success Whether the approval was successful or not</td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>Whether the approval was successful or not</td></tr>
+</tbody></table>
+</div>
+<h3 id="allowance"><a class="header" href="#allowance">allowance</a></h3>
+<p>Returns the current allowance the <code>spender</code> has from the <code>owner</code></p>
+<pre><code class="language-solidity">function allowance(address owner, address spender) external view returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>owner</code></td><td><code>address</code></td><td>The address of the token holder</td></tr>
+<tr><td><code>spender</code></td><td><code>address</code></td><td>The address authorized to spend the tokens</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The current remaining number of tokens <code>spender</code> can spend</td></tr>
+</tbody></table>
+</div>
+<h3 id="balanceof"><a class="header" href="#balanceof">balanceOf</a></h3>
+<p>Returns the balance of tokens held by <code>owner</code></p>
+<pre><code class="language-solidity">function balanceOf(address owner) external view returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>owner</code></td><td><code>address</code></td><td>The address to query the balance for</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The balance of tokens owned by <code>owner</code></td></tr>
 </tbody></table>
 </div>
 <h3 id="balanceofunderlying"><a class="header" href="#balanceofunderlying">balanceOfUnderlying</a></h3>
@@ -246,7 +310,41 @@ Merge Layers Inc.</p>
 </div>
 <p><strong>Returns</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>balance The balance of underlying assets owned by <code>owner</code></td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The balance of underlying assets owned by <code>owner</code></td></tr>
+</tbody></table>
+</div>
+<h3 id="getaccountsnapshot"><a class="header" href="#getaccountsnapshot">getAccountSnapshot</a></h3>
+<p>Returns the snapshot of account details for the given <code>account</code></p>
+<pre><code class="language-solidity">function getAccountSnapshot(address account) external view returns (uint256, uint256, uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>account</code></td><td><code>address</code></td><td>The address to query the account snapshot for</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>(token balance, borrow balance, exchange rate)</td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td></td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td></td></tr>
+</tbody></table>
+</div>
+<h3 id="borrowrateperblock"><a class="header" href="#borrowrateperblock">borrowRatePerBlock</a></h3>
+<p>Returns the current borrow rate per block</p>
+<pre><code class="language-solidity">function borrowRatePerBlock() external view returns (uint256);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The current borrow rate per block, scaled by 1e18</td></tr>
+</tbody></table>
+</div>
+<h3 id="supplyrateperblock"><a class="header" href="#supplyrateperblock">supplyRatePerBlock</a></h3>
+<p>Returns the current supply rate per block</p>
+<pre><code class="language-solidity">function supplyRatePerBlock() external view returns (uint256);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The current supply rate per block, scaled by 1e18</td></tr>
 </tbody></table>
 </div>
 <h3 id="totalborrowscurrent"><a class="header" href="#totalborrowscurrent">totalBorrowsCurrent</a></h3>
@@ -255,7 +353,7 @@ Merge Layers Inc.</p>
 </code></pre>
 <p><strong>Returns</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>totalBorrowsCurrentAmount The total amount of borrows</td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The total amount of borrows</td></tr>
 </tbody></table>
 </div>
 <h3 id="borrowbalancecurrent"><a class="header" href="#borrowbalancecurrent">borrowBalanceCurrent</a></h3>
@@ -269,16 +367,48 @@ Merge Layers Inc.</p>
 </div>
 <p><strong>Returns</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>borrowBalance Current borrow balance</td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The current borrow balance</td></tr>
+</tbody></table>
+</div>
+<h3 id="borrowbalancestored"><a class="header" href="#borrowbalancestored">borrowBalanceStored</a></h3>
+<p>Returns the stored borrow balance for <code>account</code>, without accruing interest</p>
+<pre><code class="language-solidity">function borrowBalanceStored(address account) external view returns (uint256);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>account</code></td><td><code>address</code></td><td>The address to query the stored borrow balance for</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The stored borrow balance</td></tr>
 </tbody></table>
 </div>
 <h3 id="exchangeratecurrent"><a class="header" href="#exchangeratecurrent">exchangeRateCurrent</a></h3>
 <p>Returns the current exchange rate, with interest accrued</p>
-<pre><code class="language-solidity">function exchangeRateCurrent() external returns (uint256 exchangeRate);
+<pre><code class="language-solidity">function exchangeRateCurrent() external returns (uint256);
 </code></pre>
 <p><strong>Returns</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>exchangeRate</code></td><td><code>uint256</code></td><td>The current exchange rate</td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The current exchange rate</td></tr>
+</tbody></table>
+</div>
+<h3 id="exchangeratestored"><a class="header" href="#exchangeratestored">exchangeRateStored</a></h3>
+<p>Returns the stored exchange rate, without accruing interest</p>
+<pre><code class="language-solidity">function exchangeRateStored() external view returns (uint256);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The stored exchange rate</td></tr>
+</tbody></table>
+</div>
+<h3 id="getcash"><a class="header" href="#getcash">getCash</a></h3>
+<p>Returns the total amount of available cash in the contract</p>
+<pre><code class="language-solidity">function getCash() external view returns (uint256);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>The total amount of cash</td></tr>
 </tbody></table>
 </div>
 <h3 id="accrueinterest"><a class="header" href="#accrueinterest">accrueInterest</a></h3>
@@ -305,194 +435,6 @@ Its absolutely critical to use msg.sender as the borrowed mToken and not a param
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>reduceAmount</code></td><td><code>uint256</code></td><td>Amount of reduction to reserves</td></tr>
-</tbody></table>
-</div>
-<h3 id="rolesoperator"><a class="header" href="#rolesoperator">rolesOperator</a></h3>
-<p>Roles manager</p>
-<pre><code class="language-solidity">function rolesOperator() external view returns (IRoles);
-</code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>IRoles</code></td><td>roles Roles contract</td></tr>
-</tbody></table>
-</div>
-<h3 id="admin"><a class="header" href="#admin">admin</a></h3>
-<p>Administrator for this contract</p>
-<pre><code class="language-solidity">function admin() external view returns (address payable adminAddr);
-</code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>adminAddr</code></td><td><code>address payable</code></td><td>Admin address</td></tr>
-</tbody></table>
-</div>
-<h3 id="pendingadmin"><a class="header" href="#pendingadmin">pendingAdmin</a></h3>
-<p>Pending administrator for this contract</p>
-<pre><code class="language-solidity">function pendingAdmin() external view returns (address payable pending);
-</code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>pending</code></td><td><code>address payable</code></td><td>Pending admin address</td></tr>
-</tbody></table>
-</div>
-<h3 id="operator"><a class="header" href="#operator">operator</a></h3>
-<p>Contract which oversees inter-mToken operations</p>
-<pre><code class="language-solidity">function operator() external view returns (address operatorAddr);
-</code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>operatorAddr</code></td><td><code>address</code></td><td>Operator address</td></tr>
-</tbody></table>
-</div>
-<h3 id="interestratemodel"><a class="header" href="#interestratemodel">interestRateModel</a></h3>
-<p>Model which tells what the current interest rate should be</p>
-<pre><code class="language-solidity">function interestRateModel() external view returns (address interestModel);
-</code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>interestModel</code></td><td><code>address</code></td><td>Interest rate model address</td></tr>
-</tbody></table>
-</div>
-<h3 id="reservefactormantissa"><a class="header" href="#reservefactormantissa">reserveFactorMantissa</a></h3>
-<p>Fraction of interest currently set aside for reserves</p>
-<pre><code class="language-solidity">function reserveFactorMantissa() external view returns (uint256 reserveFactor);
-</code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>reserveFactor</code></td><td><code>uint256</code></td><td>Current reserve factor mantissa</td></tr>
-</tbody></table>
-</div>
-<h3 id="accrualblocktimestamp"><a class="header" href="#accrualblocktimestamp">accrualBlockTimestamp</a></h3>
-<p>Block timestamp that interest was last accrued at</p>
-<pre><code class="language-solidity">function accrualBlockTimestamp() external view returns (uint256 timestamp);
-</code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>timestamp</code></td><td><code>uint256</code></td><td>Last accrual block timestamp</td></tr>
-</tbody></table>
-</div>
-<h3 id="borrowindex"><a class="header" href="#borrowindex">borrowIndex</a></h3>
-<p>Accumulator of the total earned interest rate since the opening of the market</p>
-<pre><code class="language-solidity">function borrowIndex() external view returns (uint256 index);
-</code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>index</code></td><td><code>uint256</code></td><td>Borrow index</td></tr>
-</tbody></table>
-</div>
-<h3 id="totalborrows"><a class="header" href="#totalborrows">totalBorrows</a></h3>
-<p>Total amount of outstanding borrows of the underlying in this market</p>
-<pre><code class="language-solidity">function totalBorrows() external view returns (uint256 borrows);
-</code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>borrows</code></td><td><code>uint256</code></td><td>Total borrows</td></tr>
-</tbody></table>
-</div>
-<h3 id="totalreserves"><a class="header" href="#totalreserves">totalReserves</a></h3>
-<p>Total amount of reserves of the underlying held in this market</p>
-<pre><code class="language-solidity">function totalReserves() external view returns (uint256 reserves);
-</code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>reserves</code></td><td><code>uint256</code></td><td>Total reserves</td></tr>
-</tbody></table>
-</div>
-<h3 id="getaccountsnapshot"><a class="header" href="#getaccountsnapshot">getAccountSnapshot</a></h3>
-<p>Returns the snapshot of account details for the given <code>account</code></p>
-<pre><code class="language-solidity">function getAccountSnapshot(address account)
-    external
-    view
-    returns (uint256 tokenBalance, uint256 borrowBalance, uint256 exchangeRate);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>account</code></td><td><code>address</code></td><td>The address to query the account snapshot for</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>tokenBalance</code></td><td><code>uint256</code></td><td>Token balance</td></tr>
-<tr><td><code>borrowBalance</code></td><td><code>uint256</code></td><td>Borrow balance</td></tr>
-<tr><td><code>exchangeRate</code></td><td><code>uint256</code></td><td>Exchange rate</td></tr>
-</tbody></table>
-</div>
-<h3 id="borrowbalancestored"><a class="header" href="#borrowbalancestored">borrowBalanceStored</a></h3>
-<p>Returns the stored borrow balance for <code>account</code>, without accruing interest</p>
-<pre><code class="language-solidity">function borrowBalanceStored(address account) external view returns (uint256 storedBalance);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>account</code></td><td><code>address</code></td><td>The address to query the stored borrow balance for</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>storedBalance</code></td><td><code>uint256</code></td><td>The stored borrow balance</td></tr>
-</tbody></table>
-</div>
-<h3 id="exchangeratestored"><a class="header" href="#exchangeratestored">exchangeRateStored</a></h3>
-<p>Returns the stored exchange rate, without accruing interest</p>
-<pre><code class="language-solidity">function exchangeRateStored() external view returns (uint256 exchangeRateStoredMantissa);
-</code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>exchangeRateStoredMantissa</code></td><td><code>uint256</code></td><td>The stored exchange rate</td></tr>
-</tbody></table>
-</div>
-<h3 id="getcash"><a class="header" href="#getcash">getCash</a></h3>
-<p>Returns the total amount of available cash in the contract</p>
-<pre><code class="language-solidity">function getCash() external view returns (uint256 cash);
-</code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>cash</code></td><td><code>uint256</code></td><td>The total amount of cash</td></tr>
-</tbody></table>
-</div>
-<h3 id="allowance"><a class="header" href="#allowance">allowance</a></h3>
-<p>Returns the current allowance the <code>spender</code> has from the <code>owner</code></p>
-<pre><code class="language-solidity">function allowance(address owner, address spender) external view returns (uint256 allowanceAmount);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>owner</code></td><td><code>address</code></td><td>The address of the token holder</td></tr>
-<tr><td><code>spender</code></td><td><code>address</code></td><td>The address authorized to spend the tokens</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>allowanceAmount</code></td><td><code>uint256</code></td><td>The current remaining number of tokens <code>spender</code> can spend</td></tr>
-</tbody></table>
-</div>
-<h3 id="balanceof"><a class="header" href="#balanceof">balanceOf</a></h3>
-<p>Returns the balance of tokens held by <code>owner</code></p>
-<pre><code class="language-solidity">function balanceOf(address owner) external view returns (uint256 ownerBalance);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>owner</code></td><td><code>address</code></td><td>The address to query the balance for</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>ownerBalance</code></td><td><code>uint256</code></td><td>The balance of tokens owned by <code>owner</code></td></tr>
-</tbody></table>
-</div>
-<h3 id="borrowrateperblock"><a class="header" href="#borrowrateperblock">borrowRatePerBlock</a></h3>
-<p>Returns the current borrow rate per block</p>
-<pre><code class="language-solidity">function borrowRatePerBlock() external view returns (uint256 borrowRate);
-</code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>borrowRate</code></td><td><code>uint256</code></td><td>The current borrow rate per block, scaled by 1e18</td></tr>
-</tbody></table>
-</div>
-<h3 id="supplyrateperblock"><a class="header" href="#supplyrateperblock">supplyRatePerBlock</a></h3>
-<p>Returns the current supply rate per block</p>
-<pre><code class="language-solidity">function supplyRatePerBlock() external view returns (uint256 supplyRate);
-</code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>supplyRate</code></td><td><code>uint256</code></td><td>The current supply rate per block, scaled by 1e18</td></tr>
 </tbody></table>
 </div>
                     </main>

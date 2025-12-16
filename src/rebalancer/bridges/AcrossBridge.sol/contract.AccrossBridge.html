@@ -180,60 +180,70 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="accrossbridge"><a class="header" href="#accrossbridge">AccrossBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/d15ff3c1d50acfc253ed84f7170579f51492673b/src/rebalancer/bridges/AcrossBridge.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/24fa2411f3c445827207e1d3227c659d09eb85ea/src/rebalancer/bridges/AcrossBridge.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-<a href="/src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.html">BaseBridge</a>, <a href="/src/interfaces/IBridge.sol/interface.IBridge.html">IBridge</a>, <a href="/src/interfaces/external/across/IAcrossReceiverV3.sol/interface.IAcrossReceiverV3.html">IAcrossReceiverV3</a>, ReentrancyGuard</p>
-<p><strong>Title:</strong>
-AcrossBridge</p>
-<p><strong>Author:</strong>
-Merge Layers Inc.</p>
-<p>Bridge integration for Across V3 used by the rebalancer</p>
+<a href="/src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.html">BaseBridge</a>, <a href="/src/interfaces/IBridge.sol/interface.IBridge.html">IBridge</a>, ReentrancyGuard</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
-<h3 id="slippage_precision"><a class="header" href="#slippage_precision">SLIPPAGE_PRECISION</a></h3>
-<p>Precision used for slippage calculations</p>
-<pre><code class="language-solidity">uint256 private constant SLIPPAGE_PRECISION = 1e5
+<h3 id="acrossspokepool"><a class="header" href="#acrossspokepool">acrossSpokePool</a></h3>
+<pre><code class="language-solidity">address public immutable acrossSpokePool
 </code></pre>
-<h3 id="across_spoke_pool"><a class="header" href="#across_spoke_pool">ACROSS_SPOKE_POOL</a></h3>
-<p>Across spoke pool address</p>
-<pre><code class="language-solidity">address public immutable ACROSS_SPOKE_POOL
+<h3 id="maxslippage"><a class="header" href="#maxslippage">maxSlippage</a></h3>
+<pre><code class="language-solidity">uint256 public immutable maxSlippage
 </code></pre>
-<h3 id="max_slippage"><a class="header" href="#max_slippage">MAX_SLIPPAGE</a></h3>
-<p>Maximum allowed slippage in basis points</p>
-<pre><code class="language-solidity">uint256 public immutable MAX_SLIPPAGE
-</code></pre>
-<h3 id="rebalancer"><a class="header" href="#rebalancer">REBALANCER</a></h3>
-<p>Rebalancer contract address</p>
-<pre><code class="language-solidity">address public immutable REBALANCER
+<h3 id="rebalancer"><a class="header" href="#rebalancer">rebalancer</a></h3>
+<pre><code class="language-solidity">address public immutable rebalancer
 </code></pre>
 <h3 id="whitelistedrelayers"><a class="header" href="#whitelistedrelayers">whitelistedRelayers</a></h3>
-<p>Whitelisted relayers per destination chain</p>
-<pre><code class="language-solidity">mapping(uint32 dstChainId =&gt; mapping(address relayer =&gt; bool isWhitelisted)) public whitelistedRelayers
+<pre><code class="language-solidity">mapping(uint32 =&gt; mapping(address =&gt; bool)) public whitelistedRelayers
+</code></pre>
+<h3 id="slippage_precision"><a class="header" href="#slippage_precision">SLIPPAGE_PRECISION</a></h3>
+<pre><code class="language-solidity">uint256 private constant SLIPPAGE_PRECISION = 1e5
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
-<h3 id="onlyspokepool"><a class="header" href="#onlyspokepool">onlySpokePool</a></h3>
-<p>Modifier to restrict access to only the spoke pool</p>
-<pre><code class="language-solidity">modifier onlySpokePool() ;
-</code></pre>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
-<p>Initializes the Across bridge</p>
 <pre><code class="language-solidity">constructor(address _roles, address _spokePool, address _rebalancer) BaseBridge(_roles);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_roles</code></td><td><code>address</code></td><td>Address of the roles contract</td></tr>
-<tr><td><code>_spokePool</code></td><td><code>address</code></td><td>Address of the Across spoke pool</td></tr>
-<tr><td><code>_rebalancer</code></td><td><code>address</code></td><td>Address of the rebalancer contract</td></tr>
-</tbody></table>
-</div>
+<h3 id="onlyspokepool"><a class="header" href="#onlyspokepool">onlySpokePool</a></h3>
+<pre><code class="language-solidity">modifier onlySpokePool() ;
+</code></pre>
 <h3 id="setwhitelistedrelayer"><a class="header" href="#setwhitelistedrelayer">setWhitelistedRelayer</a></h3>
-<p>Whitelists or removes a relayer for a destination chain</p>
+<p>Whitelists a delegate address</p>
 <pre><code class="language-solidity">function setWhitelistedRelayer(uint32 _dstId, address _relayer, bool status) external onlyBridgeConfigurator;
+</code></pre>
+<h3 id="getfee"><a class="header" href="#getfee">getFee</a></h3>
+<p>computes fee for bridge operation</p>
+<pre><code class="language-solidity">function getFee(uint32, bytes memory, bytes memory) external pure returns (uint256);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_dstId</code></td><td><code>uint32</code></td><td>The destination chain ID</td></tr>
-<tr><td><code>_relayer</code></td><td><code>address</code></td><td>The relayer address to update</td></tr>
-<tr><td><code>status</code></td><td><code>bool</code></td><td>Whether the relayer is whitelisted</td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>uint32</code></td><td></td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bytes</code></td><td></td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bytes</code></td><td></td></tr>
+</tbody></table>
+</div>
+<h3 id="isrelayerwhitelisted"><a class="header" href="#isrelayerwhitelisted">isRelayerWhitelisted</a></h3>
+<p>returns if an address represents a whitelisted delegates</p>
+<pre><code class="language-solidity">function isRelayerWhitelisted(uint32 dstChain, address relayer) external view returns (bool);
+</code></pre>
+<h3 id="sendmsg"><a class="header" href="#sendmsg">sendMsg</a></h3>
+<p>rebalance through bridge</p>
+<pre><code class="language-solidity">function sendMsg(
+    uint256 _extractedAmount,
+    address _market,
+    uint32 _dstChainId,
+    address _token,
+    bytes memory _message,
+    bytes memory
+) external payable onlyRebalancer;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_extractedAmount</code></td><td><code>uint256</code></td><td>extracted amount for rebalancing</td></tr>
+<tr><td><code>_market</code></td><td><code>address</code></td><td>destination address</td></tr>
+<tr><td><code>_dstChainId</code></td><td><code>uint32</code></td><td>destination chain id</td></tr>
+<tr><td><code>_token</code></td><td><code>address</code></td><td>the token to rebalance</td></tr>
+<tr><td><code>_message</code></td><td><code>bytes</code></td><td>operation message data</td></tr>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bytes</code></td><td></td></tr>
 </tbody></table>
 </div>
 <h3 id="handlev3acrossmessage"><a class="header" href="#handlev3acrossmessage">handleV3AcrossMessage</a></h3>
@@ -241,8 +251,8 @@ Merge Layers Inc.</p>
 <pre><code class="language-solidity">function handleV3AcrossMessage(
     address tokenSent,
     uint256 amount,
-    address, /* relayer is unused */
-    bytes calldata message
+    address, // relayer is unused
+    bytes memory message
 )
     external
     onlySpokePool
@@ -256,154 +266,48 @@ Merge Layers Inc.</p>
 <tr><td><code>message</code></td><td><code>bytes</code></td><td>the custom message sent from source</td></tr>
 </tbody></table>
 </div>
-<h3 id="sendmsg"><a class="header" href="#sendmsg">sendMsg</a></h3>
-<p>rebalance through bridge</p>
-<pre><code class="language-solidity">function sendMsg(
-    uint256 _extractedAmount,
-    address _market,
-    uint32 _dstChainId,
-    address _token,
-    bytes calldata _message,
-    bytes calldata /* _bridgeData */
-) external payable onlyRebalancer;
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_extractedAmount</code></td><td><code>uint256</code></td><td>extracted amount for rebalancing</td></tr>
-<tr><td><code>_market</code></td><td><code>address</code></td><td>destination address</td></tr>
-<tr><td><code>_dstChainId</code></td><td><code>uint32</code></td><td>destination chain id</td></tr>
-<tr><td><code>_token</code></td><td><code>address</code></td><td>the token to rebalance</td></tr>
-<tr><td><code>_message</code></td><td><code>bytes</code></td><td>operation message data</td></tr>
-<tr><td><code>&lt;none&gt;</code></td><td><code>bytes</code></td><td></td></tr>
-</tbody></table>
-</div>
-<h3 id="isrelayerwhitelisted"><a class="header" href="#isrelayerwhitelisted">isRelayerWhitelisted</a></h3>
-<p>Returns whether an address is whitelisted as relayer for a destination chain</p>
-<pre><code class="language-solidity">function isRelayerWhitelisted(uint32 dstChain, address relayer) external view returns (bool);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>dstChain</code></td><td><code>uint32</code></td><td>The destination chain ID</td></tr>
-<tr><td><code>relayer</code></td><td><code>address</code></td><td>The relayer address</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>isWhitelisted True if relayer is whitelisted</td></tr>
-</tbody></table>
-</div>
-<h3 id="getfee"><a class="header" href="#getfee">getFee</a></h3>
-<p>computes fee for bridge operation</p>
-<pre><code class="language-solidity">function getFee(
-    uint32,
-    /* _dstChainId */
-    bytes calldata,
-    /* _message */
-    bytes calldata /* _bridgeData */
-)
-    external
-    pure
-    returns (uint256);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint32</code></td><td></td></tr>
-<tr><td><code>&lt;none&gt;</code></td><td><code>bytes</code></td><td></td></tr>
-<tr><td><code>&lt;none&gt;</code></td><td><code>bytes</code></td><td></td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>fee Computed bridge fee</td></tr>
-</tbody></table>
-</div>
-<h3 id="_depositv3now"><a class="header" href="#_depositv3now">_depositV3Now</a></h3>
-<p>Deposits funds into Across spoke pool for immediate relay</p>
-<pre><code class="language-solidity">function _depositV3Now(bytes calldata _message, address _token, uint32 _dstChainId, address _market) private;
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_message</code></td><td><code>bytes</code></td><td>Encoded Across message</td></tr>
-<tr><td><code>_token</code></td><td><code>address</code></td><td>Token being transferred</td></tr>
-<tr><td><code>_dstChainId</code></td><td><code>uint32</code></td><td>Destination chain ID</td></tr>
-<tr><td><code>_market</code></td><td><code>address</code></td><td>Market address encoded in the message</td></tr>
-</tbody></table>
-</div>
 <h3 id="_decodemessage"><a class="header" href="#_decodemessage">_decodeMessage</a></h3>
-<p>Decodes the Across message payload</p>
-<pre><code class="language-solidity">function _decodeMessage(bytes calldata _message) private pure returns (DecodedMessage memory messageData);
+<pre><code class="language-solidity">function _decodeMessage(bytes memory _message) private pure returns (DecodedMessage memory);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_message</code></td><td><code>bytes</code></td><td>Encoded message data</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>messageData</code></td><td><code>DecodedMessage</code></td><td>The decoded message struct</td></tr>
-</tbody></table>
-</div>
+<h3 id="_depositv3now"><a class="header" href="#_depositv3now">_depositV3Now</a></h3>
+<pre><code class="language-solidity">function _depositV3Now(bytes memory _message, address _token, uint32 _dstChainId, address _market) private;
+</code></pre>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="rebalanced"><a class="header" href="#rebalanced">Rebalanced</a></h3>
-<p>Emitted when funds are rebalanced to a market</p>
 <pre><code class="language-solidity">event Rebalanced(address indexed market, uint256 amount);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>market</code></td><td><code>address</code></td><td>The market receiving funds</td></tr>
-<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The amount rebalanced</td></tr>
-</tbody></table>
-</div>
 <h3 id="whitelistedrelayerstatusupdated"><a class="header" href="#whitelistedrelayerstatusupdated">WhitelistedRelayerStatusUpdated</a></h3>
-<p>Emitted when relayer whitelist status is updated</p>
 <pre><code class="language-solidity">event WhitelistedRelayerStatusUpdated(
     address indexed sender, uint32 indexed dstId, address indexed delegate, bool status
 );
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>sender</code></td><td><code>address</code></td><td>The caller updating whitelist</td></tr>
-<tr><td><code>dstId</code></td><td><code>uint32</code></td><td>The destination chain ID</td></tr>
-<tr><td><code>delegate</code></td><td><code>address</code></td><td>The relayer address</td></tr>
-<tr><td><code>status</code></td><td><code>bool</code></td><td>The whitelist status</td></tr>
-</tbody></table>
-</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="acrossbridge_tokenmismatch"><a class="header" href="#acrossbridge_tokenmismatch">AcrossBridge_TokenMismatch</a></h3>
-<p>Error thrown when tokens do not match expected underlying</p>
 <pre><code class="language-solidity">error AcrossBridge_TokenMismatch();
 </code></pre>
 <h3 id="acrossbridge_notauthorized"><a class="header" href="#acrossbridge_notauthorized">AcrossBridge_NotAuthorized</a></h3>
-<p>Error thrown when caller is not authorized</p>
 <pre><code class="language-solidity">error AcrossBridge_NotAuthorized();
 </code></pre>
 <h3 id="acrossbridge_notimplemented"><a class="header" href="#acrossbridge_notimplemented">AcrossBridge_NotImplemented</a></h3>
-<p>Error thrown when feature is not implemented</p>
 <pre><code class="language-solidity">error AcrossBridge_NotImplemented();
 </code></pre>
 <h3 id="acrossbridge_addressnotvalid"><a class="header" href="#acrossbridge_addressnotvalid">AcrossBridge_AddressNotValid</a></h3>
-<p>Error thrown when an address is not valid</p>
 <pre><code class="language-solidity">error AcrossBridge_AddressNotValid();
 </code></pre>
 <h3 id="acrossbridge_slippagenotvalid"><a class="header" href="#acrossbridge_slippagenotvalid">AcrossBridge_SlippageNotValid</a></h3>
-<p>Error thrown when slippage exceeds maximum</p>
 <pre><code class="language-solidity">error AcrossBridge_SlippageNotValid();
 </code></pre>
 <h3 id="acrossbridge_relayernotvalid"><a class="header" href="#acrossbridge_relayernotvalid">AcrossBridge_RelayerNotValid</a></h3>
-<p>Error thrown when relayer is not valid</p>
 <pre><code class="language-solidity">error AcrossBridge_RelayerNotValid();
 </code></pre>
 <h3 id="acrossbridge_invalidreceiver"><a class="header" href="#acrossbridge_invalidreceiver">AcrossBridge_InvalidReceiver</a></h3>
-<p>Error thrown when receiver market is invalid</p>
 <pre><code class="language-solidity">error AcrossBridge_InvalidReceiver();
 </code></pre>
 <h3 id="acrossbridge_maxfeeexceeded"><a class="header" href="#acrossbridge_maxfeeexceeded">AcrossBridge_MaxFeeExceeded</a></h3>
-<p>Error thrown when relayer fee exceeds maximum</p>
 <pre><code class="language-solidity">error AcrossBridge_MaxFeeExceeded();
 </code></pre>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
 <h3 id="decodedmessage"><a class="header" href="#decodedmessage">DecodedMessage</a></h3>
-<p>Decoded Across message payload</p>
 <pre><code class="language-solidity">struct DecodedMessage {
     address outputToken;
     uint256 inputAmount;
