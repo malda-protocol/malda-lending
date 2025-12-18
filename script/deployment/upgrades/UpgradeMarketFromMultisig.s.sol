@@ -23,26 +23,34 @@ contract UpgradeMarketFromMultisig is Script {
     function run() public {
         // Setup
 
+        /**
         MarketType marketType = MarketType.GATEWAY;
-        string memory salt = "ReleaseV1.0.5-patch-firewalllupdate";
+        string memory salt = "ReleaseV1.0.5-patch-firewallliquidation0x1eEa258B505cd6381171c1075EC6934F8D0Faf3b";
         address create3Deployer = 0x8F91616F05b3D74A8Ae56e43C585F0972Ccb91Df;
-        address proxy = 0xe1C32F75e88C8e0a0d447F4f66246c2E525e94A0;
+
         uint256 key = vm.envUint("PRIVATE_KEY");
         Deployer deployer = Deployer(payable(create3Deployer));
         // Get ProxyAdmin address from proxy
         address proxyAdmin = address(uint160(uint256(vm.load(proxy, ADMIN_SLOT))));
         console.log("ProxyAdmin address:", proxyAdmin);
+
         // Deploy new implementation
-        address newImpl = 0x46fDa3738fB2c3E51954D4cc36b1120Fd0d3512F;
-        // if (marketType == MarketType.HOST) {
-        //     newImpl = _deployHostImplementation(deployer, salt);
-        // } else {
-        //     newImpl = _deployGatewayImplementation(deployer, salt);
-        // }   
+        address newImpl;
+        if (marketType == MarketType.HOST) {
+            newImpl = _deployHostImplementation(deployer, salt);
+        } else {
+            newImpl = _deployGatewayImplementation(deployer, salt);
+        }   
+
         /// ^ deploy implementation above
-         
+
+        return; 
+        */
         /// > set new implementation below
 
+        address proxy = 0xa31963C753f277f7d82d98F56b2C374256925eB7;
+        address newImpl = address(0);
+        address proxyAdmin = address(uint160(uint256(vm.load(proxy, ADMIN_SLOT))));
         console.log("ProxyAdmin address:", proxyAdmin);
 
         // ------------------------------------------------------------
