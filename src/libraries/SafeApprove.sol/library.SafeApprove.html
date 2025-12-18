@@ -180,16 +180,31 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="safeapprove"><a class="header" href="#safeapprove">SafeApprove</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/42b710ca41a6d869df9a5eb54cdc696802d32099/src/libraries/SafeApprove.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/bb47fd29d1b804efd5fa6bee886b9b54a9fc6ac1/src/libraries/SafeApprove.sol">Git Source</a></p>
+<p><strong>Title:</strong>
+SafeApprove</p>
+<p><strong>Author:</strong>
+Merge Layers Inc.</p>
+<p>Library for safely setting ERC20 approvals</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="safeapprove-1"><a class="header" href="#safeapprove-1">safeApprove</a></h3>
+<p>Safely sets allowance to zero then desired value</p>
 <pre><code class="language-solidity">function safeApprove(address token, address to, uint256 value) internal;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>token</code></td><td><code>address</code></td><td>Token to approve</td></tr>
+<tr><td><code>to</code></td><td><code>address</code></td><td>Spender address</td></tr>
+<tr><td><code>value</code></td><td><code>uint256</code></td><td>New allowance to set</td></tr>
+</tbody></table>
+</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="safeapprove_nocontract"><a class="header" href="#safeapprove_nocontract">SafeApprove_NoContract</a></h3>
+<p>Thrown when target is not a contract</p>
 <pre><code class="language-solidity">error SafeApprove_NoContract();
 </code></pre>
 <h3 id="safeapprove_failed"><a class="header" href="#safeapprove_failed">SafeApprove_Failed</a></h3>
+<p>Thrown when an approve call fails</p>
 <pre><code class="language-solidity">error SafeApprove_Failed();
 </code></pre>
 

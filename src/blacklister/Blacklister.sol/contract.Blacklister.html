@@ -180,63 +180,113 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="blacklister"><a class="header" href="#blacklister">Blacklister</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/42b710ca41a6d869df9a5eb54cdc696802d32099/src/blacklister/Blacklister.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/bb47fd29d1b804efd5fa6bee886b9b54a9fc6ac1/src/blacklister/Blacklister.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 OwnableUpgradeable, <a href="/src/interfaces/IBlacklister.sol/interface.IBlacklister.html">IBlacklister</a></p>
+<p><strong>Title:</strong>
+Blacklister</p>
+<p><strong>Author:</strong>
+Merge Layers Inc.</p>
+<p>Contract for managing blacklisted addresses</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
 <h3 id="isblacklisted"><a class="header" href="#isblacklisted">isBlacklisted</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; bool) public isBlacklisted
+<p>Mapping of addresses to their blacklist status</p>
+<pre><code class="language-solidity">mapping(address user =&gt; bool isBlacklisted) public isBlacklisted
 </code></pre>
 <h3 id="_blacklistedlist"><a class="header" href="#_blacklistedlist">_blacklistedList</a></h3>
+<p>List of blacklisted addresses</p>
 <pre><code class="language-solidity">address[] private _blacklistedList
 </code></pre>
 <h3 id="rolesoperator"><a class="header" href="#rolesoperator">rolesOperator</a></h3>
+<p>The roles operator contract</p>
 <pre><code class="language-solidity">IRoles public rolesOperator
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
+<h3 id="onlyownerorguardian"><a class="header" href="#onlyownerorguardian">onlyOwnerOrGuardian</a></h3>
+<p>Modifier to restrict access to owner or has guardian blacklist role</p>
+<pre><code class="language-solidity">modifier onlyOwnerOrGuardian() ;
+</code></pre>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
+<p>Disables initializers on implementation contract</p>
 <p><strong>Note:</strong>
 oz-upgrades-unsafe-allow: constructor</p>
 <pre><code class="language-solidity">constructor() ;
 </code></pre>
 <h3 id="initialize"><a class="header" href="#initialize">initialize</a></h3>
+<p>Initialize the contract</p>
 <pre><code class="language-solidity">function initialize(address payable _owner, address _roles) external initializer;
 </code></pre>
-<h3 id="onlyownerorguardian"><a class="header" href="#onlyownerorguardian">onlyOwnerOrGuardian</a></h3>
-<pre><code class="language-solidity">modifier onlyOwnerOrGuardian() ;
-</code></pre>
-<h3 id="getblacklistedaddresses"><a class="header" href="#getblacklistedaddresses">getBlacklistedAddresses</a></h3>
-<pre><code class="language-solidity">function getBlacklistedAddresses() external view returns (address[] memory);
-</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_owner</code></td><td><code>address payable</code></td><td>The owner address</td></tr>
+<tr><td><code>_roles</code></td><td><code>address</code></td><td>The roles contract address</td></tr>
+</tbody></table>
+</div>
 <h3 id="blacklist"><a class="header" href="#blacklist">blacklist</a></h3>
+<p>Blacklists a user immediately (onlyOwner).</p>
 <pre><code class="language-solidity">function blacklist(address user) external override onlyOwnerOrGuardian;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>user</code></td><td><code>address</code></td><td>The address to blacklist</td></tr>
+</tbody></table>
+</div>
 <h3 id="unblacklist"><a class="header" href="#unblacklist">unblacklist</a></h3>
+<p>Removes a user from the blacklist (onlyOwner).</p>
 <pre><code class="language-solidity">function unblacklist(address user) external override onlyOwnerOrGuardian;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>user</code></td><td><code>address</code></td><td>The address to unblacklist</td></tr>
+</tbody></table>
+</div>
 <h3 id="unblacklist-1"><a class="header" href="#unblacklist-1">unblacklist</a></h3>
+<p>Removes a user from the blacklist (onlyOwner).</p>
 <pre><code class="language-solidity">function unblacklist(address user, uint256 index) external override onlyOwnerOrGuardian;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>user</code></td><td><code>address</code></td><td>The address to unblacklist</td></tr>
+<tr><td><code>index</code></td><td><code>uint256</code></td><td>The index of the user in blacklist array</td></tr>
+</tbody></table>
+</div>
+<h3 id="getblacklistedaddresses"><a class="header" href="#getblacklistedaddresses">getBlacklistedAddresses</a></h3>
+<p>Returns the list of currently blacklisted addresses.</p>
+<pre><code class="language-solidity">function getBlacklistedAddresses() external view returns (address[] memory);
+</code></pre>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>address[]</code></td><td>blacklistedAddresses Array of blacklisted addresses</td></tr>
+</tbody></table>
+</div>
 <h3 id="_addtoblacklist"><a class="header" href="#_addtoblacklist">_addToBlacklist</a></h3>
+<p>Internal function to add an address to blacklist</p>
 <pre><code class="language-solidity">function _addToBlacklist(address user) internal;
 </code></pre>
-<h3 id="_removefromblacklistlist"><a class="header" href="#_removefromblacklistlist">_removeFromBlacklistList</a></h3>
-<pre><code class="language-solidity">function _removeFromBlacklistList(address user) internal;
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>user</code></td><td><code>address</code></td><td>The address to blacklist</td></tr>
+</tbody></table>
+</div>
+<h3 id="_removefromblacklist"><a class="header" href="#_removefromblacklist">_removeFromBlacklist</a></h3>
+<p>Internal function to remove an address from blacklist list</p>
+<pre><code class="language-solidity">function _removeFromBlacklist(address user) internal;
 </code></pre>
-<h3 id="_removefromblacklistlist-1"><a class="header" href="#_removefromblacklistlist-1">_removeFromBlacklistList</a></h3>
-<pre><code class="language-solidity">function _removeFromBlacklistList(address user, uint256 index) internal;
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>user</code></td><td><code>address</code></td><td>The address to remove</td></tr>
+</tbody></table>
+</div>
+<h3 id="_removefromblacklist-1"><a class="header" href="#_removefromblacklist-1">_removeFromBlacklist</a></h3>
+<p>Internal function to remove an address from blacklist list by index</p>
+<pre><code class="language-solidity">function _removeFromBlacklist(address user, uint256 index) internal;
 </code></pre>
-<h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
-<h3 id="blacklister_alreadyblacklisted"><a class="header" href="#blacklister_alreadyblacklisted">Blacklister_AlreadyBlacklisted</a></h3>
-<pre><code class="language-solidity">error Blacklister_AlreadyBlacklisted();
-</code></pre>
-<h3 id="blacklister_notblacklisted"><a class="header" href="#blacklister_notblacklisted">Blacklister_NotBlacklisted</a></h3>
-<pre><code class="language-solidity">error Blacklister_NotBlacklisted();
-</code></pre>
-<h3 id="blacklister_notallowed"><a class="header" href="#blacklister_notallowed">Blacklister_NotAllowed</a></h3>
-<pre><code class="language-solidity">error Blacklister_NotAllowed();
-</code></pre>
-
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>user</code></td><td><code>address</code></td><td>The address to remove</td></tr>
+<tr><td><code>index</code></td><td><code>uint256</code></td><td>The index in the blacklist array</td></tr>
+</tbody></table>
+</div>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

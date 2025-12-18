@@ -180,12 +180,27 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="imendicomptroller"><a class="header" href="#imendicomptroller">IMendiComptroller</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/42b710ca41a6d869df9a5eb54cdc696802d32099/src/migration/IMigrator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/bb47fd29d1b804efd5fa6bee886b9b54a9fc6ac1/src/migration/IMigrator.sol">Git Source</a></p>
+<p><strong>Title:</strong>
+IMendiComptroller</p>
+<p><strong>Author:</strong>
+Merge Layers Inc.</p>
+<p>Interface for fetching entered markets</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="getassetsin"><a class="header" href="#getassetsin">getAssetsIn</a></h3>
-<pre><code class="language-solidity">function getAssetsIn(address account) external view returns (IMendiMarket[] memory);
+<p>Returns assets in for account</p>
+<pre><code class="language-solidity">function getAssetsIn(address account) external view returns (IMendiMarket[] memory assets);
 </code></pre>
-
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>account</code></td><td><code>address</code></td><td>Account address</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>assets</code></td><td><code>IMendiMarket[]</code></td><td>List of markets</td></tr>
+</tbody></table>
+</div>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

@@ -180,12 +180,13 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="imerc20host"><a class="header" href="#imerc20host">ImErc20Host</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/42b710ca41a6d869df9a5eb54cdc696802d32099/src/interfaces/ImErc20Host.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/bb47fd29d1b804efd5fa6bee886b9b54a9fc6ac1/src/interfaces/ImErc20Host.sol">Git Source</a></p>
+<p><strong>Title:</strong>
+ImErc20Host</p>
+<p><strong>Author:</strong>
+Merge Layers Inc.</p>
+<p>Interface for host-side mERC20 cross-chain operations</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
-<h3 id="getproofdata"><a class="header" href="#getproofdata">getProofData</a></h3>
-<p>Returns the proof data journal</p>
-<pre><code class="language-solidity">function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
-</code></pre>
 <h3 id="mintorborrowmigration"><a class="header" href="#mintorborrowmigration">mintOrBorrowMigration</a></h3>
 <p>Mints mTokens during migration without requiring underlying transfer</p>
 <pre><code class="language-solidity">function mintOrBorrowMigration(bool mint, uint256 amount, address receiver, address borrower, uint256 minAmount)
@@ -287,15 +288,44 @@
 <tr><td><code>dstChainId</code></td><td><code>uint32</code></td><td>The destination chain to recieve funds</td></tr>
 </tbody></table>
 </div>
+<h3 id="getproofdata"><a class="header" href="#getproofdata">getProofData</a></h3>
+<p>Returns the proof data journal</p>
+<pre><code class="language-solidity">function getProofData(address user, uint32 dstId) external view returns (uint256 dataRoot, uint256 journalHash);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>user</code></td><td><code>address</code></td><td>The user address for the proof</td></tr>
+<tr><td><code>dstId</code></td><td><code>uint32</code></td><td>The destination chain identifier</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>dataRoot</code></td><td><code>uint256</code></td><td>The proof data root</td></tr>
+<tr><td><code>journalHash</code></td><td><code>uint256</code></td><td>The proof journal hash</td></tr>
+</tbody></table>
+</div>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="allowedcallerupdated"><a class="header" href="#allowedcallerupdated">AllowedCallerUpdated</a></h3>
 <p>Emitted when a user updates allowed callers</p>
 <pre><code class="language-solidity">event AllowedCallerUpdated(address indexed sender, address indexed caller, bool status);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>sender</code></td><td><code>address</code></td><td>The caller updating permission</td></tr>
+<tr><td><code>caller</code></td><td><code>address</code></td><td>The address whose status is updated</td></tr>
+<tr><td><code>status</code></td><td><code>bool</code></td><td>Whether the caller is allowed</td></tr>
+</tbody></table>
+</div>
 <h3 id="merc20host_chainstatusupdated"><a class="header" href="#merc20host_chainstatusupdated">mErc20Host_ChainStatusUpdated</a></h3>
 <p>Emitted when a chain id whitelist status is updated</p>
 <pre><code class="language-solidity">event mErc20Host_ChainStatusUpdated(uint32 indexed chainId, bool status);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>chainId</code></td><td><code>uint32</code></td><td>The chain identifier</td></tr>
+<tr><td><code>status</code></td><td><code>bool</code></td><td>Whether the chain is whitelisted</td></tr>
+</tbody></table>
+</div>
 <h3 id="merc20host_liquidateexternal"><a class="header" href="#merc20host_liquidateexternal">mErc20Host_LiquidateExternal</a></h3>
 <p>Emitted when a liquidate operation is executed</p>
 <pre><code class="language-solidity">event mErc20Host_LiquidateExternal(
@@ -308,48 +338,145 @@
     uint256 amount
 );
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>msgSender</code></td><td><code>address</code></td><td>The caller on host chain</td></tr>
+<tr><td><code>srcSender</code></td><td><code>address</code></td><td>The caller on source chain</td></tr>
+<tr><td><code>userToLiquidate</code></td><td><code>address</code></td><td>The user being liquidated</td></tr>
+<tr><td><code>receiver</code></td><td><code>address</code></td><td>The receiver of seized collateral</td></tr>
+<tr><td><code>collateral</code></td><td><code>address</code></td><td>The collateral market</td></tr>
+<tr><td><code>srcChainId</code></td><td><code>uint32</code></td><td>Source chain identifier</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The repay amount</td></tr>
+</tbody></table>
+</div>
 <h3 id="merc20host_mintexternal"><a class="header" href="#merc20host_mintexternal">mErc20Host_MintExternal</a></h3>
 <p>Emitted when a mint operation is executed</p>
 <pre><code class="language-solidity">event mErc20Host_MintExternal(
     address indexed msgSender, address indexed srcSender, address indexed receiver, uint32 chainId, uint256 amount
 );
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>msgSender</code></td><td><code>address</code></td><td>The caller on host chain</td></tr>
+<tr><td><code>srcSender</code></td><td><code>address</code></td><td>The caller on source chain</td></tr>
+<tr><td><code>receiver</code></td><td><code>address</code></td><td>The receiver of minted tokens</td></tr>
+<tr><td><code>chainId</code></td><td><code>uint32</code></td><td>Source chain identifier</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The mint amount</td></tr>
+</tbody></table>
+</div>
 <h3 id="merc20host_borrowexternal"><a class="header" href="#merc20host_borrowexternal">mErc20Host_BorrowExternal</a></h3>
 <p>Emitted when a borrow operation is executed</p>
 <pre><code class="language-solidity">event mErc20Host_BorrowExternal(
     address indexed msgSender, address indexed srcSender, uint32 indexed chainId, uint256 amount
 );
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>msgSender</code></td><td><code>address</code></td><td>The caller on host chain</td></tr>
+<tr><td><code>srcSender</code></td><td><code>address</code></td><td>The caller on source chain</td></tr>
+<tr><td><code>chainId</code></td><td><code>uint32</code></td><td>Source chain identifier</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The borrow amount</td></tr>
+</tbody></table>
+</div>
 <h3 id="merc20host_repayexternal"><a class="header" href="#merc20host_repayexternal">mErc20Host_RepayExternal</a></h3>
 <p>Emitted when a repay operation is executed</p>
 <pre><code class="language-solidity">event mErc20Host_RepayExternal(
     address indexed msgSender, address indexed srcSender, address indexed position, uint32 chainId, uint256 amount
 );
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>msgSender</code></td><td><code>address</code></td><td>The caller on host chain</td></tr>
+<tr><td><code>srcSender</code></td><td><code>address</code></td><td>The caller on source chain</td></tr>
+<tr><td><code>position</code></td><td><code>address</code></td><td>The position being repaid</td></tr>
+<tr><td><code>chainId</code></td><td><code>uint32</code></td><td>Source chain identifier</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The repay amount</td></tr>
+</tbody></table>
+</div>
 <h3 id="merc20host_withdrawexternal"><a class="header" href="#merc20host_withdrawexternal">mErc20Host_WithdrawExternal</a></h3>
 <p>Emitted when a withdrawal is executed</p>
 <pre><code class="language-solidity">event mErc20Host_WithdrawExternal(
     address indexed msgSender, address indexed srcSender, uint32 indexed chainId, uint256 amount
 );
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>msgSender</code></td><td><code>address</code></td><td>The caller on host chain</td></tr>
+<tr><td><code>srcSender</code></td><td><code>address</code></td><td>The caller on source chain</td></tr>
+<tr><td><code>chainId</code></td><td><code>uint32</code></td><td>Source chain identifier</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The withdrawal amount</td></tr>
+</tbody></table>
+</div>
 <h3 id="merc20host_borrowonextensionchain"><a class="header" href="#merc20host_borrowonextensionchain">mErc20Host_BorrowOnExtensionChain</a></h3>
 <p>Emitted when a borrow operation is triggered for an extension chain</p>
 <pre><code class="language-solidity">event mErc20Host_BorrowOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>sender</code></td><td><code>address</code></td><td>The caller initiating the borrow</td></tr>
+<tr><td><code>dstChainId</code></td><td><code>uint32</code></td><td>Destination chain identifier</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The borrow amount</td></tr>
+</tbody></table>
+</div>
 <h3 id="merc20host_withdrawonextensionchain"><a class="header" href="#merc20host_withdrawonextensionchain">mErc20Host_WithdrawOnExtensionChain</a></h3>
 <p>Emitted when a withdraw operation is triggered for an extension chain</p>
 <pre><code class="language-solidity">event mErc20Host_WithdrawOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>sender</code></td><td><code>address</code></td><td>The caller initiating the withdrawal</td></tr>
+<tr><td><code>dstChainId</code></td><td><code>uint32</code></td><td>Destination chain identifier</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The withdrawal amount</td></tr>
+</tbody></table>
+</div>
 <h3 id="merc20host_gasfeeupdated"><a class="header" href="#merc20host_gasfeeupdated">mErc20Host_GasFeeUpdated</a></h3>
 <p>Emitted when gas fees are updated for a dst chain</p>
 <pre><code class="language-solidity">event mErc20Host_GasFeeUpdated(uint32 indexed dstChainId, uint256 amount);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>dstChainId</code></td><td><code>uint32</code></td><td>Destination chain identifier</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The gas fee amount</td></tr>
+</tbody></table>
+</div>
 <h3 id="merc20host_mintmigration"><a class="header" href="#merc20host_mintmigration">mErc20Host_MintMigration</a></h3>
+<p>Emitted when migration mint is performed</p>
 <pre><code class="language-solidity">event mErc20Host_MintMigration(address indexed receiver, uint256 amount);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>receiver</code></td><td><code>address</code></td><td>Receiver of the migrated tokens</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>Amount minted</td></tr>
+</tbody></table>
+</div>
 <h3 id="merc20host_borrowmigration"><a class="header" href="#merc20host_borrowmigration">mErc20Host_BorrowMigration</a></h3>
+<p>Emitted when migration borrow is performed</p>
 <pre><code class="language-solidity">event mErc20Host_BorrowMigration(address indexed borrower, uint256 amount);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>borrower</code></td><td><code>address</code></td><td>Borrower receiving funds</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>Amount borrowed</td></tr>
+</tbody></table>
+</div>
+<h3 id="merc20host_migratorupdated"><a class="header" href="#merc20host_migratorupdated">mErc20Host_MigratorUpdated</a></h3>
+<p>Emitted when migrator address is updated</p>
+<pre><code class="language-solidity">event mErc20Host_MigratorUpdated(address indexed migrator);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>migrator</code></td><td><code>address</code></td><td>The new migrator address</td></tr>
+</tbody></table>
+</div>
+<h3 id="merc20host_gashelperupdated"><a class="header" href="#merc20host_gashelperupdated">mErc20Host_GasHelperUpdated</a></h3>
+<p>Emitted when gas helper address is updated</p>
+<pre><code class="language-solidity">event mErc20Host_GasHelperUpdated(address indexed helper);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>helper</code></td><td><code>address</code></td><td>The new gas helper address</td></tr>
+</tbody></table>
+</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="merc20host_proofgenerationinputnotvalid"><a class="header" href="#merc20host_proofgenerationinputnotvalid">mErc20Host_ProofGenerationInputNotValid</a></h3>
 <p>Thrown when the chain id is not LINEA</p>

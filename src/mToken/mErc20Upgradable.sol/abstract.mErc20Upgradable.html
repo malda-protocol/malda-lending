@@ -180,11 +180,17 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="merc20upgradable"><a class="header" href="#merc20upgradable">mErc20Upgradable</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/42b710ca41a6d869df9a5eb54cdc696802d32099/src/mToken/mErc20Upgradable.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/bb47fd29d1b804efd5fa6bee886b9b54a9fc6ac1/src/mToken/mErc20Upgradable.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/mToken/mErc20.sol/abstract.mErc20.html">mErc20</a>, Initializable</p>
+<p><strong>Title:</strong>
+Upgradable mErc20</p>
+<p><strong>Author:</strong>
+Merge Layers Inc.</p>
+<p>Upgradable flavor of mErc20 with initializer support</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
+<p>Disables initializers on deployment</p>
 <p><strong>Note:</strong>
 oz-upgrades-unsafe-allow: constructor</p>
 <pre><code class="language-solidity">constructor() ;
@@ -211,9 +217,15 @@ oz-upgrades-unsafe-allow: constructor</p>
 <tr><td><code>name_</code></td><td><code>string</code></td><td>ERC-20 name of this token</td></tr>
 <tr><td><code>symbol_</code></td><td><code>string</code></td><td>ERC-20 symbol of this token</td></tr>
 <tr><td><code>decimals_</code></td><td><code>uint8</code></td><td>ERC-20 decimal precision of this token</td></tr>
-<tr><td><code>admin_</code></td><td><code>address payable</code></td><td></td></tr>
+<tr><td><code>admin_</code></td><td><code>address payable</code></td><td>Address of the administrator</td></tr>
 </tbody></table>
 </div>
+<h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
+<h3 id="merc20upgradable_adminnotvalid"><a class="header" href="#merc20upgradable_adminnotvalid">mErc20Upgradable_AdminNotValid</a></h3>
+<p>Error thrown when the admin is not valid</p>
+<pre><code class="language-solidity">error mErc20Upgradable_AdminNotValid();
+</code></pre>
+
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
