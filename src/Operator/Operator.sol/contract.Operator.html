@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="operator"><a class="header" href="#operator">Operator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/32c9f8dcb91812ef5ffca74482d85ed4f7508c98/src/Operator/Operator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/42b710ca41a6d869df9a5eb54cdc696802d32099/src/Operator/Operator.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/Operator/OperatorStorage.sol/abstract.OperatorStorage.html">OperatorStorage</a>, <a href="/src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.html">ImTokenOperationTypes</a>, OwnableUpgradeable, <a href="/src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.html">HypernativeFirewallProtected</a></p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
@@ -315,7 +315,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 <p>Set the given borrow caps for the given mToken markets. Borrowing that brings total borrows to or above borrow cap will revert.</p>
 <pre><code class="language-solidity">function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newBorrowCaps)
     external
-    onlyFirewallApproved;
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -327,7 +327,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 <p>Set the given supply caps for the given mToken markets. Supplying that brings total supply to or above supply cap will revert.</p>
 <pre><code class="language-solidity">function setMarketSupplyCaps(address[] calldata mTokens, uint256[] calldata newSupplyCaps)
     external
-    onlyFirewallApproved;
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -339,7 +339,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 <p>Set pause for a specific operation</p>
 <pre><code class="language-solidity">function setPaused(address mToken, ImTokenOperationTypes.OperationType _type, bool state)
     external
-    onlyFirewallApproved;
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -433,11 +433,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 </code></pre>
 <h3 id="entermarkets"><a class="header" href="#entermarkets">enterMarkets</a></h3>
 <p>Add assets to be included in account liquidity calculation</p>
-<pre><code class="language-solidity">function enterMarkets(address[] calldata _mTokens)
-    external
-    override
-    onlyAllowedUser(msg.sender)
-    onlyFirewallApproved;
+<pre><code class="language-solidity">function enterMarkets(address[] calldata _mTokens) external override onlyAllowedUser(msg.sender);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -457,7 +453,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 <p>Removes asset from sender's account liquidity calculation</p>
 <p>Sender must not have an outstanding borrow balance in the asset,
 or be providing necessary collateral for an outstanding borrow.</p>
-<pre><code class="language-solidity">function exitMarket(address _mToken) external override onlyFirewallApproved;
+<pre><code class="language-solidity">function exitMarket(address _mToken) external override;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -470,7 +466,7 @@ or be providing necessary collateral for an outstanding borrow.</p>
 </code></pre>
 <h3 id="beforerebalancing"><a class="header" href="#beforerebalancing">beforeRebalancing</a></h3>
 <p>Checks if the account should be allowed to rebalance tokens</p>
-<pre><code class="language-solidity">function beforeRebalancing(address mToken) external view override onlyFirewallApproved;
+<pre><code class="language-solidity">function beforeRebalancing(address mToken) external view override;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -483,8 +479,7 @@ or be providing necessary collateral for an outstanding borrow.</p>
     external
     override
     ifNotBlacklisted(src)
-    ifNotBlacklisted(dst)
-    onlyFirewallApproved;
+    ifNotBlacklisted(dst);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -503,7 +498,6 @@ or be providing necessary collateral for an outstanding borrow.</p>
     onlyAllowedUser(minter)
     ifNotBlacklisted(minter)
     ifNotBlacklisted(receiver)
-    onlyFirewallApproved
     onlyAllowedUser(minter);
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -529,8 +523,7 @@ or be providing necessary collateral for an outstanding borrow.</p>
     view
     override
     onlyAllowedUser(redeemer)
-    ifNotBlacklisted(redeemer)
-    onlyFirewallApproved;
+    ifNotBlacklisted(redeemer);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -545,8 +538,7 @@ or be providing necessary collateral for an outstanding borrow.</p>
     external
     override
     onlyAllowedUser(borrower)
-    ifNotBlacklisted(borrower)
-    onlyFirewallApproved;
+    ifNotBlacklisted(borrower);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -557,11 +549,7 @@ or be providing necessary collateral for an outstanding borrow.</p>
 </div>
 <h3 id="beforemtokenrepay"><a class="header" href="#beforemtokenrepay">beforeMTokenRepay</a></h3>
 <p>Checks if the account should be allowed to repay a borrow in the given market</p>
-<pre><code class="language-solidity">function beforeMTokenRepay(address mToken, address borrower)
-    external
-    view
-    onlyAllowedUser(borrower)
-    onlyFirewallApproved;
+<pre><code class="language-solidity">function beforeMTokenRepay(address mToken, address borrower) external view onlyAllowedUser(borrower);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -576,7 +564,7 @@ or be providing necessary collateral for an outstanding borrow.</p>
     address mTokenCollateral,
     address borrower,
     uint256 repayAmount
-) external view override onlyFirewallApproved;
+) external view override;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -592,8 +580,7 @@ or be providing necessary collateral for an outstanding borrow.</p>
     external
     view
     override
-    ifNotBlacklisted(liquidator)
-    onlyFirewallApproved;
+    ifNotBlacklisted(liquidator);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
