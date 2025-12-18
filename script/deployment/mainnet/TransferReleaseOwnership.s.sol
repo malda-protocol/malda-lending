@@ -20,8 +20,9 @@ interface ISafeModule {
 contract TransferReleaseOwnership is DeployBaseRelease {
     using stdJson for string;
 
-    SetRole internal setRole;
+    bytes32 internal constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 
+    SetRole internal setRole;
     address[] internal marketList;
     address internal pauser;
     address internal batchSubmitter;
@@ -37,7 +38,7 @@ contract TransferReleaseOwnership is DeployBaseRelease {
     address internal deployer;
     address internal gasHelper;
     address internal safeModule = 0x923B1e0e129fAc8949d6d0C8C2f932Be4B055637;
-
+    address internal blacklister;
     address[] internal interesteModels;
 
     function setUp() public override {
@@ -71,6 +72,7 @@ contract TransferReleaseOwnership is DeployBaseRelease {
         operator = vm.parseJsonAddress(jsonContent, ".Operator");
         deployer = vm.parseJsonAddress(jsonContent, ".Deployer");
         gasHelper = vm.parseJsonAddress(jsonContent, ".DefaultGasHelper");
+        blacklister = vm.parseJsonAddress(jsonContent, ".Blacklister");
 
         interesteModels.push(0x9323cB1416a5d14b47f09c64641D078F67b902a3);
         interesteModels.push(0x78e537025Dfb75ECa61f268483F0973b6934c644);
@@ -120,6 +122,9 @@ contract TransferReleaseOwnership is DeployBaseRelease {
             console.log(" -- for ZkVerifier ", securityMultisig);
             IOwnable(zkVerifier).transferOwnership(securityMultisig);
 
+            console.log(" -- for Blacklisterr ", securityMultisig);
+            IOwnable(blacklister).transferOwnership(securityMultisig);
+
             console.log(" -- for BatchSubmitter ", operatingMultisig);
             IOwnable(batchSubmitter).transferOwnership(operatingMultisig);
 
@@ -138,8 +143,12 @@ contract TransferReleaseOwnership is DeployBaseRelease {
 
                 console.log(" -- for all host markets ", securityMultisig);
                 for (uint256 j; j < marketList.length; ++j) {
-                    console.log(" -- for market: ", marketList[j]);
-                    IAdmin(marketList[j]).setPendingAdmin(securityMultisig);
+                    address marketProxy = marketList[j];
+                    console.log(" -- for market: ", marketProxy);
+                    IAdmin(marketProxy).setPendingAdmin(securityMultisig);
+                    address proxyAdmin = address(uint160(uint256(vm.load(marketProxy, ADMIN_SLOT))));
+                    console.log(" -- for market proxy admin: ", proxyAdmin);
+                    IOwnable(proxyAdmin).transferOwnership(securityMultisig);
                 }
                 ISafeModule(safeModule).setGuardian(securityMultisig);
                 ISafeModule(safeModule).setGasGuardian(operatingMultisig);
@@ -215,26 +224,44 @@ contract TransferReleaseOwnership is DeployBaseRelease {
                     false
                 );
 
-                setRole.run(rolesContract, operatingMultisig, keccak256(abi.encodePacked("GUARDIAN_BRIDGE")), true);
+                setRole.run(rolesContract, securityMultisig, keccak256(abi.encodePacked("GUARDIAN_BRIDGE")), true);
                 setRole.run(
                     rolesContract,
                     0xB819A871d20913839c37f316Dc914b0570bfc0eE,
                     keccak256(abi.encodePacked("GUARDIAN_BRIDGE")),
                     false
                 );
+
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("REBALANCER_EOA")),
+                    false
+                );
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("PROOF_FORWARDER")),
+                    false
+                );
             } else {
                 console.log(" EXTENSION");
                 console.log(" -- for all extension markets ", securityMultisig);
                 for (uint256 j; j < 4; ++j) {
+                    address marketProxy = marketList[j];
                     if (
-                        marketList[i] == 0xe79a5f1E2E5619dF1cbb089Db3B11ff9E4dA5aff
-                            || marketList[i] == 0x867B44af79da71684508c25a1323db3cce5bC23D
-                            || marketList[i] == 0x301E5481271fD4F4f4C0291F88d7d829c64E2B2b
-                            || marketList[i] == 0xa31963C753f277f7d82d98F56b2C374256925eB7
+                        marketProxy == 0xe79a5f1E2E5619dF1cbb089Db3B11ff9E4dA5aff
+                            || marketProxy == 0x867B44af79da71684508c25a1323db3cce5bC23D
+                            || marketProxy == 0x301E5481271fD4F4f4C0291F88d7d829c64E2B2b
+                            || marketProxy == 0xa31963C753f277f7d82d98F56b2C374256925eB7
                     ) continue;
 
-                    console.log(" -- for market: ", marketList[j]);
-                    IOwnable(marketList[j]).transferOwnership(securityMultisig);
+                    console.log(" -- for market: ", marketProxy);
+                    IOwnable(marketProxy).transferOwnership(securityMultisig);
+
+                    address proxyAdmin = address(uint160(uint256(vm.load(marketProxy, ADMIN_SLOT))));
+                    console.log(" -- for extension market proxy admin: ", proxyAdmin);
+                    IOwnable(proxyAdmin).transferOwnership(securityMultisig);
                 }
 
                 vm.stopBroadcast();
@@ -268,6 +295,49 @@ contract TransferReleaseOwnership is DeployBaseRelease {
                     rolesContract,
                     0xB819A871d20913839c37f316Dc914b0570bfc0eE,
                     keccak256(abi.encodePacked("CHAINS_MANAGER")),
+                    false
+                );
+
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("GUARDIAN_RESERVE")),
+                    false
+                );
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("GUARDIAN_BRIDGE")),
+                    false
+                );
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("GUARDIAN_SUPPLY_CAP")),
+                    false
+                );
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("GUARDIAN_BORROW_CAP")),
+                    false
+                );
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("PAUSE_MANAGER")),
+                    false
+                );
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("REBALANCER_EOA")),
+                    false
+                );
+                setRole.run(
+                    rolesContract,
+                    0xB819A871d20913839c37f316Dc914b0570bfc0eE,
+                    keccak256(abi.encodePacked("PROOF_FORWARDER")),
                     false
                 );
             }
