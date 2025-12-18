@@ -17,7 +17,6 @@ pragma solidity =0.8.28;
 */
 
 import {BaseOftMessageExecutor} from "./BaseOftMessageExecutor.sol";
-import {ILayerZeroOFT} from "src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol";
 import {MessagingReceipt} from "src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol";
 import {SendParam, MessagingFee, ILayerZeroOFT} from "src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol";
 

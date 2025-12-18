@@ -11,7 +11,7 @@ import {Deployer} from "src/utils/Deployer.sol";
  *     --verify \
  *     --verifier-url <url> \
  *     --rpc-url <url> \
- *     --sig "run(address)" 0x0 \
+ *     --sig "run(address,address,address)" 0x0,0x0,0x0 \
  *     --etherscan-api-key <key> \
  *     --broadcast
  */

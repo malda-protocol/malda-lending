@@ -21,7 +21,6 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 
 import {SafeApprove} from "src/libraries/SafeApprove.sol";
 import {MessagingReceipt} from "src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol";
-import {MessagingReceipt} from "src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol";
 import {SendParam, MessagingFee, ILayerZeroOFT, ILayerZeroOFTWrapper} from "src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol";
 
 import {IOftMessageExecutor} from "src/interfaces/IOftMessageExecutor.sol";

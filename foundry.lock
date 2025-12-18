@@ -1,0 +1,17 @@
+{
+  "lib/LayerZero-v2": {
+    "rev": "ab9b083410b9359285a5756807e1b6145d4711a7"
+  },
+  "lib/openzeppelin-contracts": {
+    "rev": "dbb6104ce834628e473d2173bbc9d47f81a9eec3"
+  },
+  "lib/openzeppelin-contracts-upgradeable": {
+    "rev": "723f8cab09cdae1aca9ec9cc1cfa040c2d4b06c1"
+  },
+  "lib/openzeppelin-foundry-upgrades": {
+    "rev": "16e0ae21e0e39049f619f2396fa28c57fad07368"
+  },
+  "lib/risc0-ethereum": {
+    "rev": "4fa7de055d461b7fa948eb56107b7a172459e8fc"
+  }
+}
