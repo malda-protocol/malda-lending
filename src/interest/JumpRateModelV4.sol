@@ -146,7 +146,10 @@ contract JumpRateModelV4 is IInterestRateModel, Ownable {
         if (borrows == 0) {
             return 0;
         }
-        return borrows * 1e18 / (cash + borrows - reserves);
+        uint256 utilRate = borrows * 1e18 / (cash + borrows - reserves);
+        // cap utilization rate to 100%
+        if (utilRate > 1e18) return 1e18;
+        return utilRate;
     }
 
     /**
