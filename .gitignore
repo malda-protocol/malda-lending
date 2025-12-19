@@ -22,4 +22,4 @@ node_modules
 coverage
 coverage.json
 .VSCodeCounter/
-docs/book/**
+docs/**
