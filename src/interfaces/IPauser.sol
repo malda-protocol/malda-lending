@@ -17,14 +17,17 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {ImTokenOperationTypes} from "./ImToken.sol";
 
+/// @title IPauser
+/// @author Merge Layers Inc.
+/// @notice Interface for pausing market operations
 interface IPauser is ImTokenOperationTypes {
     enum PausableType {
         NonPausable,
@@ -37,33 +40,54 @@ interface IPauser is ImTokenOperationTypes {
         PausableType contractType;
     }
 
-    error Pauser_EntryNotFound();
-    error Pauser_NotAuthorized();
-    error Pauser_AddressNotValid();
-    error Pauser_AlreadyRegistered();
-    error Pauser_ContractNotEnabled();
-
+    // ----------- EVENTS ------------
+    /// @notice Emitted when all markets are paused
     event PauseAll();
+
+    /// @notice Emitted when a market is paused
+    /// @param market The paused market
     event MarketPaused(address indexed market);
+
+    /// @notice Emitted when a market is removed
+    /// @param market The market removed
     event MarketRemoved(address indexed market);
+
+    /// @notice Emitted when a market is added
+    /// @param market The market added
+    /// @param marketType The market type
     event MarketAdded(address indexed market, PausableType marketType);
+
+    /// @notice Emitted when a specific operation is paused for a market
+    /// @param market The market paused
+    /// @param pauseType The operation type paused
     event MarketPausedFor(address indexed market, OperationType pauseType);
 
-    /**
-     * @notice pauses all operations for a market
-     * @param _market the mToken address
-     */
+    // ----------- ERRORS ------------
+    /// @notice Error when entry is not found
+    error Pauser_EntryNotFound();
+
+    /// @notice Error when caller lacks authorization
+    error Pauser_NotAuthorized();
+
+    /// @notice Error when provided address is invalid
+    error Pauser_AddressNotValid();
+
+    /// @notice Error when market already registered
+    error Pauser_AlreadyRegistered();
+
+    /// @notice Error when contract is not enabled
+    error Pauser_ContractNotEnabled();
+
+    // ----------- EXTERNAL ------------
+    /// @notice Pauses all operations for a market
+    /// @param _market the mToken address
     function emergencyPauseMarket(address _market) external;
 
-    /**
-     * @notice pauses a specific operation for a market
-     * @param _market the mToken address
-     * @param _pauseType the operation type
-     */
+    /// @notice Pauses a specific operation for a market
+    /// @param _market the mToken address
+    /// @param _pauseType the operation type
     function emergencyPauseMarketFor(address _market, OperationType _pauseType) external;
 
-    /**
-     * @notice pauses all operations for all registered markets
-     */
+    /// @notice Pauses all operations for all registered markets
     function emergencyPauseAll() external;
 }

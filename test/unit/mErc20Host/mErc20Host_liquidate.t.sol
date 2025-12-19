@@ -4,7 +4,6 @@ pragma solidity =0.8.28;
 // interfaces
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
-import {IOperator} from "src/interfaces/IOperator.sol";
 
 // contracts
 import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
@@ -23,8 +22,9 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         external
         whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Liquidate)
         whenMarketIsListed(address(mWethHost))
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), amount);
 
         uint256[] memory amounts = new uint256[](1);
@@ -45,9 +45,10 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
     function test_RevertWhen_JournalIsEmpty(uint256 amount)
         external
         givenMarketIsNotPaused
-        inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
         address[] memory users = new address[](1);
@@ -62,9 +63,10 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
     function test_RevertWhen_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
         external
         givenMarketIsNotPaused
-        inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
         address[] memory users = new address[](1);
@@ -100,8 +102,9 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         external
         givenMarketIsNotPaused
         whenDecodedAmountIsValid
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
         address[] memory users = new address[](1);
@@ -121,8 +124,9 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         external
         givenMarketIsNotPaused
         whenDecodedAmountIsValid
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
         address[] memory users = new address[](1);
@@ -151,13 +155,14 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
 
     function test_WhenSealVerificationWasOk_RepayTooMuch(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
         givenMarketIsNotPaused
         whenDecodedAmountIsValid
     {
+        amount = bound(amount, SMALL, LARGE);
+
         mWethHost.setRolesOperator(address(roles));
 
         _repayPrerequisites(address(mWethHost), amount * 2, amount);

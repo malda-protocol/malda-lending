@@ -77,11 +77,9 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         assertEq(balanceAfter, balanceBefore);
     }
 
-    function test_WhenTheAmountIsGreaterThanZero(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenDepositIsCalled
-    {
+    function test_WhenTheAmountIsGreaterThanZero(uint256 amount) external whenDepositIsCalled {
+        amount = bound(amount, SMALL, LARGE);
+
         _getTokens(weth, address(this), amount);
         weth.approve(address(protocol), amount);
 
@@ -103,21 +101,17 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         _;
     }
 
-    function test_GivenTheJournalDataIsInvalid(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenBorrowIsCalled
-    {
+    function test_GivenTheJournalDataIsInvalid(uint256 amount) external whenBorrowIsCalled {
+        amount = bound(amount, SMALL, LARGE);
+
         // it should revert with LendingProtocolMock_JournalNotValid
         vm.expectRevert(LendingProtocolMock.LendingProtocolMock_JournalNotValid.selector);
         protocol.borrow(amount, "", "0x123");
     }
 
-    function test_GivenTheLiquidityIsInsufficientX(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenBorrowIsCalled
-    {
+    function test_GivenTheLiquidityIsInsufficientX(uint256 amount) external whenBorrowIsCalled {
+        amount = bound(amount, SMALL, LARGE);
+
         bytes memory journalData = _createJournal(amount / 2, address(this));
 
         vm.expectRevert(LendingProtocolMock.LendingProtocolMock_InsufficientLiquidity.selector);
@@ -132,10 +126,11 @@ contract LendingProtocolMock_test is Base_Unit_Test {
 
     function test_WhenThereAreEnoughTokensInTheContract(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenBorrowIsCalled
         whenLiquidityIsSufficient
     {
+        amount = bound(amount, SMALL, LARGE);
+
         _getTokens(weth, address(this), amount);
         weth.approve(address(protocol), amount);
 
@@ -159,10 +154,11 @@ contract LendingProtocolMock_test is Base_Unit_Test {
 
     function test_GivenThereAreNotEnoughTokensInTheContract(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenBorrowIsCalled
         whenLiquidityIsSufficient
     {
+        amount = bound(amount, SMALL, LARGE);
+
         bytes memory journalData = _createJournal(amount, address(this));
 
         vm.expectRevert(LendingProtocolMock.LendingProtocolMock_InsufficientBalance.selector);
@@ -176,20 +172,16 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         _;
     }
 
-    function test_GivenTheBorrowBalanceIsInsufficient(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenRepayIsCalled
-    {
+    function test_GivenTheBorrowBalanceIsInsufficient(uint256 amount) external whenRepayIsCalled {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(LendingProtocolMock.LendingProtocolMock_InsufficientBalance.selector);
         protocol.repay(amount);
     }
 
-    function test_WhenTheBorrowBalanceIsSufficient(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenRepayIsCalled
-    {
+    function test_WhenTheBorrowBalanceIsSufficient(uint256 amount) external whenRepayIsCalled {
+        amount = bound(amount, SMALL, LARGE);
+
         _getTokens(weth, address(this), amount);
         weth.approve(address(protocol), amount);
         protocol.deposit(amount, address(this));
@@ -216,21 +208,17 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         _;
     }
 
-    function test_GivenTheUsersBalanceIsInsufficient(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenWithdrawIsCalled
-    {
+    function test_GivenTheUsersBalanceIsInsufficient(uint256 amount) external whenWithdrawIsCalled {
+        amount = bound(amount, SMALL, LARGE);
+
         bytes memory journalData = _createJournal(amount, address(this));
         vm.expectRevert(LendingProtocolMock.LendingProtocolMock_InsufficientBalance.selector);
         protocol.withdraw(amount, journalData, "0x123");
     }
 
-    function test_WhenTheUsersBalanceIsSufficient(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenWithdrawIsCalled
-    {
+    function test_WhenTheUsersBalanceIsSufficient(uint256 amount) external whenWithdrawIsCalled {
+        amount = bound(amount, SMALL, LARGE);
+
         _getTokens(weth, address(this), amount);
         weth.approve(address(protocol), amount);
         protocol.deposit(amount, address(this));

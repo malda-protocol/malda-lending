@@ -429,8 +429,8 @@ library BytesLib {
                 let cc := add(_postBytes, 0x20)
 
                 for {
-                    // the next line is the loop condition:
-                    // while(uint256(mc < endWord) + cb == 2)
+                // the next line is the loop condition:
+                // while(uint256(mc < endWord) + cb == 2)
                 } eq(add(lt(mc, endMinusWord), cb), 2) {
                     mc := add(mc, 0x20)
                     cc := add(cc, 0x20)

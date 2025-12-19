@@ -21,9 +21,7 @@ contract SetPriceFeedOnOracle is Script {
         address oracle = vm.envAddress("ORACLE");
 
         IDefaultAdapter.PriceConfig memory config = IDefaultAdapter.PriceConfig({
-            defaultFeed: priceFeed,
-            toSymbol: toSymbol,
-            underlyingDecimals: underlyingDecimals
+            defaultFeed: priceFeed, toSymbol: toSymbol, underlyingDecimals: underlyingDecimals
         });
 
         vm.startBroadcast(key);

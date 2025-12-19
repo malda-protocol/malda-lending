@@ -13,31 +13,41 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
+/// @title DefaultGasHelper
+/// @author Merge Layers Inc.
+/// @notice Helper contract for managing gas fees
 contract DefaultGasHelper is Ownable {
     // ----------- STORAGE ------------
-    mapping(uint32 => uint256) public gasFees;
+    /// @notice Mapping of chain IDs to gas fees
+    mapping(uint32 chainId => uint256 fee) public gasFees;
 
     // ----------- EVENTS ------------
-    event GasFeeUpdated(uint32 indexed dstChainid, uint256 amount);
+    /// @notice Event emitted when gas fee is updated
+    /// @param dstChainId The destination chain ID
+    /// @param amount The gas fee amount
+    event GasFeeUpdated(uint32 indexed dstChainId, uint256 amount);
 
-    constructor(address _owner) Ownable(_owner) {}
+    /// @notice Constructor
+    /// @param owner_ The owner address
+    constructor(address owner_) Ownable(owner_) {}
 
     // ----------- OWNER ------------
-    /**
-     * @notice Sets the gas fee
-     * @param dstChainId the destination chain id
-     * @param amount the gas fee amount
-     */
+    /// @notice Sets the gas fee
+    /// @param dstChainId The destination chain id
+    /// @param amount The gas fee amount
     function setGasFee(uint32 dstChainId, uint256 amount) external onlyOwner {
+        // Effects: set the gas fee
         gasFees[dstChainId] = amount;
+
+        // Events: emit the gas fee updated event
         emit GasFeeUpdated(dstChainId, amount);
     }
 }

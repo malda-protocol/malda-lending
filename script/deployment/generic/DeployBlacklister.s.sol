@@ -35,7 +35,6 @@ contract DeployBlacklister is Script {
             console.log("Blacklister implementation deployed at:", implementation);
         }
 
-
         bytes memory initData = abi.encodeWithSelector(Blacklister.initialize.selector, owner, roles);
         // Deploy proxy
         bytes32 proxySalt = _getSalt("BlacklisterProxyV1.0.0");
@@ -52,15 +51,15 @@ contract DeployBlacklister is Script {
             );
             vm.stopBroadcast();
             console.log("Blacklister proxy deployed at:", blacklisterAddress);
-
         }
 
         return blacklisterAddress;
     }
 
     function _getSalt(string memory name) internal view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
-        );
+        return
+            keccak256(
+                abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+            );
     }
 }

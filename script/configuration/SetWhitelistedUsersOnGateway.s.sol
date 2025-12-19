@@ -9,16 +9,16 @@ contract SetWhitelistedUsersOnGateway is Script {
         uint256 key = vm.envUint("PRIVATE_KEY");
 
         address[] memory users = new address[](25);
-        users[0]  = 0xaB910D20C728a15A66e931ef0fAB5232eD5AA4bB;
-        users[1]  = 0x8E72a24221517E51502f20f387415a06b27A5b51;
-        users[2]  = 0x50d8Deadd2b3140B151CaB2C4FB76F1f59b236F8;
-        users[3]  = 0x574582C44e3f1EF2cB29a7131B057FebBCC8244E;
-        users[4]  = 0x281567fe62b587EC1755f6F33b80160F544Dc5d0;
-        users[5]  = 0x2705f6A8F01bd4A805D9FC73151DBe37BB8d1edE;
-        users[6]  = 0xc9C9693b6A445D05Add0043662fad9Ac600Ad088;
-        users[7]  = 0x7EfE40B2E6dA8b28AaB6Bd2D622B9Cd7f5fE077c;
-        users[8]  = 0xa22DCB8F0A2848289124086F35ae9dB2a0006962;
-        users[9]  = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
+        users[0] = 0xaB910D20C728a15A66e931ef0fAB5232eD5AA4bB;
+        users[1] = 0x8E72a24221517E51502f20f387415a06b27A5b51;
+        users[2] = 0x50d8Deadd2b3140B151CaB2C4FB76F1f59b236F8;
+        users[3] = 0x574582C44e3f1EF2cB29a7131B057FebBCC8244E;
+        users[4] = 0x281567fe62b587EC1755f6F33b80160F544Dc5d0;
+        users[5] = 0x2705f6A8F01bd4A805D9FC73151DBe37BB8d1edE;
+        users[6] = 0xc9C9693b6A445D05Add0043662fad9Ac600Ad088;
+        users[7] = 0x7EfE40B2E6dA8b28AaB6Bd2D622B9Cd7f5fE077c;
+        users[8] = 0xa22DCB8F0A2848289124086F35ae9dB2a0006962;
+        users[9] = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
         users[10] = 0x40282d3Cf4890D9806BC1853e97a59C93D813653;
         users[11] = 0xB5b901F1BB86421301138b5c45C1D3Fe96663161;
         users[12] = 0xBAec8904499dcdee770c60df15b0C37EAC84Fb62;
@@ -35,12 +35,15 @@ contract SetWhitelistedUsersOnGateway is Script {
         users[23] = 0x25B0327D46A10CDC6Bb88387d9f7e33743b2504D;
         users[24] = 0x9ea397603aA16664874fcd496b4D37eDD5B3b649;
 
-
         for (uint256 i; i < markets.length; i++) {
             address marketAddr = markets[i];
-            
+
             //ezETH only available on Linea
-            if (marketAddr == 0x867B44af79da71684508c25a1323db3cce5bC23D || marketAddr == 0x301E5481271fD4F4f4C0291F88d7d829c64E2B2b || marketAddr == 0xa31963C753f277f7d82d98F56b2C374256925eB7) continue;
+            if (
+                marketAddr == 0x867B44af79da71684508c25a1323db3cce5bC23D
+                    || marketAddr == 0x301E5481271fD4F4f4C0291F88d7d829c64E2B2b
+                    || marketAddr == 0xa31963C753f277f7d82d98F56b2C374256925eB7
+            ) continue;
 
             vm.startBroadcast(key);
             try mTokenGateway(marketAddr).enableWhitelist() {
@@ -53,16 +56,13 @@ contract SetWhitelistedUsersOnGateway is Script {
             console.log("   Setting whitelisted users");
             for (uint256 j; j < users.length; ++j) {
                 vm.startBroadcast(key);
-                try mTokenGateway(marketAddr).setWhitelistedUser(users[j], true) {
-                } catch {
+                try mTokenGateway(marketAddr).setWhitelistedUser(users[j], true) {}
+                catch {
                     console.log("    - FAILED for index:", j);
                 }
                 vm.stopBroadcast();
             }
             console.log("   Users set on extension");
         }
-
-        
-        
     }
 }

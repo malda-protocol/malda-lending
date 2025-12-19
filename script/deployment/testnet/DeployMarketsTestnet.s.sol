@@ -1,21 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 import {DeployJumpRateModelV4} from "../interest/DeployJumpRateModelV4.s.sol";
 
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
+import {MarketRelease, InterestConfig} from "../../deployers/Types.sol";
 
 import {DeployHostMarket} from "../markets/host/DeployHostMarket.s.sol";
 import {DeployExtensionMarket} from "../markets/extension/DeployExtensionMarket.s.sol";
@@ -25,21 +18,21 @@ import {DeployExtensionMarket} from "../markets/extension/DeployExtensionMarket.
 contract DeployMarketsTestnet is DeployBaseRelease {
     using stdJson for string;
 
-    address marketAddress;
-    address owner;
+    address internal marketAddress;
+    address internal owner;
 
-    Deployer deployer;
-    address rolesContract;
-    address zkVerifier;
-    address operator;
-    address interestModel;
-    address oracle;
-    address pauser;
-    address blacklister;
+    Deployer internal deployer;
+    address internal rolesContract;
+    address internal zkVerifier;
+    address internal operator;
+    address internal interestModel;
+    address internal oracle;
+    address internal pauser;
+    address internal blacklister;
 
-    DeployHostMarket deployHost;
-    DeployExtensionMarket deployExt;
-    DeployJumpRateModelV4 deployInterest;
+    DeployHostMarket internal deployHost;
+    DeployExtensionMarket internal deployExt;
+    DeployJumpRateModelV4 internal deployInterest;
 
     error ADDRESSES_NOT_SET();
 
@@ -60,7 +53,8 @@ contract DeployMarketsTestnet is DeployBaseRelease {
         // check to make sure addresses were set
         if (
             oracle == address(0) || address(deployer) == address(0) || rolesContract == address(0)
-                || zkVerifier == address(0) || operator == address(0) || pauser == address(0) || blacklister == address(0)
+                || zkVerifier == address(0) || operator == address(0) || pauser == address(0)
+                || blacklister == address(0)
         ) {
             revert ADDRESSES_NOT_SET();
         }
