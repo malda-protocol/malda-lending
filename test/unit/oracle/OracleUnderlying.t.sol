@@ -1,21 +1,16 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
+import {Roles} from "src/Roles.sol";
 import {MixedPriceOracleV3} from "src/oracles/MixedPriceOracleV3.sol";
 import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
-import {ImToken} from "src/interfaces/ImToken.sol";
-
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
-
-import {Base_Unit_Test} from "test/Base_Unit_Test.t.sol";
 import {Operator} from "src/Operator/Operator.sol";
 
 contract MockChainlinkOracle {
     uint256 public decimals;
-    uint256 price;
+    uint256 public price;
 
     constructor(uint256 _price, uint256 _decimals) {
         price = _price;
@@ -54,29 +49,29 @@ contract DummyMToken {
 }
 
 contract MixedPriceOracleV3_Test is Operator, Test {
-    MixedPriceOracleV3 mixedPriceOracle;
+    MixedPriceOracleV3 internal mixedPriceOracle;
 
-    DummyToken BTC;
-    DummyMToken mBTC;
-    uint256 usdPerBitcoin = 70_000;
-    uint256 bitcoinDecimals = 8;
+    DummyToken internal BTC;
+    DummyMToken internal mBTC;
+    uint256 internal usdPerBitcoin = 70_000;
+    uint256 internal bitcoinDecimals = 8;
 
-    DummyToken ETH;
-    DummyMToken mETH;
-    uint256 usdPerEth = 2_500;
-    uint256 ethDecimals = 18;
+    DummyToken internal ETH;
+    DummyMToken internal mETH;
+    uint256 internal usdPerEth = 2_500;
+    uint256 internal ethDecimals = 18;
 
-    DummyToken USDC;
-    DummyMToken mUSDC;
-    uint256 usdPerUsdc = 1;
-    uint256 usdcDecimals = 6;
+    DummyToken internal USDC;
+    DummyMToken internal mUSDC;
+    uint256 internal usdPerUsdc = 1;
+    uint256 internal usdcDecimals = 6;
 
-    DummyToken LargeDecimalsToken;
-    DummyMToken mLargeDecimalsToken;
-    uint256 usdPerLargeToken = 1;
-    uint256 largeTokenDecimals = 30;
+    DummyToken internal LargeDecimalsToken;
+    DummyMToken internal mLargeDecimalsToken;
+    uint256 internal usdPerLargeToken = 1;
+    uint256 internal largeTokenDecimals = 30;
 
-    uint256 feedDecimals = 8; //chainlink returns answers in 8 decimals
+    uint256 internal feedDecimals = 8; //chainlink returns answers in 8 decimals
 
     function newUSDOracle(uint256 usdPerToken) public returns (MockChainlinkOracle) {
         uint256 decimals = feedDecimals;
@@ -111,26 +106,20 @@ contract MixedPriceOracleV3_Test is Operator, Test {
 
         symbols[0] = "USDC";
         configs[0] = IDefaultAdapter.PriceConfig({
-            defaultFeed: address(usdPerUSDCOracle),
-            toSymbol: "USD",
-            underlyingDecimals: usdcDecimals
+            defaultFeed: address(usdPerUSDCOracle), toSymbol: "USD", underlyingDecimals: usdcDecimals
         });
 
         symbols[1] = "ETH";
         configs[1] = IDefaultAdapter.PriceConfig({
-            defaultFeed: address(usdcPerEthOracle),
-            toSymbol: "USDC",
-            underlyingDecimals: ethDecimals
+            defaultFeed: address(usdcPerEthOracle), toSymbol: "USDC", underlyingDecimals: ethDecimals
         });
 
         symbols[2] = "BTC";
         configs[2] = IDefaultAdapter.PriceConfig({
-            defaultFeed: address(ethPerBTCOracle),
-            toSymbol: "ETH",
-            underlyingDecimals: bitcoinDecimals
+            defaultFeed: address(ethPerBTCOracle), toSymbol: "ETH", underlyingDecimals: bitcoinDecimals
         });
 
-        address roles = address(0);
+        address roles = address(new Roles(address(this)));
         uint256 stalenessPeriod = 100;
 
         mixedPriceOracle = new MixedPriceOracleV3(symbols, configs, roles, stalenessPeriod);

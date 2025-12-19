@@ -17,12 +17,15 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
+/// @title IDefaultAdapter
+/// @author Merge Layers Inc.
+/// @notice Default price adapter interface used for oracle feeds
 interface IDefaultAdapter {
     struct PriceConfig {
         address defaultFeed; // chainlink & eOracle
@@ -30,14 +33,26 @@ interface IDefaultAdapter {
         uint256 underlyingDecimals;
     }
 
+    /// @notice Returns the decimals for the price feed
+    /// @return decimalsCount Number of decimals
     function decimals() external view returns (uint8);
 
+    /// @notice Returns the latest round data from the feed
+    /// @return roundId Round identifier
+    /// @return answer Feed answer
+    /// @return startedAt Round start timestamp
+    /// @return updatedAt Round update timestamp
+    /// @return answeredInRound The round in which the answer was computed
     function latestRoundData()
         external
         view
         returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound);
 
+    /// @notice Returns the latest answer
+    /// @return answer Latest feed answer
     function latestAnswer() external view returns (int256);
 
+    /// @notice Returns the latest timestamp
+    /// @return timestamp Latest update timestamp
     function latestTimestamp() external view returns (uint256);
 }

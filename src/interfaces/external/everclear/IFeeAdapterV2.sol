@@ -13,12 +13,11 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
-
 
 interface IFeeAdapterV2 {
     struct FeeParams {
@@ -45,19 +44,19 @@ interface IFeeAdapterV2 {
 
     // https://github.com/everclearorg/monorepo/blob/dev/packages/contracts/src/interfaces/intent/IFeeAdapterV2.sol#L129
     /**
-    * @notice Creates a new intent with fees
-    * @param _destinations Array of destination domains, preference ordered
-    * @param _receiver Address of the receiver on the destination chain
-    * @param _inputAsset Address of the input asset
-    * @param _outputAsset Address of the output asset
-    * @param _amount Amount of input asset to use for the intent
-    * @param _amountOutMin Amount expected in the outputAsset
-    * @param _ttl Time-to-live for the intent in seconds
-    * @param _data Additional data for the intent
-    * @param _feeParams Fee parameters including fee amount, deadline, and signature
-    * @return _intentId The ID of the created intent
-    * @return _intent The created intent object
-    */
+     * @notice Creates a new intent with fees
+     * @param _destinations Array of destination domains, preference ordered
+     * @param _receiver Address of the receiver on the destination chain
+     * @param _inputAsset Address of the input asset
+     * @param _outputAsset Address of the output asset
+     * @param _amount Amount of input asset to use for the intent
+     * @param _amountOutMin Amount expected in the outputAsset
+     * @param _ttl Time-to-live for the intent in seconds
+     * @param _data Additional data for the intent
+     * @param _feeParams Fee parameters including fee amount, deadline, and signature
+     * @return _intentId The ID of the created intent
+     * @return _intent The created intent object
+     */
     function newIntent(
         uint32[] memory _destinations,
         bytes32 _receiver,
@@ -69,5 +68,5 @@ interface IFeeAdapterV2 {
         bytes calldata _data,
         FeeParams calldata _feeParams
     ) external payable returns (bytes32, Intent memory);
-    }
+}
 

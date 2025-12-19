@@ -13,10 +13,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -29,20 +29,17 @@ import {IBridge} from "src/interfaces/IBridge.sol";
 import {IRebalancer} from "src/interfaces/IRebalancer.sol";
 import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {IAcrossSpokePoolV3} from "src/interfaces/external/across/IAcrossSpokePoolV3.sol";
+import {IAcrossReceiverV3} from "src/interfaces/external/across/IAcrossReceiverV3.sol";
 
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 
-contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
+/// @title AcrossBridge
+/// @author Merge Layers Inc.
+/// @notice Bridge integration for Across V3 used by the rebalancer
+contract AccrossBridge is BaseBridge, IBridge, IAcrossReceiverV3, ReentrancyGuard {
     using SafeERC20 for IERC20;
 
-    // ----------- STORAGE ------------
-    address public immutable acrossSpokePool;
-    uint256 public immutable maxSlippage;
-    address public immutable rebalancer;
-    mapping(uint32 => mapping(address => bool)) public whitelistedRelayers;
-
-    uint256 private constant SLIPPAGE_PRECISION = 1e5;
-
+    /// @notice Decoded Across message payload
     struct DecodedMessage {
         address outputToken;
         uint256 inputAmount;
@@ -52,139 +49,249 @@ contract AccrossBridge is BaseBridge, IBridge, ReentrancyGuard {
         uint32 exclusivityDeadline;
     }
 
+    // ----------- CONSTANTS ------------
+    /// @notice Precision used for slippage calculations
+    uint256 private constant SLIPPAGE_PRECISION = 1e5;
+
+    // ----------- IMMUTABLES ------------
+    /// @notice Across spoke pool address
+    address public immutable ACROSS_SPOKE_POOL;
+
+    /// @notice Maximum allowed slippage in basis points
+    uint256 public immutable MAX_SLIPPAGE;
+
+    /// @notice Rebalancer contract address
+    address public immutable REBALANCER;
+
+    // ----------- STORAGE ------------
+    /// @notice Whitelisted relayers per destination chain
+    mapping(uint32 dstChainId => mapping(address relayer => bool isWhitelisted)) public whitelistedRelayers;
+
     // ----------- EVENTS ------------
+    /// @notice Emitted when funds are rebalanced to a market
+    /// @param market The market receiving funds
+    /// @param amount The amount rebalanced
     event Rebalanced(address indexed market, uint256 amount);
+
+    /// @notice Emitted when relayer whitelist status is updated
+    /// @param sender The caller updating whitelist
+    /// @param dstId The destination chain ID
+    /// @param delegate The relayer address
+    /// @param status The whitelist status
     event WhitelistedRelayerStatusUpdated(
         address indexed sender, uint32 indexed dstId, address indexed delegate, bool status
     );
 
     // ----------- ERRORS ------------
+    /// @notice Error thrown when tokens do not match expected underlying
     error AcrossBridge_TokenMismatch();
+
+    /// @notice Error thrown when caller is not authorized
     error AcrossBridge_NotAuthorized();
+
+    /// @notice Error thrown when feature is not implemented
     error AcrossBridge_NotImplemented();
+
+    /// @notice Error thrown when an address is not valid
     error AcrossBridge_AddressNotValid();
+
+    /// @notice Error thrown when slippage exceeds maximum
     error AcrossBridge_SlippageNotValid();
+
+    /// @notice Error thrown when relayer is not valid
     error AcrossBridge_RelayerNotValid();
+
+    /// @notice Error thrown when receiver market is invalid
     error AcrossBridge_InvalidReceiver();
+
+    /// @notice Error thrown when relayer fee exceeds maximum
     error AcrossBridge_MaxFeeExceeded();
 
-    constructor(address _roles, address _spokePool, address _rebalancer) BaseBridge(_roles) {
-        require(_spokePool != address(0), AcrossBridge_AddressNotValid());
-        require(_rebalancer != address(0), AcrossBridge_AddressNotValid());
-        acrossSpokePool = _spokePool;
-        maxSlippage = 1e4;
-        rebalancer = _rebalancer;
-    }
-
+    // ----------- MODIFIERS ------------
+    /// @notice Modifier to restrict access to only the spoke pool
     modifier onlySpokePool() {
-        require(msg.sender == acrossSpokePool, AcrossBridge_NotAuthorized());
+        // Requirements: the caller is the spoke pool
+        require(msg.sender == ACROSS_SPOKE_POOL, AcrossBridge_NotAuthorized());
         _;
     }
 
+    /// @notice Initializes the Across bridge
+    /// @param _roles Address of the roles contract
+    /// @param _spokePool Address of the Across spoke pool
+    /// @param _rebalancer Address of the rebalancer contract
+    constructor(address _roles, address _spokePool, address _rebalancer) BaseBridge(_roles) {
+        // Requirements: the spoke pool and rebalancer addresses are not zero
+        require(_spokePool != address(0), AcrossBridge_AddressNotValid());
+        require(_rebalancer != address(0), AcrossBridge_AddressNotValid());
+
+        // Effects: set the spoke pool addresses
+        ACROSS_SPOKE_POOL = _spokePool;
+
+        // Effects: set the rebalancer address
+        REBALANCER = _rebalancer;
+
+        // Effects: set the max slippage
+        MAX_SLIPPAGE = 1e4;
+    }
+
     // ----------- OWNER ------------
-    /**
-     * @notice Whitelists a delegate address
-     */
+    /// @notice Whitelists or removes a relayer for a destination chain
+    /// @param _dstId The destination chain ID
+    /// @param _relayer The relayer address to update
+    /// @param status Whether the relayer is whitelisted
     function setWhitelistedRelayer(uint32 _dstId, address _relayer, bool status) external onlyBridgeConfigurator {
+        // Requirements: the relayer address is not zero
+        require(_relayer != address(0), AcrossBridge_AddressNotValid());
+
+        // Effects: set the relayer whitelist status
         whitelistedRelayers[_dstId][_relayer] = status;
+
+        // Events: emit the relayer whitelist status updated event
         emit WhitelistedRelayerStatusUpdated(msg.sender, _dstId, _relayer, status);
     }
 
-    // ----------- VIEW ------------
-    /**
-     * @inheritdoc IBridge
-     */
-    function getFee(uint32, bytes memory, bytes memory) external pure returns (uint256) {
-        // need to use Across API
-        revert AcrossBridge_NotImplemented();
-    }
-
-    /**
-     * @notice returns if an address represents a whitelisted delegates
-     */
-    function isRelayerWhitelisted(uint32 dstChain, address relayer) external view returns (bool) {
-        return whitelistedRelayers[dstChain][relayer];
-    }
-
     // ----------- EXTERNAL ------------
-    /**
-     * @inheritdoc IBridge
-     */
+
+    /// @inheritdoc IAcrossReceiverV3
+    function handleV3AcrossMessage(
+        address tokenSent,
+        uint256 amount,
+        address, /* relayer is unused */
+        bytes calldata message
+    )
+        external
+        onlySpokePool
+        nonReentrant
+    {
+        // Interactions: decode the message and get the market address
+        address market = abi.decode(message, (address));
+        // Requirements: the market is whitelisted
+        require(IRebalancer(REBALANCER).isMarketWhitelisted(market), AcrossBridge_InvalidReceiver());
+
+        // Interactions: get the underlying token of the market
+        address _underlying = ImTokenMinimal(market).underlying();
+        // Requirements: the underlying token matches the token sent
+        require(_underlying == tokenSent, AcrossBridge_TokenMismatch());
+
+        // Interactions: transfer the tokens to the market
+        if (amount > 0) {
+            IERC20(tokenSent).safeTransfer(market, amount);
+            // Events: emit the rebalanced event
+            emit Rebalanced(market, amount);
+        }
+    }
+
+    /// @inheritdoc IBridge
     function sendMsg(
         uint256 _extractedAmount,
         address _market,
         uint32 _dstChainId,
         address _token,
-        bytes memory _message,
-        bytes memory
+        bytes calldata _message,
+        bytes calldata /* _bridgeData */
     ) external payable onlyRebalancer {
-        // decode message & checks
         DecodedMessage memory msgData = _decodeMessage(_message);
+
+        // Requirements: the extracted amount matches the input amount
         require(_extractedAmount == msgData.inputAmount, BaseBridge_AmountMismatch());
+
+        // Requirements: the relayer is whitelisted
         require(whitelistedRelayers[_dstChainId][msgData.relayer], AcrossBridge_RelayerNotValid());
+
+        // Requirements: the output amount is greater than or equal to 90% of the input amount
         require(msgData.outputAmount >= (msgData.inputAmount * 90) / 100, AcrossBridge_MaxFeeExceeded());
 
-        // retrieve tokens from `Rebalancer`
+        // Interactions: transfer the tokens from the sender to the contract
         IERC20(_token).safeTransferFrom(msg.sender, address(this), msgData.inputAmount);
 
+        // Only check slippage if user could get less what they sent
         if (msgData.inputAmount > msgData.outputAmount) {
-            uint256 maxSlippageInputAmount = msgData.inputAmount * maxSlippage / SLIPPAGE_PRECISION;
+            uint256 maxSlippageInputAmount = msgData.inputAmount * MAX_SLIPPAGE / SLIPPAGE_PRECISION;
+            // Requirements: the slippage is not valid
             require(
                 msgData.inputAmount - msgData.outputAmount <= maxSlippageInputAmount, AcrossBridge_SlippageNotValid()
             );
         }
 
-        // approve and send with Across
+        // Interactions: deposit the tokens into the Across spoke pool
         _depositV3Now(_message, _token, _dstChainId, _market);
     }
 
-    /**
-     * @notice handles AcrossV3 SpokePool message
-     * @param tokenSent the token address received
-     * @param amount the token amount
-     * @param message the custom message sent from source
-     */
-    function handleV3AcrossMessage(
-        address tokenSent,
-        uint256 amount,
-        address, // relayer is unused
-        bytes memory message
-    ) external onlySpokePool nonReentrant {
-        address market = abi.decode(message, (address));
-        require(IRebalancer(rebalancer).isMarketWhitelisted(market), AcrossBridge_InvalidReceiver());
-        address _underlying = ImTokenMinimal(market).underlying();
-        require(_underlying == tokenSent, AcrossBridge_TokenMismatch());
-        if (amount > 0) {
-            IERC20(tokenSent).safeTransfer(market, amount);
-        }
+    // ----------- VIEW ------------
+    /// @notice Returns whether an address is whitelisted as relayer for a destination chain
+    /// @param dstChain The destination chain ID
+    /// @param relayer The relayer address
+    /// @return isWhitelisted True if relayer is whitelisted
+    function isRelayerWhitelisted(uint32 dstChain, address relayer) external view returns (bool) {
+        return whitelistedRelayers[dstChain][relayer];
+    }
 
-        emit Rebalanced(market, amount);
+    // ----------- PURE ------------
+    /// @inheritdoc IBridge
+    function getFee(
+        uint32,
+        /* _dstChainId */
+        bytes calldata,
+        /* _message */
+        bytes calldata /* _bridgeData */
+    )
+        external
+        pure
+        returns (uint256)
+    {
+        // need to use Across API
+        revert AcrossBridge_NotImplemented();
     }
 
     // ----------- PRIVATE ------------
-    function _decodeMessage(bytes memory _message) private pure returns (DecodedMessage memory) {
-        (address outputToken, uint256 inputAmount, uint256 outputAmount, address relayer, uint32 deadline, uint32 exclusivityDeadline) =
-            abi.decode(_message, (address, uint256, uint256, address, uint32, uint32));
+    /// @notice Deposits funds into Across spoke pool for immediate relay
+    /// @param _message Encoded Across message
+    /// @param _token Token being transferred
+    /// @param _dstChainId Destination chain ID
+    /// @param _market Market address encoded in the message
+    function _depositV3Now(bytes calldata _message, address _token, uint32 _dstChainId, address _market) private {
+        DecodedMessage memory msgData = _decodeMessage(_message);
 
-        return DecodedMessage(outputToken, inputAmount, outputAmount, relayer, deadline, exclusivityDeadline);
+        // Interactions: approve the tokens to the spoke pool
+        SafeApprove.safeApprove(_token, ACROSS_SPOKE_POOL, msgData.inputAmount);
+
+        // Interactions: deposit the tokens into the Across spoke pool
+        IAcrossSpokePoolV3(ACROSS_SPOKE_POOL)
+            .depositV3Now( // no need for `msg.value`; fee is taken from amount
+                msg.sender, //depositor
+                address(this), //recipient
+                _token,
+                msgData.outputToken,
+                msgData.inputAmount,
+                msgData.outputAmount, //outputAmount should be set as the inputAmount - relay fees; use Across API
+                uint256(_dstChainId),
+                msgData.relayer, //exclusiveRelayer
+                msgData.deadline, //fillDeadline
+                msgData.exclusivityDeadline, //can use Across API/suggested-fees or 0 to disable
+                abi.encode(_market)
+            );
     }
 
-    function _depositV3Now(bytes memory _message, address _token, uint32 _dstChainId, address _market) private {
-        DecodedMessage memory msgData = _decodeMessage(_message);
-        // approve and send with Across
-        SafeApprove.safeApprove(_token, address(acrossSpokePool), msgData.inputAmount);
-        IAcrossSpokePoolV3(acrossSpokePool).depositV3Now( // no need for `msg.value`; fee is taken from amount
-            msg.sender, //depositor
-            address(this), //recipient
-            _token,
-            msgData.outputToken,
-            msgData.inputAmount,
-            msgData.outputAmount, //outputAmount should be set as the inputAmount - relay fees; use Across API
-            uint256(_dstChainId),
-            msgData.relayer, //exclusiveRelayer
-            msgData.deadline, //fillDeadline
-            msgData.exclusivityDeadline, //can use Across API/suggested-fees or 0 to disable
-            abi.encode(_market)
-        );
+    /// @notice Decodes the Across message payload
+    /// @param _message Encoded message data
+    /// @return messageData The decoded message struct
+    function _decodeMessage(bytes calldata _message) private pure returns (DecodedMessage memory messageData) {
+        (
+            address outputToken,
+            uint256 inputAmount,
+            uint256 outputAmount,
+            address relayer,
+            uint32 deadline,
+            uint32 exclusivityDeadline
+        ) = abi.decode(_message, (address, uint256, uint256, address, uint32, uint32));
+
+        messageData = DecodedMessage({
+            outputToken: outputToken,
+            inputAmount: inputAmount,
+            outputAmount: outputAmount,
+            relayer: relayer,
+            deadline: deadline,
+            exclusivityDeadline: exclusivityDeadline
+        });
     }
 }

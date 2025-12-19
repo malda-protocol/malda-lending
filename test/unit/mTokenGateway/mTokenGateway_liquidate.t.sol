@@ -19,7 +19,9 @@ contract mTokenGateway_liquidate is mToken_Unit_Shared {
         mWethExtension.liquidate(address(0x123), 0, address(mWethHost), address(this));
     }
 
-    function test_RevertWhen_MarketPaused(uint256 amount) external inRange(amount, SMALL, LARGE) {
+    function test_RevertWhen_MarketPaused(uint256 amount) external {
+        amount = bound(amount, SMALL, LARGE);
+
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.Liquidate, true);
 
         // it should revert
@@ -27,7 +29,9 @@ contract mTokenGateway_liquidate is mToken_Unit_Shared {
         mWethExtension.liquidate(address(0x123), amount, address(mWethHost), address(this));
     }
 
-    function test_RevertWhen_AmountInPaused(uint256 amount) external inRange(amount, SMALL, LARGE) {
+    function test_RevertWhen_AmountInPaused(uint256 amount) external {
+        amount = bound(amount, SMALL, LARGE);
+
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.AmountIn, true);
 
         // it should revert
@@ -40,29 +44,25 @@ contract mTokenGateway_liquidate is mToken_Unit_Shared {
         _;
     }
 
-    function test_RevertGiven_UserHasNotEnoughBalance(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenAmountGreaterThan0
-    {
+    function test_RevertGiven_UserHasNotEnoughBalance(uint256 amount) external whenAmountGreaterThan0 {
+        amount = bound(amount, SMALL, LARGE);
+
         // it should revert
         weth.approve(address(mWethExtension), amount);
         vm.expectRevert();
         mWethExtension.liquidate(address(0x123), amount, address(mWethHost), address(this));
     }
 
-    function test_GivenUserHasEnoughBalance(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenAmountGreaterThan0
-    {
+    function test_GivenUserHasEnoughBalance(uint256 amount) external whenAmountGreaterThan0 {
+        amount = bound(amount, SMALL, LARGE);
+
         _getTokens(weth, address(this), amount);
 
         uint256 balanceWethBefore = weth.balanceOf(address(this));
         uint256 accAmountInBefore = mWethExtension.accAmountIn(address(this));
 
         weth.approve(address(mWethExtension), amount);
-        
+
         vm.expectEmit(true, true, true, true);
         emit ImTokenGateway.mTokenGateway_Liquidate(
             address(this),
@@ -73,7 +73,7 @@ contract mTokenGateway_liquidate is mToken_Unit_Shared {
             address(0x123),
             address(mWethHost)
         );
-        
+
         mWethExtension.liquidate(address(0x123), amount, address(mWethHost), address(this));
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
@@ -86,11 +86,9 @@ contract mTokenGateway_liquidate is mToken_Unit_Shared {
         assertGt(accAmountInAfter, accAmountInBefore);
     }
 
-    function test_GivenUserHasEnoughBalance_ButBlacklisted(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenAmountGreaterThan0
-    {
+    function test_GivenUserHasEnoughBalance_ButBlacklisted(uint256 amount) external whenAmountGreaterThan0 {
+        amount = bound(amount, SMALL, LARGE);
+
         _getTokens(weth, address(this), amount);
 
         weth.approve(address(mWethExtension), amount);
@@ -100,11 +98,9 @@ contract mTokenGateway_liquidate is mToken_Unit_Shared {
         mWethExtension.liquidate(address(0x123), amount, address(mWethHost), address(this));
     }
 
-    function test_GivenUserHasEnoughBalance_ButReceiverBlacklisted(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenAmountGreaterThan0
-    {
+    function test_GivenUserHasEnoughBalance_ButReceiverBlacklisted(uint256 amount) external whenAmountGreaterThan0 {
+        amount = bound(amount, SMALL, LARGE);
+
         _getTokens(weth, address(this), amount);
 
         weth.approve(address(mWethExtension), amount);
@@ -114,11 +110,9 @@ contract mTokenGateway_liquidate is mToken_Unit_Shared {
         mWethExtension.liquidate(address(0x123), amount, address(mWethHost), address(0x456));
     }
 
-    function test_GivenUserHasEnoughBalance_ButWhitelistEnabled(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenAmountGreaterThan0
-    {
+    function test_GivenUserHasEnoughBalance_ButWhitelistEnabled(uint256 amount) external whenAmountGreaterThan0 {
+        amount = bound(amount, SMALL, LARGE);
+
         _getTokens(weth, address(this), amount);
 
         uint256 balanceWethBefore = weth.balanceOf(address(this));
@@ -136,7 +130,7 @@ contract mTokenGateway_liquidate is mToken_Unit_Shared {
         mWethExtension.liquidate(address(0x123), amount, address(mWethHost), address(this));
 
         mWethExtension.setWhitelistedUser(address(this), true);
-        
+
         vm.expectEmit(true, true, true, true);
         emit ImTokenGateway.mTokenGateway_Liquidate(
             address(this),
@@ -147,7 +141,7 @@ contract mTokenGateway_liquidate is mToken_Unit_Shared {
             address(0x123),
             address(mWethHost)
         );
-        
+
         mWethExtension.liquidate(address(0x123), amount, address(mWethHost), address(this));
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
@@ -171,13 +165,7 @@ contract mTokenGateway_liquidate is mToken_Unit_Shared {
 
         vm.expectEmit(true, true, true, true);
         emit ImTokenGateway.mTokenGateway_Liquidate(
-            address(this),
-            receiver,
-            amount,
-            uint32(block.chainid),
-            LINEA_CHAIN_ID,
-            userToLiquidate,
-            collateral
+            address(this), receiver, amount, uint32(block.chainid), LINEA_CHAIN_ID, userToLiquidate, collateral
         );
 
         mWethExtension.liquidate(userToLiquidate, amount, collateral, receiver);
@@ -189,9 +177,9 @@ contract mTokenGateway_liquidate is mToken_Unit_Shared {
     function test_LiquidateWithGasFee() external {
         uint256 amount = 1 ether;
         uint256 gasFee = 0.01 ether;
-        
+
         mWethExtension.setGasFee(gasFee);
-        
+
         _getTokens(weth, address(this), amount);
         weth.approve(address(mWethExtension), amount);
 
@@ -215,13 +203,13 @@ contract mTokenGateway_liquidate is mToken_Unit_Shared {
     function test_RevertWhen_NotEnoughGasFee() external {
         uint256 amount = 1 ether;
         uint256 gasFee = 0.01 ether;
-        
+
         mWethExtension.setGasFee(gasFee);
-        
+
         _getTokens(weth, address(this), amount);
         weth.approve(address(mWethExtension), amount);
 
         vm.expectRevert(ImTokenGateway.mTokenGateway_NotEnoughGasFee.selector);
         mWethExtension.liquidate{value: gasFee - 0.001 ether}(address(0x123), amount, address(mWethHost), address(this));
     }
-} 
+}

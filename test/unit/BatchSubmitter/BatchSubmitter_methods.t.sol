@@ -75,7 +75,17 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         vm.expectRevert(BatchSubmitter.BatchSubmitter_CallerNotAllowed.selector);
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0, new address[](0), new address[](0)
+                receivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
             )
         );
     }
@@ -99,7 +109,19 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         initHashes[0] = bytes32(0);
 
         batchSubmitter.batchProcess(
-            BatchSubmitter.BatchProcessMsg(receivers, "", "", mTokens, amounts, amounts, selectors, initHashes, 0, new address[](0), new address[](0))
+            BatchSubmitter.BatchProcessMsg(
+                receivers,
+                "",
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
+            )
         );
     }
 
@@ -127,7 +149,17 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         vm.expectRevert(BatchSubmitter.BatchSubmitter_InvalidSelector.selector);
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "", mTokens, amounts, amounts, invalidSelectors, initHashes, 0, new address[](0), new address[](0)
+                receivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                invalidSelectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
             )
         );
     }
@@ -140,8 +172,9 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         external
         givenSenderHasProofForwarderRole
         givenJournalDataIsValid
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         // Reset storage arrays to length 1
         mTokens = new address[](1);
         mTokens[0] = address(mWethExtension);
@@ -171,7 +204,17 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0, new address[](0), new address[](0)
+                receivers,
+                encodedJournals,
+                "0x123",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
             )
         );
 
@@ -224,17 +267,24 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0, new address[](0), new address[](0)
+                receivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
             )
         );
     }
 
-    function test_WhenMintSucceeds(uint256 amount)
-        external
-        givenSenderHasProofForwarderRole
-        givenJournalDataIsValid
-        inRange(amount, SMALL, LARGE)
-    {
+    function test_WhenMintSucceeds(uint256 amount) external givenSenderHasProofForwarderRole givenJournalDataIsValid {
+        amount = bound(amount, SMALL, LARGE);
+
         // Reset storage arrays to length 1
         mTokens = new address[](1);
         mTokens[0] = address(mWethHost);
@@ -267,7 +317,17 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "0x123", mTokens, amounts, minAmounts, selectors, initHashes, 0, new address[](0), new address[](0)
+                receivers,
+                encodedJournals,
+                "0x123",
+                mTokens,
+                amounts,
+                minAmounts,
+                selectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
             )
         );
 
@@ -321,7 +381,17 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0, new address[](0), new address[](0)
+                receivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
             )
         );
     }
@@ -366,7 +436,17 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0, new address[](0), new address[](0)
+                receivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
             )
         );
     }
@@ -377,8 +457,9 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         external
         givenSenderHasProofForwarderRole
         givenJournalDataIsValid
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         // Reset storage arrays to length 1
         mTokens = new address[](1);
         mTokens[0] = address(mWethHost);
@@ -424,12 +505,26 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0, userToLiquidate, collateral
+                receivers,
+                encodedJournals,
+                "0x123",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                userToLiquidate,
+                collateral
             )
         );
     }
 
-    function test_WhenLiquidateFails_ButMintSucceeds() external givenSenderHasProofForwarderRole givenJournalDataIsValid {
+    function test_WhenLiquidateFails_ButMintSucceeds()
+        external
+        givenSenderHasProofForwarderRole
+        givenJournalDataIsValid
+    {
         // Reset storage arrays to length 1
         mTokens = new address[](1);
         mTokens[0] = address(mWethHost);
@@ -478,34 +573,38 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         vm.expectCall(
             address(mWethHost),
             abi.encodeWithSelector(
-                ImErc20Host.mintExternal.selector,
-                encodedJournals,
-                "",
-                amounts,
-                new uint256[](1),
-                receivers[0]
+                ImErc20Host.mintExternal.selector, encodedJournals, "", amounts, new uint256[](1), receivers[0]
             )
         );
 
         // Expect success event with MINT_SELECTOR (not LIQUIDATE_SELECTOR)
         vm.expectEmit(true, true, true, true);
         emit BatchSubmitter.BatchProcessSuccess(
-            initHashes[0],
-            receivers[0],
-            mTokens[0],
-            amounts[0],
-            amounts[0],
-            MINT_SELECTOR
+            initHashes[0], receivers[0], mTokens[0], amounts[0], amounts[0], MINT_SELECTOR
         );
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0, userToLiquidate, collateral
+                receivers,
+                encodedJournals,
+                "0x123",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                userToLiquidate,
+                collateral
             )
         );
     }
 
-    function test_WhenLiquidateFails_AndMintAlsoFails() external givenSenderHasProofForwarderRole givenJournalDataIsValid {
+    function test_WhenLiquidateFails_AndMintAlsoFails()
+        external
+        givenSenderHasProofForwarderRole
+        givenJournalDataIsValid
+    {
         // Reset storage arrays to length 1
         mTokens = new address[](1);
         mTokens[0] = address(mWethHost);
@@ -552,16 +651,10 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
             )
         );
 
-
         vm.expectCall(
             address(mWethHost),
             abi.encodeWithSelector(
-                ImErc20Host.mintExternal.selector,
-                encodedJournals,
-                "",
-                amounts,
-                new uint256[](1),
-                receivers[0]
+                ImErc20Host.mintExternal.selector, encodedJournals, "", amounts, new uint256[](1), receivers[0]
             )
         );
 
@@ -579,12 +672,26 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "", mTokens, amounts, amounts, selectors, initHashes, 0, userToLiquidate, collateral
+                receivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                userToLiquidate,
+                collateral
             )
         );
     }
 
-    function test_WhenLiquidateWithMultipleOperations() external givenSenderHasProofForwarderRole givenJournalDataIsValid {
+    function test_WhenLiquidateWithMultipleOperations()
+        external
+        givenSenderHasProofForwarderRole
+        givenJournalDataIsValid
+    {
         // Test multiple liquidate operations in a single batch
         mTokens = new address[](2);
         mTokens[0] = address(mWethHost);
@@ -592,7 +699,7 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         amounts = new uint256[](2);
         amounts[0] = 1 ether;
-        amounts[1] = 1000 * 10**6; // 1000 USDC
+        amounts[1] = 1000 * 10 ** 6; // 1000 USDC
 
         selectors = new bytes4[](2);
         selectors[0] = LIQUIDATE_SELECTOR;
@@ -625,13 +732,13 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         // Expect the first liquidateExternal call to be made with correct parameters
         bytes[] memory singleJournal1 = new bytes[](1);
         singleJournal1[0] = journals[0];
-        
+
         address[] memory singleUserToLiquidate1 = new address[](1);
         singleUserToLiquidate1[0] = userToLiquidate[0];
-        
+
         uint256[] memory singleAmount1 = new uint256[](1);
         singleAmount1[0] = amounts[0];
-        
+
         address[] memory singleCollateral1 = new address[](1);
         singleCollateral1[0] = collateral[0];
 
@@ -651,13 +758,13 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
         // Expect the second liquidateExternal call to be made with correct parameters
         bytes[] memory singleJournal2 = new bytes[](1);
         singleJournal2[0] = journals[1];
-        
+
         address[] memory singleUserToLiquidate2 = new address[](1);
         singleUserToLiquidate2[0] = userToLiquidate[1];
-        
+
         uint256[] memory singleAmount2 = new uint256[](1);
         singleAmount2[0] = amounts[1];
-        
+
         address[] memory singleCollateral2 = new address[](1);
         singleCollateral2[0] = collateral[1];
 
@@ -676,7 +783,17 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
 
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
-                receivers, encodedJournals, "0x123", mTokens, amounts, amounts, selectors, initHashes, 0, userToLiquidate, collateral
+                receivers,
+                encodedJournals,
+                "0x123",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                userToLiquidate,
+                collateral
             )
         );
     }

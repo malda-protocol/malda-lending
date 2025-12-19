@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-import {IPauser} from "src/interfaces/IPauser.sol";
-
 import {Pauser} from "src/pauser/Pauser.sol";
 import {Base_Unit_Test} from "../../Base_Unit_Test.t.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
