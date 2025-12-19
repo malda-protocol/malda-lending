@@ -176,6 +176,18 @@ contract RewardDistributor is
     }
 
     // ----------- PUBLIC ------------
+    /// @notice Grants reward to a user
+    /// @param token Reward token address
+    /// @param user User address
+    /// @param amount Amount to grant
+    function grantReward(address token, address user, uint256 amount) public onlyOwner {
+        // Requirements: the reward token is valid
+        require(isRewardToken[token], RewardDistributor_RewardNotValid());
+
+        // Effects: grant the reward
+        _grantReward(token, user, amount);
+    }
+
     /// @notice Claims rewards for a list of holders across all reward tokens
     /// @param holders Account list to claim for
     function claim(address[] memory holders) public override nonReentrant {

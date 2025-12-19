@@ -256,9 +256,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @dev when 0, it means there's no limit
     /// @param amount The new limit
     function setOutflowTimeLimitInUSD(uint256 amount) external onlyOwner {
-        // Requirements: the new limit is not zero
-        require(amount != 0, Operator_InvalidInput());
-
         // Events: emit the outflow limit updated event
         emit OutflowLimitUpdated(msg.sender, limitPerTimePeriod, amount);
 
