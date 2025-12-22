@@ -702,7 +702,7 @@ mErc20Host.repayBehalf(borrowerAddress, repayAmount);
 <li><a href="src/Operator/OperatorStorage.sol/abstract.OperatorStorage.html">OperatorStorage</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="emptyoperator"><a class="header" href="#emptyoperator">EmptyOperator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/Operator/EmptyOperator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/Operator/EmptyOperator.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 EmptyOperator</p>
 <p><strong>Author:</strong>
@@ -718,7 +718,7 @@ Merge Layers Inc.</p>
 <tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>True if the caller is an operator</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="operator-1"><a class="header" href="#operator-1">Operator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/Operator/Operator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/Operator/Operator.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/Operator/Operator.sol//src/Operator/OperatorStorage.sol/abstract.OperatorStorage.html">OperatorStorage</a>, <a href="src/Operator/Operator.sol//src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.html">ImTokenOperationTypes</a>, OwnableUpgradeable, <a href="src/Operator/Operator.sol//src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.html">HypernativeFirewallProtected</a></p>
 <p><strong>Title:</strong>
@@ -892,26 +892,22 @@ oz-upgrades-unsafe-allow: constructor</p>
 </tbody></table>
 </div>
 <h3 id="setmarketborrowcaps"><a class="header" href="#setmarketborrowcaps">setMarketBorrowCaps</a></h3>
-<p>Set borrow caps for given mToken markets.</p>
-<p>Borrowing that brings total borrows to or above borrow cap will revert.
-A value of 0 corresponds to unlimited borrowing.</p>
+<p>/// @notice Set borrow caps for given mToken markets.
+/// @dev Borrowing that brings total borrows to or above borrow cap will revert.
+///      A value of 0 corresponds to unlimited borrowing.
+/// @param mTokens The addresses of the markets (tokens) to change the borrow caps for
+/// @param newBorrowCaps The new borrow cap values in underlying to be set.</p>
 <pre><code class="language-solidity">function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newBorrowCaps)
     external
-    onlyFirewallApproved;
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>mTokens</code></td><td><code>address[]</code></td><td>The addresses of the markets (tokens) to change the borrow caps for</td></tr>
-<tr><td><code>newBorrowCaps</code></td><td><code>uint256[]</code></td><td>The new borrow cap values in underlying to be set.</td></tr>
-</tbody></table>
-</div>
 <h3 id="setmarketsupplycaps"><a class="header" href="#setmarketsupplycaps">setMarketSupplyCaps</a></h3>
 <p>Set supply caps for the given mToken markets.</p>
 <p>Supplying that brings total supply to or above supply cap will revert.
 A value of 0 corresponds to unlimited supplying.</p>
 <pre><code class="language-solidity">function setMarketSupplyCaps(address[] calldata mTokens, uint256[] calldata newSupplyCaps)
     external
-    onlyFirewallApproved;
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -923,7 +919,7 @@ A value of 0 corresponds to unlimited supplying.</p>
 <p>Set pause for a specific operation</p>
 <pre><code class="language-solidity">function setPaused(address mToken, ImTokenOperationTypes.OperationType _type, bool state)
     external
-    onlyFirewallApproved;
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -945,11 +941,7 @@ A value of 0 corresponds to unlimited supplying.</p>
 </div>
 <h3 id="entermarkets"><a class="header" href="#entermarkets">enterMarkets</a></h3>
 <p>Add assets to be included in account liquidity calculation</p>
-<pre><code class="language-solidity">function enterMarkets(address[] calldata _mTokens)
-    external
-    override
-    onlyAllowedUser(msg.sender)
-    onlyFirewallApproved;
+<pre><code class="language-solidity">function enterMarkets(address[] calldata _mTokens) external override onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -969,7 +961,7 @@ A value of 0 corresponds to unlimited supplying.</p>
 <p>Removes asset from sender's account liquidity calculation</p>
 <p>Sender must not have an outstanding borrow balance in the asset,
 and must not be providing necessary collateral for an outstanding borrow.</p>
-<pre><code class="language-solidity">function exitMarket(address _mToken) external override onlyFirewallApproved;
+<pre><code class="language-solidity">function exitMarket(address _mToken) external override onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -982,8 +974,7 @@ and must not be providing necessary collateral for an outstanding borrow.</p>
     external
     override
     ifNotBlacklisted(src)
-    ifNotBlacklisted(dst)
-    onlyFirewallApproved;
+    ifNotBlacklisted(dst);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -999,8 +990,7 @@ and must not be providing necessary collateral for an outstanding borrow.</p>
     external
     override
     onlyAllowedUser(borrower)
-    ifNotBlacklisted(borrower)
-    onlyFirewallApproved;
+    ifNotBlacklisted(borrower);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -1123,7 +1113,6 @@ and must not be providing necessary collateral for an outstanding borrow.</p>
     onlyAllowedUser(minter)
     ifNotBlacklisted(minter)
     ifNotBlacklisted(receiver)
-    onlyFirewallApproved
     onlyAllowedUser(minter);
 </code></pre>
 <p><strong>Parameters</strong></p>
@@ -1149,8 +1138,7 @@ and must not be providing necessary collateral for an outstanding borrow.</p>
     view
     override
     onlyAllowedUser(redeemer)
-    ifNotBlacklisted(redeemer)
-    onlyFirewallApproved;
+    ifNotBlacklisted(redeemer);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -1161,11 +1149,7 @@ and must not be providing necessary collateral for an outstanding borrow.</p>
 </div>
 <h3 id="beforemtokenrepay"><a class="header" href="#beforemtokenrepay">beforeMTokenRepay</a></h3>
 <p>Checks if the account should be allowed to repay a borrow in the given market</p>
-<pre><code class="language-solidity">function beforeMTokenRepay(address mToken, address borrower)
-    external
-    view
-    onlyAllowedUser(borrower)
-    onlyFirewallApproved;
+<pre><code class="language-solidity">function beforeMTokenRepay(address mToken, address borrower) external view onlyAllowedUser(borrower);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -1180,7 +1164,7 @@ and must not be providing necessary collateral for an outstanding borrow.</p>
     address mTokenCollateral,
     address borrower,
     uint256 repayAmount
-) external view override onlyFirewallApproved;
+) external view override;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -1196,8 +1180,7 @@ and must not be providing necessary collateral for an outstanding borrow.</p>
     external
     view
     override
-    ifNotBlacklisted(liquidator)
-    onlyFirewallApproved;
+    ifNotBlacklisted(liquidator);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -1217,7 +1200,7 @@ and must not be providing necessary collateral for an outstanding borrow.</p>
 </div>
 <h3 id="beforerebalancing"><a class="header" href="#beforerebalancing">beforeRebalancing</a></h3>
 <p>Checks if the account should be allowed to rebalance tokens</p>
-<pre><code class="language-solidity">function beforeRebalancing(address mToken) external view override onlyFirewallApproved;
+<pre><code class="language-solidity">function beforeRebalancing(address mToken) external view override;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -1322,7 +1305,7 @@ and must not be providing necessary collateral for an outstanding borrow.</p>
 <pre><code class="language-solidity">error Operator_AddressNotValid();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="operatorstorage"><a class="header" href="#operatorstorage">OperatorStorage</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/Operator/OperatorStorage.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/Operator/OperatorStorage.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/Operator/OperatorStorage.sol//src/interfaces/IOperator.sol/interface.IOperator.html">IOperator</a>, <a href="src/Operator/OperatorStorage.sol//src/interfaces/IOperator.sol/interface.IOperatorDefender.html">IOperatorDefender</a>, <a href="src/Operator/OperatorStorage.sol//src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a></p>
 <p><strong>Title:</strong>
@@ -1720,7 +1703,7 @@ Merge Layers Inc.</p>
 <li><a href="src/blacklister/Blacklister.sol/contract.Blacklister.html">Blacklister</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="blacklister"><a class="header" href="#blacklister">Blacklister</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/blacklister/Blacklister.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/blacklister/Blacklister.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 OwnableUpgradeable, <a href="src/blacklister/Blacklister.sol//src/interfaces/IBlacklister.sol/interface.IBlacklister.html">IBlacklister</a></p>
 <p><strong>Title:</strong>
@@ -1831,7 +1814,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 <li><a href="src/interest/JumpRateModelV4.sol/contract.JumpRateModelV4.html">JumpRateModelV4</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="jumpratemodelv4"><a class="header" href="#jumpratemodelv4">JumpRateModelV4</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interest/JumpRateModelV4.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interest/JumpRateModelV4.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/interest/JumpRateModelV4.sol//src/interfaces/IInterestRateModel.sol/interface.IInterestRateModel.html">IInterestRateModel</a>, Ownable</p>
 <p><strong>Title:</strong>
@@ -2077,7 +2060,7 @@ Merge Layers Inc.</p>
 <li><a href="src/interfaces/external/across/IAcrossSpokePoolV3.sol/interface.IAcrossSpokePoolV3.html">IAcrossSpokePoolV3</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="iacrossreceiverv3"><a class="header" href="#iacrossreceiverv3">IAcrossReceiverV3</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/across/IAcrossReceiverV3.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/across/IAcrossReceiverV3.sol">Git Source</a></p>
 <h2 id="functions-4"><a class="header" href="#functions-4">Functions</a></h2>
 <h3 id="handlev3acrossmessage"><a class="header" href="#handlev3acrossmessage">handleV3AcrossMessage</a></h3>
 <p>handles AcrossV3 SpokePool message</p>
@@ -2091,7 +2074,7 @@ Merge Layers Inc.</p>
 <tr><td><code>message</code></td><td><code>bytes</code></td><td>the custom message sent from source</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="iacrossspokepoolv3"><a class="header" href="#iacrossspokepoolv3">IAcrossSpokePoolV3</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/across/IAcrossSpokePoolV3.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/across/IAcrossSpokePoolV3.sol">Git Source</a></p>
 <h2 id="functions-5"><a class="header" href="#functions-5">Functions</a></h2>
 <h3 id="depositv3"><a class="header" href="#depositv3">depositV3</a></h3>
 <p>FUNCTIONS             *</p>
@@ -2352,7 +2335,7 @@ Merge Layers Inc.</p>
 <li><a href="src/interfaces/external/chainlink/IAggregatorV3.sol/interface.IAggregatorV3.html">IAggregatorV3</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="iaggregatorv3"><a class="header" href="#iaggregatorv3">IAggregatorV3</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/chainlink/IAggregatorV3.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/chainlink/IAggregatorV3.sol">Git Source</a></p>
 <h2 id="functions-6"><a class="header" href="#functions-6">Functions</a></h2>
 <h3 id="decimals"><a class="header" href="#decimals">decimals</a></h3>
 <pre><code class="language-solidity">function decimals() external view returns (uint8);
@@ -2368,7 +2351,7 @@ Merge Layers Inc.</p>
 <li><a href="src/interfaces/external/connext/IConnext.sol/interface.IConnext.html">IConnext</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="iconnext"><a class="header" href="#iconnext">IConnext</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/connext/IConnext.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/connext/IConnext.sol">Git Source</a></p>
 <h2 id="functions-7"><a class="header" href="#functions-7">Functions</a></h2>
 <h3 id="xcall"><a class="header" href="#xcall">xcall</a></h3>
 <pre><code class="language-solidity">function xcall(
@@ -2414,7 +2397,7 @@ Merge Layers Inc.</p>
 <li><a href="src/interfaces/external/everclear/IFeeAdapterV2.sol/interface.IFeeAdapterV2.html">IFeeAdapterV2</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ieverclearspoke"><a class="header" href="#ieverclearspoke">IEverclearSpoke</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/everclear/IEverclearSpoke.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/everclear/IEverclearSpoke.sol">Git Source</a></p>
 <h2 id="functions-8"><a class="header" href="#functions-8">Functions</a></h2>
 <h3 id="newintent"><a class="header" href="#newintent">newIntent</a></h3>
 <p>Creates a new intent</p>
@@ -2454,7 +2437,7 @@ Merge Layers Inc.</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ifeeadapter"><a class="header" href="#ifeeadapter">IFeeAdapter</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/everclear/IFeeAdapter.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/everclear/IFeeAdapter.sol">Git Source</a></p>
 <h2 id="functions-9"><a class="header" href="#functions-9">Functions</a></h2>
 <h3 id="newintent-1"><a class="header" href="#newintent-1">newIntent</a></h3>
 <pre><code class="language-solidity">function newIntent(
@@ -2494,7 +2477,7 @@ Merge Layers Inc.</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ifeeadapterv2"><a class="header" href="#ifeeadapterv2">IFeeAdapterV2</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/everclear/IFeeAdapterV2.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/everclear/IFeeAdapterV2.sol">Git Source</a></p>
 <h2 id="functions-10"><a class="header" href="#functions-10">Functions</a></h2>
 <h3 id="newintent-2"><a class="header" href="#newintent-2">newIntent</a></h3>
 <p>Creates a new intent with fees</p>
@@ -2582,7 +2565,7 @@ Merge Layers Inc.</p>
 <li><a href="src/interfaces/external/layerzero/v2/IMessagingContext.sol/interface.IMessagingContext.html">IMessagingContext</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="messagingparams"><a class="header" href="#messagingparams">MessagingParams</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol">Git Source</a></p>
 <pre><code class="language-solidity">struct MessagingParams {
 uint32 dstEid;
 bytes32 receiver;
@@ -2592,7 +2575,7 @@ bool payInLzToken;
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="messagingreceipt"><a class="header" href="#messagingreceipt">MessagingReceipt</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol">Git Source</a></p>
 <pre><code class="language-solidity">struct MessagingReceipt {
 bytes32 guid;
 uint64 nonce;
@@ -2600,14 +2583,14 @@ MessagingFee fee;
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="messagingfee"><a class="header" href="#messagingfee">MessagingFee</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol">Git Source</a></p>
 <pre><code class="language-solidity">struct MessagingFee {
 uint256 nativeFee;
 uint256 lzTokenFee;
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="origin"><a class="header" href="#origin">Origin</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol">Git Source</a></p>
 <pre><code class="language-solidity">struct Origin {
 uint32 srcEid;
 bytes32 sender;
@@ -2615,7 +2598,7 @@ uint64 nonce;
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ilayerzeroendpointv2"><a class="header" href="#ilayerzeroendpointv2">ILayerZeroEndpointV2</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol//src/interfaces/external/layerzero/v2/IMessageLibManager.sol/interface.IMessageLibManager.html">IMessageLibManager</a>, <a href="src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol//src/interfaces/external/layerzero/v2/IMessagingComposer.sol/interface.IMessagingComposer.html">IMessagingComposer</a>, <a href="src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol//src/interfaces/external/layerzero/v2/IMessagingChannel.sol/interface.IMessagingChannel.html">IMessagingChannel</a>, <a href="src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol//src/interfaces/external/layerzero/v2/IMessagingContext.sol/interface.IMessagingContext.html">IMessagingContext</a></p>
 <h2 id="functions-11"><a class="header" href="#functions-11">Functions</a></h2>
@@ -2691,7 +2674,7 @@ uint64 nonce;
 <pre><code class="language-solidity">event DelegateSet(address sender, address delegate);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="sendparam"><a class="header" href="#sendparam">SendParam</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol">Git Source</a></p>
 <p>Struct representing token parameters for the OFT send() operation.</p>
 <pre><code class="language-solidity">struct SendParam {
 uint32 dstEid; // Destination endpoint ID.
@@ -2704,7 +2687,7 @@ bytes oftCmd; // The OFT command to be executed, unused in default OFT implement
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="oftlimit"><a class="header" href="#oftlimit">OFTLimit</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol">Git Source</a></p>
 <p>Struct representing OFT limit information.</p>
 <p>These amounts can change dynamically and are up the the specific oft implementation.</p>
 <pre><code class="language-solidity">struct OFTLimit {
@@ -2713,7 +2696,7 @@ uint256 maxAmountLD; // Maximum amount in local decimals that can be sent to the
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="oftreceipt"><a class="header" href="#oftreceipt">OFTReceipt</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol">Git Source</a></p>
 <p>Struct representing OFT receipt information.</p>
 <pre><code class="language-solidity">struct OFTReceipt {
 uint256 amountSentLD; // Amount of tokens ACTUALLY debited from the sender in local decimals.
@@ -2722,7 +2705,7 @@ uint256 amountReceivedLD; // Amount of tokens to be received on the remote side.
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="oftfeedetail"><a class="header" href="#oftfeedetail">OFTFeeDetail</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol">Git Source</a></p>
 <p>Struct representing OFT fee details.</p>
 <p>Future proof mechanism to provide a standardized way to communicate fees to things like a UI.</p>
 <pre><code class="language-solidity">struct OFTFeeDetail {
@@ -2731,7 +2714,7 @@ string description; // Description of the fee.
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ilayerzerooft"><a class="header" href="#ilayerzerooft">ILayerZeroOFT</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IOFT</p>
 <p>Interface for the OftChain (OFT) token.</p>
@@ -2879,7 +2862,7 @@ without understanding the underlying token implementation.</p>
 <pre><code class="language-solidity">error SlippageExceeded(uint256 amountLD, uint256 minAmountLD);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ilayerzeroreceiverv2"><a class="header" href="#ilayerzeroreceiverv2">ILayerZeroReceiverV2</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/ILayerZeroReceiverV2.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/ILayerZeroReceiverV2.sol">Git Source</a></p>
 <h2 id="functions-13"><a class="header" href="#functions-13">Functions</a></h2>
 <h3 id="allowinitializepath"><a class="header" href="#allowinitializepath">allowInitializePath</a></h3>
 <pre><code class="language-solidity">function allowInitializePath(Origin calldata _origin) external view returns (bool);
@@ -2897,7 +2880,7 @@ without understanding the underlying token implementation.</p>
 ) external payable;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="messagelibtype"><a class="header" href="#messagelibtype">MessageLibType</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/IMessageLib.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/IMessageLib.sol">Git Source</a></p>
 <pre><code class="language-solidity">enum MessageLibType {
 Send,
 Receive,
@@ -2905,7 +2888,7 @@ SendAndReceive
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imessagelib"><a class="header" href="#imessagelib">IMessageLib</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/IMessageLib.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/IMessageLib.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 IERC165</p>
 <h2 id="functions-14"><a class="header" href="#functions-14">Functions</a></h2>
@@ -2925,7 +2908,7 @@ IERC165</p>
 <pre><code class="language-solidity">function messageLibType() external view returns (MessageLibType);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="setconfigparam"><a class="header" href="#setconfigparam">SetConfigParam</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/IMessageLibManager.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/IMessageLibManager.sol">Git Source</a></p>
 <pre><code class="language-solidity">struct SetConfigParam {
 uint32 eid;
 uint32 configType;
@@ -2933,7 +2916,7 @@ bytes config;
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imessagelibmanager"><a class="header" href="#imessagelibmanager">IMessageLibManager</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/IMessageLibManager.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/IMessageLibManager.sol">Git Source</a></p>
 <h2 id="functions-15"><a class="header" href="#functions-15">Functions</a></h2>
 <h3 id="registerlibrary"><a class="header" href="#registerlibrary">registerLibrary</a></h3>
 <pre><code class="language-solidity">function registerLibrary(address _lib) external;
@@ -3029,7 +3012,7 @@ bytes config;
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imessagingchannel"><a class="header" href="#imessagingchannel">IMessagingChannel</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/IMessagingChannel.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/IMessagingChannel.sol">Git Source</a></p>
 <h2 id="functions-16"><a class="header" href="#functions-16">Functions</a></h2>
 <h3 id="eid"><a class="header" href="#eid">eid</a></h3>
 <pre><code class="language-solidity">function eid() external view returns (uint32);
@@ -3072,7 +3055,7 @@ bytes config;
 <pre><code class="language-solidity">event PacketBurnt(uint32 srcEid, bytes32 sender, address receiver, uint64 nonce, bytes32 payloadHash);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imessagingcomposer"><a class="header" href="#imessagingcomposer">IMessagingComposer</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/IMessagingComposer.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/IMessagingComposer.sol">Git Source</a></p>
 <h2 id="functions-17"><a class="header" href="#functions-17">Functions</a></h2>
 <h3 id="composequeue"><a class="header" href="#composequeue">composeQueue</a></h3>
 <pre><code class="language-solidity">function composeQueue(address _from, address _to, bytes32 _guid, uint16 _index)
@@ -3115,7 +3098,7 @@ bytes config;
 );
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imessagingcontext"><a class="header" href="#imessagingcontext">IMessagingContext</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/v2/IMessagingContext.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/v2/IMessagingContext.sol">Git Source</a></p>
 <h2 id="functions-18"><a class="header" href="#functions-18">Functions</a></h2>
 <h3 id="issendingmessage"><a class="header" href="#issendingmessage">isSendingMessage</a></h3>
 <pre><code class="language-solidity">function isSendingMessage() external view returns (bool);
@@ -3124,7 +3107,7 @@ bytes config;
 <pre><code class="language-solidity">function getSendContext() external view returns (uint32 dstEid, address sender);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ilayerzeroendpoint"><a class="header" href="#ilayerzeroendpoint">ILayerZeroEndpoint</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/ILayerZeroEndpoint.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/ILayerZeroEndpoint.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/interfaces/external/layerzero/ILayerZeroEndpoint.sol//src/interfaces/external/layerzero/ILayerZeroUserApplicationConfig.sol/interface.ILayerZeroUserApplicationConfig.html">ILayerZeroUserApplicationConfig</a></p>
 <p>is imported from
@@ -3199,7 +3182,7 @@ bytes config;
 <pre><code class="language-solidity">function getReceiveVersion(address userApplication_) external view returns (uint16);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ilayerzeroreceiver"><a class="header" href="#ilayerzeroreceiver">ILayerZeroReceiver</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/ILayerZeroReceiver.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/ILayerZeroReceiver.sol">Git Source</a></p>
 <p>is imported from
 (https://github.com/LayerZero-Labs/LayerZero/blob/main/contracts/interfaces/ILayerZeroReceiver.sol)</p>
 <h2 id="functions-20"><a class="header" href="#functions-20">Functions</a></h2>
@@ -3207,7 +3190,7 @@ bytes config;
 <pre><code class="language-solidity">function lzReceive(uint16 _srcChainId, bytes calldata _srcAddress, uint64 _nonce, bytes calldata _payload) external;
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ilayerzerouserapplicationconfig"><a class="header" href="#ilayerzerouserapplicationconfig">ILayerZeroUserApplicationConfig</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/layerzero/ILayerZeroUserApplicationConfig.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/layerzero/ILayerZeroUserApplicationConfig.sol">Git Source</a></p>
 <p>is imported from
 (https://github.com/LayerZero-Labs/LayerZero/blob/main/contracts/interfaces/ILayerZeroUserApplicationConfig.sol)</p>
 <h2 id="functions-21"><a class="header" href="#functions-21">Functions</a></h2>
@@ -3228,7 +3211,7 @@ bytes config;
 <li><a href="src/interfaces/external/poh/IPohVerifier.sol/interface.IPohVerifier.html">IPohVerifier</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ipohverifier"><a class="header" href="#ipohverifier">IPohVerifier</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/external/poh/IPohVerifier.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/external/poh/IPohVerifier.sol">Git Source</a></p>
 <h2 id="functions-22"><a class="header" href="#functions-22">Functions</a></h2>
 <h3 id="verify-1"><a class="header" href="#verify-1">verify</a></h3>
 <p>Check if the provided signature has been signed by signer</p>
@@ -3251,7 +3234,7 @@ bytes config;
 <pre><code class="language-solidity">function getSigner() external view returns (address);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="iblacklister"><a class="header" href="#iblacklister">IBlacklister</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IBlacklister.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IBlacklister.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IBlacklister</p>
 <p><strong>Author:</strong>
@@ -3346,7 +3329,7 @@ Merge Layers Inc.</p>
 <pre><code class="language-solidity">error Blacklister_NotAllowed();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ibridge"><a class="header" href="#ibridge">IBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IBridge.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IBridge.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IBridge</p>
 <p><strong>Author:</strong>
@@ -3393,7 +3376,7 @@ Merge Layers Inc.</p>
 <tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>fee Computed bridge fee</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="idefaultadapter"><a class="header" href="#idefaultadapter">IDefaultAdapter</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IDefaultAdapter.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IDefaultAdapter.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IDefaultAdapter</p>
 <p><strong>Author:</strong>
@@ -3452,7 +3435,7 @@ Merge Layers Inc.</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="igasfeeshelper"><a class="header" href="#igasfeeshelper">IGasFeesHelper</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IGasFeesHelper.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IGasFeesHelper.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IGasFeesHelper</p>
 <p><strong>Author:</strong>
@@ -3473,7 +3456,7 @@ Merge Layers Inc.</p>
 <tr><td><code>fee</code></td><td><code>uint256</code></td><td>Gas fee amount</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="iinterestratemodel"><a class="header" href="#iinterestratemodel">IInterestRateModel</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IInterestRateModel.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IInterestRateModel.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IInterestRateModel</p>
 <p><strong>Author:</strong>
@@ -3633,7 +3616,7 @@ Merge Layers Inc.</p>
 <pre><code class="language-solidity">error JumpRateModelV4_ZeroValueNotAllowed();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ioperatordata"><a class="header" href="#ioperatordata">IOperatorData</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IOperator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IOperator.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 Operator storage structures</p>
 <p><strong>Author:</strong>
@@ -3653,7 +3636,7 @@ Merge Layers Inc.</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ioperatordefender"><a class="header" href="#ioperatordefender">IOperatorDefender</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IOperator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IOperator.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 Operator defender interface</p>
 <p><strong>Author:</strong>
@@ -3771,7 +3754,7 @@ Merge Layers Inc.</p>
 <tr><td><code>mToken</code></td><td><code>address</code></td><td>Asset being minted</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="ioperator"><a class="header" href="#ioperator">IOperator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IOperator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IOperator.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 Operator interface</p>
 <p><strong>Author:</strong>
@@ -4077,7 +4060,7 @@ and must not be providing necessary collateral for an outstanding borrow.</p>
 <tr><td><code>_mToken</code></td><td><code>address</code></td><td>The address of the asset to be removed</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="ioracleoperator"><a class="header" href="#ioracleoperator">IOracleOperator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IOracleOperator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IOracleOperator.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IOracleOperator</p>
 <p><strong>Author:</strong>
@@ -4112,7 +4095,7 @@ Merge Layers Inc.</p>
 <tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>price The underlying asset price mantissa (scaled by 1e18). Zero means unavailable.</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="iownable"><a class="header" href="#iownable">IOwnable</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IOwnable.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IOwnable.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IOwnable</p>
 <p><strong>Author:</strong>
@@ -4128,7 +4111,7 @@ Merge Layers Inc.</p>
 <tr><td><code>newOwner</code></td><td><code>address</code></td><td>Address of the new owner</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="ipauser"><a class="header" href="#ipauser">IPauser</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IPauser.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IPauser.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/interfaces/IPauser.sol//src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.html">ImTokenOperationTypes</a></p>
 <p><strong>Title:</strong>
@@ -4240,7 +4223,7 @@ Merge Layers Inc.</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="irebalancemarket"><a class="header" href="#irebalancemarket">IRebalanceMarket</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IRebalancer.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IRebalancer.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IRebalanceMarket</p>
 <p><strong>Author:</strong>
@@ -4256,7 +4239,7 @@ Merge Layers Inc.</p>
 <tr><td><code>amount</code></td><td><code>uint256</code></td><td>Amount to extract</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="irebalancer"><a class="header" href="#irebalancer">IRebalancer</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IRebalancer.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IRebalancer.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IRebalancer</p>
 <p><strong>Author:</strong>
@@ -4426,15 +4409,11 @@ Merge Layers Inc.</p>
 </tbody></table>
 </div>
 <h3 id="marketlistupdated"><a class="header" href="#marketlistupdated">MarketListUpdated</a></h3>
-<p>Emitted when market list is updated</p>
 <pre><code class="language-solidity">event MarketListUpdated(address[] list, bool status);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>list</code></td><td><code>address[]</code></td><td>Market list</td></tr>
-<tr><td><code>status</code></td><td><code>bool</code></td><td>Whitelist status</td></tr>
-</tbody></table>
-</div>
+<h3 id="newadmin"><a class="header" href="#newadmin">NewAdmin</a></h3>
+<pre><code class="language-solidity">event NewAdmin(address indexed acc);
+</code></pre>
 <h2 id="errors-7"><a class="header" href="#errors-7">Errors</a></h2>
 <h3 id="rebalancer_notauthorized"><a class="header" href="#rebalancer_notauthorized">Rebalancer_NotAuthorized</a></h3>
 <p>Error thrown when caller not authorized</p>
@@ -4482,7 +4461,7 @@ Merge Layers Inc.</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="irewarddistributordata"><a class="header" href="#irewarddistributordata">IRewardDistributorData</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IRewardDistributor.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IRewardDistributor.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IRewardDistributorData</p>
 <p><strong>Author:</strong>
@@ -4516,7 +4495,7 @@ Merge Layers Inc.</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="irewarddistributor"><a class="header" href="#irewarddistributor">IRewardDistributor</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IRewardDistributor.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IRewardDistributor.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IRewardDistributor</p>
 <p><strong>Author:</strong>
@@ -4696,7 +4675,7 @@ Merge Layers Inc.</p>
 <tr><td><code>mToken</code></td><td><code>address</code></td><td>Market token</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="iroles"><a class="header" href="#iroles">IRoles</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/IRoles.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/IRoles.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IRoles</p>
 <p><strong>Author:</strong>
@@ -4850,7 +4829,7 @@ Merge Layers Inc.</p>
 <pre><code class="language-solidity">error Roles_InputNotValid();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imerc20"><a class="header" href="#imerc20">ImErc20</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/ImErc20.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/ImErc20.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 ImErc20</p>
 <p><strong>Author:</strong>
@@ -4947,7 +4926,7 @@ Merge Layers Inc.</p>
 <tr><td><code>addAmount</code></td><td><code>uint256</code></td><td>The amount fo underlying token to add as reserves</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="imerc20host"><a class="header" href="#imerc20host">ImErc20Host</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/ImErc20Host.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/ImErc20Host.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 ImErc20Host</p>
 <p><strong>Author:</strong>
@@ -5298,7 +5277,7 @@ Merge Layers Inc.</p>
 <pre><code class="language-solidity">error mErc20Host_ActionNotAvailable();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imtokenoperationtypes"><a class="header" href="#imtokenoperationtypes">ImTokenOperationTypes</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/ImToken.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/ImToken.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 ImTokenOperationTypes</p>
 <p><strong>Author:</strong>
@@ -5322,7 +5301,7 @@ Merge Layers Inc.</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imtokendelegator"><a class="header" href="#imtokendelegator">ImTokenDelegator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/ImToken.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/ImToken.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 ImTokenDelegator</p>
 <p><strong>Author:</strong>
@@ -5338,7 +5317,7 @@ Merge Layers Inc.</p>
 <tr><td><code>delegatee</code></td><td><code>address</code></td><td>Address to delegate to</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="imtokenminimal"><a class="header" href="#imtokenminimal">ImTokenMinimal</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/ImToken.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/ImToken.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 ImTokenMinimal</p>
 <p><strong>Author:</strong>
@@ -5413,7 +5392,7 @@ Merge Layers Inc.</p>
 <tr><td><code>&lt;none&gt;</code></td><td><code>address</code></td><td>underlyingToken The underlying token address</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="imtoken"><a class="header" href="#imtoken">ImToken</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/ImToken.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/ImToken.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/interfaces/ImToken.sol//src/interfaces/ImToken.sol/interface.ImTokenMinimal.html">ImTokenMinimal</a></p>
 <p><strong>Title:</strong>
@@ -5728,7 +5707,7 @@ Its absolutely critical to use msg.sender as the borrowed mToken and not a param
 <tr><td><code>supplyRate</code></td><td><code>uint256</code></td><td>The current supply rate per block, scaled by 1e18</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="imtokengateway"><a class="header" href="#imtokengateway">ImTokenGateway</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/interfaces/ImTokenGateway.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/interfaces/ImTokenGateway.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 ImTokenGateway</p>
 <p><strong>Author:</strong>
@@ -6127,7 +6106,7 @@ Merge Layers Inc.</p>
 <li><a href="src/libraries/mTokenProofDecoderLib.sol/library.mTokenProofDecoderLib.html">mTokenProofDecoderLib</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="bytes32addresslib"><a class="header" href="#bytes32addresslib">Bytes32AddressLib</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/libraries/Bytes32AddressLib.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/libraries/Bytes32AddressLib.sol">Git Source</a></p>
 <p><strong>Author:</strong>
 Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/Bytes32AddressLib.sol)</p>
 <p>Library for converting between addresses and bytes32 values.</p>
@@ -6139,7 +6118,7 @@ Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/Bytes32A
 <pre><code class="language-solidity">function fillLast12Bytes(address addressValue) internal pure returns (bytes32);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="byteslib"><a class="header" href="#byteslib">BytesLib</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/libraries/BytesLib.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/libraries/BytesLib.sol">Git Source</a></p>
 <h2 id="functions-44"><a class="header" href="#functions-44">Functions</a></h2>
 <h3 id="concat"><a class="header" href="#concat">concat</a></h3>
 <pre><code class="language-solidity">function concat(bytes memory _preBytes, bytes memory _postBytes) internal pure returns (bytes memory);
@@ -6187,7 +6166,7 @@ Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/Bytes32A
 <pre><code class="language-solidity">function equalStorage(bytes storage _preBytes, bytes memory _postBytes) internal view returns (bool);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="create3"><a class="header" href="#create3">CREATE3</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/libraries/CREATE3.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/libraries/CREATE3.sol">Git Source</a></p>
 <p><strong>Authors:</strong>
 Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/CREATE3.sol), Modified from 0xSequence (https://github.com/0xSequence/create3/blob/master/contracts/Create3.sol)</p>
 <p>Deploy to deterministic addresses without an initcode factor.</p>
@@ -6206,7 +6185,7 @@ Solmate (https://github.com/transmissions11/solmate/blob/main/src/utils/CREATE3.
 <pre><code class="language-solidity">function getDeployed(bytes32 salt) internal view returns (address);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="commonlib"><a class="header" href="#commonlib">CommonLib</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/libraries/CommonLib.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/libraries/CommonLib.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 CommonLib</p>
 <p><strong>Author:</strong>
@@ -6285,7 +6264,7 @@ Merge Layers Inc.</p>
 <pre><code class="language-solidity">error NotEnoughGasFee();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ihypernativefirewall"><a class="header" href="#ihypernativefirewall">IHypernativeFirewall</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/libraries/HypernativeFirewallProtected.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/libraries/HypernativeFirewallProtected.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IHypernativeFirewall</p>
 <p><strong>Author:</strong>
@@ -6330,7 +6309,7 @@ Merge Layers Inc.</p>
 <tr><td><code>sender</code></td><td><code>address</code></td><td>The sender of the transaction</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="hypernativefirewallprotected"><a class="header" href="#hypernativefirewallprotected">HypernativeFirewallProtected</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/libraries/HypernativeFirewallProtected.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/libraries/HypernativeFirewallProtected.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 HypernativeFirewallProtected</p>
 <p><strong>Author:</strong>
@@ -6339,46 +6318,31 @@ Merge Layers Inc.</p>
 <p>Inherited from Hypernative and refactored it for our needs, but without changing the core logic.</p>
 <h2 id="state-variables-4"><a class="header" href="#state-variables-4">State Variables</a></h2>
 <h3 id="hypernative_oracle_storage_slot"><a class="header" href="#hypernative_oracle_storage_slot">HYPERNATIVE_ORACLE_STORAGE_SLOT</a></h3>
-<p>Storage slot for the firewall address</p>
 <pre><code class="language-solidity">bytes32 private constant HYPERNATIVE_ORACLE_STORAGE_SLOT =
     bytes32(uint256(keccak256(&quot;eip1967.hypernative.firewall&quot;)) - 1)
 </code></pre>
 <h3 id="hypernative_admin_storage_slot"><a class="header" href="#hypernative_admin_storage_slot">HYPERNATIVE_ADMIN_STORAGE_SLOT</a></h3>
-<p>Storage slot for the firewall admin address</p>
 <pre><code class="language-solidity">bytes32 private constant HYPERNATIVE_ADMIN_STORAGE_SLOT =
     bytes32(uint256(keccak256(&quot;eip1967.hypernative.admin&quot;)) - 1)
 </code></pre>
 <h3 id="hypernative_mode_storage_slot"><a class="header" href="#hypernative_mode_storage_slot">HYPERNATIVE_MODE_STORAGE_SLOT</a></h3>
-<p>Storage slot for the firewall strict mode</p>
 <pre><code class="language-solidity">bytes32 private constant HYPERNATIVE_MODE_STORAGE_SLOT =
     bytes32(uint256(keccak256(&quot;eip1967.hypernative.is_strict_mode&quot;)) - 1)
 </code></pre>
 <h2 id="functions-48"><a class="header" href="#functions-48">Functions</a></h2>
-<h3 id="onlyfirewallapproved"><a class="header" href="#onlyfirewallapproved">onlyFirewallApproved</a></h3>
-<p>Modifier to restrict access to only approved firewall addresses</p>
-<pre><code class="language-solidity">modifier onlyFirewallApproved() ;
+<h3 id="onlyfirewalladmin"><a class="header" href="#onlyfirewalladmin">onlyFirewallAdmin</a></h3>
+<pre><code class="language-solidity">modifier onlyFirewallAdmin() ;
 </code></pre>
 <h3 id="onlyfirewallapprovedalloweoa"><a class="header" href="#onlyfirewallapprovedalloweoa">onlyFirewallApprovedAllowEOA</a></h3>
 <p>Modifier to restrict access to only approved firewall addresses and EOAs</p>
 <pre><code class="language-solidity">modifier onlyFirewallApprovedAllowEOA() ;
 </code></pre>
-<h3 id="onlynotblacklistedeoa"><a class="header" href="#onlynotblacklistedeoa">onlyNotBlacklistedEOA</a></h3>
-<p>Modifier to restrict access to only not blacklisted EOAs</p>
-<pre><code class="language-solidity">modifier onlyNotBlacklistedEOA() ;
-</code></pre>
-<h3 id="onlyfirewalladmin"><a class="header" href="#onlyfirewalladmin">onlyFirewallAdmin</a></h3>
-<p>Modifier to restrict access to only the firewall admin</p>
-<pre><code class="language-solidity">modifier onlyFirewallAdmin() ;
+<h3 id="hypernativefirewalladmin"><a class="header" href="#hypernativefirewalladmin">hypernativeFirewallAdmin</a></h3>
+<pre><code class="language-solidity">function hypernativeFirewallAdmin() public view returns (address);
 </code></pre>
 <h3 id="firewallregister-1"><a class="header" href="#firewallregister-1">firewallRegister</a></h3>
-<p>Function to register an account with the firewall</p>
 <pre><code class="language-solidity">function firewallRegister(address _account) public virtual;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_account</code></td><td><code>address</code></td><td>The account to register</td></tr>
-</tbody></table>
-</div>
 <h3 id="setfirewall"><a class="header" href="#setfirewall">setFirewall</a></h3>
 <p>Function to set the firewall</p>
 <p>Admin only function, sets new firewall admin. set to address(0) to revoke firewall</p>
@@ -6399,23 +6363,11 @@ Merge Layers Inc.</p>
 </tbody></table>
 </div>
 <h3 id="changefirewalladmin"><a class="header" href="#changefirewalladmin">changeFirewallAdmin</a></h3>
-<p>Function to change the firewall admin</p>
 <pre><code class="language-solidity">function changeFirewallAdmin(address _newAdmin) public onlyFirewallAdmin;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_newAdmin</code></td><td><code>address</code></td><td>The new firewall admin address</td></tr>
-</tbody></table>
-</div>
-<h3 id="hypernativefirewalladmin"><a class="header" href="#hypernativefirewalladmin">hypernativeFirewallAdmin</a></h3>
-<p>Function to get the firewall admin</p>
-<pre><code class="language-solidity">function hypernativeFirewallAdmin() public view returns (address);
+<h3 id="_firewallgate"><a class="header" href="#_firewallgate">_firewallGate</a></h3>
+<pre><code class="language-solidity">function _firewallGate(address sender) internal;
 </code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>address</code></td><td>The firewall admin address</td></tr>
-</tbody></table>
-</div>
 <h3 id="_inithypernativefirewall"><a class="header" href="#_inithypernativefirewall">_initHypernativeFirewall</a></h3>
 <p>Internal function to initialize the firewall</p>
 <pre><code class="language-solidity">function _initHypernativeFirewall(address _firewall, address _admin) internal;
@@ -6427,91 +6379,30 @@ Merge Layers Inc.</p>
 </tbody></table>
 </div>
 <h3 id="_changefirewalladmin"><a class="header" href="#_changefirewalladmin">_changeFirewallAdmin</a></h3>
-<p>Internal function to change the firewall admin</p>
 <pre><code class="language-solidity">function _changeFirewallAdmin(address _newAdmin) internal;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_newAdmin</code></td><td><code>address</code></td><td>The new firewall admin address</td></tr>
-</tbody></table>
-</div>
 <h3 id="_setaddressbyslot"><a class="header" href="#_setaddressbyslot">_setAddressBySlot</a></h3>
-<p>Internal function to set the address in the slot</p>
-<pre><code class="language-solidity">function _setAddressBySlot(bytes32 slot, address newAddress) internal;
+<pre><code class="language-solidity">function _setAddressBySlot(bytes32 slot, address newAddress) private;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>slot</code></td><td><code>bytes32</code></td><td>The slot to set the address in</td></tr>
-<tr><td><code>newAddress</code></td><td><code>address</code></td><td>The address to set in the slot</td></tr>
-</tbody></table>
-</div>
 <h3 id="_setvaluebyslot"><a class="header" href="#_setvaluebyslot">_setValueBySlot</a></h3>
-<p>Internal function to set the value in the slot</p>
-<pre><code class="language-solidity">function _setValueBySlot(bytes32 _slot, uint256 _value) internal;
+<pre><code class="language-solidity">function _setValueBySlot(bytes32 _slot, uint256 _value) private;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_slot</code></td><td><code>bytes32</code></td><td>The slot to set the value in</td></tr>
-<tr><td><code>_value</code></td><td><code>uint256</code></td><td>The value to set in the slot</td></tr>
-</tbody></table>
-</div>
-<h3 id="_getaddressbyslot"><a class="header" href="#_getaddressbyslot">_getAddressBySlot</a></h3>
-<p>Internal function to get the address from the slot</p>
-<pre><code class="language-solidity">function _getAddressBySlot(bytes32 slot) internal view returns (address addr);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>slot</code></td><td><code>bytes32</code></td><td>The slot to get the address from</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>addr</code></td><td><code>address</code></td><td>The address from the slot</td></tr>
-</tbody></table>
-</div>
-<h3 id="_getvaluebyslot"><a class="header" href="#_getvaluebyslot">_getValueBySlot</a></h3>
-<p>Internal function to get the value from the slot</p>
-<pre><code class="language-solidity">function _getValueBySlot(bytes32 _slot) internal view returns (uint256 value);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_slot</code></td><td><code>bytes32</code></td><td>The slot to get the value from</td></tr>
-</tbody></table>
-</div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>value</code></td><td><code>uint256</code></td><td>The value from the slot</td></tr>
-</tbody></table>
-</div>
 <h3 id="_hypernativefirewallisstrictmode"><a class="header" href="#_hypernativefirewallisstrictmode">_hypernativeFirewallIsStrictMode</a></h3>
-<p>Internal function to get the strict mode</p>
 <pre><code class="language-solidity">function _hypernativeFirewallIsStrictMode() private view returns (bool);
 </code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>The strict mode</td></tr>
-</tbody></table>
-</div>
 <h3 id="_hypernativefirewall"><a class="header" href="#_hypernativefirewall">_hypernativeFirewall</a></h3>
-<p>Internal function to get the firewall address</p>
 <pre><code class="language-solidity">function _hypernativeFirewall() private view returns (address);
 </code></pre>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>address</code></td><td>The firewall address</td></tr>
-</tbody></table>
-</div>
+<h3 id="_getaddressbyslot"><a class="header" href="#_getaddressbyslot">_getAddressBySlot</a></h3>
+<pre><code class="language-solidity">function _getAddressBySlot(bytes32 slot) internal view returns (address addr);
+</code></pre>
+<h3 id="_getvaluebyslot"><a class="header" href="#_getvaluebyslot">_getValueBySlot</a></h3>
+<pre><code class="language-solidity">function _getValueBySlot(bytes32 _slot) internal view returns (uint256 value);
+</code></pre>
 <h2 id="events-15"><a class="header" href="#events-15">Events</a></h2>
 <h3 id="firewalladminchanged"><a class="header" href="#firewalladminchanged">FirewallAdminChanged</a></h3>
-<p>Emitted when the firewall admin is changed</p>
 <pre><code class="language-solidity">event FirewallAdminChanged(address indexed previousAdmin, address indexed newAdmin);
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>previousAdmin</code></td><td><code>address</code></td><td>The previous firewall admin address</td></tr>
-<tr><td><code>newAdmin</code></td><td><code>address</code></td><td>The new firewall admin address</td></tr>
-</tbody></table>
-</div>
 <h3 id="firewalladdresschanged"><a class="header" href="#firewalladdresschanged">FirewallAddressChanged</a></h3>
 <p>Emitted when the firewall address is changed</p>
 <pre><code class="language-solidity">event FirewallAddressChanged(address indexed previousFirewall, address indexed newFirewall);
@@ -6523,20 +6414,14 @@ Merge Layers Inc.</p>
 </tbody></table>
 </div>
 <h2 id="errors-12"><a class="header" href="#errors-12">Errors</a></h2>
-<h3 id="hypernativefirewallprotected_callernoteoa"><a class="header" href="#hypernativefirewallprotected_callernoteoa">HypernativeFirewallProtected_CallerNotEOA</a></h3>
-<p>Thrown when the caller is not an EOA</p>
-<pre><code class="language-solidity">error HypernativeFirewallProtected_CallerNotEOA();
+<h3 id="hypernativefirewallprotected_notadmin"><a class="header" href="#hypernativefirewallprotected_notadmin">HypernativeFirewallProtected_NotAdmin</a></h3>
+<pre><code class="language-solidity">error HypernativeFirewallProtected_NotAdmin();
 </code></pre>
-<h3 id="hypernativefirewallprotected_callernotfirewalladmin"><a class="header" href="#hypernativefirewallprotected_callernotfirewalladmin">HypernativeFirewallProtected_CallerNotFirewallAdmin</a></h3>
-<p>Thrown when the caller is not the firewall admin</p>
-<pre><code class="language-solidity">error HypernativeFirewallProtected_CallerNotFirewallAdmin();
-</code></pre>
-<h3 id="hypernativefirewallprotected_addressnotvalid"><a class="header" href="#hypernativefirewallprotected_addressnotvalid">HypernativeFirewallProtected_AddressNotValid</a></h3>
-<p>Thrown when the address is not valid</p>
-<pre><code class="language-solidity">error HypernativeFirewallProtected_AddressNotValid();
+<h3 id="hypernativefirewallprotected_notvalid"><a class="header" href="#hypernativefirewallprotected_notvalid">HypernativeFirewallProtected_NotValid</a></h3>
+<pre><code class="language-solidity">error HypernativeFirewallProtected_NotValid();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="itoken"><a class="header" href="#itoken">IToken</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/libraries/SafeApprove.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/libraries/SafeApprove.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 Minimal ERC20 approve interface</p>
 <p><strong>Author:</strong>
@@ -6558,7 +6443,7 @@ Merge Layers Inc.</p>
 <tr><td><code>&lt;none&gt;</code></td><td><code>bool</code></td><td>success True if approve succeeded</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="safeapprove"><a class="header" href="#safeapprove">SafeApprove</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/libraries/SafeApprove.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/libraries/SafeApprove.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 SafeApprove</p>
 <p><strong>Author:</strong>
@@ -6586,7 +6471,7 @@ Merge Layers Inc.</p>
 <pre><code class="language-solidity">error SafeApprove_Failed();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="mtokenproofdecoderlib"><a class="header" href="#mtokenproofdecoderlib">mTokenProofDecoderLib</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/libraries/mTokenProofDecoderLib.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/libraries/mTokenProofDecoderLib.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 mTokenProofDecoderLib</p>
 <p><strong>Author:</strong>
@@ -6687,7 +6572,7 @@ Merge Layers Inc.</p>
 <li><a href="src/mToken/extension/mTokenGateway.sol/contract.mTokenGateway.html">mTokenGateway</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="mtokengateway"><a class="header" href="#mtokengateway">mTokenGateway</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/mToken/extension/mTokenGateway.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/mToken/extension/mTokenGateway.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 OwnableUpgradeable, <a href="src/mToken/extension/mTokenGateway.sol//src/interfaces/ImTokenGateway.sol/interface.ImTokenGateway.html">ImTokenGateway</a>, <a href="src/mToken/extension/mTokenGateway.sol//src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.html">ImTokenOperationTypes</a>, <a href="src/mToken/extension/mTokenGateway.sol//src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.html">HypernativeFirewallProtected</a></p>
 <p><strong>Title:</strong>
@@ -6841,11 +6726,14 @@ oz-upgrades-unsafe-allow: constructor</p>
 <pre><code class="language-solidity">function disableWhitelist() external onlyOwner;
 </code></pre>
 <h3 id="setpaused-3"><a class="header" href="#setpaused-3">setPaused</a></h3>
-<pre><code class="language-solidity">function setPaused(OperationType _type, bool state) external override;
+<pre><code class="language-solidity">function setPaused(OperationType _type, bool state) external override onlyFirewallApprovedAllowEOA;
 </code></pre>
 <h3 id="extractforrebalancing-3"><a class="header" href="#extractforrebalancing-3">extractForRebalancing</a></h3>
 <p>Extract amount to be used for rebalancing operation</p>
-<pre><code class="language-solidity">function extractForRebalancing(uint256 amount) external notPaused(OperationType.Rebalancing);
+<pre><code class="language-solidity">function extractForRebalancing(uint256 amount)
+    external
+    notPaused(OperationType.Rebalancing)
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -6863,7 +6751,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 </div>
 <h3 id="withdrawgasfees"><a class="header" href="#withdrawgasfees">withdrawGasFees</a></h3>
 <p>Withdraw gas received so far</p>
-<pre><code class="language-solidity">function withdrawGasFees(address payable receiver) external;
+<pre><code class="language-solidity">function withdrawGasFees(address payable receiver) external onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -6899,7 +6787,7 @@ oz-upgrades-unsafe-allow: constructor</p>
     onlyAllowedUser(msg.sender)
     ifNotBlacklisted(msg.sender)
     ifNotBlacklisted(receiver)
-    onlyFirewallApproved;
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -6915,7 +6803,8 @@ oz-upgrades-unsafe-allow: constructor</p>
     payable
     override
     liquidateChecks
-    ifNotBlacklisted(receiver);
+    ifNotBlacklisted(receiver)
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -6932,7 +6821,7 @@ oz-upgrades-unsafe-allow: constructor</p>
     notPaused(OperationType.AmountOutHere)
     ifNotBlacklisted(msg.sender)
     ifNotBlacklisted(receiver)
-    onlyFirewallApproved;
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -6940,6 +6829,15 @@ oz-upgrades-unsafe-allow: constructor</p>
 <tr><td><code>seal</code></td><td><code>bytes</code></td><td>The seal address</td></tr>
 <tr><td><code>amounts</code></td><td><code>uint256[]</code></td><td>The amounts to withdraw for each journal</td></tr>
 <tr><td><code>receiver</code></td><td><code>address</code></td><td>The receiver address</td></tr>
+</tbody></table>
+</div>
+<h3 id="firewallregister-2"><a class="header" href="#firewallregister-2">firewallRegister</a></h3>
+<p>Registers an account in the firewall</p>
+<pre><code class="language-solidity">function firewallRegister(address _account) public override(HypernativeFirewallProtected);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_account</code></td><td><code>address</code></td><td>Account to register</td></tr>
 </tbody></table>
 </div>
 <h3 id="ispaused-3"><a class="header" href="#ispaused-3">isPaused</a></h3>
@@ -6959,15 +6857,6 @@ oz-upgrades-unsafe-allow: constructor</p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>dataRoot The proof data root</td></tr>
 <tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>journalHash The proof journal hash</td></tr>
-</tbody></table>
-</div>
-<h3 id="firewallregister-2"><a class="header" href="#firewallregister-2">firewallRegister</a></h3>
-<p>Registers an account in the firewall</p>
-<pre><code class="language-solidity">function firewallRegister(address _account) public override(HypernativeFirewallProtected);
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_account</code></td><td><code>address</code></td><td>Account to register</td></tr>
 </tbody></table>
 </div>
 <h3 id="_takein"><a class="header" href="#_takein">_takeIn</a></h3>
@@ -7058,7 +6947,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 <li><a href="src/mToken/host/mErc20Host.sol/contract.mErc20Host.html">mErc20Host</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="merc20host-1"><a class="header" href="#merc20host-1">mErc20Host</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/mToken/host/mErc20Host.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/mToken/host/mErc20Host.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/mToken/host/mErc20Host.sol//src/mToken/mErc20Upgradable.sol/abstract.mErc20Upgradable.html">mErc20Upgradable</a>, <a href="src/mToken/host/mErc20Host.sol//src/interfaces/ImErc20Host.sol/interface.ImErc20Host.html">ImErc20Host</a>, <a href="src/mToken/host/mErc20Host.sol//src/interfaces/ImToken.sol/interface.ImTokenOperationTypes.html">ImTokenOperationTypes</a></p>
 <p><strong>Title:</strong>
@@ -7129,6 +7018,9 @@ Merge Layers Inc.</p>
 <tr><td><code>roles_</code></td><td><code>address</code></td><td>The IRoles address</td></tr>
 </tbody></table>
 </div>
+<h3 id="initfirewall-2"><a class="header" href="#initfirewall-2">initFirewall</a></h3>
+<pre><code class="language-solidity">function initFirewall(address _firewall) external onlyAdmin;
+</code></pre>
 <h3 id="updateallowedchain"><a class="header" href="#updateallowedchain">updateAllowedChain</a></h3>
 <p>Updates an allowed chain status</p>
 <pre><code class="language-solidity">function updateAllowedChain(uint32 _chainId, bool status_) external;
@@ -7141,7 +7033,7 @@ Merge Layers Inc.</p>
 </div>
 <h3 id="extractforrebalancing-4"><a class="header" href="#extractforrebalancing-4">extractForRebalancing</a></h3>
 <p>Extract amount to be used for rebalancing operation</p>
-<pre><code class="language-solidity">function extractForRebalancing(uint256 amount) external;
+<pre><code class="language-solidity">function extractForRebalancing(uint256 amount) external onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -7203,7 +7095,7 @@ Merge Layers Inc.</p>
     uint256[] calldata liquidateAmount,
     address[] calldata collateral,
     address receiver
-) external override;
+) external override onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -7223,7 +7115,7 @@ Merge Layers Inc.</p>
     uint256[] calldata mintAmount,
     uint256[] calldata minAmountsOut,
     address receiver
-) external override;
+) external override onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -7241,7 +7133,7 @@ Merge Layers Inc.</p>
     bytes calldata seal,
     uint256[] calldata repayAmount,
     address receiver
-) external override;
+) external override onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -7253,7 +7145,11 @@ Merge Layers Inc.</p>
 </div>
 <h3 id="performextensioncall-1"><a class="header" href="#performextensioncall-1">performExtensionCall</a></h3>
 <p>Initiates a withdraw operation</p>
-<pre><code class="language-solidity">function performExtensionCall(uint256 actionType, uint256 amount, uint32 dstChainId) external payable override;
+<pre><code class="language-solidity">function performExtensionCall(uint256 actionType, uint256 amount, uint32 dstChainId)
+    external
+    payable
+    override
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -7266,7 +7162,8 @@ Merge Layers Inc.</p>
 <p>Mints mTokens during migration without requiring underlying transfer</p>
 <pre><code class="language-solidity">function mintOrBorrowMigration(bool isMint, uint256 amount, address receiver, address borrower, uint256 minAmount)
     external
-    onlyMigrator;
+    onlyMigrator
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -7450,7 +7347,7 @@ Merge Layers Inc.</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="batchsubmitter-1"><a class="header" href="#batchsubmitter-1">BatchSubmitter</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/mToken/BatchSubmitter.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/mToken/BatchSubmitter.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable</p>
 <p><strong>Title:</strong>
@@ -7622,7 +7519,7 @@ Merge Layers Inc.</p>
 <tr><td><code>collateral</code></td><td><code>address[]</code></td><td>Array of collateral addresses (for liquidateExternal operations)</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="merc20"><a class="header" href="#merc20">mErc20</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/mToken/mErc20.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/mToken/mErc20.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/mToken/mErc20.sol//src/mToken/mToken.sol/abstract.mToken.html">mToken</a>, <a href="src/mToken/mErc20.sol//src/interfaces/ImErc20.sol/interface.ImErc20.html">ImErc20</a></p>
 <p><strong>Title:</strong>
@@ -7649,7 +7546,7 @@ Merge Layers Inc.</p>
 <h3 id="mint-1"><a class="header" href="#mint-1">mint</a></h3>
 <p>Sender supplies assets into the market and receives mTokens in exchange</p>
 <p>Accrues interest whether or not the operation succeeds, unless reverted</p>
-<pre><code class="language-solidity">function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external;
+<pre><code class="language-solidity">function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -7661,7 +7558,7 @@ Merge Layers Inc.</p>
 <h3 id="redeem-1"><a class="header" href="#redeem-1">redeem</a></h3>
 <p>Sender redeems mTokens in exchange for the underlying asset</p>
 <p>Accrues interest whether or not the operation succeeds, unless reverted</p>
-<pre><code class="language-solidity">function redeem(uint256 redeemTokens) external;
+<pre><code class="language-solidity">function redeem(uint256 redeemTokens) external onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -7671,7 +7568,7 @@ Merge Layers Inc.</p>
 <h3 id="redeemunderlying-1"><a class="header" href="#redeemunderlying-1">redeemUnderlying</a></h3>
 <p>Sender redeems mTokens in exchange for a specified amount of underlying asset</p>
 <p>Accrues interest whether or not the operation succeeds, unless reverted</p>
-<pre><code class="language-solidity">function redeemUnderlying(uint256 redeemAmount) external;
+<pre><code class="language-solidity">function redeemUnderlying(uint256 redeemAmount) external onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -7680,7 +7577,7 @@ Merge Layers Inc.</p>
 </div>
 <h3 id="borrow-1"><a class="header" href="#borrow-1">borrow</a></h3>
 <p>Sender borrows assets from the protocol to their own address</p>
-<pre><code class="language-solidity">function borrow(uint256 borrowAmount) external;
+<pre><code class="language-solidity">function borrow(uint256 borrowAmount) external onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -7689,7 +7586,7 @@ Merge Layers Inc.</p>
 </div>
 <h3 id="repay-1"><a class="header" href="#repay-1">repay</a></h3>
 <p>Sender repays their own borrow</p>
-<pre><code class="language-solidity">function repay(uint256 repayAmount) external returns (uint256);
+<pre><code class="language-solidity">function repay(uint256 repayAmount) external onlyFirewallApprovedAllowEOA returns (uint256);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -7703,7 +7600,10 @@ Merge Layers Inc.</p>
 </div>
 <h3 id="repaybehalf-1"><a class="header" href="#repaybehalf-1">repayBehalf</a></h3>
 <p>Sender repays a borrow belonging to borrower</p>
-<pre><code class="language-solidity">function repayBehalf(address borrower, uint256 repayAmount) external returns (uint256);
+<pre><code class="language-solidity">function repayBehalf(address borrower, uint256 repayAmount)
+    external
+    onlyFirewallApprovedAllowEOA
+    returns (uint256);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -7718,7 +7618,9 @@ Merge Layers Inc.</p>
 </div>
 <h3 id="liquidate-3"><a class="header" href="#liquidate-3">liquidate</a></h3>
 <p>The sender liquidates the borrowers collateral and transfers seized assets to the liquidator</p>
-<pre><code class="language-solidity">function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral) external;
+<pre><code class="language-solidity">function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral)
+    external
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -7800,7 +7702,7 @@ Merge Layers Inc.</p>
 <pre><code class="language-solidity">error mErc20_TokenNotValid();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="merc20immutable"><a class="header" href="#merc20immutable">mErc20Immutable</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/mToken/mErc20Immutable.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/mToken/mErc20Immutable.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/mToken/mErc20Immutable.sol//src/mToken/mErc20.sol/abstract.mErc20.html">mErc20</a></p>
 <p><strong>Title:</strong>
@@ -7840,7 +7742,7 @@ Merge Layers Inc.</p>
 <pre><code class="language-solidity">error mErc20Immutable_AdminNotValid();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="merc20upgradable"><a class="header" href="#merc20upgradable">mErc20Upgradable</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/mToken/mErc20Upgradable.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/mToken/mErc20Upgradable.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/mToken/mErc20Upgradable.sol//src/mToken/mErc20.sol/abstract.mErc20.html">mErc20</a>, Initializable</p>
 <p><strong>Title:</strong>
@@ -7886,9 +7788,9 @@ oz-upgrades-unsafe-allow: constructor</p>
 <pre><code class="language-solidity">error mErc20Upgradable_AdminNotValid();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="mtoken"><a class="header" href="#mtoken">mToken</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/mToken/mToken.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/mToken/mToken.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-<a href="src/mToken/mToken.sol//src/mToken/mTokenConfiguration.sol/abstract.mTokenConfiguration.html">mTokenConfiguration</a>, ReentrancyGuard</p>
+<a href="src/mToken/mToken.sol//src/mToken/mTokenConfiguration.sol/abstract.mTokenConfiguration.html">mTokenConfiguration</a>, ReentrancyGuard, <a href="src/mToken/mToken.sol//src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.html">HypernativeFirewallProtected</a></p>
 <p><strong>Title:</strong>
 Core mToken logic</p>
 <p><strong>Author:</strong>
@@ -7901,7 +7803,12 @@ Merge Layers Inc.</p>
 </code></pre>
 <h3 id="transfer-1"><a class="header" href="#transfer-1">transfer</a></h3>
 <p>Transfers <code>amount</code> tokens to the <code>dst</code> address</p>
-<pre><code class="language-solidity">function transfer(address dst, uint256 amount) external override nonReentrant returns (bool);
+<pre><code class="language-solidity">function transfer(address dst, uint256 amount)
+    external
+    override
+    nonReentrant
+    onlyFirewallApprovedAllowEOA
+    returns (bool);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -7916,7 +7823,12 @@ Merge Layers Inc.</p>
 </div>
 <h3 id="transferfrom-1"><a class="header" href="#transferfrom-1">transferFrom</a></h3>
 <p>Transfers <code>amount</code> tokens from the <code>src</code> address to the <code>dst</code> address</p>
-<pre><code class="language-solidity">function transferFrom(address src, address dst, uint256 amount) external override nonReentrant returns (bool);
+<pre><code class="language-solidity">function transferFrom(address src, address dst, uint256 amount)
+    external
+    override
+    onlyFirewallApprovedAllowEOA
+    nonReentrant
+    returns (bool);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -8325,11 +8237,6 @@ It's absolutely critical to use msg.sender as the seizer mToken and not a parame
 <tr><td><code>doTransfer</code></td><td><code>bool</code></td><td>If an actual transfer should be performed</td></tr>
 </tbody></table>
 </div>
-<p><strong>Returns</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>&lt;none&gt;</code></td><td><code>uint256</code></td><td>Amount actually repaid</td></tr>
-</tbody></table>
-</div>
 <h3 id="__borrow"><a class="header" href="#__borrow">__borrow</a></h3>
 <p>Users borrow assets from the protocol to their own address</p>
 <pre><code class="language-solidity">function __borrow(address payable borrower, address payable receiver, uint256 borrowAmount, bool doTransfer)
@@ -8409,7 +8316,7 @@ It's absolutely critical to use msg.sender as the seizer mToken and not a parame
 <tr><td><code>seizeTokens</code></td><td><code>uint256</code></td><td>Amount of collateral tokens to seize</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="mtokenconfiguration"><a class="header" href="#mtokenconfiguration">mTokenConfiguration</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/mToken/mTokenConfiguration.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/mToken/mTokenConfiguration.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/mToken/mTokenConfiguration.sol//src/mToken/mTokenStorage.sol/abstract.mTokenStorage.html">mTokenStorage</a></p>
 <p><strong>Title:</strong>
@@ -8501,7 +8408,7 @@ Merge Layers Inc.</p>
 <tr><td><code>_operator</code></td><td><code>address</code></td><td>The operator address</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="mtokenstorage"><a class="header" href="#mtokenstorage">mTokenStorage</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/mToken/mTokenStorage.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/mToken/mTokenStorage.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/mToken/mTokenStorage.sol//src/interfaces/ImToken.sol/interface.ImToken.html">ImToken</a>, <a href="src/mToken/mTokenStorage.sol//src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a></p>
 <p><strong>Title:</strong>
@@ -8999,7 +8906,7 @@ Solution: use 0 collateral factor initially</p>
 <li><a href="src/migration/Migrator.sol/contract.Migrator.html">Migrator</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="imendimarket"><a class="header" href="#imendimarket">IMendiMarket</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/migration/IMigrator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/migration/IMigrator.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IMendiMarket</p>
 <p><strong>Author:</strong>
@@ -9114,7 +9021,7 @@ Merge Layers Inc.</p>
 <tr><td><code>borrowBalance</code></td><td><code>uint256</code></td><td>Borrow balance</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="imendicomptroller"><a class="header" href="#imendicomptroller">IMendiComptroller</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/migration/IMigrator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/migration/IMigrator.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IMendiComptroller</p>
 <p><strong>Author:</strong>
@@ -9135,7 +9042,7 @@ Merge Layers Inc.</p>
 <tr><td><code>assets</code></td><td><code>IMendiMarket[]</code></td><td>List of markets</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="migrator-1"><a class="header" href="#migrator-1">Migrator</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/migration/Migrator.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/migration/Migrator.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/migration/Migrator.sol//src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a></p>
 <p><strong>Title:</strong>
@@ -9292,7 +9199,7 @@ Merge Layers Inc.</p>
 <li><a href="src/oracles/gas/DefaultGasHelper.sol/contract.DefaultGasHelper.html">DefaultGasHelper</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="defaultgashelper"><a class="header" href="#defaultgashelper">DefaultGasHelper</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/oracles/gas/DefaultGasHelper.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/oracles/gas/DefaultGasHelper.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable</p>
 <p><strong>Title:</strong>
@@ -9336,7 +9243,7 @@ Merge Layers Inc.</p>
 <tr><td><code>amount</code></td><td><code>uint256</code></td><td>The gas fee amount</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="chainlinkoracle"><a class="header" href="#chainlinkoracle">ChainlinkOracle</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/oracles/ChainlinkOracle.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/oracles/ChainlinkOracle.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/oracles/ChainlinkOracle.sol//src/interfaces/IOracleOperator.sol/interface.IOracleOperator.html">IOracleOperator</a></p>
 <p><strong>Title:</strong>
@@ -9422,7 +9329,7 @@ Merge Layers Inc.</p>
 <pre><code class="language-solidity">error ChainlinkOracle_ZeroPrice();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="mixedpriceoraclev3"><a class="header" href="#mixedpriceoraclev3">MixedPriceOracleV3</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/oracles/MixedPriceOracleV3.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/oracles/MixedPriceOracleV3.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/oracles/MixedPriceOracleV3.sol//src/interfaces/IOracleOperator.sol/interface.IOracleOperator.html">IOracleOperator</a></p>
 <p><strong>Title:</strong>
@@ -9627,7 +9534,7 @@ Merge Layers Inc.</p>
 <pre><code class="language-solidity">error MixedPriceOracle_AddressNotValid();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="mixedpriceoraclev4"><a class="header" href="#mixedpriceoraclev4">MixedPriceOracleV4</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/oracles/MixedPriceOracleV4.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/oracles/MixedPriceOracleV4.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/oracles/MixedPriceOracleV4.sol//src/interfaces/IOracleOperator.sol/interface.IOracleOperator.html">IOracleOperator</a></p>
 <p><strong>Title:</strong>
@@ -9941,7 +9848,7 @@ Merge Layers Inc.</p>
 <li><a href="src/pauser/Pauser.sol/contract.Pauser.html">Pauser</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pauser-1"><a class="header" href="#pauser-1">Pauser</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/pauser/Pauser.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/pauser/Pauser.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable, <a href="src/pauser/Pauser.sol//src/interfaces/IPauser.sol/interface.IPauser.html">IPauser</a></p>
 <p><strong>Title:</strong>
@@ -10072,7 +9979,7 @@ Merge Layers Inc.</p>
 <li><a href="src/rebalancer/bridges/EverclearBridgeV2.sol/contract.EverclearBridgeV2.html">EverclearBridgeV2</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="accrossbridge"><a class="header" href="#accrossbridge">AccrossBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/rebalancer/bridges/AcrossBridge.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/rebalancer/bridges/AcrossBridge.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/rebalancer/bridges/AcrossBridge.sol//src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.html">BaseBridge</a>, <a href="src/rebalancer/bridges/AcrossBridge.sol//src/interfaces/IBridge.sol/interface.IBridge.html">IBridge</a>, <a href="src/rebalancer/bridges/AcrossBridge.sol//src/interfaces/external/across/IAcrossReceiverV3.sol/interface.IAcrossReceiverV3.html">IAcrossReceiverV3</a>, ReentrancyGuard</p>
 <p><strong>Title:</strong>
@@ -10306,7 +10213,7 @@ Merge Layers Inc.</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="basebridge"><a class="header" href="#basebridge">BaseBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/rebalancer/bridges/BaseBridge.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/rebalancer/bridges/BaseBridge.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 Base bridge contract</p>
 <p><strong>Author:</strong>
@@ -10353,7 +10260,7 @@ Malda Protocol</p>
 <pre><code class="language-solidity">error BaseBridge_AddressNotValid();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="everclearbridge"><a class="header" href="#everclearbridge">EverclearBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/rebalancer/bridges/EverclearBridge.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/rebalancer/bridges/EverclearBridge.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/rebalancer/bridges/EverclearBridge.sol//src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.html">BaseBridge</a>, <a href="src/rebalancer/bridges/EverclearBridge.sol//src/interfaces/IBridge.sol/interface.IBridge.html">IBridge</a></p>
 <p><strong>Title:</strong>
@@ -10545,7 +10452,7 @@ then read the length at that offset, then slice out the actual signature bytes.<
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="everclearbridgev2"><a class="header" href="#everclearbridgev2">EverclearBridgeV2</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/rebalancer/bridges/EverclearBridgeV2.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/rebalancer/bridges/EverclearBridgeV2.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/rebalancer/bridges/EverclearBridgeV2.sol//src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.html">BaseBridge</a>, <a href="src/rebalancer/bridges/EverclearBridgeV2.sol//src/interfaces/IBridge.sol/interface.IBridge.html">IBridge</a></p>
 <p><strong>Title:</strong>
@@ -10759,9 +10666,9 @@ https://github.com/everclearorg/monorepo/blob/dev/packages/contracts/src/interfa
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="rebalancer-3"><a class="header" href="#rebalancer-3">Rebalancer</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/rebalancer/Rebalancer.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/rebalancer/Rebalancer.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
-<a href="src/rebalancer/Rebalancer.sol//src/interfaces/IRebalancer.sol/interface.IRebalancer.html">IRebalancer</a>, <a href="src/rebalancer/Rebalancer.sol//src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.html">HypernativeFirewallProtected</a>, ReentrancyGuard</p>
+<a href="src/rebalancer/Rebalancer.sol//src/interfaces/IRebalancer.sol/interface.IRebalancer.html">IRebalancer</a>, <a href="src/rebalancer/Rebalancer.sol//src/libraries/HypernativeFirewallProtected.sol/abstract.HypernativeFirewallProtected.html">HypernativeFirewallProtected</a></p>
 <p><strong>Title:</strong>
 Cross-chain rebalancer</p>
 <p><strong>Author:</strong>
@@ -10778,23 +10685,23 @@ Malda Protocol</p>
 </code></pre>
 <h3 id="logs"><a class="header" href="#logs">logs</a></h3>
 <p>Sent messages indexed by destination chain and nonce</p>
-<pre><code class="language-solidity">mapping(uint32 chainId =&gt; mapping(uint256 nonce =&gt; Msg message)) public logs
+<pre><code class="language-solidity">mapping(uint32 =&gt; mapping(uint256 =&gt; Msg)) public logs
 </code></pre>
 <h3 id="whitelistedbridges"><a class="header" href="#whitelistedbridges">whitelistedBridges</a></h3>
 <p>Bridge whitelist status</p>
-<pre><code class="language-solidity">mapping(address bridge =&gt; bool whitelisted) public whitelistedBridges
+<pre><code class="language-solidity">mapping(address =&gt; bool) public whitelistedBridges
 </code></pre>
 <h3 id="allowedtokensperbridge"><a class="header" href="#allowedtokensperbridge">allowedTokensPerBridge</a></h3>
 <p>Allowed tokens per bridge</p>
-<pre><code class="language-solidity">mapping(address bridge =&gt; mapping(address token =&gt; bool allowed)) public allowedTokensPerBridge
+<pre><code class="language-solidity">mapping(address =&gt; mapping(address =&gt; bool)) public allowedTokensPerBridge
 </code></pre>
 <h3 id="whitelisteddestinations"><a class="header" href="#whitelisteddestinations">whitelistedDestinations</a></h3>
 <p>Destination chain whitelist status</p>
-<pre><code class="language-solidity">mapping(uint32 dstChainId =&gt; bool whitelisted) public whitelistedDestinations
+<pre><code class="language-solidity">mapping(uint32 =&gt; bool) public whitelistedDestinations
 </code></pre>
 <h3 id="allowedlist"><a class="header" href="#allowedlist">allowedList</a></h3>
 <p>Markets allowed for rebalancing</p>
-<pre><code class="language-solidity">mapping(address market =&gt; bool allowed) public allowedList
+<pre><code class="language-solidity">mapping(address =&gt; bool) public allowedList
 </code></pre>
 <h3 id="admin-2"><a class="header" href="#admin-2">admin</a></h3>
 <p>Admin address with elevated permissions</p>
@@ -10806,19 +10713,19 @@ Malda Protocol</p>
 </code></pre>
 <h3 id="maxtransfersizes"><a class="header" href="#maxtransfersizes">maxTransferSizes</a></h3>
 <p>Per-chain token maximum transfer size</p>
-<pre><code class="language-solidity">mapping(uint32 dstChainId =&gt; mapping(address token =&gt; uint256 maxSize)) public maxTransferSizes
+<pre><code class="language-solidity">mapping(uint32 =&gt; mapping(address =&gt; uint256)) public maxTransferSizes
 </code></pre>
 <h3 id="mintransfersizes"><a class="header" href="#mintransfersizes">minTransferSizes</a></h3>
 <p>Per-chain token minimum transfer size</p>
-<pre><code class="language-solidity">mapping(uint32 dstChainId =&gt; mapping(address token =&gt; uint256 minSize)) public minTransferSizes
+<pre><code class="language-solidity">mapping(uint32 =&gt; mapping(address =&gt; uint256)) public minTransferSizes
 </code></pre>
 <h3 id="currenttransfersize"><a class="header" href="#currenttransfersize">currentTransferSize</a></h3>
 <p>Rolling transfer info for size-window enforcement</p>
-<pre><code class="language-solidity">mapping(uint32 dstChainId =&gt; mapping(address token =&gt; TransferInfo transferInfo)) public currentTransferSize
+<pre><code class="language-solidity">mapping(uint32 =&gt; mapping(address =&gt; TransferInfo)) public currentTransferSize
 </code></pre>
 <h3 id="whitelistedmarkets"><a class="header" href="#whitelistedmarkets">whitelistedMarkets</a></h3>
 <p>Market whitelist status</p>
-<pre><code class="language-solidity">mapping(address market =&gt; bool whitelisted) public whitelistedMarkets
+<pre><code class="language-solidity">mapping(address =&gt; bool) public whitelistedMarkets
 </code></pre>
 <h3 id="transfertimewindow"><a class="header" href="#transfertimewindow">transferTimeWindow</a></h3>
 <p>Duration of the rolling transfer size window</p>
@@ -10827,18 +10734,48 @@ Malda Protocol</p>
 <h2 id="functions-73"><a class="header" href="#functions-73">Functions</a></h2>
 <h3 id="constructor-18"><a class="header" href="#constructor-18">constructor</a></h3>
 <p>Initializes the Rebalancer</p>
-<pre><code class="language-solidity">constructor(address _roles, address _saveAddress, address _admin) ;
+<pre><code class="language-solidity">constructor(address _roles, address _saveAddress, address _admin, bytes memory initData) ;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>_roles</code></td><td><code>address</code></td><td>Roles contract</td></tr>
 <tr><td><code>_saveAddress</code></td><td><code>address</code></td><td>Address to sweep saved assets to</td></tr>
 <tr><td><code>_admin</code></td><td><code>address</code></td><td>Admin address</td></tr>
+<tr><td><code>initData</code></td><td><code>bytes</code></td><td></td></tr>
+</tbody></table>
+</div>
+<h3 id="initfirewall-3"><a class="header" href="#initfirewall-3">initFirewall</a></h3>
+<p>Initialize firewall</p>
+<pre><code class="language-solidity">function initFirewall(address _firewall) external;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_firewall</code></td><td><code>address</code></td><td>Firewall address</td></tr>
+</tbody></table>
+</div>
+<h3 id="setadmin"><a class="header" href="#setadmin">setAdmin</a></h3>
+<p>Set admin</p>
+<pre><code class="language-solidity">function setAdmin(address _account) external;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_account</code></td><td><code>address</code></td><td>Admin address</td></tr>
+</tbody></table>
+</div>
+<h3 id="setsaveaddress"><a class="header" href="#setsaveaddress">setSaveAddress</a></h3>
+<p>Set save address</p>
+<pre><code class="language-solidity">function setSaveAddress(address _save) external;
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_save</code></td><td><code>address</code></td><td>Save address</td></tr>
 </tbody></table>
 </div>
 <h3 id="setallowedtokens"><a class="header" href="#setallowedtokens">setAllowedTokens</a></h3>
 <p>Set allowed tokens for a bridge</p>
-<pre><code class="language-solidity">function setAllowedTokens(address bridge, address[] calldata tokens, bool status) external onlyFirewallApproved;
+<pre><code class="language-solidity">function setAllowedTokens(address bridge, address[] memory tokens, bool status)
+    external
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -10849,7 +10786,7 @@ Malda Protocol</p>
 </div>
 <h3 id="setmarketstatus"><a class="header" href="#setmarketstatus">setMarketStatus</a></h3>
 <p>Batch whitelist/unwhitelist markets</p>
-<pre><code class="language-solidity">function setMarketStatus(address[] calldata list, bool status) external onlyFirewallApproved;
+<pre><code class="language-solidity">function setMarketStatus(address[] memory list, bool status) public onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -10859,7 +10796,7 @@ Malda Protocol</p>
 </div>
 <h3 id="setallowlist"><a class="header" href="#setallowlist">setAllowList</a></h3>
 <p>Batch set allow-list status for markets</p>
-<pre><code class="language-solidity">function setAllowList(address[] calldata list, bool status) external onlyFirewallApproved;
+<pre><code class="language-solidity">function setAllowList(address[] memory list, bool status) external onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -10869,27 +10806,27 @@ Malda Protocol</p>
 </div>
 <h3 id="setwhitelistedbridgestatus"><a class="header" href="#setwhitelistedbridgestatus">setWhitelistedBridgeStatus</a></h3>
 <p>Set whitelist status for a bridge</p>
-<pre><code class="language-solidity">function setWhitelistedBridgeStatus(address _bridge, bool status_) external onlyFirewallApproved;
+<pre><code class="language-solidity">function setWhitelistedBridgeStatus(address _bridge, bool _status) external onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>_bridge</code></td><td><code>address</code></td><td>Bridge address</td></tr>
-<tr><td><code>status_</code></td><td><code>bool</code></td><td>Whitelist status</td></tr>
+<tr><td><code>_status</code></td><td><code>bool</code></td><td>Whitelist status</td></tr>
 </tbody></table>
 </div>
 <h3 id="setwhitelisteddestination"><a class="header" href="#setwhitelisteddestination">setWhitelistedDestination</a></h3>
 <p>Set whitelist status for a destination chain</p>
-<pre><code class="language-solidity">function setWhitelistedDestination(uint32 _dstId, bool status_) external onlyFirewallApproved;
+<pre><code class="language-solidity">function setWhitelistedDestination(uint32 _dstId, bool _status) external onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
 <tr><td><code>_dstId</code></td><td><code>uint32</code></td><td>Destination chain id</td></tr>
-<tr><td><code>status_</code></td><td><code>bool</code></td><td>Whitelist status</td></tr>
+<tr><td><code>_status</code></td><td><code>bool</code></td><td>Whitelist status</td></tr>
 </tbody></table>
 </div>
 <h3 id="saveeth"><a class="header" href="#saveeth">saveEth</a></h3>
 <p>Sweep native ETH to the configured save address</p>
-<pre><code class="language-solidity">function saveEth() external onlyFirewallApproved;
+<pre><code class="language-solidity">function saveEth() external onlyFirewallApprovedAllowEOA;
 </code></pre>
 <h3 id="savetokens"><a class="header" href="#savetokens">saveTokens</a></h3>
 <p>Sweep stray tokens to the given market</p>
@@ -10902,43 +10839,15 @@ Malda Protocol</p>
 </tbody></table>
 </div>
 <h3 id="setmintransfersize"><a class="header" href="#setmintransfersize">setMinTransferSize</a></h3>
-<p>Set minimum transfer size for a destination/token</p>
-<pre><code class="language-solidity">function setMinTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external onlyFirewallApproved;
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_dstChainId</code></td><td><code>uint32</code></td><td>Destination chain id</td></tr>
-<tr><td><code>_token</code></td><td><code>address</code></td><td>Token address</td></tr>
-<tr><td><code>_limit</code></td><td><code>uint256</code></td><td>Minimum size</td></tr>
-</tbody></table>
-</div>
-<h3 id="setmaxtransfersize"><a class="header" href="#setmaxtransfersize">setMaxTransferSize</a></h3>
-<p>Set maximum transfer size for a destination/token</p>
-<pre><code class="language-solidity">function setMaxTransferSize(uint32 _dstChainId, address _token, uint256 _limit) external onlyFirewallApproved;
-</code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_dstChainId</code></td><td><code>uint32</code></td><td>Destination chain id</td></tr>
-<tr><td><code>_token</code></td><td><code>address</code></td><td>Token address</td></tr>
-<tr><td><code>_limit</code></td><td><code>uint256</code></td><td>Maximum size</td></tr>
-</tbody></table>
-</div>
-<h3 id="sendmsg-5"><a class="header" href="#sendmsg-5">sendMsg</a></h3>
-<p>Sends a bridge message</p>
-<pre><code class="language-solidity">function sendMsg(address _bridge, address _market, uint256 _amount, Msg calldata _msg)
+<pre><code class="language-solidity">function setMinTransferSize(uint32 _dstChainId, address _token, uint256 _limit)
     external
-    payable
-    onlyFirewallApproved
-    nonReentrant;
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
-<p><strong>Parameters</strong></p>
-<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_bridge</code></td><td><code>address</code></td><td></td></tr>
-<tr><td><code>_market</code></td><td><code>address</code></td><td>The market to rebalance from address</td></tr>
-<tr><td><code>_amount</code></td><td><code>uint256</code></td><td>The amount to rebalance</td></tr>
-<tr><td><code>_msg</code></td><td><code>Msg</code></td><td>The message data</td></tr>
-</tbody></table>
-</div>
+<h3 id="setmaxtransfersize"><a class="header" href="#setmaxtransfersize">setMaxTransferSize</a></h3>
+<pre><code class="language-solidity">function setMaxTransferSize(uint32 _dstChainId, address _token, uint256 _limit)
+    external
+    onlyFirewallApprovedAllowEOA;
+</code></pre>
 <h3 id="ismarketwhitelisted-1"><a class="header" href="#ismarketwhitelisted-1">isMarketWhitelisted</a></h3>
 <p>Returns if a market is whitelisted</p>
 <pre><code class="language-solidity">function isMarketWhitelisted(address market) external view returns (bool);
@@ -10982,14 +10891,41 @@ Malda Protocol</p>
 </tbody></table>
 </div>
 <h3 id="firewallregister-3"><a class="header" href="#firewallregister-3">firewallRegister</a></h3>
-<p>Registers an account with the firewall</p>
 <pre><code class="language-solidity">function firewallRegister(address _account) public override(HypernativeFirewallProtected);
+</code></pre>
+<h3 id="sendmsg-5"><a class="header" href="#sendmsg-5">sendMsg</a></h3>
+<p>Sends a bridge message</p>
+<pre><code class="language-solidity">function sendMsg(address _bridge, address _market, uint256 _amount, Msg calldata _msg)
+    external
+    payable
+    onlyFirewallApprovedAllowEOA;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>_account</code></td><td><code>address</code></td><td>Account to register</td></tr>
+<tr><td><code>_bridge</code></td><td><code>address</code></td><td></td></tr>
+<tr><td><code>_market</code></td><td><code>address</code></td><td>The market to rebalance from address</td></tr>
+<tr><td><code>_amount</code></td><td><code>uint256</code></td><td>The amount to rebalance</td></tr>
+<tr><td><code>_msg</code></td><td><code>Msg</code></td><td>The message data</td></tr>
 </tbody></table>
 </div>
+<h3 id="_sendmsgprechecks"><a class="header" href="#_sendmsgprechecks">_sendMsgPreChecks</a></h3>
+<pre><code class="language-solidity">function _sendMsgPreChecks(address _bridge, address _market, uint256 _amount, Msg calldata _msg) internal;
+</code></pre>
+<h3 id="_setmarketstatus"><a class="header" href="#_setmarketstatus">_setMarketStatus</a></h3>
+<pre><code class="language-solidity">function _setMarketStatus(address[] memory list, bool status) internal;
+</code></pre>
+<h3 id="_setallowlist"><a class="header" href="#_setallowlist">_setAllowList</a></h3>
+<pre><code class="language-solidity">function _setAllowList(address[] memory list, bool status) internal;
+</code></pre>
+<h3 id="_setwhitelistedbridgestatus"><a class="header" href="#_setwhitelistedbridgestatus">_setWhitelistedBridgeStatus</a></h3>
+<pre><code class="language-solidity">function _setWhitelistedBridgeStatus(address _bridge, bool _status) internal;
+</code></pre>
+<h3 id="_setwhitelisteddestination"><a class="header" href="#_setwhitelisteddestination">_setWhitelistedDestination</a></h3>
+<pre><code class="language-solidity">function _setWhitelistedDestination(uint32 _dstId, bool _status) internal;
+</code></pre>
+<h3 id="_setallowedtokens"><a class="header" href="#_setallowedtokens">_setAllowedTokens</a></h3>
+<pre><code class="language-solidity">function _setAllowedTokens(address bridge, address[] memory tokens, bool status) internal;
+</code></pre>
 <h2 id="structs-19"><a class="header" href="#structs-19">Structs</a></h2>
 <h3 id="transferinfo"><a class="header" href="#transferinfo">TransferInfo</a></h3>
 <pre><code class="language-solidity">struct TransferInfo {
@@ -10997,12 +10933,26 @@ Malda Protocol</p>
     uint256 timestamp;
 }
 </code></pre>
+<h3 id="initinfo"><a class="header" href="#initinfo">InitInfo</a></h3>
+<pre><code class="language-solidity">struct InitInfo {
+    BridgeTokens[] bridgeTokens;
+    address[] markets;
+    address[] bridges;
+    uint32[] destinations;
+}
+</code></pre>
+<h3 id="bridgetokens"><a class="header" href="#bridgetokens">BridgeTokens</a></h3>
+<pre><code class="language-solidity">struct BridgeTokens {
+    address bridge;
+    address[] tokens;
+}
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="contents-22"><a class="header" href="#contents-22">Contents</a></h1>
 <ul>
 <li><a href="src/referral/ReferralSigning.sol/contract.ReferralSigning.html">ReferralSigning</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="referralsigning"><a class="header" href="#referralsigning">ReferralSigning</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/referral/ReferralSigning.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/referral/ReferralSigning.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 Referral signing contract</p>
 <p><strong>Author:</strong>
@@ -11092,7 +11042,7 @@ Malda Protocol</p>
 <li><a href="src/rewards/RewardDistributor.sol/contract.RewardDistributor.html">RewardDistributor</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="rewarddistributor"><a class="header" href="#rewarddistributor">RewardDistributor</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/rewards/RewardDistributor.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/rewards/RewardDistributor.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="src/rewards/RewardDistributor.sol//src/interfaces/IRewardDistributor.sol/interface.IRewardDistributor.html">IRewardDistributor</a>, <a href="src/rewards/RewardDistributor.sol//src/utils/ExponentialNoError.sol/abstract.ExponentialNoError.html">ExponentialNoError</a>, Initializable, OwnableUpgradeable, ReentrancyGuardUpgradeable</p>
 <p><strong>Title:</strong>
@@ -11376,7 +11326,7 @@ oz-upgrades-unsafe-allow: constructor</p>
 <li><a href="src/utils/WrapAndSupply.sol/contract.WrapAndSupply.html">WrapAndSupply</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="deployer-1"><a class="header" href="#deployer-1">Deployer</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/utils/Deployer.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/utils/Deployer.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 CREATE3-based deployer with admin control</p>
 <p><strong>Author:</strong>
@@ -11498,7 +11448,7 @@ Malda Protocol</p>
 <pre><code class="language-solidity">error NotAuthorized(address admin, address sender);
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="exponentialnoerror"><a class="header" href="#exponentialnoerror">ExponentialNoError</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/utils/ExponentialNoError.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/utils/ExponentialNoError.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 Exponential module for storing fixed-precision decimals</p>
 <p><strong>Author:</strong>
@@ -11650,7 +11600,7 @@ For example, truncate(Exp{mantissa: 15 * EXP_SCALE}) = 15</p>
 }
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="liquidationhelper"><a class="header" href="#liquidationhelper">LiquidationHelper</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/utils/LiquidationHelper.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/utils/LiquidationHelper.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 Liquidation helper</p>
 <p><strong>Author:</strong>
@@ -11676,7 +11626,7 @@ Malda Protocol</p>
 <tr><td><code>repayAmount</code></td><td><code>uint256</code></td><td>Max repay amount according to close factor</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="iwrappednative"><a class="header" href="#iwrappednative">IWrappedNative</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/utils/WrapAndSupply.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/utils/WrapAndSupply.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 Wrapped native token interface</p>
 <p><strong>Author:</strong>
@@ -11711,7 +11661,7 @@ Malda Protocol</p>
 <tr><td><code>amount</code></td><td><code>uint256</code></td><td>Amount to unwrap</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="wrapandsupply"><a class="header" href="#wrapandsupply">WrapAndSupply</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/utils/WrapAndSupply.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/utils/WrapAndSupply.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 WrapAndSupply</p>
 <p><strong>Author:</strong>
@@ -11791,7 +11741,7 @@ Malda Protocol</p>
 <li><a href="src/verifier/ZkVerifier.sol/contract.ZkVerifier.html">ZkVerifier</a></li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="izkverifier"><a class="header" href="#izkverifier">IZkVerifier</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/verifier/ZkVerifier.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/verifier/ZkVerifier.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 Zero-knowledge verifier interface</p>
 <p><strong>Author:</strong>
@@ -11808,7 +11758,7 @@ Malda Protocol</p>
 <tr><td><code>seal</code></td><td><code>bytes</code></td><td>The proof seal</td></tr>
 </tbody></table>
 </div><div style="break-before: page; page-break-before: always;"></div><h1 id="zkverifier"><a class="header" href="#zkverifier">ZkVerifier</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/verifier/ZkVerifier.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/verifier/ZkVerifier.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable, <a href="src/verifier/ZkVerifier.sol//src/verifier/ZkVerifier.sol/interface.IZkVerifier.html">IZkVerifier</a></p>
 <p><strong>Title:</strong>
@@ -11901,7 +11851,7 @@ Malda Protocol</p>
 <pre><code class="language-solidity">error ZkVerifier_VerifierNotSet();
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="roles-5"><a class="header" href="#roles-5">Roles</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/cb05c05de33ea9c919567086513a4420ec74038e/src/Roles.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/d7c8c33c73d371b6aa11509f9015aba8f64ad8bd/src/Roles.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 Ownable, <a href="src/Roles.sol//src/interfaces/IRoles.sol/interface.IRoles.html">IRoles</a></p>
 <p><strong>Title:</strong>
