@@ -1,23 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
-import {Operator} from "src/Operator/Operator.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-import {Roles} from "src/Roles.sol";
 import {IPauser} from "src/interfaces/IPauser.sol";
 import {Pauser} from "src/pauser/Pauser.sol";
 
-import {
-    DeployConfig, 
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
+import {MarketRelease, InterestConfig} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 import {DeployHostMarket} from "../markets/host/DeployHostMarket.s.sol";
@@ -29,30 +20,30 @@ import {SetGasHelper} from "../../configuration/SetGasHelper.s.sol";
 contract DeployMarketsRelease is DeployBaseRelease {
     using stdJson for string;
 
+    address internal marketAddress;
+    address[] internal marketAddresses;
+    address[] internal extensionMarketAddresses;
+    address internal owner;
+
+    mapping(string assetSymbol => MarketRelease fullConfig) public fullConfigs;
+
+    address internal rolesContract;
+    address internal zkVerifier;
+    address internal operator;
+    address internal oracle;
+    address internal pauser;
+    address internal gasHelper;
+    address internal blacklister;
+
+    Deployer internal deployer;
+
+    DeployJumpRateModelV4 internal deployInterest;
+    DeployHostMarket internal deployHost;
+    DeployExtensionMarket internal deployExt;
+    UpdateAllowedChains internal updateAllowedChains;
+    SetGasHelper internal setGasHelper;
+
     error UnsupportedOracleType();
-
-    address marketAddress;
-    address[] marketAddresses;
-    address[] extensionMarketAddresses;
-    address owner;
-
-    mapping(string => MarketRelease) public fullConfigs;
-
-    address rolesContract;
-    address zkVerifier;
-    address operator;
-    address oracle;
-    address pauser;
-    address gasHelper;
-    address blacklister;
-
-    Deployer deployer;
-
-    DeployJumpRateModelV4 deployInterest;
-    DeployHostMarket deployHost;
-    DeployExtensionMarket deployExt;
-    UpdateAllowedChains updateAllowedChains;
-    SetGasHelper setGasHelper;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";
@@ -277,7 +268,7 @@ contract DeployMarketsRelease is DeployBaseRelease {
         for (uint256 i; i < marketAddresses.length; ++i) {
             address addr = marketAddresses[i];
 
-            string memory obj = string(abi.encodePacked('{"address":"', vm.toString(addr), '"}'));
+            string memory obj = string(abi.encodePacked("{\"address\":\"", vm.toString(addr), "\"}"));
 
             json = string(abi.encodePacked(json, obj));
             if (i < marketAddresses.length - 1) {

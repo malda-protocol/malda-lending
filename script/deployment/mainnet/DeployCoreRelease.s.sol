@@ -1,23 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
-import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
-import {Operator} from "src/Operator/Operator.sol";
-import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
-import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
-import {Roles} from "src/Roles.sol";
-import {Pauser} from "src/pauser/Pauser.sol";
+import {console} from "forge-std/console.sol";
+import {stdJson} from "forge-std/StdJson.sol";
 
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
+import {OracleConfigRelease} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 import {DeployDeployer} from "../../deployers/DeployDeployer.s.sol";
@@ -42,26 +30,26 @@ import {SetOperatorInRewardDistributor} from "../../configuration/SetOperatorInR
 contract DeployCoreRelease is DeployBaseRelease {
     using stdJson for string;
 
-    address owner;
-    Deployer deployer;
+    address internal owner;
+    Deployer internal deployer;
 
-    DeployDeployer deployDeployer;
-    DeployRbac deployRbac;
-    DeployBatchSubmitter deployBatchSubmitter;
-    DeployJumpRateModelV4 deployInterest;
-    DeployBlacklister deployBlacklister;
-    DeployOperator deployOperator;
-    DeployPauser deployPauser;
-    DeployMixedPriceOracleV4 deployOracle;
-    DeployRewardDistributor deployReward;
-    DeployRebalancer deployRebalancer;
-    DeployAcrossBridge deployAcrossBridge;
-    DeployEverclearBridge deployEverclearBridge;
-    DeployZkVerifier deployZkVerifier;
-    DeployTimelockController deployTimelockController;
-    DeployGasHelper deployGasHelper;
-    SetRole setRole;
-    SetOperatorInRewardDistributor setOperatorInRewardDistributor;
+    DeployDeployer internal deployDeployer;
+    DeployRbac internal deployRbac;
+    DeployBatchSubmitter internal deployBatchSubmitter;
+    DeployJumpRateModelV4 internal deployInterest;
+    DeployBlacklister internal deployBlacklister;
+    DeployOperator internal deployOperator;
+    DeployPauser internal deployPauser;
+    DeployMixedPriceOracleV4 internal deployOracle;
+    DeployRewardDistributor internal deployReward;
+    DeployRebalancer internal deployRebalancer;
+    DeployAcrossBridge internal deployAcrossBridge;
+    DeployEverclearBridge internal deployEverclearBridge;
+    DeployZkVerifier internal deployZkVerifier;
+    DeployTimelockController internal deployTimelockController;
+    DeployGasHelper internal deployGasHelper;
+    SetRole internal setRole;
+    SetOperatorInRewardDistributor internal setOperatorInRewardDistributor;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";
@@ -168,7 +156,9 @@ contract DeployCoreRelease is DeployBaseRelease {
 
         if (spokePoolAddresses[configs[network].chainId] != address(0)) {
             console.log(" --- Deploying acrossBridge");
-            acrossBridge = deployAcrossBridge.run(rolesContract, spokePoolAddresses[configs[network].chainId], rebalancer, deployer);
+            acrossBridge = deployAcrossBridge.run(
+                rolesContract, spokePoolAddresses[configs[network].chainId], rebalancer, deployer
+            );
             console.log(" --- Deployed acrossBridge at ", acrossBridge);
         } else {
             console.log(

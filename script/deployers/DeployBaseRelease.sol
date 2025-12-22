@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {Script} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {
     DeployNetworksConfigRelease,
@@ -10,22 +10,21 @@ import {
     OracleFeed,
     MarketRelease,
     Role,
-    InterestConfig,
     DeployerConfig
 } from "./Types.sol";
 
 contract DeployBaseRelease is Script {
     using stdJson for string;
 
-    mapping(uint32 => address) internal spokePoolAddresses;
-    mapping(uint32 => address) internal connextAddresses;
-    mapping(uint32 => address) internal everclearAddresses;
-    mapping(string => DeployNetworksConfigRelease) internal configs;
+    mapping(uint32 domain => address spokePoolAddress) internal spokePoolAddresses;
+    mapping(uint32 domain => address connextAddress) internal connextAddresses;
+    mapping(uint32 domain => address everclearAddress) internal everclearAddresses;
+    mapping(string network => DeployNetworksConfigRelease config) internal configs;
     DeployGenericConfigRelease internal genericConfig;
     string public configPath;
     string[] public networks;
     uint256 public key;
-    mapping(string => uint256) public forks;
+    mapping(string network => uint256 forkId) public forks;
     OracleFeed[] internal feeds;
 
     function setUp() public virtual {
@@ -117,8 +116,9 @@ contract DeployBaseRelease is Script {
     }
 
     function getSalt(string memory name) internal view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
-        );
+        return
+            keccak256(
+                abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+            );
     }
 }

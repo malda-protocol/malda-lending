@@ -3,30 +3,20 @@ pragma solidity =0.8.28;
 
 import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Operator} from "src/Operator/Operator.sol";
 
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
-
-import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
+import {DeployBaseRelease} from "../../../deployers/DeployBaseRelease.sol";
 
 contract LiquidationTestLinea is DeployBaseRelease {
     using stdJson for string;
 
-    address[] marketList;
-
-    address constant LIQUIDATOR = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
-    address constant BORROWER = 0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00;
-    address constant MARKET = 0x6AECeD8e67964Eb6d0Ae7B159D27eF07F6c11b99; //weth
-    address constant OPERATOR = 0x4bbd2B599425026b8A504816D8A043636e2D7Ec7;
+    address internal constant LIQUIDATOR = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
+    address internal constant BORROWER = 0xCde13fF278bc484a09aDb69ea1eEd3cAf6Ea4E00;
+    address internal constant MARKET = 0x6AECeD8e67964Eb6d0Ae7B159D27eF07F6c11b99; //weth
+    address internal constant OPERATOR = 0x4bbd2B599425026b8A504816D8A043636e2D7Ec7;
+    address[] internal marketList;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";
@@ -42,7 +32,7 @@ contract LiquidationTestLinea is DeployBaseRelease {
 
         console.log("underlying: ", underlying);
 
-         // set minBorrow to allow test
+        // set minBorrow to allow test
         address[] memory mTokens = new address[](1);
         uint256[] memory sizes = new uint256[](1);
         mTokens[0] = MARKET;
@@ -88,7 +78,7 @@ contract LiquidationTestLinea is DeployBaseRelease {
         m.liquidate(BORROWER, 0.01e6, MARKET);
         vm.stopBroadcast();
 
-        // reset collateral factor 
+        // reset collateral factor
         console.log("Reset collateral factor...");
         uint256 collateralFactor = 830000000000000000;
         vm.startBroadcast(key);

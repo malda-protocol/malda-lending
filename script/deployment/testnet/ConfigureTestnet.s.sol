@@ -1,21 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
 import {Deployer} from "src/utils/Deployer.sol";
-import {Operator} from "src/Operator/Operator.sol";
-import {Roles} from "src/Roles.sol";
-import {Pauser} from "src/pauser/Pauser.sol";
 
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
+import {MarketRelease, Role, OracleFeed} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 
@@ -35,27 +25,27 @@ import {SetLiquidationBonus} from "../../configuration/SetLiquidationBonus.s.sol
 contract ConfigureTestnet is DeployBaseRelease {
     using stdJson for string;
 
-    address[] marketAddresses;
-    uint256[] reserveFactors;
-    uint256[] liquidationBonuses;
-    address owner;
-    Deployer deployer;
-    address rolesContract;
-    address zkVerifier;
-    address operator;
-    address oracle;
-    address pauser;
+    address[] internal marketAddresses;
+    uint256[] internal reserveFactors;
+    uint256[] internal liquidationBonuses;
+    address internal owner;
+    Deployer internal deployer;
+    address internal rolesContract;
+    address internal zkVerifier;
+    address internal operator;
+    address internal oracle;
+    address internal pauser;
 
-    SetRole setRole;
-    SupportMarket supportMarket;
-    SetCollateralFactor setCollateralFactor;
-    SetBorrowRateMaxMantissa setBorrowRateMaxMantissa;
-    SetBorrowCap setBorrowCap;
-    SetSupplyCap setSupplyCap;
-    SetReserveFactor setReserveFactor;
-    SetOperatorInRewardDistributor setOperatorInRewardDistributor;
-    SetPriceFeedOnOracleV4 setFeed;
-    SetLiquidationBonus setLiquidationBonus;
+    SetRole internal setRole;
+    SupportMarket internal supportMarket;
+    SetCollateralFactor internal setCollateralFactor;
+    SetBorrowRateMaxMantissa internal setBorrowRateMaxMantissa;
+    SetBorrowCap internal setBorrowCap;
+    SetSupplyCap internal setSupplyCap;
+    SetReserveFactor internal setReserveFactor;
+    SetOperatorInRewardDistributor internal setOperatorInRewardDistributor;
+    SetPriceFeedOnOracleV4 internal setFeed;
+    SetLiquidationBonus internal setLiquidationBonus;
 
     error ADDRESSES_NOT_SET();
     error MARKET_ADDRESSES_NOT_SET();
@@ -64,10 +54,38 @@ contract ConfigureTestnet is DeployBaseRelease {
         configPath = "deployment-config-testnet.json";
         super.setUp();
 
-        feeds.push(OracleFeed("mUSDCMock", 0xdf0bD5072572A002ad0eeBAc58c4BCECA952A826, "USD", 6));
-        feeds.push(OracleFeed("USDC-M", 0xdf0bD5072572A002ad0eeBAc58c4BCECA952A826, "USD", 6));
-        feeds.push(OracleFeed("mwstETHMock", 0xa371FA57A42d9c72380e2959ceDbB21aE07AD210, "USD", 18));
-        feeds.push(OracleFeed("wstETH-M", 0xa371FA57A42d9c72380e2959ceDbB21aE07AD210, "USD", 18));
+        feeds.push(
+            OracleFeed({
+                symbol: "mUSDCMock",
+                defaultFeed: 0xdf0bD5072572A002ad0eeBAc58c4BCECA952A826,
+                toSymbol: "USD",
+                underlyingDecimals: 6
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "USDC-M",
+                defaultFeed: 0xdf0bD5072572A002ad0eeBAc58c4BCECA952A826,
+                toSymbol: "USD",
+                underlyingDecimals: 6
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "mwstETHMock",
+                defaultFeed: 0xa371FA57A42d9c72380e2959ceDbB21aE07AD210,
+                toSymbol: "USD",
+                underlyingDecimals: 18
+            })
+        );
+        feeds.push(
+            OracleFeed({
+                symbol: "wstETH-M",
+                defaultFeed: 0xa371FA57A42d9c72380e2959ceDbB21aE07AD210,
+                toSymbol: "USD",
+                underlyingDecimals: 18
+            })
+        );
 
         // SET before running it!
         deployer = Deployer(payable(0x1E4B67AB819F9700aB6280ea0Beeaf19F2C48719));

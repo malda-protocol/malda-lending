@@ -16,26 +16,22 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
+/* solhint-disable func-name-mixedcase,use-natspec */
+
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
-/**
- * @title Exponential module for storing fixed-precision decimals
- * @author Compound
- * @notice Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
- *         Thus, if we wanted to store the 5.1, mantissa would store 5.1e18. That is:
- *         `Exp({mantissa: 5100000000000000000})`.
- */
+/// @title Exponential module for storing fixed-precision decimals
+/// @author Compound
+/// @notice Exp is a struct which stores decimals with a fixed precision of 18 decimal places.
+/// Thus, if we wanted to store the 5.1, mantissa would store 5.1e18.
+/// That is: `Exp({mantissa: 5100000000000000000})`.
+// slither-disable-start unused-state,dead-code
 abstract contract ExponentialNoError {
-    uint256 constant expScale = 1e18;
-    uint256 constant doubleScale = 1e36;
-    uint256 constant halfExpScale = expScale / 2;
-    uint256 constant mantissaOne = expScale;
-
     struct Exp {
         uint256 mantissa;
     }
@@ -44,55 +40,57 @@ abstract contract ExponentialNoError {
         uint256 mantissa;
     }
 
-    /**
-     * @dev Truncates the given exp to a whole number value.
-     *      For example, truncate(Exp{mantissa: 15 * expScale}) = 15
-     */
+    // ----------- CONSTANTS ------------
+    /// @notice Scale factor for exponential calculations
+    uint256 internal constant EXP_SCALE = 1e18;
+
+    /// @notice Scale factor for double precision calculations
+    uint256 internal constant DOUBLE_SCALE = 1e36;
+
+    /// @notice Half of the scale factor for exponential calculations
+    uint256 internal constant HALF_EXP_SCALE = EXP_SCALE / 2;
+
+    /// @notice Mantissa value for one
+    uint256 internal constant MANTISSA_ONE = EXP_SCALE;
+
+    // ----------- FUNCTIONS ------------
+    /// @dev Truncates the given exp to a whole number value.
+    ///      For example, truncate(Exp{mantissa: 15 * EXP_SCALE}) = 15
+    /// @param exp The exp to truncate.
+    /// @return The truncated value.
     function truncate(Exp memory exp) internal pure returns (uint256) {
         // Note: We are not using careful math here as we're performing a division that cannot fail
-        return exp.mantissa / expScale;
+        return exp.mantissa / EXP_SCALE;
     }
 
-    /**
-     * @dev Multiply an Exp by a scalar, then truncate to return an unsigned integer.
-     */
+    /// @dev Multiply an Exp by a scalar, then truncate to return an unsigned integer.
     function mul_ScalarTruncate(Exp memory a, uint256 scalar) internal pure returns (uint256) {
         Exp memory product = mul_(a, scalar);
         return truncate(product);
     }
 
-    /**
-     * @dev Multiply an Exp by a scalar, truncate, then add an to an unsigned integer, returning an unsigned integer.
-     */
+    /// @dev Multiply an Exp by a scalar, truncate, then add an to an unsigned integer, returning an unsigned integer.
     function mul_ScalarTruncateAddUInt(Exp memory a, uint256 scalar, uint256 addend) internal pure returns (uint256) {
         Exp memory product = mul_(a, scalar);
         return add_(truncate(product), addend);
     }
 
-    /**
-     * @dev Checks if first Exp is less than second Exp.
-     */
+    /// @dev Checks if first Exp is less than second Exp.
     function lessThanExp(Exp memory left, Exp memory right) internal pure returns (bool) {
         return left.mantissa < right.mantissa;
     }
 
-    /**
-     * @dev Checks if left Exp <= right Exp.
-     */
+    /// @dev Checks if left Exp <= right Exp.
     function lessThanOrEqualExp(Exp memory left, Exp memory right) internal pure returns (bool) {
         return left.mantissa <= right.mantissa;
     }
 
-    /**
-     * @dev Checks if left Exp > right Exp.
-     */
+    /// @dev Checks if left Exp > right Exp.
     function greaterThanExp(Exp memory left, Exp memory right) internal pure returns (bool) {
         return left.mantissa > right.mantissa;
     }
 
-    /**
-     * @dev returns true if Exp is exactly zero
-     */
+    /// @dev returns true if Exp is exactly zero
     function isZeroExp(Exp memory value) internal pure returns (bool) {
         return value.mantissa == 0;
     }
@@ -132,7 +130,7 @@ abstract contract ExponentialNoError {
     }
 
     function mul_(Exp memory a, Exp memory b) internal pure returns (Exp memory) {
-        return Exp({mantissa: mul_(a.mantissa, b.mantissa) / expScale});
+        return Exp({mantissa: mul_(a.mantissa, b.mantissa) / EXP_SCALE});
     }
 
     function mul_(Exp memory a, uint256 b) internal pure returns (Exp memory) {
@@ -140,11 +138,11 @@ abstract contract ExponentialNoError {
     }
 
     function mul_(uint256 a, Exp memory b) internal pure returns (uint256) {
-        return mul_(a, b.mantissa) / expScale;
+        return mul_(a, b.mantissa) / EXP_SCALE;
     }
 
     function mul_(Double memory a, Double memory b) internal pure returns (Double memory) {
-        return Double({mantissa: mul_(a.mantissa, b.mantissa) / doubleScale});
+        return Double({mantissa: mul_(a.mantissa, b.mantissa) / DOUBLE_SCALE});
     }
 
     function mul_(Double memory a, uint256 b) internal pure returns (Double memory) {
@@ -152,7 +150,7 @@ abstract contract ExponentialNoError {
     }
 
     function mul_(uint256 a, Double memory b) internal pure returns (uint256) {
-        return mul_(a, b.mantissa) / doubleScale;
+        return mul_(a, b.mantissa) / DOUBLE_SCALE;
     }
 
     function mul_(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -160,7 +158,7 @@ abstract contract ExponentialNoError {
     }
 
     function div_(Exp memory a, Exp memory b) internal pure returns (Exp memory) {
-        return Exp({mantissa: div_(mul_(a.mantissa, expScale), b.mantissa)});
+        return Exp({mantissa: div_(mul_(a.mantissa, EXP_SCALE), b.mantissa)});
     }
 
     function div_(Exp memory a, uint256 b) internal pure returns (Exp memory) {
@@ -168,11 +166,11 @@ abstract contract ExponentialNoError {
     }
 
     function div_(uint256 a, Exp memory b) internal pure returns (uint256) {
-        return div_(mul_(a, expScale), b.mantissa);
+        return div_(mul_(a, EXP_SCALE), b.mantissa);
     }
 
     function div_(Double memory a, Double memory b) internal pure returns (Double memory) {
-        return Double({mantissa: div_(mul_(a.mantissa, doubleScale), b.mantissa)});
+        return Double({mantissa: div_(mul_(a.mantissa, DOUBLE_SCALE), b.mantissa)});
     }
 
     function div_(Double memory a, uint256 b) internal pure returns (Double memory) {
@@ -180,7 +178,7 @@ abstract contract ExponentialNoError {
     }
 
     function div_(uint256 a, Double memory b) internal pure returns (uint256) {
-        return div_(mul_(a, doubleScale), b.mantissa);
+        return div_(mul_(a, DOUBLE_SCALE), b.mantissa);
     }
 
     function div_(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -193,10 +191,11 @@ abstract contract ExponentialNoError {
     }
 
     function divUp_(uint256 a, Exp memory b) internal pure returns (uint256) {
-        return divUp_(mul_(a, expScale), b.mantissa);
+        return divUp_(mul_(a, EXP_SCALE), b.mantissa);
     }
 
     function fraction(uint256 a, uint256 b) internal pure returns (Double memory) {
-        return Double({mantissa: div_(mul_(a, doubleScale), b)});
+        return Double({mantissa: div_(mul_(a, DOUBLE_SCALE), b)});
     }
+    // slither-disable-end unused-state,dead-code
 }

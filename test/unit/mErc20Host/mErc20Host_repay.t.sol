@@ -22,8 +22,9 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         external
         whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
         whenMarketIsListed(address(mWethHost))
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
         mWethHost.repay(amount);
     }
@@ -31,21 +32,23 @@ contract mErc20Host_repay is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
         external
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         mWethHost.repay(amount);
     }
 
     function test_GivenAmountIs0(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         _repayPrerequisites(address(mWethHost), amount * 2, amount);
 
         uint256 totalBorrowsBefore = mWethHost.totalBorrows();
@@ -86,13 +89,14 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         external
         givenAmountIsGreaterThan0
         whenStateIsValid
-        inRange(amount, SMALL, LARGE)
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         {
             _repayPrerequisites(address(mWethHost), amount * 2, amount);
             _getTokens(weth, address(this), amount * 10);
@@ -136,13 +140,14 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         external
         givenAmountIsGreaterThan0
         whenStateIsValid
-        inRange(amount, SMALL, LARGE)
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         RepayStateInternal memory vars;
 
         _repayPrerequisites(address(mWethHost), amount * 2, amount);
@@ -193,10 +198,11 @@ contract mErc20Host_repay is mToken_Unit_Shared {
 
     function test_RevertGiven_JournalIsEmpty(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenRepayExternalIsCalled
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
@@ -206,10 +212,11 @@ contract mErc20Host_repay is mToken_Unit_Shared {
 
     function test_RevertGiven_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenRepayExternalIsCalled
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
@@ -237,13 +244,14 @@ contract mErc20Host_repay is mToken_Unit_Shared {
 
     function test_RevertWhen_SealVerificationFails(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenRepayExternalIsCalled
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
@@ -257,13 +265,14 @@ contract mErc20Host_repay is mToken_Unit_Shared {
 
     function test_WhenSealVerificationWasOk(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenRepayExternalIsCalled
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         RepayStateInternal memory vars;
 
         _repayPrerequisites(address(mWethHost), amount * 2, amount);
@@ -304,13 +313,14 @@ contract mErc20Host_repay is mToken_Unit_Shared {
 
     function test_WhenSealVerificationWasOk_AndRepayingMax(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenRepayExternalIsCalled
         givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         RepayStateInternal memory vars;
 
         _repayPrerequisites(address(mWethHost), amount * 2, amount);

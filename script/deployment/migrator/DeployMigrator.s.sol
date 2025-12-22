@@ -2,7 +2,6 @@
 pragma solidity =0.8.28;
 
 import {Script, console} from "forge-std/Script.sol";
-import {DeployBase} from "script/deployers/DeployBase.sol";
 import {Migrator} from "src/migration/Migrator.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 
@@ -21,8 +20,7 @@ contract DeployMigrator is Script {
         // Deploy only if not already deployed
         if (created.code.length == 0) {
             vm.startBroadcast(key);
-            created = 
-                deployer.create(salt, abi.encodePacked(type(Migrator).creationCode, abi.encode(operator)));
+            created = deployer.create(salt, abi.encodePacked(type(Migrator).creationCode, abi.encode(operator)));
             vm.stopBroadcast();
             console.log("Migrator deployed at: %s", created);
         } else {
@@ -33,8 +31,9 @@ contract DeployMigrator is Script {
     }
 
     function getSalt(string memory name) internal view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
-        );
+        return
+            keccak256(
+                abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+            );
     }
 }

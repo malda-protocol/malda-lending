@@ -17,26 +17,31 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {mErc20} from "./mErc20.sol";
 
+/// @title mErc20Immutable
+/// @author Merge Layers Inc.
+/// @notice Immutable mErc20 contract
 contract mErc20Immutable is mErc20 {
-    /**
-     * @notice Constructs the new money market
-     * @param underlying_ The address of the underlying asset
-     * @param operator_ The address of the Operator
-     * @param interestRateModel_ The address of the interest rate model
-     * @param initialExchangeRateMantissa_ The initial exchange rate, scaled by 1e18
-     * @param name_ ERC-20 name of this token
-     * @param symbol_ ERC-20 symbol of this token
-     * @param decimals_ ERC-20 decimal precision of this token
-     * @param admin_ Address of the administrator of this token
-     */
+    // ----------- ERRORS ------------
+    /// @notice Error thrown when admin is not valid
+    error mErc20Immutable_AdminNotValid();
+
+    /// @notice Constructs the new money market
+    /// @param underlying_ The address of the underlying asset
+    /// @param operator_ The address of the Operator
+    /// @param interestRateModel_ The address of the interest rate model
+    /// @param initialExchangeRateMantissa_ The initial exchange rate, scaled by 1e18
+    /// @param name_ ERC-20 name of this token
+    /// @param symbol_ ERC-20 symbol of this token
+    /// @param decimals_ ERC-20 decimal precision of this token
+    /// @param admin_ Address of the administrator of this token
     constructor(
         address underlying_,
         address operator_,
@@ -47,6 +52,7 @@ contract mErc20Immutable is mErc20 {
         uint8 decimals_,
         address payable admin_
     ) {
+        // Effects: set the admin
         admin = payable(msg.sender);
 
         // Initialize the market
@@ -54,7 +60,10 @@ contract mErc20Immutable is mErc20 {
             underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_
         );
 
-        // Set the proper admin now that initialization is done
+        // Requirements: the admin is not zero address
+        require(admin_ != address(0), mErc20Immutable_AdminNotValid());
+
+        // Effects: set the proper admin, now that initialization is done
         admin = admin_;
     }
 }

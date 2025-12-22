@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
+import {Script} from "forge-std/Script.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 import {MixedPriceOracleV4} from "src/oracles/MixedPriceOracleV4.sol";
 import {OracleFeedV4} from "script/deployers/Types.sol";
-import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
 
 /**
  * forge script DeployMixedPriceOracleV4  \
@@ -232,8 +232,9 @@ contract DeployMixedPriceOracleV4 is Script {
     }
 
     function getSalt(string memory name) internal view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
-        );
+        return
+            keccak256(
+                abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+            );
     }
 }
