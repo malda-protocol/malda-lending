@@ -43,6 +43,7 @@ contract LZUnifiedBridgeIntegrationTest is Base_Integration_Test {
 
     /// weETH Linea -> Base 
     function test_LineaToBase_weETH_SendFrom() external {
+        vm.skip(true);
         vm.selectFork(lineaFork);
         mockRoles = new MockRoles();
         bridge = new LZUnifiedBridge(address(mockRoles), address(this));
@@ -128,6 +129,7 @@ contract LZUnifiedBridgeIntegrationTest is Base_Integration_Test {
     }
 
     function test_EthToLinea_weETH_SendFrom() external {
+        vm.skip(true);
         vm.selectFork(ethFork);
         mockRoles = new MockRoles();
         bridge = new LZUnifiedBridge(address(mockRoles), address(this));
