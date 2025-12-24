@@ -19,7 +19,7 @@ clean: ## Clean the project
 	forge clean && rm -rf cache out
 
 build: ## Build the project forcefully
-	forge build --force
+	forge build --force --sizes
 
 slither: ## Run slither
 	slither . --fail-low --config-file slither.config.json --exclude-dependencies

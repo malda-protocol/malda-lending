@@ -238,7 +238,17 @@ contract EverclearBridgeV2 is BaseBridge, IBridge {
         (uint256 fee, uint256 deadline, bytes memory sig) = _extractFeeParams(intentData);
         IFeeAdapterV2.FeeParams memory feeParams = IFeeAdapterV2.FeeParams(fee, deadline, sig);
 
-        return IntentParams(destinations, receiver, inputAsset, outputAsset, amount, amountOutMin, ttl, data, feeParams);
+        return IntentParams({
+            destinations: destinations,
+            receiver: receiver,
+            inputAsset: inputAsset,
+            outputAsset: outputAsset,
+            amount: amount,
+            amountOutMin: amountOutMin,
+            ttl: ttl,
+            data: data,
+            feeParams: feeParams
+        });
     }
 
     /**

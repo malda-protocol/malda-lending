@@ -57,7 +57,7 @@ jobs:
 
           echo "## Full forge build --sizes output" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          forge build --sizes | tee -a $GITHUB_STEP_SUMMARY | \
+          make build | tee -a $GITHUB_STEP_SUMMARY | \
           awk -F'|' -v max=$MAX_SIZE -v w20=$WARN20 -v w10=$WARN10 -v w5=$WARN5 '
             NR>4 && NF>4 {
               # column 2 = contract, column 3 = runtime size

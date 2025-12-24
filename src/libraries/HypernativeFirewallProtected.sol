@@ -31,10 +31,13 @@ interface IHypernativeFirewall {
 /// @notice Abstract contract that provides firewall protection for the contract.
 /// @dev Inherited from Hypernative and refactored it for our needs, but without changing the core logic.
 abstract contract HypernativeFirewallProtected {
-    bytes32 private constant HYPERNATIVE_ORACLE_STORAGE_SLOT = bytes32(uint256(keccak256("eip1967.hypernative.firewall")) - 1);
-    bytes32 private constant HYPERNATIVE_ADMIN_STORAGE_SLOT = bytes32(uint256(keccak256("eip1967.hypernative.admin")) - 1);
-    bytes32 private constant HYPERNATIVE_MODE_STORAGE_SLOT = bytes32(uint256(keccak256("eip1967.hypernative.is_strict_mode")) - 1);
-    
+    bytes32 private constant HYPERNATIVE_ORACLE_STORAGE_SLOT =
+        bytes32(uint256(keccak256("eip1967.hypernative.firewall")) - 1);
+    bytes32 private constant HYPERNATIVE_ADMIN_STORAGE_SLOT =
+        bytes32(uint256(keccak256("eip1967.hypernative.admin")) - 1);
+    bytes32 private constant HYPERNATIVE_MODE_STORAGE_SLOT =
+        bytes32(uint256(keccak256("eip1967.hypernative.is_strict_mode")) - 1);
+
     // ----------- EVENTS ------------
     event FirewallAdminChanged(address indexed previousAdmin, address indexed newAdmin);
 
@@ -47,7 +50,7 @@ abstract contract HypernativeFirewallProtected {
     error HypernativeFirewallProtected_NotValid();
 
     modifier onlyFirewallAdmin() {
-        require(msg.sender == hypernativeFirewallAdmin(), HypernativeFirewallProtected_NotAdmin());
+        _onlyFirewallAdmin();
         _;
     }
 
@@ -56,7 +59,7 @@ abstract contract HypernativeFirewallProtected {
         _firewallGate(msg.sender);
         _;
     }
- 
+
     // ----------- VIEW ------------
     function hypernativeFirewallAdmin() public view returns (address) {
         return _getAddressBySlot(HYPERNATIVE_ADMIN_STORAGE_SLOT);
@@ -88,20 +91,17 @@ abstract contract HypernativeFirewallProtected {
         _setValueBySlot(HYPERNATIVE_MODE_STORAGE_SLOT, _mode ? 1 : 0);
     }
 
-    function changeFirewallAdmin(address _newAdmin) public onlyFirewallAdmin() {
+    function changeFirewallAdmin(address _newAdmin) external onlyFirewallAdmin {
         require(_newAdmin != address(0), HypernativeFirewallProtected_NotValid());
         _changeFirewallAdmin(_newAdmin);
     }
 
-  
     // ----------- INTERNAL FUNCTIONS ------------
     function _firewallGate(address sender) internal {
-        address fw = _hypernativeFirewall();
-        if (fw == address(0)) return;
+        IHypernativeFirewall firewall = IHypernativeFirewall(_hypernativeFirewall());
+        if (address(firewall) == address(0) || tx.origin == sender && sender.code.length == 0) return;
 
-        IHypernativeFirewall firewall = IHypernativeFirewall(fw);
         firewall.validateBlacklistedAccountInteraction(sender);
-        if (tx.origin == sender && sender.code.length == 0) return;
         firewall.validateForbiddenContextInteraction(tx.origin, sender);
     }
 
@@ -111,13 +111,17 @@ abstract contract HypernativeFirewallProtected {
     function _initHypernativeFirewall(address _firewall, address _admin) internal {
         _changeFirewallAdmin(_admin);
         require(_firewall != address(0), HypernativeFirewallProtected_NotValid());
-        setFirewall(_firewall); 
+        setFirewall(_firewall);
     }
 
     function _changeFirewallAdmin(address _newAdmin) internal {
         address oldAdmin = hypernativeFirewallAdmin();
         _setAddressBySlot(HYPERNATIVE_ADMIN_STORAGE_SLOT, _newAdmin);
-        emit FirewallAdminChanged(oldAdmin,  _newAdmin);
+        emit FirewallAdminChanged(oldAdmin, _newAdmin);
+    }
+
+    function _onlyFirewallAdmin() internal view {
+        require(msg.sender == hypernativeFirewallAdmin(), HypernativeFirewallProtected_NotAdmin());
     }
 
     // ----------- PRIVATE ------------
