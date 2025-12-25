@@ -83,22 +83,20 @@ contract DeployCoreTestnet is DeployBaseRelease {
 
             _deployGasHelper();
 
-            address pauser;
             if (configs[network].isHost) {
                 deployInterest = new DeployJumpRateModelV4();
                 deployOperator = new DeployOperator();
                 deployOracle = new DeployMixedPriceOracleV4();
+                deployPauser = new DeployPauser();
 
                 address oracle = _deployOracle(configs[network].oracle, rolesContract);
                 address operator = _deployOperator(blacklister, oracle, address(0), rolesContract);
 
                 console.log("Deploying Pauser on host chain");
-                pauser = _deployPauser(rolesContract, operator);
+                address pauser = _deployPauser(rolesContract, operator);
                 console.log("Pauser deployed on host chain", pauser);
             } else {
-                console.log("Deploying Pauser on host chain");
-                pauser = _deployPauser(rolesContract, address(0));
-                console.log("Pauser deployed on host chain", pauser);
+                console.log("Skipping Pauser deployment on extension chain (not needed)");
             }
             console.log("-------------------- DONE");
         }

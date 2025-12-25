@@ -41,13 +41,13 @@ contract DeployMarketsTestnet is DeployBaseRelease {
         super.setUp();
 
         // SET before running it! Available after `DeployerCoreTestnet`
-        deployer = Deployer(payable(0x1E4B67AB819F9700aB6280ea0Beeaf19F2C48719));
-        rolesContract = 0x81fb022f927fD78596dec4087A65cF3692Ca5E41;
-        zkVerifier = 0x6E07A361B9145436056F41aff484cFa73E991218;
-        operator = 0x5908318Cbd299Dc8d6D0D7b9548cab732B61d9Dc;
-        oracle = 0xFd8C637973AFC6a372b663831ef18163127A9a32;
-        pauser = 0xD4eDaD10c61D32B91f8eB12157c5Ed9E4B10854f;
-        blacklister = 0xD4eDaD10c61D32B91f8eB12157c5Ed9E4B10854f;
+        deployer = Deployer(payable(0x360a5443FeA41EA1C62bF0420863842B3f341735));
+        rolesContract = 0xccC52e812224Cb1411668515B835913C8598Dbd8;
+        zkVerifier = 0x0E3a778B1c2A15e93BEB44842bf4171FD5deA6cF;
+        operator = 0x8A61Da8c8bD768598F8300E8E81341331F26d4d0;
+        oracle = 0xd4E07fC4E6efe4B5cb44D0386ca731297918a8B4;
+        pauser = 0x825AA423B88757CeEc452CB6d2d6Cd47897e7e2e;
+        blacklister = 0x50dCbB8529F6a1c81dCfBCc0C36c3e2Be2CCf57C;
         // SET before running it ^!
 
         // check to make sure addresses were set
