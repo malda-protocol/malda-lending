@@ -9,7 +9,6 @@ import {MarketRelease, Role, OracleFeed} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 
-import {SetOperatorInRewardDistributor} from "../../configuration/SetOperatorInRewardDistributor.s.sol";
 import {SetRole} from "../../configuration/SetRole.s.sol";
 import {SetCollateralFactor} from "../../configuration/SetCollateralFactor.s.sol";
 import {SupportMarket} from "../../configuration/SupportMarket.s.sol";
@@ -43,7 +42,6 @@ contract ConfigureTestnet is DeployBaseRelease {
     SetBorrowCap internal setBorrowCap;
     SetSupplyCap internal setSupplyCap;
     SetReserveFactor internal setReserveFactor;
-    SetOperatorInRewardDistributor internal setOperatorInRewardDistributor;
     SetPriceFeedOnOracleV4 internal setFeed;
     SetLiquidationBonus internal setLiquidationBonus;
 

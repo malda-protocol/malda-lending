@@ -16,7 +16,6 @@ import {DeployPauser} from "../generic/DeployPauser.s.sol";
 import {DeployGasHelper} from "../generic/DeployGasHelper.s.sol";
 import {DeployOperator} from "../markets/DeployOperator.s.sol";
 import {DeployJumpRateModelV4} from "../interest/DeployJumpRateModelV4.s.sol";
-import {DeployRewardDistributor} from "../rewards/DeployRewardDistributor.s.sol";
 import {DeployBatchSubmitter} from "../generic/DeployBatchSubmitter.s.sol";
 import {DeployMixedPriceOracleV4} from "../oracles/DeployMixedPriceOracleV4.s.sol";
 
@@ -37,7 +36,6 @@ contract DeployCoreTestnet is DeployBaseRelease {
     DeployOperator internal deployOperator;
     DeployPauser internal deployPauser;
     DeployMixedPriceOracleV4 internal deployOracle;
-    DeployRewardDistributor internal deployReward;
     DeployZkVerifier internal deployZkVerifier;
     DeployBlacklister internal deployBlacklister;
     DeployGasHelper internal deployGasHelper;
@@ -90,11 +88,9 @@ contract DeployCoreTestnet is DeployBaseRelease {
                 deployInterest = new DeployJumpRateModelV4();
                 deployOperator = new DeployOperator();
                 deployOracle = new DeployMixedPriceOracleV4();
-                deployReward = new DeployRewardDistributor();
 
-                address rewardDistributor = _deployRewardDistributor();
                 address oracle = _deployOracle(configs[network].oracle, rolesContract);
-                address operator = _deployOperator(blacklister, oracle, rewardDistributor, rolesContract);
+                address operator = _deployOperator(blacklister, oracle, address(0), rolesContract);
 
                 console.log("Deploying Pauser on host chain");
                 pauser = _deployPauser(rolesContract, operator);
@@ -123,11 +119,6 @@ contract DeployCoreTestnet is DeployBaseRelease {
         setRole.run(rolesContract, address(created), keccak256(abi.encodePacked("PROOF_BATCH_FORWARDER")), true);
 
         return created;
-    }
-
-    function _deployRewardDistributor() internal returns (address) {
-        console.log("--- owner", owner);
-        return deployReward.run(deployer, owner);
     }
 
     function _deployOracle(OracleConfigRelease memory oracleConfig, address rolesContract) internal returns (address) {
