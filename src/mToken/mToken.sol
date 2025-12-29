@@ -43,11 +43,17 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
     constructor() {
         borrowRateMaxMantissa = 0.0005e16;
     }
-    
+
     /**
      * @inheritdoc ImToken
      */
-    function transfer(address dst, uint256 amount) external override nonReentrant onlyFirewallApprovedAllowEOA returns (bool) {
+    function transfer(address dst, uint256 amount)
+        external
+        override
+        nonReentrant
+        onlyFirewallApprovedAllowEOA
+        returns (bool)
+    {
         _transferTokens(msg.sender, msg.sender, dst, amount);
         return true;
     }
@@ -55,7 +61,13 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
     /**
      * @inheritdoc ImToken
      */
-    function transferFrom(address src, address dst, uint256 amount) external override onlyFirewallApprovedAllowEOA nonReentrant returns (bool) {
+    function transferFrom(address src, address dst, uint256 amount)
+        external
+        override
+        onlyFirewallApprovedAllowEOA
+        nonReentrant
+        returns (bool)
+    {
         _transferTokens(msg.sender, src, dst, amount);
         return true;
     }
@@ -110,7 +122,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
 
         // Effects: store the new reserves
         totalReserves = totalReservesNew; // reserves[n+1] = reserves[n] - reduceAmount
-
         // Interactions: transfer the reduce amount
         // doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
         _doTransferOut(payable(msg.sender), reduceAmount);
@@ -433,7 +444,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
         uint256 repayAmount,
         address mTokenCollateral,
         bool doTransfer
-    ) internal  {
+    ) internal {
         require(borrower != liquidator, mt_InvalidInput());
         // Requirements: the repay amount is greater than 0 and not the max value
         require(repayAmount > 0 && repayAmount != type(uint256).max, mt_InvalidInput());
@@ -487,14 +498,16 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
         // recentBorrowBalance = borrower.borrowBalance * market.borrowIndex / borrower.borrowIndex
         return borrowSnapshot.principal * borrowIndex / borrowSnapshot.interestIndex;
     }
+
     /**
      * @notice Borrows are repaid by another user (possibly the borrower).
      * @param payer the account paying off the borrow
      * @param borrower the account with the debt being payed off
-     * @param repayAmount the amount of underlying tokens being returned, or `type(uint256).max` for the full outstanding amount
+     * @param repayAmount the amount of underlying tokens, or `type(uint256).max` for full
      * @param doTransfer If an actual transfer should be performed
+     * @return returns the actual repay amount
      */
-    function __repay(address payer, address borrower, uint256 repayAmount, bool doTransfer) private  returns (uint256) {
+    function __repay(address payer, address borrower, uint256 repayAmount, bool doTransfer) private returns (uint256) {
         IOperatorDefender(operator).beforeMTokenRepay(address(this), borrower);
 
         // Interactions: fetch the amount the borrower owes, with accumulated interest
@@ -544,7 +557,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
     /// @param borrowAmount The amount of the underlying asset to borrow
     /// @param doTransfer If an actual transfer should be performed
     function __borrow(address payable borrower, address payable receiver, uint256 borrowAmount, bool doTransfer)
-        private 
+        private
     {
         // Interactions: check if the borrow hooks pass
         // slither-disable-next-line reentrancy-benign -- outer nonReentrant on _borrow/_borrowWithReceiver covers hook
@@ -597,7 +610,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
     /// @return redeemAmount Underlying redeemed
     function __redeem(address payable redeemer, uint256 redeemTokensIn, uint256 redeemAmountIn, bool doTransfer)
         private
-        
         returns (uint256 redeemAmount)
     {
         // Requirements: the redeem tokens in is not zero and the redeem amount in is not zero
@@ -668,7 +680,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
     /// @param doTransfer If an actual transfer should be performed
     function __mint(address minter, address receiver, uint256 mintAmount, uint256 minAmountOut, bool doTransfer)
         private
-        
     {
         // Interactions: check if the mint hooks pass
         IOperatorDefender(operator).beforeMTokenMint(address(this), minter, receiver);
@@ -739,7 +750,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
      * @param dst The address of the destination account
      * @param tokens The number of tokens to transfer
      */
-    function _transferTokens(address spender, address src, address dst, uint256 tokens) private  {
+    function _transferTokens(address spender, address src, address dst, uint256 tokens) private {
         IOperatorDefender(operator).beforeMTokenTransfer(address(this), src, dst, tokens);
 
         // Requirements: the source and destination are not the same
