@@ -80,7 +80,7 @@ contract FirewallIntegration is Test {
         uint256 amount = 1e17;
 
         vm.startPrank(firewallAdmin);
-        address;
+        address[] memory consumers = new address[](1);
         consumers[0] = address(extensionMarket);
         IFirewall(firewall).addConsumers(consumers);
         vm.stopPrank();
