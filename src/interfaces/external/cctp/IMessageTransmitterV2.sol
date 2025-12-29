@@ -13,18 +13,14 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
-
 
 interface IMessageTransmitterV2 {
     event MessageSent(bytes message);
 
-    function receiveMessage(
-        bytes calldata message,
-        bytes calldata attestation
-    ) external returns (bool success);
+    function receiveMessage(bytes calldata message, bytes calldata attestation) external returns (bool success);
 }

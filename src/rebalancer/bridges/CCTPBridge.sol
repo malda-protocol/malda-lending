@@ -13,10 +13,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -35,15 +35,12 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
 
     // ----------- STORAGE ------------
     address public immutable rebalancer;
-    mapping(uint32 chainId => uint32 cctpDomain) public chainIdToDomain; 
+    mapping(uint32 chainId => uint32 cctpDomain) public chainIdToDomain;
     mapping(uint32 chainId => bool isSet) public domainSet;
-    
+
     // ----------- EVENTS ------------
     event Rebalanced(address indexed market, uint256 amount);
-    event DomainMappingUpdated(
-        uint32 indexed chainId,
-        uint32 indexed domain
-    );
+    event DomainMappingUpdated(uint32 indexed chainId, uint32 indexed domain);
     event TokenAccepted(address indexed token, bool status);
 
     // ----------- ERRORS ------------
@@ -53,12 +50,7 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
     error CCTPBridge_NotImplemented();
     error CCTPBridge_DomainNotSet();
 
-    constructor(
-        address _roles,
-        address _tokenMessenger,
-        address _messageTransmitter,
-        address _rebalancer
-    )
+    constructor(address _roles, address _tokenMessenger, address _messageTransmitter, address _rebalancer)
         BaseBridge(_roles)
         CCTPHelper(_tokenMessenger, _messageTransmitter)
     {
@@ -67,23 +59,17 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
     }
 
     // ----------- OWNER / CONFIG ------------
-    function setDomainMapping(uint32 chainId, uint32 domain)
-        external
-        onlyBridgeConfigurator
-    {
+    function setDomainMapping(uint32 chainId, uint32 domain) external onlyBridgeConfigurator {
         chainIdToDomain[chainId] = domain;
         domainSet[chainId] = true;
         emit DomainMappingUpdated(chainId, domain);
     }
 
-    function setAcceptedToken(address token, bool allowed)
-        external
-        onlyBridgeConfigurator
-    {
+    function setAcceptedToken(address token, bool allowed) external onlyBridgeConfigurator {
         acceptedTokens[token] = allowed;
         emit TokenAccepted(token, allowed);
     }
- 
+
     // ----------- SOURCE CHAIN ------------
     function sendMsg(
         uint256 _extractedAmount,
@@ -97,34 +83,19 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
 
         uint32 dstDomain = chainIdToDomain[_dstChainId];
         uint32 srcDomain = chainIdToDomain[uint32(block.chainid)];
-        require(
-            domainSet[_dstChainId] && domainSet[uint32(block.chainid)],
-            CCTPBridge_DomainNotSet()
-        );
+        require(domainSet[_dstChainId] && domainSet[uint32(block.chainid)], CCTPBridge_DomainNotSet());
 
         bytes memory payload = abi.encode(_market);
 
-        (CCTPMessage memory cctpMsg, ) = createAndBurn(
-            _token,
-            _extractedAmount,
-            dstDomain,
-            _toBytes32(address(this)),
-            payload,
-            srcDomain
-        );
+        (CCTPMessage memory cctpMsg,) =
+            createAndBurn(_token, _extractedAmount, dstDomain, _toBytes32(address(this)), payload, srcDomain);
 
         require(cctpMsg.amount == _extractedAmount, BaseBridge_AmountMismatch());
     }
 
     // ----------- DESTINATION CHAIN ------------
-    function handleCCTPMessage(
-        bytes calldata cctpMessage,
-        bytes calldata attestation
-    ) external nonReentrant {
-        CCTPMessage memory msgData = handleDestinationMsg(
-            cctpMessage,
-            attestation
-        );
+    function handleCCTPMessage(bytes calldata cctpMessage, bytes calldata attestation) external nonReentrant {
+        CCTPMessage memory msgData = handleDestinationMsg(cctpMessage, attestation);
 
         address market = abi.decode(msgData.payload, (address));
         require(IRebalancer(rebalancer).isMarketWhitelisted(market), CCTPBridge_InvalidReceiver());
@@ -137,17 +108,11 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
             IERC20(tokenSent).safeTransfer(market, msgData.amount);
             emit Rebalanced(market, msgData.amount);
         }
-
     }
 
     // ----------- VIEW ------------
-    function getFee(
-        uint32,
-        bytes memory,
-        bytes memory
-    ) external pure override returns (uint256) {
+    function getFee(uint32, bytes memory, bytes memory) external pure override returns (uint256) {
         // Fee automatically deducted
         revert CCTPBridge_NotImplemented();
     }
-
 }

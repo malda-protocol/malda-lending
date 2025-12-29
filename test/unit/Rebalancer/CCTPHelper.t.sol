@@ -51,10 +51,7 @@ contract MockMessageTransmitter is IMessageTransmitterV2 {
         shouldSucceed = val;
     }
 
-    function receiveMessage(
-        bytes calldata,
-        bytes calldata
-    ) external view override returns (bool) {
+    function receiveMessage(bytes calldata, bytes calldata) external view override returns (bool) {
         return shouldSucceed;
     }
 }
@@ -75,10 +72,10 @@ contract CCTPHelperHarness is CCTPHelper {
         return createAndBurn(_token, _amount, _dstDomain, _receiver, _payload, _srcDomain);
     }
 
-    function exposedHandleDestinationMsg(
-        bytes calldata cctpMessage,
-        bytes calldata attestation
-    ) external returns (CCTPMessage memory msgData) {
+    function exposedHandleDestinationMsg(bytes calldata cctpMessage, bytes calldata attestation)
+        external
+        returns (CCTPMessage memory msgData)
+    {
         return handleDestinationMsg(cctpMessage, attestation);
     }
 
@@ -102,10 +99,7 @@ contract CCTPHelperTest is Test {
         messenger = new MockTokenMessenger();
         transmitter = new MockMessageTransmitter();
 
-        helper = new CCTPHelperHarness(
-            address(messenger),
-            address(transmitter)
-        );
+        helper = new CCTPHelperHarness(address(messenger), address(transmitter));
 
         token.mint(user, 1_000_000);
 
@@ -122,14 +116,7 @@ contract CCTPHelperTest is Test {
         bytes32 receiver = bytes32(uint256(uint160(address(0xCAFE))));
 
         (CCTPHelper.CCTPMessage memory msgData, bytes memory encoded) =
-            helper.exposedCreateAndBurn(
-                address(token),
-                1000,
-                DST,
-                receiver,
-                payload,
-                SRC
-            );
+            helper.exposedCreateAndBurn(address(token), 1000, DST, receiver, payload, SRC);
 
         assertEq(msgData.amount, 1000);
         assertEq(msgData.srcChain, SRC);
@@ -154,28 +141,14 @@ contract CCTPHelperTest is Test {
         vm.prank(user);
         vm.expectRevert(CCTPHelper.CCTPHelper_AmountZero.selector);
 
-        helper.exposedCreateAndBurn(
-            address(token),
-            0,
-            DST,
-            bytes32(uint256(uint160(address(1)))),
-            "",
-            SRC
-        );
+        helper.exposedCreateAndBurn(address(token), 0, DST, bytes32(uint256(uint160(address(1)))), "", SRC);
     }
 
     function test_createAndBurn_revert_zero_receiver() public {
         vm.prank(user);
         vm.expectRevert(CCTPHelper.CCTPHelper_AddressZero.selector);
 
-        helper.exposedCreateAndBurn(
-            address(token),
-            100,
-            DST,
-            bytes32(0),
-            "",
-            SRC
-        );
+        helper.exposedCreateAndBurn(address(token), 100, DST, bytes32(0), "", SRC);
     }
 
     function test_handleDestinationMsg_success() public {
@@ -191,14 +164,9 @@ contract CCTPHelperTest is Test {
             uint16(0)
         );
 
-        bytes memory fakeCCTPMessage = bytes.concat(
-            new bytes(148),
-            new bytes(228),
-            fakeHook
-        );
+        bytes memory fakeCCTPMessage = bytes.concat(new bytes(148), new bytes(228), fakeHook);
 
-        CCTPHelper.CCTPMessage memory msgData =
-            helper.exposedHandleDestinationMsg(fakeCCTPMessage, "att");
+        CCTPHelper.CCTPMessage memory msgData = helper.exposedHandleDestinationMsg(fakeCCTPMessage, "att");
 
         assertEq(msgData.amount, 100);
         assertEq(msgData.srcChain, SRC);
@@ -222,7 +190,7 @@ contract CCTPHelperTest is Test {
         bytes memory payload = abi.encode(address(0xBEEF));
 
         bytes memory badHook = abi.encodePacked(
-            uint8(2),                                // wrong payloadId
+            uint8(2), // wrong payloadId
             bytes32(uint256(uint160(address(token)))),
             uint256(100),
             uint32(SRC),
@@ -234,24 +202,13 @@ contract CCTPHelperTest is Test {
             payload
         );
 
-        bytes memory fakeCCTPMessage = bytes.concat(
-            new bytes(148),
-            new bytes(228),
-            badHook
-        );
+        bytes memory fakeCCTPMessage = bytes.concat(new bytes(148), new bytes(228), badHook);
 
         vm.expectRevert(CCTPHelper.CCTPHelper_PayloadMismatch.selector);
         helper.exposedHandleDestinationMsg(fakeCCTPMessage, "att");
     }
 
-    function _decode(bytes memory data)
-        internal
-        pure
-        returns (CCTPHelper.CCTPMessage memory)
-    {
-        return abi.decode(
-            abi.encodePacked(data),
-            (CCTPHelper.CCTPMessage)
-        );
+    function _decode(bytes memory data) internal pure returns (CCTPHelper.CCTPMessage memory) {
+        return abi.decode(abi.encodePacked(data), (CCTPHelper.CCTPMessage));
     }
 }

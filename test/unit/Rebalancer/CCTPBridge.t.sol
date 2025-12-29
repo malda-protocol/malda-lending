@@ -53,10 +53,7 @@ contract MockMessageTransmitter is IMessageTransmitterV2 {
         shouldSucceed = val;
     }
 
-    function receiveMessage(
-        bytes calldata message,
-        bytes calldata attestation
-    ) external override returns (bool) {
+    function receiveMessage(bytes calldata message, bytes calldata attestation) external override returns (bool) {
         lastMessage = message;
         lastAttestation = attestation;
         return shouldSucceed;
@@ -106,12 +103,9 @@ contract MockRoles {
 }
 
 contract CCTPBridgeHarness is CCTPBridge {
-    constructor(
-        address _roles,
-        address _tokenMessenger,
-        address _messageTransmitter,
-        address _rebalancer
-    ) CCTPBridge(_roles, _tokenMessenger, _messageTransmitter, _rebalancer) {}
+    constructor(address _roles, address _tokenMessenger, address _messageTransmitter, address _rebalancer)
+        CCTPBridge(_roles, _tokenMessenger, _messageTransmitter, _rebalancer)
+    {}
 
     function harnessSetDomain(uint32 chainId, uint32 domain) external {
         chainIdToDomain[chainId] = domain;
@@ -147,12 +141,7 @@ contract CCTPBridgeTest is Test {
 
         market = new MockMarket(address(token));
 
-        bridge = new CCTPBridgeHarness(
-            address(roles),
-            address(messenger),
-            address(transmitter),
-            address(rebalancer)
-        );
+        bridge = new CCTPBridgeHarness(address(roles), address(messenger), address(transmitter), address(rebalancer));
 
         token.mint(address(rebalancer), 1_000_000);
 
@@ -173,14 +162,7 @@ contract CCTPBridgeTest is Test {
         uint256 balanceBeforeBridge = token.balanceOf(address(bridge));
 
         vm.prank(address(rebalancer));
-        bridge.sendMsg(
-            amount,
-            address(market),
-            dstChainId,
-            address(token),
-            "",
-            ""
-        );
+        bridge.sendMsg(amount, address(market), dstChainId, address(token), "", "");
 
         assertEq(token.balanceOf(address(rebalancer)), balanceBeforeRebalancer - amount);
         assertEq(token.balanceOf(address(bridge)), balanceBeforeBridge + amount);
@@ -196,24 +178,13 @@ contract CCTPBridgeTest is Test {
     function test_sendMsg_revert_zero_amount() public {
         vm.prank(address(rebalancer));
         vm.expectRevert(); // BaseBridge_AmountMismatch
-        bridge.sendMsg(
-            0,
-            address(market),
-            dstChainId,
-            address(token),
-            "",
-            ""
-        );
+        bridge.sendMsg(0, address(market), dstChainId, address(token), "", "");
     }
 
     function test_sendMsg_revert_domain_not_set_dst() public {
         // srcDomain set, dstDomain NOT set
-        CCTPBridgeHarness bridge2 = new CCTPBridgeHarness(
-            address(roles),
-            address(messenger),
-            address(transmitter),
-            address(rebalancer)
-        );
+        CCTPBridgeHarness bridge2 =
+            new CCTPBridgeHarness(address(roles), address(messenger), address(transmitter), address(rebalancer));
 
         bridge2.harnessSetAcceptedToken(address(token), true);
         bridge2.harnessSetDomain(uint32(block.chainid), srcDomain);
@@ -221,14 +192,7 @@ contract CCTPBridgeTest is Test {
 
         vm.prank(address(rebalancer));
         vm.expectRevert(CCTPBridge.CCTPBridge_DomainNotSet.selector);
-        bridge2.sendMsg(
-            1000,
-            address(market),
-            dstChainId,
-            address(token),
-            "",
-            ""
-        );
+        bridge2.sendMsg(1000, address(market), dstChainId, address(token), "", "");
     }
 
     function test_handleCCTPMessage_success() public {
@@ -250,11 +214,7 @@ contract CCTPBridgeTest is Test {
             payload
         );
 
-        bytes memory fakeCCTPMessage = bytes.concat(
-            new bytes(148),
-            new bytes(228),
-            hook
-        );
+        bytes memory fakeCCTPMessage = bytes.concat(new bytes(148), new bytes(228), hook);
 
         uint256 balanceBeforeMarket = token.balanceOf(address(market));
         uint256 balanceBeforeBridge = token.balanceOf(address(bridge));
@@ -267,26 +227,15 @@ contract CCTPBridgeTest is Test {
 
     function test_sendMsg_revert_domain_not_set_src() public {
         // dstDomain set, srcDomain NOT set
-        CCTPBridgeHarness bridge2 = new CCTPBridgeHarness(
-            address(roles),
-            address(messenger),
-            address(transmitter),
-            address(rebalancer)
-        );
+        CCTPBridgeHarness bridge2 =
+            new CCTPBridgeHarness(address(roles), address(messenger), address(transmitter), address(rebalancer));
 
         bridge2.harnessSetAcceptedToken(address(token), true);
         bridge2.harnessSetDomain(dstChainId, dstDomain);
 
         vm.prank(address(rebalancer));
         vm.expectRevert(CCTPBridge.CCTPBridge_DomainNotSet.selector);
-        bridge2.sendMsg(
-            1000,
-            address(market),
-            dstChainId,
-            address(token),
-            "",
-            ""
-        );
+        bridge2.sendMsg(1000, address(market), dstChainId, address(token), "", "");
     }
 
     function test_sendMsg_domain_set_ok() public {
@@ -297,14 +246,7 @@ contract CCTPBridgeTest is Test {
         bridge.harnessSetDomain(dstChainId, dstDomain);
 
         vm.prank(address(rebalancer));
-        bridge.sendMsg(
-            amount,
-            address(market),
-            dstChainId,
-            address(token),
-            "",
-            ""
-        );
+        bridge.sendMsg(amount, address(market), dstChainId, address(token), "", "");
 
         assertEq(messenger.lastDst(), dstDomain);
     }
@@ -323,11 +265,7 @@ contract CCTPBridgeTest is Test {
             payload
         );
 
-        bytes memory fakeCCTPMessage = bytes.concat(
-            new bytes(148),
-            new bytes(228),
-            hook
-        );
+        bytes memory fakeCCTPMessage = bytes.concat(new bytes(148), new bytes(228), hook);
 
         vm.expectRevert(CCTPBridge.CCTPBridge_InvalidReceiver.selector);
         bridge.handleCCTPMessage(fakeCCTPMessage, "att");
@@ -353,11 +291,7 @@ contract CCTPBridgeTest is Test {
             payload
         );
 
-        bytes memory fakeCCTPMessage = bytes.concat(
-            new bytes(148),
-            new bytes(228),
-            hook
-        );
+        bytes memory fakeCCTPMessage = bytes.concat(new bytes(148), new bytes(228), hook);
 
         vm.expectRevert(CCTPBridge.CCTPBridge_TokenMismatch.selector);
         bridge.handleCCTPMessage(fakeCCTPMessage, "att");
@@ -379,11 +313,7 @@ contract CCTPBridgeTest is Test {
             payload
         );
 
-        bytes memory fakeCCTPMessage = bytes.concat(
-            new bytes(148),
-            new bytes(228),
-            hook
-        );
+        bytes memory fakeCCTPMessage = bytes.concat(new bytes(148), new bytes(228), hook);
 
         vm.expectRevert(CCTPHelper.CCTPHelper_ReceiveFailed.selector);
         bridge.handleCCTPMessage(fakeCCTPMessage, "att");
@@ -400,16 +330,7 @@ contract CCTPBridgeTest is Test {
         bytes memory payload
     ) internal pure returns (bytes memory) {
         return abi.encodePacked(
-            uint8(1),
-            tokenB32,
-            amount,
-            srcChain,
-            dstChain,
-            nonce,
-            from,
-            receiver,
-            uint16(payload.length),
-            payload
+            uint8(1), tokenB32, amount, srcChain, dstChain, nonce, from, receiver, uint16(payload.length), payload
         );
     }
 }

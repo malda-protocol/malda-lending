@@ -13,12 +13,11 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
-
 
 import {BytesLib} from "src/libraries/BytesLib.sol";
 import {SafeApprove} from "src/libraries/SafeApprove.sol";
@@ -105,13 +104,7 @@ abstract contract CCTPHelper {
         bytes memory _payload,
         uint32 _srcDomain
     ) internal returns (CCTPMessage memory msgData, bytes memory encoded) {
-        uint64 nonce = _burnSrc(
-            _token,
-            _amount,
-            _dstDomain,
-            _receiver,
-            _payload
-        );
+        uint64 nonce = _burnSrc(_token, _amount, _dstDomain, _receiver, _payload);
 
         msgData = CCTPMessage({
             token: _toBytes32(_token),
@@ -139,14 +132,11 @@ abstract contract CCTPHelper {
         );
     }
 
-    function handleDestinationMsg(
-        bytes calldata cctpMessage,
-        bytes calldata attestation
-    ) internal returns (CCTPMessage memory msgData) {
-        bool success = IMessageTransmitterV2(messageTransmitter).receiveMessage(
-            cctpMessage,
-            attestation
-        );
+    function handleDestinationMsg(bytes calldata cctpMessage, bytes calldata attestation)
+        internal
+        returns (CCTPMessage memory msgData)
+    {
+        bool success = IMessageTransmitterV2(messageTransmitter).receiveMessage(cctpMessage, attestation);
         require(success, CCTPHelper_ReceiveFailed());
 
         bytes memory msgBytes = cctpMessage;
@@ -159,12 +149,7 @@ abstract contract CCTPHelper {
         msgData = _decodeMsg(hookData);
 
         emit MessageReceived(
-            msgData.nonce,
-            msgData.srcChain,
-            msgData.dstChain,
-            msgData.amount,
-            msgData.receiver,
-            msgData.payload
+            msgData.nonce, msgData.srcChain, msgData.dstChain, msgData.amount, msgData.receiver, msgData.payload
         );
     }
 
@@ -173,16 +158,13 @@ abstract contract CCTPHelper {
     }
 
     // ----------- PRIVATE ------------
-    function _burnSrc(
-        address _token,
-        uint256 _amount,
-        uint32 _dstDomain,
-        bytes32 _receiver,
-        bytes memory _payload
-    ) private returns (uint64 nonce) {
-        require (_amount != 0, CCTPHelper_AmountZero());
-        require (_receiver != bytes32(0), CCTPHelper_AddressZero());
-        require (acceptedTokens[_token], CCTPHelper_TokenNotAccepted());
+    function _burnSrc(address _token, uint256 _amount, uint32 _dstDomain, bytes32 _receiver, bytes memory _payload)
+        private
+        returns (uint64 nonce)
+    {
+        require(_amount != 0, CCTPHelper_AmountZero());
+        require(_receiver != bytes32(0), CCTPHelper_AddressZero());
+        require(acceptedTokens[_token], CCTPHelper_TokenNotAccepted());
 
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
         SafeApprove.safeApprove(_token, tokenMessenger, _amount);
@@ -196,16 +178,10 @@ abstract contract CCTPHelper {
         // @dev if set to zero, any address can call receiveMessage
         bytes32 destinationCaller = bytes32(0);
 
-        ITokenMessangerV2(tokenMessenger).depositForBurnWithHook(
-            _amount,
-            _dstDomain,
-            _receiver,
-            _token,
-            destinationCaller,
-            maxFee,
-            minFinalityThreshold,
-            _payload
-        );
+        ITokenMessangerV2(tokenMessenger)
+            .depositForBurnWithHook(
+                _amount, _dstDomain, _receiver, _token, destinationCaller, maxFee, minFinalityThreshold, _payload
+            );
 
         // @dev CCTP V2 does not expose a nonce anymore
         // Keep it here for backwards compatibility with V1 in terms of flow and structure
@@ -263,12 +239,8 @@ abstract contract CCTPHelper {
      *  - uint16 values are taken from the highest 2 bytes of the word (shr(240, ...)).
      *
      * The `payload` bytes are copied verbatim into a new bytes array.
-    */
-    function _decodeMsg(bytes memory encoded)
-        private
-        pure
-        returns (CCTPMessage memory message)
-    {
+     */
+    function _decodeMsg(bytes memory encoded) private pure returns (CCTPMessage memory message) {
         require(encoded.length >= 147, CCTPHelper_MsgTooShort());
 
         uint256 offset = 0;

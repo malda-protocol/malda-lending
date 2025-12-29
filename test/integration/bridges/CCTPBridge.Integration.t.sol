@@ -5,11 +5,10 @@ import "forge-std/Test.sol";
 import {CCTPBridge} from "src/rebalancer/bridges/CCTPBridge.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-
 contract MockRoles {
     bytes32 public constant REBALANCER_ROLE = keccak256("REBALANCER_ROLE");
     bytes32 public constant BRIDGE_CONFIGURATOR_ROLE = keccak256("BRIDGE_CONFIGURATOR_ROLE");
-    bytes32 public constant GUARDIAN_BRIDGE_ROLE  = keccak256("GUARDIAN_BRIDGE_ROLE");
+    bytes32 public constant GUARDIAN_BRIDGE_ROLE = keccak256("GUARDIAN_BRIDGE_ROLE");
 
     mapping(address => mapping(bytes32 => bool)) public perms;
 
@@ -49,7 +48,7 @@ contract CCTPBridgeIntegration is Test {
     address constant MAINNET_MSG_TRANSMITTER = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
 
     // cctp domains
-    uint32 constant ETH_DOMAIN  = 0;
+    uint32 constant ETH_DOMAIN = 0;
     uint32 constant BASE_DOMAIN = 6;
     uint32 constant BASE_CHAINID = 8453;
 
@@ -68,12 +67,7 @@ contract CCTPBridgeIntegration is Test {
         roles.grantBridgeConfigurator(address(this));
         roles.grantGuardianBridge(address(this));
 
-        bridge = new CCTPBridge(
-            address(roles),
-            MAINNET_TOKEN_MESSENGER,
-            MAINNET_MSG_TRANSMITTER,
-            rebalancer
-        );
+        bridge = new CCTPBridge(address(roles), MAINNET_TOKEN_MESSENGER, MAINNET_MSG_TRANSMITTER, rebalancer);
 
         bridge.setAcceptedToken(MAINNET_USDC, true);
         bridge.setDomainMapping(uint32(block.chainid), ETH_DOMAIN);
@@ -86,7 +80,7 @@ contract CCTPBridgeIntegration is Test {
     }
 
     function test_mainnetFork_sendMsg_USDC_burns() public {
-        uint256 amount = 100e6; 
+        uint256 amount = 100e6;
 
         uint256 balBeforeRebalancer = IERC20(MAINNET_USDC).balanceOf(rebalancer);
         uint256 balBeforeBridge = IERC20(MAINNET_USDC).balanceOf(address(bridge));
@@ -94,14 +88,7 @@ contract CCTPBridgeIntegration is Test {
         address fakeMarket = address(0xCAFE);
         bridge.setDomainMapping(uint32(block.chainid), ETH_DOMAIN);
         bridge.setDomainMapping(BASE_CHAINID, BASE_DOMAIN);
-        bridge.sendMsg(
-            amount,
-            fakeMarket,
-            BASE_CHAINID, 
-            MAINNET_USDC,
-            "", 
-            ""
-        );
+        bridge.sendMsg(amount, fakeMarket, BASE_CHAINID, MAINNET_USDC, "", "");
 
         uint256 balAfterRebalancer = IERC20(MAINNET_USDC).balanceOf(rebalancer);
         uint256 balAfterBridge = IERC20(MAINNET_USDC).balanceOf(address(bridge));
