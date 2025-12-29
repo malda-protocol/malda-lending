@@ -41,6 +41,7 @@ abstract contract BaseOftMessageExecutor is IOftMessageExecutor {
     error Executor_NoOft();
     error Executor_AmountMismatch();
     error Executor_WrongUnderlying();
+    error Executor_NotRebalancer();
 
     // ---------------- PUBLIC HELPERS ----------------
 
@@ -73,7 +74,7 @@ abstract contract BaseOftMessageExecutor is IOftMessageExecutor {
     // ---------------- INTERNAL HELPERS (NON-VIEW) ----------------
 
     function _pullFromRebalancer(address underlying, uint256 amount, address rebalancer) internal {
-        // slither-disable-next-line arbitrary-from-in-transferfrom
+        if (rebalancer != msg.sender) revert Executor_NotRebalancer();
         IERC20(underlying).safeTransferFrom(rebalancer, address(this), amount);
     }
 

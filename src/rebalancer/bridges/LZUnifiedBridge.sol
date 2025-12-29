@@ -63,15 +63,17 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
     error LZBridge_NoOft();
     error LZBridge_TokenMismatch();
     error LZBridge_ExecutorNotSet();
+    error LZBridge_ExecutorNoCode();
     error LZBridge_OnlyEndpoint();
     error LZBridge_BadFrom();
     error LZBridge_RefunderNotValid();
+    error LZBridge_EndpointZero();
 
     /// @notice Creates the unified LayerZero bridge.
     /// @param _roles Roles contract used by BaseBridge.
     /// @param _endpoint LayerZero endpoint allowed to call lzCompose().
     constructor(address _roles, address _endpoint) BaseBridge(_roles) {
-        // slither-disable-next-line missing-zero-address-validation
+        if (_endpoint == address(0)) revert LZBridge_EndpointZero();
         ENDPOINT = _endpoint;
     }
 
@@ -234,6 +236,10 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
         address rebalancer,
         address refundAddress
     ) private returns (MessagingReceipt memory r) {
+        address oftExecutor = oftExecutors[underlying];
+        require(oftExecutor != address(0), LZBridge_ExecutorNotSet());
+        require(oftExecutor.code.length != 0, LZBridge_ExecutorNoCode());
+
         bytes memory data = abi.encodeWithSelector(
             IOftMessageExecutor.executeSend.selector,
             underlying,
