@@ -180,22 +180,31 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="cctphelper"><a class="header" href="#cctphelper">CCTPHelper</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/8ea75855d02020b4b418e845afc4b79215a29a77/src/rebalancer/bridges/cctp/CCTPHelper.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/b376ba59c0e6c2077048987fdfd590cc6313bb8a/src/rebalancer/bridges/cctp/CCTPHelper.sol">Git Source</a></p>
+<p><strong>Title:</strong>
+CCTPHelper</p>
+<p><strong>Author:</strong>
+Malda Protocol</p>
+<p>Helper for building/sending/receiving CCTP v2 messages and encoding/decoding hook payloads.</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
-<h3 id="tokenmessenger"><a class="header" href="#tokenmessenger">tokenMessenger</a></h3>
-<pre><code class="language-solidity">address public immutable tokenMessenger
+<h3 id="token_messenger"><a class="header" href="#token_messenger">TOKEN_MESSENGER</a></h3>
+<p>Circle TokenMessenger (v2) used to burn tokens and attach hook data.</p>
+<pre><code class="language-solidity">address public immutable TOKEN_MESSENGER
 </code></pre>
-<h3 id="messagetransmitter"><a class="header" href="#messagetransmitter">messageTransmitter</a></h3>
-<pre><code class="language-solidity">address public immutable messageTransmitter
+<h3 id="message_transmitter"><a class="header" href="#message_transmitter">MESSAGE_TRANSMITTER</a></h3>
+<p>Circle MessageTransmitter (v2) used to validate and receive messages with attestations.</p>
+<pre><code class="language-solidity">address public immutable MESSAGE_TRANSMITTER
 </code></pre>
 <h3 id="acceptedtokens"><a class="header" href="#acceptedtokens">acceptedTokens</a></h3>
-<pre><code class="language-solidity">mapping(address =&gt; bool) public acceptedTokens
+<p>Token allowlist for burns via CCTP.</p>
+<pre><code class="language-solidity">mapping(address token =&gt; bool isAccepted) public acceptedTokens
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="constructor"><a class="header" href="#constructor">constructor</a></h3>
 <pre><code class="language-solidity">constructor(address _tokenMessenger, address _messageTransmitter) ;
 </code></pre>
 <h3 id="createandburn"><a class="header" href="#createandburn">createAndBurn</a></h3>
+<p>Burns tokens via CCTP v2 and returns the decoded message struct plus its encoded representation.</p>
 <pre><code class="language-solidity">function createAndBurn(
     address _token,
     uint256 _amount,
@@ -205,14 +214,53 @@
     uint32 _srcDomain
 ) internal returns (CCTPMessage memory msgData, bytes memory encoded);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_token</code></td><td><code>address</code></td><td>Token to burn.</td></tr>
+<tr><td><code>_amount</code></td><td><code>uint256</code></td><td>Amount to burn.</td></tr>
+<tr><td><code>_dstDomain</code></td><td><code>uint32</code></td><td>Destination CCTP domain.</td></tr>
+<tr><td><code>_receiver</code></td><td><code>bytes32</code></td><td>Receiver bytes32 (typically the bridge address encoded).</td></tr>
+<tr><td><code>_payload</code></td><td><code>bytes</code></td><td>App payload to attach as hook data.</td></tr>
+<tr><td><code>_srcDomain</code></td><td><code>uint32</code></td><td>Source CCTP domain.</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>msgData</code></td><td><code>CCTPMessage</code></td><td>Parsed message struct (nonce is 0 for v2).</td></tr>
+<tr><td><code>encoded</code></td><td><code>bytes</code></td><td>Packed encoding of <code>msgData</code> produced by <code>_encodeMsg</code>.</td></tr>
+</tbody></table>
+</div>
 <h3 id="handledestinationmsg"><a class="header" href="#handledestinationmsg">handleDestinationMsg</a></h3>
+<p>Validates a CCTP message+attestation via Circle and decodes the embedded hook payload into a CCTPMessage.</p>
 <pre><code class="language-solidity">function handleDestinationMsg(bytes calldata cctpMessage, bytes calldata attestation)
     internal
     returns (CCTPMessage memory msgData);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>cctpMessage</code></td><td><code>bytes</code></td><td>Raw CCTP message bytes.</td></tr>
+<tr><td><code>attestation</code></td><td><code>bytes</code></td><td>Circle attestation proving message validity.</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>msgData</code></td><td><code>CCTPMessage</code></td><td>Decoded app-level message extracted from the hook payload.</td></tr>
+</tbody></table>
+</div>
 <h3 id="_tobytes32"><a class="header" href="#_tobytes32">_toBytes32</a></h3>
+<p>Converts an address to a left-padded bytes32 representation.</p>
 <pre><code class="language-solidity">function _toBytes32(address addr) internal pure returns (bytes32);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>addr</code></td><td><code>address</code></td><td>Address to convert.</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>&lt;none&gt;</code></td><td><code>bytes32</code></td><td>Encoded bytes32.</td></tr>
+</tbody></table>
+</div>
 <h3 id="_burnsrc"><a class="header" href="#_burnsrc">_burnSrc</a></h3>
 <pre><code class="language-solidity">function _burnSrc(address _token, uint256 _amount, uint32 _dstDomain, bytes32 _receiver, bytes memory _payload)
     private
@@ -255,6 +303,7 @@ The <code>payload</code> bytes are copied verbatim into a new bytes array.</li>
 </code></pre>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="burninitiated"><a class="header" href="#burninitiated">BurnInitiated</a></h3>
+<p>Emitted after a burn is initiated via TokenMessenger.</p>
 <pre><code class="language-solidity">event BurnInitiated(
     address indexed token,
     uint256 amount,
@@ -264,7 +313,18 @@ The <code>payload</code> bytes are copied verbatim into a new bytes array.</li>
     bytes payload
 );
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>token</code></td><td><code>address</code></td><td>The ERC20 token burned.</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The amount burned.</td></tr>
+<tr><td><code>dstDomain</code></td><td><code>uint32</code></td><td>The destination CCTP domain.</td></tr>
+<tr><td><code>recipient</code></td><td><code>bytes32</code></td><td>The destination recipient (bytes32).</td></tr>
+<tr><td><code>nonce</code></td><td><code>uint64</code></td><td>Always 0 for CCTP v2 (kept for compatibility).</td></tr>
+<tr><td><code>payload</code></td><td><code>bytes</code></td><td>Hook payload passed to Circle.</td></tr>
+</tbody></table>
+</div>
 <h3 id="messagecreated"><a class="header" href="#messagecreated">MessageCreated</a></h3>
+<p>Emitted when an app-level message payload is constructed and encoded.</p>
 <pre><code class="language-solidity">event MessageCreated(
     bytes32 indexed token,
     uint256 amount,
@@ -277,7 +337,21 @@ The <code>payload</code> bytes are copied verbatim into a new bytes array.</li>
     bytes encodedMessage
 );
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>token</code></td><td><code>bytes32</code></td><td>Token address (bytes32 encoded).</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>Amount burned.</td></tr>
+<tr><td><code>srcDomain</code></td><td><code>uint32</code></td><td>Source CCTP domain.</td></tr>
+<tr><td><code>dstDomain</code></td><td><code>uint32</code></td><td>Destination CCTP domain.</td></tr>
+<tr><td><code>nonce</code></td><td><code>uint64</code></td><td>Always 0 for CCTP v2 (kept for compatibility).</td></tr>
+<tr><td><code>from</code></td><td><code>bytes32</code></td><td>Sender (bytes32 encoded).</td></tr>
+<tr><td><code>receiver</code></td><td><code>bytes32</code></td><td>Receiver (bytes32).</td></tr>
+<tr><td><code>payload</code></td><td><code>bytes</code></td><td>App payload.</td></tr>
+<tr><td><code>encodedMessage</code></td><td><code>bytes</code></td><td>Encoded packed representation produced by <code>_encodeMsg</code>.</td></tr>
+</tbody></table>
+</div>
 <h3 id="messagereceived"><a class="header" href="#messagereceived">MessageReceived</a></h3>
+<p>Emitted after a message is received/validated by Circle and decoded into the app payload.</p>
 <pre><code class="language-solidity">event MessageReceived(
     uint64 indexed nonce,
     uint32 indexed srcDomain,
@@ -287,6 +361,16 @@ The <code>payload</code> bytes are copied verbatim into a new bytes array.</li>
     bytes payload
 );
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>nonce</code></td><td><code>uint64</code></td><td>Always 0 for CCTP v2 (kept for compatibility).</td></tr>
+<tr><td><code>srcDomain</code></td><td><code>uint32</code></td><td>Source CCTP domain.</td></tr>
+<tr><td><code>dstDomain</code></td><td><code>uint32</code></td><td>Destination CCTP domain.</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>Amount received.</td></tr>
+<tr><td><code>receiver</code></td><td><code>bytes32</code></td><td>Receiver (bytes32).</td></tr>
+<tr><td><code>payload</code></td><td><code>bytes</code></td><td>App payload.</td></tr>
+</tbody></table>
+</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="cctphelper_amountzero"><a class="header" href="#cctphelper_amountzero">CCTPHelper_AmountZero</a></h3>
 <pre><code class="language-solidity">error CCTPHelper_AmountZero();
@@ -311,15 +395,16 @@ The <code>payload</code> bytes are copied verbatim into a new bytes array.</li>
 </code></pre>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
 <h3 id="cctpmessage"><a class="header" href="#cctpmessage">CCTPMessage</a></h3>
+<p>Struct used to encode and decode the app-level hook payload carried by CCTP v2.</p>
 <pre><code class="language-solidity">struct CCTPMessage {
-    bytes32 token; // usdc
+    bytes32 token; // ERC20 token address left-padded to 32 bytes
     uint256 amount;
-    uint32 srcChain;
-    uint32 dstChain;
-    uint64 nonce;
-    bytes32 from;
-    bytes32 receiver;
-    bytes payload;
+    uint32 srcChain; // CCTP domain on source
+    uint32 dstChain; // CCTP domain on destination
+    uint64 nonce; // always 0 for v2; kept for compatibility
+    bytes32 from; // msg.sender on source (left-padded)
+    bytes32 receiver; // receiver/caller bytes32
+    bytes payload; // opaque app payload
 }
 </code></pre>
 

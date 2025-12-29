@@ -180,17 +180,25 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="cctpbridge"><a class="header" href="#cctpbridge">CCTPBridge</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/8ea75855d02020b4b418e845afc4b79215a29a77/src/rebalancer/bridges/CCTPBridge.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/b376ba59c0e6c2077048987fdfd590cc6313bb8a/src/rebalancer/bridges/CCTPBridge.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/rebalancer/bridges/BaseBridge.sol/abstract.BaseBridge.html">BaseBridge</a>, <a href="/src/rebalancer/bridges/cctp/CCTPHelper.sol/abstract.CCTPHelper.html">CCTPHelper</a>, <a href="/src/interfaces/IBridge.sol/interface.IBridge.html">IBridge</a>, ReentrancyGuard</p>
+<p><strong>Title:</strong>
+CCTPBridge</p>
+<p><strong>Author:</strong>
+Malda Protocol</p>
+<p>Cross-chain bridge that uses Circle CCTP v2</p>
 <h2 id="state-variables"><a class="header" href="#state-variables">State Variables</a></h2>
-<h3 id="rebalancer"><a class="header" href="#rebalancer">rebalancer</a></h3>
-<pre><code class="language-solidity">address public immutable rebalancer
+<h3 id="rebalancer"><a class="header" href="#rebalancer">REBALANCER</a></h3>
+<p>The Rebalancer contract allowed to initiate bridging actions.</p>
+<pre><code class="language-solidity">address public immutable REBALANCER
 </code></pre>
 <h3 id="chainidtodomain"><a class="header" href="#chainidtodomain">chainIdToDomain</a></h3>
+<p>Maps EVM chainId -&gt; CCTP domain id.</p>
 <pre><code class="language-solidity">mapping(uint32 chainId =&gt; uint32 cctpDomain) public chainIdToDomain
 </code></pre>
 <h3 id="domainset"><a class="header" href="#domainset">domainSet</a></h3>
+<p>Tracks whether a domain mapping exists for a given EVM chainId.</p>
 <pre><code class="language-solidity">mapping(uint32 chainId =&gt; bool isSet) public domainSet
 </code></pre>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
@@ -200,37 +208,108 @@
     CCTPHelper(_tokenMessenger, _messageTransmitter);
 </code></pre>
 <h3 id="setdomainmapping"><a class="header" href="#setdomainmapping">setDomainMapping</a></h3>
+<p>Sets the CCTP domain id for a given EVM chainId.</p>
 <pre><code class="language-solidity">function setDomainMapping(uint32 chainId, uint32 domain) external onlyBridgeConfigurator;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>chainId</code></td><td><code>uint32</code></td><td>The EVM chainId to set.</td></tr>
+<tr><td><code>domain</code></td><td><code>uint32</code></td><td>The corresponding CCTP domain id.</td></tr>
+</tbody></table>
+</div>
 <h3 id="setacceptedtoken"><a class="header" href="#setacceptedtoken">setAcceptedToken</a></h3>
+<p>Enables or disables a token for use with CCTP burns.</p>
 <pre><code class="language-solidity">function setAcceptedToken(address token, bool allowed) external onlyBridgeConfigurator;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>token</code></td><td><code>address</code></td><td>The token address.</td></tr>
+<tr><td><code>allowed</code></td><td><code>bool</code></td><td>True to enable, false to disable.</td></tr>
+</tbody></table>
+</div>
 <h3 id="sendmsg"><a class="header" href="#sendmsg">sendMsg</a></h3>
+<p>Burns tokens and creates a CCTP message for the destination chain.</p>
 <pre><code class="language-solidity">function sendMsg(
     uint256 _extractedAmount,
     address _market,
     uint32 _dstChainId,
     address _token,
-    bytes memory,
-    bytes memory
+    bytes calldata _unused1,
+    bytes calldata _unused2
 ) external payable override onlyRebalancer;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_extractedAmount</code></td><td><code>uint256</code></td><td>Amount to burn.</td></tr>
+<tr><td><code>_market</code></td><td><code>address</code></td><td>Destination market address (encoded into the CCTP hook payload).</td></tr>
+<tr><td><code>_dstChainId</code></td><td><code>uint32</code></td><td>Destination EVM chainId.</td></tr>
+<tr><td><code>_token</code></td><td><code>address</code></td><td>Token to burn (e.g., USDC).</td></tr>
+<tr><td><code>_unused1</code></td><td><code>bytes</code></td><td>Unused parameter kept for IBridge compatibility.</td></tr>
+<tr><td><code>_unused2</code></td><td><code>bytes</code></td><td>Unused parameter kept for IBridge compatibility.</td></tr>
+</tbody></table>
+</div>
 <h3 id="handlecctpmessage"><a class="header" href="#handlecctpmessage">handleCCTPMessage</a></h3>
+<p>Receives a CCTP message+attestation and forwards received tokens to the encoded destination market.</p>
 <pre><code class="language-solidity">function handleCCTPMessage(bytes calldata cctpMessage, bytes calldata attestation) external nonReentrant;
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>cctpMessage</code></td><td><code>bytes</code></td><td>Raw CCTP message bytes.</td></tr>
+<tr><td><code>attestation</code></td><td><code>bytes</code></td><td>Circle attestation proving message validity.</td></tr>
+</tbody></table>
+</div>
 <h3 id="getfee"><a class="header" href="#getfee">getFee</a></h3>
-<pre><code class="language-solidity">function getFee(uint32, bytes memory, bytes memory) external pure override returns (uint256);
+<p>Returns the bridge fee.</p>
+<p>Not implemented for CCTP; protocol fees are handled by Circle.</p>
+<pre><code class="language-solidity">function getFee(uint32 _dstChainId, bytes calldata _payload, bytes calldata _options)
+    external
+    pure
+    override
+    returns (uint256 fee);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>_dstChainId</code></td><td><code>uint32</code></td><td>Unused.</td></tr>
+<tr><td><code>_payload</code></td><td><code>bytes</code></td><td>Unused.</td></tr>
+<tr><td><code>_options</code></td><td><code>bytes</code></td><td>Unused.</td></tr>
+</tbody></table>
+</div>
+<p><strong>Returns</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>fee</code></td><td><code>uint256</code></td><td>Always reverts.</td></tr>
+</tbody></table>
+</div>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="rebalanced"><a class="header" href="#rebalanced">Rebalanced</a></h3>
+<p>Emitted when bridged funds are forwarded to a destination market.</p>
 <pre><code class="language-solidity">event Rebalanced(address indexed market, uint256 amount);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>market</code></td><td><code>address</code></td><td>The destination market that received the funds.</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>The amount of tokens forwarded to the market.</td></tr>
+</tbody></table>
+</div>
 <h3 id="domainmappingupdated"><a class="header" href="#domainmappingupdated">DomainMappingUpdated</a></h3>
+<p>Emitted when a chainId -&gt; CCTP domain mapping is updated.</p>
 <pre><code class="language-solidity">event DomainMappingUpdated(uint32 indexed chainId, uint32 indexed domain);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>chainId</code></td><td><code>uint32</code></td><td>The EVM chainId.</td></tr>
+<tr><td><code>domain</code></td><td><code>uint32</code></td><td>The CCTP domain id.</td></tr>
+</tbody></table>
+</div>
 <h3 id="tokenaccepted"><a class="header" href="#tokenaccepted">TokenAccepted</a></h3>
+<p>Emitted when a token is enabled or disabled for CCTP burns.</p>
 <pre><code class="language-solidity">event TokenAccepted(address indexed token, bool status);
 </code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>token</code></td><td><code>address</code></td><td>The token address.</td></tr>
+<tr><td><code>status</code></td><td><code>bool</code></td><td>True if enabled, false if disabled.</td></tr>
+</tbody></table>
+</div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="cctpbridge_addressnotvalid"><a class="header" href="#cctpbridge_addressnotvalid">CCTPBridge_AddressNotValid</a></h3>
 <pre><code class="language-solidity">error CCTPBridge_AddressNotValid();
