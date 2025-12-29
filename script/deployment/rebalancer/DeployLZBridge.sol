@@ -20,7 +20,8 @@ contract DeployLZBridge is Script {
         bytes32 salt = getSalt("LZUnifiedBridgeV1.0");
 
         vm.startBroadcast(vm.envUint("PRIVATE_KEY"));
-        address created = deployer.create(salt, abi.encodePacked(type(LZUnifiedBridge).creationCode, abi.encode(roles, endpoint)));
+        address created =
+            deployer.create(salt, abi.encodePacked(type(LZUnifiedBridge).creationCode, abi.encode(roles, endpoint)));
         vm.stopBroadcast();
 
         console.log(" LZUnifiedBridge deployed at: %s", created);
@@ -28,8 +29,9 @@ contract DeployLZBridge is Script {
     }
 
     function getSalt(string memory name) internal view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
-        );
+        return
+            keccak256(
+                abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+            );
     }
 }

@@ -6,7 +6,6 @@ contract MockRoles {
     mapping(address => bool) public isRebalancer;
     mapping(address => bool) public isBridgeConfigurator;
 
-
     bytes32 public constant GUARDIAN_BLACKLIST = keccak256("GUARDIAN_BLACKLIST");
     bytes32 public constant GUARDIAN_BRIDGE = keccak256("GUARDIAN_BRIDGE");
     bytes32 public constant REBALANCER = keccak256("REBALANCER");

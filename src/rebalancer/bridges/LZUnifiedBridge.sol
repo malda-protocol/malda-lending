@@ -12,11 +12,13 @@ import {ImTokenMinimal} from "src/interfaces/ImToken.sol";
 import {IOftMessageExecutor} from "src/interfaces/IOftMessageExecutor.sol";
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 
+/// @title LZUnifiedBridge
+/// @author Malda Protocol
+/// @notice LayerZero v2 unified bridge used by the Rebalancer to send assets cross-chain via OFT-compatible tokens.
 contract LZUnifiedBridge is BaseBridge, IBridge {
     using SafeERC20 for IERC20;
 
-    address public immutable endpoint;
-
+    /// @notice Local vars used to avoid stack-too-deep in sendMsg().
     struct SendMsgLocalVars {
         address market;
         address underlying;
@@ -25,17 +27,33 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
         SendParam sendParam;
     }
 
-    mapping(address => address) public bridgeContracts;
-    mapping(address => address) public oftExecutors;
+    /// @notice LayerZero endpoint contract allowed to call lzCompose().
+    address public immutable ENDPOINT;
 
+    /// @notice Maps underlying token => bridge contract (OFT). If not set, defaults to underlying itself.
+    mapping(address underlying => address bridgeContract) public bridgeContracts;
+
+    /// @notice Maps underlying token => executor contract used via delegatecall for send/compose flows.
+    mapping(address underlying => address executor) public oftExecutors;
+
+    /// @notice Emitted after a message is sent via LayerZero.
+    /// @param dstChainId Destination chain id (eid).
+    /// @param market Market address encoded in compose payload.
+    /// @param amountLD Amount sent (local decimals).
+    /// @param minAmountLD Minimum amount expected on destination (local decimals).
+    /// @param guid LayerZero message GUID.
     event MsgSent(
-        uint32 indexed dstChainId,
-        address indexed market,
-        uint256 amountLD,
-        uint256 minAmountLD,
-        bytes32 guid
+        uint32 indexed dstChainId, address indexed market, uint256 amountLD, uint256 minAmountLD, bytes32 guid
     );
+
+    /// @notice Emitted when a bridge contract is configured for an underlying.
+    /// @param underlying Underlying token address.
+    /// @param bridgeContract Bridge contract (OFT) used for that underlying.
     event BridgeContractSet(address indexed underlying, address indexed bridgeContract);
+
+    /// @notice Emitted when an OFT executor is configured for an underlying.
+    /// @param underlying Underlying token address.
+    /// @param executor Executor contract address.
     event OftExecutorSet(address indexed underlying, address indexed executor);
 
     error LZBridge_NotEnoughFees();
@@ -49,46 +67,47 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
     error LZBridge_BadFrom();
     error LZBridge_RefunderNotValid();
 
+    /// @notice Creates the unified LayerZero bridge.
+    /// @param _roles Roles contract used by BaseBridge.
+    /// @param _endpoint LayerZero endpoint allowed to call lzCompose().
     constructor(address _roles, address _endpoint) BaseBridge(_roles) {
-        endpoint = _endpoint;
+        // slither-disable-next-line missing-zero-address-validation
+        ENDPOINT = _endpoint;
     }
 
+    /// @notice Sets the OFT bridge contract for an underlying token.
+    /// @param underlying Underlying token.
+    /// @param bridgeContract OFT/bridge contract to use for that underlying.
     function setBridgeContract(address underlying, address bridgeContract) external onlyBridgeConfigurator {
         bridgeContracts[underlying] = bridgeContract;
         emit BridgeContractSet(underlying, bridgeContract);
     }
 
+    /// @notice Sets the executor contract for an underlying token.
+    /// @param underlying Underlying token.
+    /// @param bridgeContract Executor contract (kept as name for backward-compat with existing calls/logs).
     function setOftExecutorContract(address underlying, address bridgeContract) external onlyBridgeConfigurator {
         oftExecutors[underlying] = bridgeContract;
         emit OftExecutorSet(underlying, bridgeContract);
     }
 
-    function getFee(uint32 _dstChainId, bytes memory _message, bytes memory)
-        external
-        view
-        returns (uint256)
-    {
-        require(_dstChainId > 0, LZBridge_ChainNotRegistered());
-
-        (MessagingFee memory fees,) = _getFee(_dstChainId, _message);
-        return fees.nativeFee;
-    }
-
+    /// @notice Sends a message + tokens via OFT, delegating to an executor per underlying.
+    /// @param _extractedAmount Amount extracted by the rebalancer.
+    /// @param _market Market address expected inside `_message`.
+    /// @param _dstChainId Destination chain id (eid).
+    /// @param _token Underlying token (must match market.underlying()).
+    /// @param _message ABI-encoded (market, amountLD, minAmountLD, extraOptions).
+    /// @param _extraData ABI-encoded refund address.
     function sendMsg(
         uint256 _extractedAmount,
         address _market,
         uint32 _dstChainId,
         address _token,
-        bytes memory _message,
-        bytes memory _extraData
-    )
-        external
-        payable
-        onlyRebalancer
-    {
+        bytes calldata _message,
+        bytes calldata _extraData
+    ) external payable onlyRebalancer {
         require(_dstChainId > 0, LZBridge_ChainNotRegistered());
 
-        
         SendMsgLocalVars memory v;
 
         (v.market,,,) = abi.decode(_message, (address, uint256, uint256, bytes));
@@ -110,34 +129,29 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
         address refunder = abi.decode(_extraData, (address));
         require(refunder != address(0), LZBridge_RefunderNotValid());
 
-        MessagingReceipt memory msgReceipt = _delegateExecuteSend(
-            v.underlying,
-            v.bridgeContract,
-            v.sendParam,
-            v.fees,
-            msg.sender,
-            refunder
-        );
+        MessagingReceipt memory msgReceipt =
+            _delegateExecuteSend(v.underlying, v.bridgeContract, v.sendParam, v.fees, msg.sender, refunder);
 
-        emit MsgSent(
-            _dstChainId,
-            v.market,
-            v.sendParam.amountLD,
-            v.sendParam.minAmountLD,
-            msgReceipt.guid
-        );
+        emit MsgSent(_dstChainId, v.market, v.sendParam.amountLD, v.sendParam.minAmountLD, msgReceipt.guid);
     }
 
-    function lzCompose(
-        address from,
-        bytes32,
-        bytes calldata message,
-        address,
-        bytes calldata
-    ) external payable {
-        require(msg.sender == endpoint, LZBridge_OnlyEndpoint());
+    /// @notice LayerZero compose callback. Delegates compose execution to the configured executor.
+    /// @param from Expected to be the bridge contract (OFT) for the decoded underlying.
+    /// @param guid Unused.
+    /// @param message ABI-encoded (market).
+    /// @param executor Unused.
+    /// @param extraData Unused.
+    function lzCompose(address from, bytes32 guid, bytes calldata message, address executor, bytes calldata extraData)
+        external
+        payable
+    {
+        guid;
+        executor;
+        extraData;
 
-        (address market) = abi.decode(message, (address));
+        require(msg.sender == ENDPOINT, LZBridge_OnlyEndpoint());
+
+        address market = abi.decode(message, (address));
         address underlying = ImTokenMinimal(market).underlying();
 
         address bridgeContract = bridgeContracts[underlying];
@@ -147,17 +161,14 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
 
         require(from == bridgeContract, LZBridge_BadFrom());
 
-        address executor = oftExecutors[underlying];
-        require(executor != address(0), LZBridge_ExecutorNotSet());
+        address oftExecutor = oftExecutors[underlying];
+        require(oftExecutor != address(0), LZBridge_ExecutorNotSet());
 
-        bytes memory data = abi.encodeWithSelector(
-            IOftMessageExecutor.executeCompose.selector,
-            market,
-            underlying,
-            bridgeContract
-        );
+        bytes memory data =
+            abi.encodeWithSelector(IOftMessageExecutor.executeCompose.selector, market, underlying, bridgeContract);
 
-        (bool ok, bytes memory ret) = executor.delegatecall(data);
+        // slither-disable-next-line controlled-delegatecall
+        (bool ok, bytes memory ret) = oftExecutor.delegatecall(data);
         if (!ok) {
             assembly {
                 revert(add(ret, 32), mload(ret))
@@ -165,28 +176,24 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
         }
     }
 
-    function processUncomposedMessages(address _market)
-        external
-        payable
-        onlyBridgeConfigurator
-    {
+    /// @notice Processes any stored/uncomposed messages for a market (via executor).
+    /// @param _market Market address.
+    function processUncomposedMessages(address _market) external payable onlyBridgeConfigurator {
         address underlying = ImTokenMinimal(_market).underlying();
+
         address bridgeContract = bridgeContracts[underlying];
         if (bridgeContract == address(0)) {
             bridgeContract = underlying;
         }
 
-        address executor = oftExecutors[underlying];
-        require(executor != address(0), LZBridge_ExecutorNotSet());
+        address oftExecutor = oftExecutors[underlying];
+        require(oftExecutor != address(0), LZBridge_ExecutorNotSet());
 
-        bytes memory data = abi.encodeWithSelector(
-            IOftMessageExecutor.processUncomposed.selector,
-            _market,
-            underlying,
-            bridgeContract
-        );
+        bytes memory data =
+            abi.encodeWithSelector(IOftMessageExecutor.processUncomposed.selector, _market, underlying, bridgeContract);
 
-        (bool ok, bytes memory ret) = executor.delegatecall(data);
+        // slither-disable-next-line controlled-delegatecall
+        (bool ok, bytes memory ret) = oftExecutor.delegatecall(data);
         if (!ok) {
             assembly {
                 revert(add(ret, 32), mload(ret))
@@ -194,7 +201,66 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
         }
     }
 
-    function _getFee(uint32 dstEid, bytes memory _message)
+    /// @notice Quotes the native fee required to send the message.
+    /// @param _dstChainId Destination chain id (eid).
+    /// @param _message ABI-encoded (market, amountLD, minAmountLD, extraOptions).
+    /// @param _extraData Unused.
+    /// @return nativeFee Native fee quoted by the OFT.
+    function getFee(uint32 _dstChainId, bytes calldata _message, bytes calldata _extraData)
+        external
+        view
+        returns (uint256 nativeFee)
+    {
+        _extraData;
+        require(_dstChainId > 0, LZBridge_ChainNotRegistered());
+
+        (MessagingFee memory fees,) = _getFee(_dstChainId, _message);
+        return fees.nativeFee;
+    }
+
+    /// @notice Delegates executeSend to the configured executor and decodes the MessagingReceipt.
+    /// @param underlying Underlying token.
+    /// @param bridgeContract OFT/bridge contract used for the send.
+    /// @param params LayerZero SendParam.
+    /// @param fees LayerZero MessagingFee.
+    /// @param rebalancer Caller (expected rebalancer).
+    /// @param refundAddress Refund address for any extra native fee.
+    /// @return r MessagingReceipt returned by the executor.
+    function _delegateExecuteSend(
+        address underlying,
+        address bridgeContract,
+        SendParam memory params,
+        MessagingFee memory fees,
+        address rebalancer,
+        address refundAddress
+    ) private returns (MessagingReceipt memory r) {
+        bytes memory data = abi.encodeWithSelector(
+            IOftMessageExecutor.executeSend.selector,
+            underlying,
+            bridgeContract,
+            params,
+            fees,
+            rebalancer,
+            refundAddress
+        );
+
+        address oftExecutor = oftExecutors[underlying];
+        (bool ok, bytes memory ret) = oftExecutor.delegatecall(data);
+        if (!ok) {
+            assembly {
+                revert(add(ret, 32), mload(ret))
+            }
+        }
+
+        r = abi.decode(ret, (MessagingReceipt));
+    }
+
+    /// @notice Internal helper to quote fees and build SendParam.
+    /// @param dstEid Destination chain id (eid).
+    /// @param _message ABI-encoded (market, amountLD, minAmountLD, extraOptions).
+    /// @return fees LayerZero messaging fees.
+    /// @return lzSendParams LayerZero send parameters.
+    function _getFee(uint32 dstEid, bytes calldata _message)
         private
         view
         returns (MessagingFee memory fees, SendParam memory lzSendParams)
@@ -219,33 +285,5 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
         });
 
         fees = ILayerZeroOFT(bridgeContract).quoteSend(lzSendParams, false);
-    }
-
-    function _delegateExecuteSend(
-        address underlying,
-        address bridgeContract,
-        SendParam memory params,
-        MessagingFee memory fees,
-        address rebalancer,
-        address refundAddress
-    ) private returns (MessagingReceipt memory r) {
-        bytes memory data = abi.encodeWithSelector(
-            IOftMessageExecutor.executeSend.selector,
-            underlying,
-            bridgeContract,
-            params,
-            fees,
-            rebalancer,
-            refundAddress
-        );
-
-        (bool ok, bytes memory ret) = address(oftExecutors[underlying]).delegatecall(data);
-        if (!ok) {
-            assembly {
-                revert(add(ret, 32), mload(ret))
-            }
-        }
-
-        r = abi.decode(ret, (MessagingReceipt));
     }
 }

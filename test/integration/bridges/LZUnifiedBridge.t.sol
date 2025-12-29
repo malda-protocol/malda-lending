@@ -7,44 +7,62 @@ import {Base_Integration_Test} from "../Base_Integration_Test.t.sol";
 import {weEthOftMessageExecutor} from "src/rebalancer/bridges/helpers/weEthOftMessageExecutor.sol";
 import {MockRoles} from "test/mocks/MockRoles.sol";
 
-import "forge-std/console.sol";
+import {console} from "forge-std/console.sol";
 
+/// @title MockMarket
+/// @author Malda Protocol
+/// @notice Minimal mock market that exposes an underlying token address.
 contract MockMarket {
+    /// @notice Underlying token used by the market.
     address public underlying;
+
+    /// @notice Creates a new mock market.
+    /// @param _underlying Underlying token address.
     constructor(address _underlying) {
         underlying = _underlying;
     }
 }
 
+/// @title LZUnifiedBridge Integration Tests
+/// @author Malda Protocol
+/// @notice Fork-based integration tests for LZUnifiedBridge using weETH and rsETH endpoints.
 contract LZUnifiedBridgeIntegrationTest is Base_Integration_Test {
-    LZUnifiedBridge bridge;
-    MockRoles mockRoles;
-    weEthOftMessageExecutor executor;
+    /// @notice Bridge under test.
+    LZUnifiedBridge public bridge;
+    /// @notice Mock roles contract used by the bridge.
+    MockRoles public mockRoles;
+    /// @notice OFT executor used for weETH flows.
+    weEthOftMessageExecutor public executor;
 
     // weETH addresses
-    address constant WEETH_LINEA = 0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6;
-    address constant WEETH_BASE  = 0x04C0599Ae5A44757c0af6F9eC3b93da8976c150A;
-    address constant WEETH_ETH   = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
-    address constant WEETH_ADAPTER_ETH = 0xcd2eb13D6831d4602D80E5db9230A57596CDCA63;
+    address public constant WEETH_LINEA = 0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6;
+    address public constant WEETH_BASE = 0x04C0599Ae5A44757c0af6F9eC3b93da8976c150A;
+    address public constant WEETH_ETH = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
+    address public constant WEETH_ADAPTER_ETH = 0xcd2eb13D6831d4602D80E5db9230A57596CDCA63;
 
-    address constant RSETH_LINEA = 0xD2671165570f41BBB3B0097893300b6EB6101E6C;
-    address constant RSETH_BASE  = 0xEDfa23602D0EC14714057867A78d01e94176BEA0;
-    address constant RSETH_ETH   = 0xA1290d69c65A6Fe4DF752f95823fae25cB99e5A7;
+    // rsETH addresses (kept here for convenience; not used in these tests yet)
+    address public constant RSETH_LINEA = 0xD2671165570f41BBB3B0097893300b6EB6101E6C;
+    address public constant RSETH_BASE = 0xEDfa23602D0EC14714057867A78d01e94176BEA0;
+    address public constant RSETH_ETH = 0xA1290d69c65A6Fe4DF752f95823fae25cB99e5A7;
 
-    uint32 lineaLzId = 30183;
-    uint32 baseLzId = 30184;
-    uint32 ethLzId = 30101;
+    /// @notice LayerZero endpoint IDs per chain.
+    uint32 public lineaLzId = 30183;
+    uint32 public baseLzId = 30184;
+    uint32 public ethLzId = 30101;
 
+    /// @notice Test setup (forks, common fixtures).
     function setUp() public override {
         super.setUp();
-
     }
+
+    /// @notice Allow this test contract to receive native tokens for fee payment.
     receive() external payable {}
 
-    /// weETH Linea -> Base 
+    /// @notice weETH Linea -> Base send flow (fork test).
     function test_LineaToBase_weETH_SendFrom() external {
         vm.skip(true);
         vm.selectFork(lineaFork);
+
         mockRoles = new MockRoles();
         bridge = new LZUnifiedBridge(address(mockRoles), address(this));
         MockMarket market = new MockMarket(WEETH_LINEA);
@@ -58,39 +76,24 @@ contract LZUnifiedBridgeIntegrationTest is Base_Integration_Test {
         deal(WEETH_LINEA, address(this), amount);
         IERC20(WEETH_LINEA).approve(address(bridge), amount);
 
-        bytes memory message = abi.encode(
-            address(market), 
-            amount,
-            amount, 
-            bytes("") 
-        );
+        bytes memory message = abi.encode(address(market), amount, amount, bytes(""));
 
         uint256 balBefore = IERC20(WEETH_LINEA).balanceOf(address(this));
 
-        bridge.sendMsg{value: 1 ether}(
-            amount,
-            address(market),
-            baseLzId,
-            WEETH_LINEA,
-            message,
-            bytes("")
-        );
+        bridge.sendMsg{value: 1 ether}(amount, address(market), baseLzId, WEETH_LINEA, message, bytes(""));
 
         uint256 balAfter = IERC20(WEETH_LINEA).balanceOf(address(this));
 
         assertEq(balAfter, balBefore - amount);
     }
 
-    // need to be run with --evm-version cancun
-    //$ forge test --mt test_BaseToLinea_weETH_SendFrom --evm-version cancun -vvvv
+    /// @notice weETH Base -> Linea send flow (requires Cancun).
+    /// @dev Run with: forge test --mt test_BaseToLinea_weETH_SendFrom --evm-version cancun -vvvv
     function test_BaseToLinea_weETH_SendFrom() external {
         vm.skip(true);
+
         address impl = 0xde8A2C33655ACA88f258988ED74D1511876343D1;
         console.log("impl code length:", impl.code.length);
-        
-        // address lzEndpoint = 0x1a44076050125825900e736c501f859c50fE728c;
-        // bytes memory stub = hex"600060005560016000fd"; // dummy code: returns cleanly
-        // vm.etch(lzEndpoint, stub);
 
         mockRoles = new MockRoles();
         bridge = new LZUnifiedBridge(address(mockRoles), address(this));
@@ -105,32 +108,22 @@ contract LZUnifiedBridgeIntegrationTest is Base_Integration_Test {
         deal(WEETH_BASE, address(this), amount);
         IERC20(WEETH_BASE).approve(address(bridge), amount);
 
-        bytes memory message = abi.encode(
-            address(market), 
-            amount,
-            amount, 
-            bytes("") 
-        );
+        bytes memory message = abi.encode(address(market), amount, amount, bytes(""));
 
         uint256 balBefore = IERC20(WEETH_BASE).balanceOf(address(this));
 
-        bridge.sendMsg{value: 1 ether}(
-            amount,
-            address(market),
-            lineaLzId,
-            WEETH_BASE,
-            message,
-            bytes("")
-        );
+        bridge.sendMsg{value: 1 ether}(amount, address(market), lineaLzId, WEETH_BASE, message, bytes(""));
 
         uint256 balAfter = IERC20(WEETH_BASE).balanceOf(address(this));
 
         assertEq(balAfter, balBefore - amount);
     }
 
+    /// @notice weETH Ethereum -> Linea send flow (fork test).
     function test_EthToLinea_weETH_SendFrom() external {
         vm.skip(true);
         vm.selectFork(ethFork);
+
         mockRoles = new MockRoles();
         bridge = new LZUnifiedBridge(address(mockRoles), address(this));
         MockMarket market = new MockMarket(WEETH_ETH);
@@ -145,23 +138,11 @@ contract LZUnifiedBridgeIntegrationTest is Base_Integration_Test {
         deal(WEETH_ETH, address(this), amount);
         IERC20(WEETH_ETH).approve(address(bridge), amount);
 
-        bytes memory message = abi.encode(
-            address(market), 
-            amount,
-            amount, 
-            bytes("") 
-        );
+        bytes memory message = abi.encode(address(market), amount, amount, bytes(""));
 
         uint256 balBefore = IERC20(WEETH_ETH).balanceOf(address(this));
 
-        bridge.sendMsg{value: 1 ether}(
-            amount,
-            address(market),
-            lineaLzId,
-            WEETH_ETH,
-            message,
-            bytes("")
-        );
+        bridge.sendMsg{value: 1 ether}(amount, address(market), lineaLzId, WEETH_ETH, message, bytes(""));
 
         uint256 balAfter = IERC20(WEETH_ETH).balanceOf(address(this));
 
