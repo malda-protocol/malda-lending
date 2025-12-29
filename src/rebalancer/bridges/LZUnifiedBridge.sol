@@ -250,7 +250,6 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
             refundAddress
         );
 
-        address oftExecutor = oftExecutors[underlying];
         (bool ok, bytes memory ret) = oftExecutor.delegatecall(data);
         if (!ok) {
             assembly {
