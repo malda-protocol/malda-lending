@@ -17,27 +17,36 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
+/// @title ImErc20Host
+/// @author Merge Layers Inc.
+/// @notice Interface for host-side mERC20 cross-chain operations
 interface ImErc20Host {
     // ----------- EVENTS -----------
-    /**
-     * @notice Emitted when a user updates allowed callers
-     */
+    /// @notice Emitted when a user updates allowed callers
+    /// @param sender The caller updating permission
+    /// @param caller The address whose status is updated
+    /// @param status Whether the caller is allowed
     event AllowedCallerUpdated(address indexed sender, address indexed caller, bool status);
 
-    /**
-     * @notice Emitted when a chain id whitelist status is updated
-     */
+    /// @notice Emitted when a chain id whitelist status is updated
+    /// @param chainId The chain identifier
+    /// @param status Whether the chain is whitelisted
     event mErc20Host_ChainStatusUpdated(uint32 indexed chainId, bool status);
 
-    /**
-     * @notice Emitted when a liquidate operation is executed
-     */
+    /// @notice Emitted when a liquidate operation is executed
+    /// @param msgSender The caller on host chain
+    /// @param srcSender The caller on source chain
+    /// @param userToLiquidate The user being liquidated
+    /// @param receiver The receiver of seized collateral
+    /// @param collateral The collateral market
+    /// @param srcChainId Source chain identifier
+    /// @param amount The repay amount
     event mErc20Host_LiquidateExternal(
         address indexed msgSender,
         address indexed srcSender,
@@ -48,158 +57,145 @@ interface ImErc20Host {
         uint256 amount
     );
 
-    /**
-     * @notice Emitted when a mint operation is executed
-     */
+    /// @notice Emitted when a mint operation is executed
+    /// @param msgSender The caller on host chain
+    /// @param srcSender The caller on source chain
+    /// @param receiver The receiver of minted tokens
+    /// @param chainId Source chain identifier
+    /// @param amount The mint amount
     event mErc20Host_MintExternal(
         address indexed msgSender, address indexed srcSender, address indexed receiver, uint32 chainId, uint256 amount
     );
 
-    /**
-     * @notice Emitted when a borrow operation is executed
-     */
+    /// @notice Emitted when a borrow operation is executed
+    /// @param msgSender The caller on host chain
+    /// @param srcSender The caller on source chain
+    /// @param chainId Source chain identifier
+    /// @param amount The borrow amount
     event mErc20Host_BorrowExternal(
         address indexed msgSender, address indexed srcSender, uint32 indexed chainId, uint256 amount
     );
 
-    /**
-     * @notice Emitted when a repay operation is executed
-     */
+    /// @notice Emitted when a repay operation is executed
+    /// @param msgSender The caller on host chain
+    /// @param srcSender The caller on source chain
+    /// @param position The position being repaid
+    /// @param chainId Source chain identifier
+    /// @param amount The repay amount
     event mErc20Host_RepayExternal(
         address indexed msgSender, address indexed srcSender, address indexed position, uint32 chainId, uint256 amount
     );
 
-    /**
-     * @notice Emitted when a withdrawal is executed
-     */
+    /// @notice Emitted when a withdrawal is executed
+    /// @param msgSender The caller on host chain
+    /// @param srcSender The caller on source chain
+    /// @param chainId Source chain identifier
+    /// @param amount The withdrawal amount
     event mErc20Host_WithdrawExternal(
         address indexed msgSender, address indexed srcSender, uint32 indexed chainId, uint256 amount
     );
 
-    /**
-     * @notice Emitted when a borrow operation is triggered for an extension chain
-     */
+    /// @notice Emitted when a borrow operation is triggered for an extension chain
+    /// @param sender The caller initiating the borrow
+    /// @param dstChainId Destination chain identifier
+    /// @param amount The borrow amount
     event mErc20Host_BorrowOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount);
 
-    /**
-     * @notice Emitted when a withdraw operation is triggered for an extension chain
-     */
+    /// @notice Emitted when a withdraw operation is triggered for an extension chain
+    /// @param sender The caller initiating the withdrawal
+    /// @param dstChainId Destination chain identifier
+    /// @param amount The withdrawal amount
     event mErc20Host_WithdrawOnExtensionChain(address indexed sender, uint32 dstChainId, uint256 amount);
 
-    /**
-     * @notice Emitted when gas fees are updated for a dst chain
-     */
+    /// @notice Emitted when gas fees are updated for a dst chain
+    /// @param dstChainId Destination chain identifier
+    /// @param amount The gas fee amount
     event mErc20Host_GasFeeUpdated(uint32 indexed dstChainId, uint256 amount);
 
+    /// @notice Emitted when migration mint is performed
+    /// @param receiver Receiver of the migrated tokens
+    /// @param amount Amount minted
     event mErc20Host_MintMigration(address indexed receiver, uint256 amount);
+
+    /// @notice Emitted when migration borrow is performed
+    /// @param borrower Borrower receiving funds
+    /// @param amount Amount borrowed
     event mErc20Host_BorrowMigration(address indexed borrower, uint256 amount);
 
+    /// @notice Emitted when migrator address is updated
+    /// @param migrator The new migrator address
+    event mErc20Host_MigratorUpdated(address indexed migrator);
+
+    /// @notice Emitted when gas helper address is updated
+    /// @param helper The new gas helper address
+    event mErc20Host_GasHelperUpdated(address indexed helper);
+
     // ----------- ERRORS -----------
-    /**
-     * @notice Thrown when the chain id is not LINEA
-     */
+    /// @notice Thrown when the chain id is not LINEA
     error mErc20Host_ProofGenerationInputNotValid();
 
-    /**
-     * @notice Thrown when the dst chain id is not current chain
-     */
+    /// @notice Thrown when the dst chain id is not current chain
     error mErc20Host_DstChainNotValid();
 
-    /**
-     * @notice Thrown when the chain id is not LINEA
-     */
+    /// @notice Thrown when the chain id is not LINEA
     error mErc20Host_ChainNotValid();
 
-    /**
-     * @notice Thrown when the address is not valid
-     */
+    /// @notice Thrown when the address is not valid
     error mErc20Host_AddressNotValid();
 
-    /**
-     * @notice Thrown when the amount provided is bigger than the available amount`
-     */
+    /// @notice Thrown when the amount provided is bigger than the available amount`
     error mErc20Host_AmountTooBig();
 
-    /**
-     * @notice Thrown when the amount specified is invalid (e.g., zero)
-     */
+    /// @notice Thrown when the amount specified is invalid (e.g., zero)
     error mErc20Host_AmountNotValid();
 
-    /**
-     * @notice Thrown when the journal data provided is invalid or corrupted
-     */
+    /// @notice Thrown when the journal data provided is invalid or corrupted
     error mErc20Host_JournalNotValid();
 
-    /**
-     * @notice Thrown when caller is not allowed
-     */
+    /// @notice Thrown when caller is not allowed
     error mErc20Host_CallerNotAllowed();
 
-    /**
-     * @notice Thrown when caller is not rebalancer
-     */
+    /// @notice Thrown when caller is not rebalancer
     error mErc20Host_NotRebalancer();
 
-    /**
-     * @notice Thrown when length of array is not valid
-     */
+    /// @notice Thrown when length of array is not valid
     error mErc20Host_LengthMismatch();
 
-    /**
-     * @notice Thrown when not enough gas fee was received
-     */
+    /// @notice Thrown when not enough gas fee was received
     error mErc20Host_NotEnoughGasFee();
 
-    /**
-     * @notice Thrown when L1 inclusion is required
-     */
+    /// @notice Thrown when L1 inclusion is required
     error mErc20Host_L1InclusionRequired();
 
-    /**
-     * @notice Thrown when extension action is not valid
-     */
+    /// @notice Thrown when extension action is not valid
     error mErc20Host_ActionNotAvailable();
 
-    // ----------- VIEW -----------
-    /**
-     * @notice Returns the proof data journal
-     */
-    function getProofData(address user, uint32 dstId) external view returns (uint256, uint256);
-
     // ----------- PUBLIC -----------
-    /**
-     * @notice Mints mTokens during migration without requiring underlying transfer
-     * @param mint Mint or borrow
-     * @param amount The amount of underlying to be accounted for
-     * @param receiver The address that will receive the mTokens or the underlying in case of borrowing
-     * @param borrower The address that borrow is executed for
-     * @param minAmount The min amount of underlying to be accounted for
-     */
+    /// @notice Mints mTokens during migration without requiring underlying transfer
+    /// @param mint Mint or borrow
+    /// @param amount The amount of underlying to be accounted for
+    /// @param receiver The address that will receive the mTokens or the underlying in case of borrowing
+    /// @param borrower The address that borrow is executed for
+    /// @param minAmount The min amount of underlying to be accounted for
     function mintOrBorrowMigration(bool mint, uint256 amount, address receiver, address borrower, uint256 minAmount)
         external;
 
-    /**
-     * @notice Extract amount to be used for rebalancing operation
-     * @param amount The amount to rebalance
-     */
+    /// @notice Extract amount to be used for rebalancing operation
+    /// @param amount The amount to rebalance
     function extractForRebalancing(uint256 amount) external;
 
-    /**
-     * @notice Set caller status for `msg.sender`
-     * @param caller The caller address
-     * @param status The status to set for `caller`
-     */
+    /// @notice Set caller status for `msg.sender`
+    /// @param caller The caller address
+    /// @param status The status to set for `caller`
     function updateAllowedCallerStatus(address caller, bool status) external;
 
-    /**
-     * @notice Mints tokens after external verification
-     * @param journalData The journal data for minting (array of encoded journals)
-     * @param seal The Zk proof seal
-     * @param userToLiquidate Array of positions to liquidate
-     * @param liquidateAmount Array of amounts to liquidate
-     * @param collateral Array of collaterals to seize
-     * @param receiver The collateral receiver
-     */
+    /// @notice Mints tokens after external verification
+    /// @param journalData The journal data for minting (array of encoded journals)
+    /// @param seal The Zk proof seal
+    /// @param userToLiquidate Array of positions to liquidate
+    /// @param liquidateAmount Array of amounts to liquidate
+    /// @param collateral Array of collaterals to seize
+    /// @param receiver The collateral receiver
     function liquidateExternal(
         bytes calldata journalData,
         bytes calldata seal,
@@ -209,14 +205,12 @@ interface ImErc20Host {
         address receiver
     ) external;
 
-    /**
-     * @notice Mints tokens after external verification
-     * @param journalData The journal data for minting (array of encoded journals)
-     * @param seal The Zk proof seal
-     * @param mintAmount Array of amounts to mint
-     * @param minAmountsOut Array of min amounts accepted
-     * @param receiver The tokens receiver
-     */
+    /// @notice Mints tokens after external verification
+    /// @param journalData The journal data for minting (array of encoded journals)
+    /// @param seal The Zk proof seal
+    /// @param mintAmount Array of amounts to mint
+    /// @param minAmountsOut Array of min amounts accepted
+    /// @param receiver The tokens receiver
     function mintExternal(
         bytes calldata journalData,
         bytes calldata seal,
@@ -225,13 +219,11 @@ interface ImErc20Host {
         address receiver
     ) external;
 
-    /**
-     * @notice Repays tokens after external verification
-     * @param journalData The journal data for repayment (array of encoded journals)
-     * @param seal The Zk proof seal
-     * @param repayAmount Array of amounts to repay
-     * @param receiver The position to repay for
-     */
+    /// @notice Repays tokens after external verification
+    /// @param journalData The journal data for repayment (array of encoded journals)
+    /// @param seal The Zk proof seal
+    /// @param repayAmount Array of amounts to repay
+    /// @param receiver The position to repay for
     function repayExternal(
         bytes calldata journalData,
         bytes calldata seal,
@@ -239,11 +231,17 @@ interface ImErc20Host {
         address receiver
     ) external;
 
-    /**
-     * @notice Initiates a withdraw operation
-     * @param actionType The actionType param (1 - withdraw, 2 - borrow)
-     * @param amount The amount to withdraw
-     * @param dstChainId The destination chain to recieve funds
-     */
+    /// @notice Initiates a withdraw operation
+    /// @param actionType The actionType param (1 - withdraw, 2 - borrow)
+    /// @param amount The amount to withdraw
+    /// @param dstChainId The destination chain to recieve funds
     function performExtensionCall(uint256 actionType, uint256 amount, uint32 dstChainId) external payable;
+
+    // ----------- VIEW -----------
+    /// @notice Returns the proof data journal
+    /// @param user The user address for the proof
+    /// @param dstId The destination chain identifier
+    /// @return dataRoot The proof data root
+    /// @return journalHash The proof journal hash
+    function getProofData(address user, uint32 dstId) external view returns (uint256 dataRoot, uint256 journalHash);
 }

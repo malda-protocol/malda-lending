@@ -17,75 +17,125 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|   
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 // contracts
 import {CREATE3} from "src/libraries/CREATE3.sol";
 
+/// @title CREATE3-based deployer with admin control
+/// @author Malda Protocol
+/// @notice Minimal helper to precompute and deploy contracts via CREATE3 with two-step admin handover.
 contract Deployer {
+    // ----------- STORAGE ------------
+    /// @notice Current admin authorized to deploy and manage ownership
     address public admin;
+
+    /// @notice Pending admin address that can accept control
     address public pendingAdmin;
 
-    error NotAuthorized(address admin, address sender);
-
+    // ----------- EVENTS ------------
+    /// @notice Emitted when admin is updated
+    /// @param _admin New admin address
     event AdminSet(address indexed _admin);
+
+    /// @notice Emitted when pending admin is set
+    /// @param _admin Pending admin address
     event PendingAdminSet(address indexed _admin);
+
+    /// @notice Emitted when pending admin accepts control
+    /// @param _admin The admin address that just accepted
     event AdminAccepted(address indexed _admin);
 
+    // ----------- ERRORS ------------
+    /// @notice Error thrown when the caller is not the admin
+    error NotAuthorized(address admin, address sender);
+
+    // ----------- MODIFIERS ------------
+    /// @notice Modifier to check if the caller is the admin
     modifier onlyAdmin() {
+        // Requirements: the caller is the admin
         require(msg.sender == admin, NotAuthorized(admin, msg.sender));
         _;
     }
 
+    /// @notice Initializes the deployer
+    /// @param _admin Address that will control deployments
     constructor(address _admin) {
+        // Requirements: the admin address is not zero
+        require(_admin != address(0), NotAuthorized(address(0), msg.sender));
         admin = _admin;
     }
 
+    /// @notice Accepts plain ETH transfers
     receive() external payable {}
 
     // ----------- OWNER ------------
+    /// @notice Propose a new admin that must later accept
+    /// @param newAdmin Address proposed as the next admin
     function setPendingAdmin(address newAdmin) external onlyAdmin {
+        require(newAdmin != address(0), NotAuthorized(address(0), msg.sender));
+
+        // Effects: set the pending admin
         pendingAdmin = newAdmin;
 
+        // Events: emit the pending admin set event
         emit PendingAdminSet(newAdmin);
     }
 
-    function saveEth() external {
-        if (admin == msg.sender) {
-            (bool success,) = msg.sender.call{value: address(this).balance}("");
-            require(success, "ETH");
-        }
+    /// @notice Withdraws all ETH to the admin
+    function saveEth() external onlyAdmin {
+        // Interactions: withdraw the ETH
+        (bool success,) = msg.sender.call{value: address(this).balance}("");
+        // Requirements: the withdrawal was successful
+        require(success, "ETH");
     }
 
-    function setNewAdmin(address _addr) external {
-        if (admin == msg.sender) {
-            admin = _addr;
+    /// @notice Directly sets a new admin (without pending/accept)
+    /// @param _addr New admin address
+    function setNewAdmin(address _addr) external onlyAdmin {
+        // Requirements: the new admin address is not zero
+        require(_addr != address(0), NotAuthorized(address(0), msg.sender));
 
-            emit AdminSet(_addr);
-        }
-    }
+        // Effects: set the new admin
+        admin = _addr;
 
-    // ----------- VIEW ------------
-
-    function precompute(bytes32 salt) external view returns (address) {
-        return CREATE3.getDeployed(salt);
+        // Events: emit the admin set event
+        emit AdminSet(_addr);
     }
 
     // ----------- PUBLIC ------------
-    function create(bytes32 salt, bytes memory code) external payable onlyAdmin returns (address) {
+    /// @notice Deploys a contract using CREATE3
+    /// @param salt Deterministic salt used for CREATE3
+    /// @param code Creation bytecode to deploy
+    /// @return deployed The deployed contract address
+    function create(bytes32 salt, bytes calldata code) external payable onlyAdmin returns (address deployed) {
         return CREATE3.deploy(salt, code, msg.value);
     }
 
+    /// @notice Allows the pending admin to accept control
     function acceptAdmin() external {
-        if (msg.sender != pendingAdmin) {
-            revert NotAuthorized(pendingAdmin, msg.sender);
-        }
+        // Requirements: the caller is the pending admin
+        require(msg.sender == pendingAdmin, NotAuthorized(pendingAdmin, msg.sender));
+
+        // Effects: set the admin
         admin = pendingAdmin;
+
+        // Effects: clear the pending admin
         pendingAdmin = address(0);
+
+        // Events: emit the admin accepted event
         emit AdminAccepted(admin);
+    }
+
+    // ----------- VIEW ------------
+    /// @notice Precomputes the deployment address for a given salt
+    /// @param salt Deterministic salt used for CREATE3
+    /// @return The address that would be deployed
+    function precompute(bytes32 salt) external view returns (address) {
+        return CREATE3.getDeployed(salt);
     }
 }

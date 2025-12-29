@@ -6,7 +6,6 @@ import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
-import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
 import {WrapAndSupply} from "src/utils/WrapAndSupply.sol";
 
 // tests
@@ -16,8 +15,9 @@ contract mErc20_mint is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsPausedForMinting(uint256 amount)
         external
         whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Mint)
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
         mWeth.mint(amount, address(this), amount);
     }
@@ -25,18 +25,17 @@ contract mErc20_mint is mToken_Unit_Shared {
     function test_RevertGiven_MarketIsNotListed(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Mint)
-        inRange(amount, SMALL, LARGE)
     {
+        amount = bound(amount, SMALL, LARGE);
+
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         mWeth.mint(amount, address(this), amount - 1000);
     }
 
-    function test_RevertGiven_WhenSupplyCapIsReached(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenSupplyCapReached(address(mWeth), amount)
-        whenMarketIsListed(address(mWeth))
-    {
+    function test_RevertGiven_WhenSupplyCapIsReached(uint256 amount) external whenMarketIsListed(address(mWeth)) {
+        amount = bound(amount, SMALL, LARGE);
+        _whenSupplyCapIsReached(address(mWeth), amount);
+
         _getTokens(weth, address(this), amount);
         weth.approve(address(mWeth), amount);
 
@@ -45,11 +44,9 @@ contract mErc20_mint is mToken_Unit_Shared {
         mWeth.mint(amount, address(this), amount - 1000);
     }
 
-    function test_WhenSupplyCapIsGreater(uint256 amount)
-        external
-        inRange(amount, SMALL, LARGE)
-        whenMarketIsListed(address(mWeth))
-    {
+    function test_WhenSupplyCapIsGreater(uint256 amount) external whenMarketIsListed(address(mWeth)) {
+        amount = bound(amount, SMALL, LARGE);
+
         _getTokens(weth, address(this), amount);
         weth.approve(address(mWeth), amount);
 
@@ -107,9 +104,10 @@ contract mErc20_mint is mToken_Unit_Shared {
 
     function test_WhenSupplyCapIsGreater_ButWhitelistEnabled(uint256 amount)
         external
-        inRange(amount, SMALL, LARGE)
         whenMarketIsListed(address(mWeth))
     {
+        amount = bound(amount, SMALL, LARGE);
+
         _getTokens(weth, address(this), amount);
         weth.approve(address(mWeth), amount);
 

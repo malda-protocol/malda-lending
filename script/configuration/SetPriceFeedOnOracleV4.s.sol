@@ -19,10 +19,7 @@ contract SetPriceFeedOnOracleV4 is Script {
     function runTestnet(address oracle, string memory symbol, address priceFeed, uint8 underlyingDecimals) public {
         uint256 key = vm.envUint("PRIVATE_KEY");
         MixedPriceOracleV4.PriceConfig memory config = MixedPriceOracleV4.PriceConfig({
-            api3Feed: priceFeed,
-            eOracleFeed: priceFeed,
-            toSymbol: "USD",
-            underlyingDecimals: underlyingDecimals
+            api3Feed: priceFeed, eOracleFeed: priceFeed, toSymbol: "USD", underlyingDecimals: underlyingDecimals
         });
 
         console.log("Setting oracle feed for %s", symbol);

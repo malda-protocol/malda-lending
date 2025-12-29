@@ -41,6 +41,11 @@ contract DeployDeployer is Script {
         return deployerAddress;
     }
 
+    function _deployCreate2(bytes32 salt, address owner) internal returns (address) {
+        Deployer deployer = new Deployer{salt: salt}(owner);
+        return address(deployer);
+    }
+
     function _computeCreate2Address(bytes32 salt, bytes memory bytecodeWithConstructor)
         internal
         view
@@ -51,15 +56,11 @@ contract DeployDeployer is Script {
         return address(uint160(uint256(_data)));
     }
 
-    function _deployCreate2(bytes32 salt, address owner) internal returns (address) {
-        Deployer deployer = new Deployer{salt: salt}(owner);
-        return address(deployer);
-    }
-
     function getSalt(string memory name) internal view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
-        );
+        return
+            keccak256(
+                abi.encodePacked(msg.sender, bytes(vm.envString("DEPLOY_SALT")), bytes(string.concat(name, "-v1")))
+            );
     }
 
     function _verifyChain(uint32 expectedChainId) internal view {

@@ -77,12 +77,21 @@ interface ILayerZeroOFT {
         // Address of the sender on the src chain.
         // Amount of tokens sent in local decimals.
         // Amount of tokens received in local decimals.
-    bytes32 indexed guid, uint32 dstEid, address indexed fromAddress, uint256 amountSentLD, uint256 amountReceivedLD);
+        bytes32 indexed guid,
+        uint32 dstEid,
+        address indexed fromAddress,
+        uint256 amountSentLD,
+        uint256 amountReceivedLD
+    );
     event OFTReceived( // GUID of the OFT message.
         // Source Endpoint ID.
         // Address of the recipient on the dst chain.
         // Amount of tokens received in local decimals.
-    bytes32 indexed guid, uint32 srcEid, address indexed toAddress, uint256 amountReceivedLD);
+        bytes32 indexed guid,
+        uint32 srcEid,
+        address indexed toAddress,
+        uint256 amountReceivedLD
+    );
 
     /**
      * @notice Retrieves interfaceID and the version of the OFT.

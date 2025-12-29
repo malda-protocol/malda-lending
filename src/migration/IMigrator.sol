@@ -14,20 +14,59 @@
 // for original license terms and attributions.
 
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.10;
+pragma solidity =0.8.28;
 
+/// @title IMendiMarket
+/// @author Merge Layers Inc.
+/// @notice Interface for legacy Mendi market interactions
 interface IMendiMarket {
-    function repayBorrow(uint256 repayAmount) external returns (uint256);
-    function repayBorrowBehalf(address borrower, uint256 repayAmount) external returns (uint256);
-    function redeemUnderlying(uint256 redeemAmount) external returns (uint256);
-    function redeem(uint256 amount) external returns (uint256);
-    function underlying() external view returns (address);
+    /// @notice Repays a borrow
+    /// @param repayAmount Amount to repay or type(uint256).max
+    /// @return repaidAmount Actual repaid amount
+    function repayBorrow(uint256 repayAmount) external returns (uint256 repaidAmount);
 
-    function balanceOf(address sender) external view returns (uint256);
-    function balanceOfUnderlying(address sender) external returns (uint256);
-    function borrowBalanceStored(address sender) external view returns (uint256);
+    /// @notice Repays a borrow on behalf of borrower
+    /// @param borrower Borrower address
+    /// @param repayAmount Amount to repay
+    /// @return repaidAmount Actual repaid amount
+    function repayBorrowBehalf(address borrower, uint256 repayAmount) external returns (uint256 repaidAmount);
+
+    /// @notice Redeems underlying for given amount
+    /// @param redeemAmount Amount to redeem
+    /// @return redeemed Amount of underlying redeemed
+    function redeemUnderlying(uint256 redeemAmount) external returns (uint256 redeemed);
+
+    /// @notice Redeems tokens
+    /// @param amount Amount of tokens to redeem
+    /// @return redeemed Amount redeemed
+    function redeem(uint256 amount) external returns (uint256 redeemed);
+
+    /// @notice Returns underlying balance of sender
+    /// @param sender Address to query
+    /// @return balance Underlying balance
+    function balanceOfUnderlying(address sender) external returns (uint256 balance);
+
+    /// @notice Returns underlying asset address
+    /// @return asset Underlying token
+    function underlying() external view returns (address asset);
+
+    /// @notice Returns token balance of sender
+    /// @param sender Address to query
+    /// @return tokenBalance Token balance
+    function balanceOf(address sender) external view returns (uint256 tokenBalance);
+
+    /// @notice Returns stored borrow balance
+    /// @param sender Address to query
+    /// @return borrowBalance Borrow balance
+    function borrowBalanceStored(address sender) external view returns (uint256 borrowBalance);
 }
 
+/// @title IMendiComptroller
+/// @author Merge Layers Inc.
+/// @notice Interface for fetching entered markets
 interface IMendiComptroller {
-    function getAssetsIn(address account) external view returns (IMendiMarket[] memory);
+    /// @notice Returns assets in for account
+    /// @param account Account address
+    /// @return assets List of markets
+    function getAssetsIn(address account) external view returns (IMendiMarket[] memory assets);
 }

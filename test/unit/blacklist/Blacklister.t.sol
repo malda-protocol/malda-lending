@@ -1,22 +1,24 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-import "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Blacklister} from "src/blacklister/Blacklister.sol";
+import {IBlacklister} from "src/interfaces/IBlacklister.sol";
 import {MockRoles} from "test/mocks/MockRoles.sol";
 
 contract BlacklisterTest is Test {
-    Blacklister blacklister;
-    MockRoles roles;
-    address owner = address(0xABCD);
-    address guardian = address(0xBEEF);
-    address user = address(0xCAFE);
+    Blacklister internal blacklister;
+    MockRoles internal roles;
+    address internal owner = address(0xABCD);
+    address internal guardian = address(0xBEEF);
+    address internal user = address(0xCAFE);
 
     function setUp() public {
         roles = new MockRoles();
         Blacklister blacklisterImp = new Blacklister();
-        bytes memory blacklisterInitData = abi.encodeWithSelector(Blacklister.initialize.selector, address(owner), address(roles));
+        bytes memory blacklisterInitData =
+            abi.encodeWithSelector(Blacklister.initialize.selector, address(owner), address(roles));
         ERC1967Proxy blacklisterProxy = new ERC1967Proxy(address(blacklisterImp), blacklisterInitData);
         blacklister = Blacklister(address(blacklisterProxy));
         vm.label(address(blacklister), "Blacklister");
@@ -35,14 +37,14 @@ contract BlacklisterTest is Test {
     function testBlacklistAlreadyBlacklistedReverts() public {
         vm.startPrank(owner);
         blacklister.blacklist(user);
-        vm.expectRevert(Blacklister.Blacklister_AlreadyBlacklisted.selector);
+        vm.expectRevert(IBlacklister.Blacklister_AlreadyBlacklisted.selector);
         blacklister.blacklist(user);
         vm.stopPrank();
     }
 
     function testUnblacklistNotBlacklistedReverts() public {
         vm.prank(owner);
-        vm.expectRevert(Blacklister.Blacklister_NotBlacklisted.selector);
+        vm.expectRevert(IBlacklister.Blacklister_NotBlacklisted.selector);
         blacklister.unblacklist(user);
     }
 

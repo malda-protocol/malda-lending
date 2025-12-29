@@ -42,6 +42,6 @@ contract SetMinBorrowSize is Script {
         Operator(operator).setBorrowSizeMin(mTokens, sizes);
         vm.stopBroadcast();
 
-       console.log("Min borrow set for market", market);
+        console.log("Min borrow set for market", market);
     }
 }

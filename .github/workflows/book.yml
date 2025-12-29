@@ -16,9 +16,14 @@ jobs:
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
 
       - name: Install Dependencies
         run: forge install
+
+      - name: Clean old documentation
+        run: rm -rf docs
 
       - name: Generate Documentation
         run: forge doc
@@ -28,7 +33,6 @@ jobs:
           sed -i 's/title = ""/title = "Malda"/' ./docs/book.toml                          # Set the title of the book
           sed -i 's/authors = \[\]/authors = \["Malda"\]/' ./docs/book.toml               # Set the author of the book
           sed -i '/\[book\]/a language = "en"' ./docs/book.toml                                       # Add language setting under [book]
-          sed -i '/\[book\]/a multilingual = false' ./docs/book.toml                                  # Add multilingual setting under [book]
           sed -i 's/no-section-label = true/no-section-label = false/' ./docs/book.toml               # Change no-section-label to false
           sed -i '/\[output.html\]/a default-theme = "dark"' ./docs/book.toml                         # Add default-theme under [output.html]
           sed -i '/\[output.html\]/a preferred-dark-theme = "ayu"' ./docs/book.toml                   # Add preferred-dark-theme under [output.html]

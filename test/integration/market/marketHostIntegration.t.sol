@@ -2,21 +2,18 @@
 pragma solidity =0.8.28;
 
 import {Test} from "forge-std/Test.sol";
-import {stdJson} from "forge-std/StdJson.sol";
-import {Vm} from "forge-std/Vm.sol";
 
+import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
+import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
 
-import { mErc20Host } from "src/mToken/host/mErc20Host.sol";
-import { JumpRateModelV4 } from "src/interest/JumpRateModelV4.sol";
+import {mTokenConfiguration} from "src/mToken/mTokenConfiguration.sol";
+import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
+import {mToken} from "src/mToken/mToken.sol";
 
-import { mTokenConfiguration } from "src/mToken/mTokenConfiguration.sol";
-import { mTokenStorage } from "src/mToken/mTokenStorage.sol";
-import { mToken } from "src/mToken/mToken.sol";
+import {Operator} from "src/Operator/Operator.sol";
 
-import { Operator } from "src/Operator/Operator.sol";
+import {console2} from "forge-std/console2.sol";
 
-
-import "forge-std/console2.sol";
 interface IERC20 {
     function approve(address, uint256) external returns (bool);
     function balanceOf(address) external view returns (uint256);
@@ -24,18 +21,17 @@ interface IERC20 {
     function decimals() external view returns (uint8);
 }
 
-
 contract marketHostIntegration is Test {
     // ---------- Constants ----------
     address public constant MARKET_18DECIMALS = 0xa31963C753f277f7d82d98F56b2C374256925eB7; //wrsETH
 
-    uint256 lineaFork;
-    uint256 chainIdOnFork;
-    address ownerOnChain;
+    uint256 internal lineaFork;
+    uint256 internal chainIdOnFork;
+    address internal ownerOnChain;
 
-    JumpRateModelV4 newInterestModel;
-    mErc20Host market18Decimals;
-    IERC20 asset18Decimals;
+    JumpRateModelV4 internal newInterestModel;
+    mErc20Host internal market18Decimals;
+    IERC20 internal asset18Decimals;
 
     function setUp() public {
         string memory rpc = vm.envString("LINEA_RPC_URL");
@@ -46,7 +42,8 @@ contract marketHostIntegration is Test {
         asset18Decimals = IERC20(address(market18Decimals.underlying()));
         ownerOnChain = market18Decimals.admin(); // same owner for all markets
 
-        newInterestModel = new JumpRateModelV4(31536000, 0, 2219685438, 95129375951, 400000000000000000, address(this), "TEST"); // same owner for all markets (in test)
+        newInterestModel =
+            new JumpRateModelV4(31536000, 0, 2219685438, 95129375951, 400000000000000000, address(this), "TEST"); // same owner for all markets (in test)
     }
 
     function test_marketHost18decimals_SetNewInterestModel_Failure() public {
@@ -80,12 +77,11 @@ contract marketHostIntegration is Test {
         Operator(operatorAddr).setWhitelistedUser(address(this), true);
         vm.stopPrank();
 
-        
         // allow firewall
         address firewall = 0x4E7bbAA670A5E2CD9a170Eb4E1468517Ad2A1448;
         bytes memory callData = abi.encodeWithSignature(
             "validateForbiddenContextInteraction(address,address)",
-            0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38, 
+            0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38,
             0xa31963C753f277f7d82d98F56b2C374256925eB7
         );
         vm.mockCall(firewall, callData, abi.encode(true));
@@ -127,7 +123,6 @@ contract marketHostIntegration is Test {
         console2.log(" - After mint + accrue   : ", borrowRateAfterFirstAccrue);
         console2.log(" - After borrow          : ", borrowRateAfterBorrow);
         console2.log(" - After borrow          : ", borrowRateAfterSecondBorrow);
-
     }
 
     function test_marketHost18decimals_SafeZone_PoC() public {
@@ -159,19 +154,9 @@ contract marketHostIntegration is Test {
         // =============================================================
         // 1. Create multiple suppliers (simulating market depth)
         // =============================================================
-        address[5] memory suppliers = [
-            address(0xA1),
-            address(0xA2),
-            address(0xA3),
-            address(0xA4),
-            address(0xA5)
-        ];
+        address[5] memory suppliers = [address(0xA1), address(0xA2), address(0xA3), address(0xA4), address(0xA5)];
 
-        address[3] memory borrowers = [
-            address(0xB1),
-            address(0xB2),
-            address(0xB3)
-        ];
+        address[3] memory borrowers = [address(0xB1), address(0xB2), address(0xB3)];
 
         uint256 totalLiquidity;
         for (uint256 i; i < suppliers.length; ++i) {
@@ -249,7 +234,6 @@ contract marketHostIntegration is Test {
         // === SAFE ZONE ANALYSIS ===
         // - Safe Zone: Once liquidity grows above ~10x the largest borrow and there are
         //     multiple suppliers, it becomes statistically impossible to cross 100% utilization.
-
     }
 
     function test_marketHost18decimals_SetNewInterestModel_PoC_Analysis() public {
@@ -275,7 +259,7 @@ contract marketHostIntegration is Test {
         address firewall = 0x4E7bbAA670A5E2CD9a170Eb4E1468517Ad2A1448;
         bytes memory callData = abi.encodeWithSignature(
             "validateForbiddenContextInteraction(address,address)",
-            0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38, 
+            0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38,
             0xa31963C753f277f7d82d98F56b2C374256925eB7
         );
         vm.mockCall(firewall, callData, abi.encode(true));
@@ -449,7 +433,7 @@ contract marketHostIntegration is Test {
         console2.log("Total reserves:        ", totalReserves);
         console2.log("Borrow rate before:    ", borrowRateBeforeMint);
         console2.log("Borrow rate after:     ", borrowRateAfterMint);
-        console2.log("Utilization (scaled 1e18): ", utilization);   
+        console2.log("Utilization (scaled 1e18): ", utilization);
 
         // Results
         // Logs:
@@ -459,7 +443,6 @@ contract marketHostIntegration is Test {
         // Borrow rate before:     135883453666
         // Borrow rate after:      1301152
         // Utilization (scaled 1e18):  586187999258024
-
     }
 
     function test_marketHost18decimals_Compare_OldVsNewModel() public {
@@ -507,7 +490,7 @@ contract marketHostIntegration is Test {
         // 1. Simulate over-borrow (broken state)
         // =============================================================
         uint256 cash = 1e18;
-        uint256 totalBorrows = 8e18; 
+        uint256 totalBorrows = 8e18;
         uint256 totalReserves = 2e18;
 
         // old (uncapped) model
@@ -579,8 +562,8 @@ contract marketHostIntegration is Test {
         // =============================================================
         uint256[3] memory liquidityLevels = [
             uint256(0.00125e18), // $5
-            uint256(0.0125e18),  // $50
-            uint256(0.125e18)    // $500
+            uint256(0.0125e18), // $50
+            uint256(0.125e18) // $500
         ];
 
         uint256 targetBorrow = 0.0025e18; // 2x smallest liquidity
@@ -655,7 +638,6 @@ contract marketHostIntegration is Test {
             // Total borrows:       2500732971195637
             // Utilization:         20005799281024687
 
-
             // What happens here in scenario 1:
             // When borrow amount is fixed (0.0025 eth) and increase supply, the formula:
             // util = (borrows / (cash + borrows - reserves)) yields smaller
@@ -663,7 +645,7 @@ contract marketHostIntegration is Test {
 
             // Q: does another mint of 5$ solves this?
             // A: no
-            // The initial liquidity is not a fixed value. It depends on the borrow power and how much 
+            // The initial liquidity is not a fixed value. It depends on the borrow power and how much
             // liquidity can be redeemed in the same tim.  It's a math thing, not a constant
             // If we consider `cash + borrows - reserves` as `totalSupply` then utilization is:
             // u = borrows/totalSupply
@@ -672,7 +654,7 @@ contract marketHostIntegration is Test {
             //      - cash - reserves < 0
             // So the safe condition here is cash >= reserves
             // Test scenarios from above:
-            // 
+            //
             // Liquidity | Borrow  | Safe zone
             // -------------------------------
             //  0.00125  | 0.0025  |  not really
@@ -683,7 +665,9 @@ contract marketHostIntegration is Test {
 
     function test_marketHost18decimals_LifecycleUtilization_PoC() public {
         console2.log("=== LIFECYCLE UTILIZATION STABILITY POC ===");
-        console2.log("Goal: observe utilization evolution across mint/borrow/repay/redeem cycles - basically what happened with our tests");
+        console2.log(
+            "Goal: observe utilization evolution across mint/borrow/repay/redeem cycles - basically what happened with our tests"
+        );
         console2.log("Compare old (uncapped) vs new (capped 1e18) interest model");
 
         // =============================================================
@@ -704,7 +688,7 @@ contract marketHostIntegration is Test {
         );
         vm.mockCall(firewall, callData, abi.encode(true));
 
-        uint256 supplyAmount = 0.00025e18; 
+        uint256 supplyAmount = 0.00025e18;
         uint256 borrowAmount = 0.0001e18;
         uint256 utilization;
         address rateModel;
@@ -718,29 +702,31 @@ contract marketHostIntegration is Test {
 
         uint256 snapshotOld = vm.snapshot();
 
-        // mints 
+        // mints
         for (uint256 i = 0; i < 3; ++i) {
             deal(address(asset18Decimals), address(this), supplyAmount);
             asset18Decimals.approve(address(market18Decimals), supplyAmount);
             market18Decimals.mint(supplyAmount, address(this), 0);
 
             rateModel = mToken(address(market18Decimals)).interestRateModel();
-            utilization = JumpRateModelV4(rateModel).utilizationRate(
-                mToken(address(market18Decimals)).getCash(),
-                mToken(address(market18Decimals)).totalBorrows(),
-                mToken(address(market18Decimals)).totalReserves()
-            );
+            utilization = JumpRateModelV4(rateModel)
+                .utilizationRate(
+                    mToken(address(market18Decimals)).getCash(),
+                    mToken(address(market18Decimals)).totalBorrows(),
+                    mToken(address(market18Decimals)).totalReserves()
+                );
             console2.log(string.concat("After mint #", vm.toString(i + 1), " - utilization:"), utilization);
         }
 
-        // borrows 
+        // borrows
         for (uint256 i = 0; i < 3; ++i) {
             try market18Decimals.borrow(borrowAmount) {} catch {}
-            utilization = JumpRateModelV4(rateModel).utilizationRate(
-                mToken(address(market18Decimals)).getCash(),
-                mToken(address(market18Decimals)).totalBorrows(),
-                mToken(address(market18Decimals)).totalReserves()
-            );
+            utilization = JumpRateModelV4(rateModel)
+                .utilizationRate(
+                    mToken(address(market18Decimals)).getCash(),
+                    mToken(address(market18Decimals)).totalBorrows(),
+                    mToken(address(market18Decimals)).totalReserves()
+                );
             console2.log(string.concat("After borrow #", vm.toString(i + 1), " - utilization:"), utilization);
         }
 
@@ -752,28 +738,31 @@ contract marketHostIntegration is Test {
             market18Decimals.repay(currentDebt);
         }
 
-        utilization = JumpRateModelV4(rateModel).utilizationRate(
-            mToken(address(market18Decimals)).getCash(),
-            mToken(address(market18Decimals)).totalBorrows(),
-            mToken(address(market18Decimals)).totalReserves()
-        );
+        utilization = JumpRateModelV4(rateModel)
+            .utilizationRate(
+                mToken(address(market18Decimals)).getCash(),
+                mToken(address(market18Decimals)).totalBorrows(),
+                mToken(address(market18Decimals)).totalReserves()
+            );
         console2.log("After full repay - utilization:", utilization);
 
         // redeems
         uint256 shares = IERC20(address(market18Decimals)).balanceOf(address(this));
         if (shares > 0) {
-            try market18Decimals.redeem(shares) {} catch {
+            try market18Decimals.redeem(shares) {}
+            catch {
                 // fallback if redeem() unavailable
                 uint256 underlying = mToken(address(market18Decimals)).totalUnderlying();
                 try market18Decimals.redeemUnderlying(underlying) {} catch {}
             }
         }
 
-        utilization = JumpRateModelV4(rateModel).utilizationRate(
-            mToken(address(market18Decimals)).getCash(),
-            mToken(address(market18Decimals)).totalBorrows(),
-            mToken(address(market18Decimals)).totalReserves()
-        );
+        utilization = JumpRateModelV4(rateModel)
+            .utilizationRate(
+                mToken(address(market18Decimals)).getCash(),
+                mToken(address(market18Decimals)).totalBorrows(),
+                mToken(address(market18Decimals)).totalReserves()
+            );
         console2.log("After full redeem - utilization:", utilization);
 
         // =============================================================
@@ -833,7 +822,8 @@ contract marketHostIntegration is Test {
         // redeems
         shares = IERC20(address(market18Decimals)).balanceOf(address(this));
         if (shares > 0) {
-            try market18Decimals.redeem(shares) {} catch {
+            try market18Decimals.redeem(shares) {}
+            catch {
                 uint256 underlying = mToken(address(market18Decimals)).totalUnderlying();
                 try market18Decimals.redeemUnderlying(underlying) {} catch {}
             }
@@ -845,7 +835,6 @@ contract marketHostIntegration is Test {
             mToken(address(market18Decimals)).totalReserves()
         );
         console2.log("After full redeem - utilization:", utilization);
-
 
         // Results
         // -------------------------------

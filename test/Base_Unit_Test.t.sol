@@ -2,10 +2,10 @@
 pragma solidity =0.8.28;
 
 /*
- _____ _____ __    ____  _____ 
+ _____ _____ __    ____  _____
 |     |  _  |  |  |    \|  _  |
 | | | |     |  |__|  |  |     |
-|_|_|_|__|__|_____|____/|__|__|                           
+|_|_|_|__|__|_____|____/|__|__|
 */
 
 //contracts
@@ -62,7 +62,8 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
         vm.label(address(rewards), "RewardDistributor");
 
         Blacklister blacklisterImp = new Blacklister();
-        bytes memory blacklisterInitData = abi.encodeWithSelector(Blacklister.initialize.selector, address(this), address(roles));
+        bytes memory blacklisterInitData =
+            abi.encodeWithSelector(Blacklister.initialize.selector, address(this), address(roles));
         ERC1967Proxy blacklisterProxy = new ERC1967Proxy(address(blacklisterImp), blacklisterInitData);
         blacklister = Blacklister(address(blacklisterProxy));
         vm.label(address(blacklister), "Blacklister");
@@ -113,11 +114,6 @@ abstract contract Base_Unit_Test is Events, Helpers, Types {
 
     modifier whenUnderlyingPriceIs(uint256 price) {
         oracleOperator.setUnderlyingPrice(price);
-        _;
-    }
-
-    modifier inRange(uint256 _value, uint256 _min, uint256 _max) {
-        vm.assume(_value >= _min && _value <= _max);
         _;
     }
 

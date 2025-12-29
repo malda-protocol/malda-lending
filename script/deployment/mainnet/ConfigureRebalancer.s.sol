@@ -1,20 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/Script.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-import {Roles} from "src/Roles.sol";
 import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
-import {Pauser} from "src/pauser/Pauser.sol";
-
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 import {SetRole} from "../../configuration/SetRole.s.sol";
@@ -22,19 +11,18 @@ import {SetRole} from "../../configuration/SetRole.s.sol";
 contract ConfigureRebalancer is DeployBaseRelease {
     using stdJson for string;
 
-    address rolesContract;
-    address rebalancerContract;
-    address acrossContract;
-    address everclearContract;
+    address internal rolesContract;
+    address internal rebalancerContract;
+    address internal acrossContract;
+    address internal everclearContract;
 
-    SetRole setRole;
-    address[] marketList;
+    SetRole internal setRole;
+    address[] internal marketList;
 
-    uint32[] whitelistChains;
-    mapping(uint32 => address[]) allowedAcrossTokens;
-    mapping(uint32 => address[]) allowedEverclearTokens;
+    uint32[] internal whitelistChains;
+    mapping(uint32 chainId => address[] tokenList) internal allowedAcrossTokens;
+    mapping(uint32 chainId => address[] tokenList) internal allowedEverclearTokens;
 
-    
     function setUp() public override {
         configPath = "deployment-config-release.json";
         super.setUp();
@@ -50,7 +38,7 @@ contract ConfigureRebalancer is DeployBaseRelease {
             0xA219439258ca9da29E9Cc4cE5596924745e12B93, // mUSDT
             0x3aAB2285ddcDdaD8edf438C1bAB47e1a9D05a9b4, // mWBTC
             0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F, // mwstETH
-            0x2416092f143378750bb29b79eD961ab195CcEea5  // mezETH
+            0x2416092f143378750bb29b79eD961ab195CcEea5 // mezETH
         ];
 
         // Base (chainId: 8453)
@@ -59,7 +47,7 @@ contract ConfigureRebalancer is DeployBaseRelease {
             0x4200000000000000000000000000000000000006, // mWETH
             0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2, // mUSDT
             0x0555E30da8f98308EdB960aa94C0Db47230d2B9c, // mWBTC
-            0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452  // mwstETH
+            0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452 // mwstETH
         ];
 
         // Mainnet (chainId: 1)
@@ -68,11 +56,9 @@ contract ConfigureRebalancer is DeployBaseRelease {
             0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, // mWETH
             0xdAC17F958D2ee523a2206206994597C13D831ec7, // mUSDT
             0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599, // mWBTC
-            0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0  // mwstETH
+            0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0 // mwstETH
         ];
 
-
-        
         // Linea (chainId: 59144)
         allowedEverclearTokens[59144] = [
             0x176211869cA2b568f2A7D4EE941E073a821EE1ff, // mUSDC
@@ -80,7 +66,7 @@ contract ConfigureRebalancer is DeployBaseRelease {
             0xA219439258ca9da29E9Cc4cE5596924745e12B93, // mUSDT
             0x3aAB2285ddcDdaD8edf438C1bAB47e1a9D05a9b4, // mWBTC
             0xB5beDd42000b71FddE22D3eE8a79Bd49A568fC8F, // mwstETH
-            0x2416092f143378750bb29b79eD961ab195CcEea5  // mezETH
+            0x2416092f143378750bb29b79eD961ab195CcEea5 // mezETH
         ];
 
         // Base (chainId: 8453)
@@ -89,7 +75,7 @@ contract ConfigureRebalancer is DeployBaseRelease {
             0x4200000000000000000000000000000000000006, // mWETH
             0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2, // mUSDT
             0x0555E30da8f98308EdB960aa94C0Db47230d2B9c, // mWBTC
-            0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452  // mwstETH
+            0xc1CBa3fCea344f92D9239c08C0568f6F2F0ee452 // mwstETH
         ];
 
         // Mainnet (chainId: 1)
@@ -98,7 +84,7 @@ contract ConfigureRebalancer is DeployBaseRelease {
             0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2, // mWETH
             0xdAC17F958D2ee523a2206206994597C13D831ec7, // mUSDT
             0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599, // mWBTC
-            0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0  // mwstETH
+            0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0 // mwstETH
         ];
 
         string memory marketsOutputPath = "script/deployment/mainnet/output/release-deployed-market-addresses.json";
@@ -119,8 +105,6 @@ contract ConfigureRebalancer is DeployBaseRelease {
         for (uint256 i; i < marketList.length; ++i) {
             console.log(" - market: ", marketList[i]);
         }
-
-
 
         string memory corePath = "script/deployment/mainnet/output/release-deployed-core-addresses.json";
         string memory jsonContent = vm.readFile(corePath);
@@ -145,7 +129,7 @@ contract ConfigureRebalancer is DeployBaseRelease {
             // set whitelisted destinations
             console.log("Setting whitelisted destinations");
             uint32 crtChainId = configs[network].chainId;
-            for (uint256 j; j < whitelistChains.length;  ++j) {
+            for (uint256 j; j < whitelistChains.length; ++j) {
                 if (whitelistChains[j] != crtChainId) {
                     console.log(" - for chain: ", whitelistChains[j]);
                     vm.startBroadcast(key);
@@ -173,7 +157,6 @@ contract ConfigureRebalancer is DeployBaseRelease {
             Rebalancer(rebalancerContract).setAllowList(marketList, true);
             Rebalancer(rebalancerContract).setMarketStatus(marketList, true);
             vm.stopBroadcast();
-
 
             console.log("-------------------- DONE");
         }
