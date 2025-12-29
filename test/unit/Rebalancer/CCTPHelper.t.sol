@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-import "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 
 import {CCTPHelper} from "src/rebalancer/bridges/cctp/CCTPHelper.sol";
 
@@ -66,7 +66,7 @@ contract CCTPHelperHarness is CCTPHelper {
         uint256 _amount,
         uint32 _dstDomain,
         bytes32 _receiver,
-        bytes memory _payload,
+        bytes calldata _payload,
         uint32 _srcDomain
     ) external returns (CCTPMessage memory msgData, bytes memory encoded) {
         return createAndBurn(_token, _amount, _dstDomain, _receiver, _payload, _srcDomain);
@@ -85,14 +85,14 @@ contract CCTPHelperHarness is CCTPHelper {
 }
 
 contract CCTPHelperTest is Test {
-    CCTPHelperHarness helper;
-    ERC20Mock token;
-    MockTokenMessenger messenger;
-    MockMessageTransmitter transmitter;
+    CCTPHelperHarness internal helper;
+    ERC20Mock internal token;
+    MockTokenMessenger internal messenger;
+    MockMessageTransmitter internal transmitter;
 
-    address user = address(0x1234);
-    uint32 SRC = 1;
-    uint32 DST = 2;
+    address internal user = address(0x1234);
+    uint32 internal constant SRC = 1;
+    uint32 internal constant DST = 2;
 
     function setUp() public {
         token = new ERC20Mock("Test", "Test", 18, address(this), address(0), 0);

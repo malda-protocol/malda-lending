@@ -146,7 +146,7 @@ abstract contract CCTPHelper {
         uint256 _amount,
         uint32 _dstDomain,
         bytes32 _receiver,
-        bytes calldata _payload,
+        bytes memory _payload,
         uint32 _srcDomain
     ) internal returns (CCTPMessage memory msgData, bytes memory encoded) {
         uint64 nonce = _burnSrc(_token, _amount, _dstDomain, _receiver, _payload);
@@ -217,7 +217,7 @@ abstract contract CCTPHelper {
 
     // ----------- PRIVATE ------------
 
-    function _burnSrc(address _token, uint256 _amount, uint32 _dstDomain, bytes32 _receiver, bytes calldata _payload)
+    function _burnSrc(address _token, uint256 _amount, uint32 _dstDomain, bytes32 _receiver, bytes memory _payload)
         private
         returns (uint64 nonce)
     {

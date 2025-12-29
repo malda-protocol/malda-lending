@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-import "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 
 import {CCTPHelper} from "src/rebalancer/bridges/cctp/CCTPHelper.sol";
 import {CCTPBridge} from "src/rebalancer/bridges/CCTPBridge.sol";
@@ -61,7 +61,7 @@ contract MockMessageTransmitter is IMessageTransmitterV2 {
 }
 
 contract MockRebalancer {
-    mapping(address => bool) public whitelisted;
+    mapping(address market => bool isWhitelisted) public whitelisted;
 
     function setWhitelisted(address market, bool status) external {
         whitelisted[market] = status;
@@ -87,7 +87,7 @@ contract MockMarket {
 contract MockRoles {
     bytes32 public constant REBALANCER_ROLE = keccak256("REBALANCER_ROLE");
 
-    mapping(address => mapping(bytes32 => bool)) public permissions;
+    mapping(address account => mapping(bytes32 role => bool allowed)) public permissions;
 
     function grantRebalancer(address who) external {
         permissions[who][REBALANCER_ROLE] = true;
@@ -118,17 +118,17 @@ contract CCTPBridgeHarness is CCTPBridge {
 }
 
 contract CCTPBridgeTest is Test {
-    CCTPBridgeHarness bridge;
-    ERC20Mock token;
-    MockTokenMessenger messenger;
-    MockMessageTransmitter transmitter;
-    MockRebalancer rebalancer;
-    MockMarket market;
-    MockRoles roles;
+    CCTPBridgeHarness internal bridge;
+    ERC20Mock internal token;
+    MockTokenMessenger internal messenger;
+    MockMessageTransmitter internal transmitter;
+    MockRebalancer internal rebalancer;
+    MockMarket internal market;
+    MockRoles internal roles;
 
-    uint32 dstChainId = 2;
-    uint32 dstDomain = 200;
-    uint32 srcDomain = 100;
+    uint32 internal dstChainId = 2;
+    uint32 internal dstDomain = 200;
+    uint32 internal srcDomain = 100;
 
     function setUp() public {
         token = new ERC20Mock("Test", "Test", 18, address(this), address(0), 0);
