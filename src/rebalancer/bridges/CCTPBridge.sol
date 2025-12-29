@@ -83,17 +83,7 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
         acceptedTokens[token] = allowed;
         emit TokenAccepted(token, allowed);
     }
-
-    // ----------- VIEW ------------
-    function getFee(
-        uint32,
-        bytes memory,
-        bytes memory
-    ) external pure override returns (uint256) {
-        // Fee automatically deducted
-        revert CCTPBridge_NotImplemented();
-    }
-
+ 
     // ----------- SOURCE CHAIN ------------
     function sendMsg(
         uint256 _extractedAmount,
@@ -149,4 +139,15 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
         }
 
     }
+
+    // ----------- VIEW ------------
+    function getFee(
+        uint32,
+        bytes memory,
+        bytes memory
+    ) external pure override returns (uint256) {
+        // Fee automatically deducted
+        revert CCTPBridge_NotImplemented();
+    }
+
 }
