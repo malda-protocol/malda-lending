@@ -202,15 +202,15 @@ contract EverclearBridgeV2 is BaseBridge, IBridge {
      *
      * Layout of `FeeAdapterV2.newIntent` calldata after the selector:
      * ```
-     * destinations (uint32[])   @ offset 0x00
-     * receiver (bytes32)        @ offset 0x20
-     * inputAsset (address)      @ offset 0x40
-     * outputAsset (bytes32)     @ offset 0x60
-     * amount (uint256)          @ offset 0x80
-     * amountOutMin (uint256)    @ offset 0xa0
-     * ttl (uint48)              @ offset 0xc0
-     * data (bytes)              @ offset 0xe0
-     * feeParams (FeeParams)     @ offset 0x100 (9th arg → pointer)
+     * destinations (uint32[])   offset 0x00
+     * receiver (bytes32)        offset 0x20
+     * inputAsset (address)      offset 0x40
+     * outputAsset (bytes32)     offset 0x60
+     * amount (uint256)          offset 0x80
+     * amountOutMin (uint256)    offset 0xa0
+     * ttl (uint48)              offset 0xc0
+     * data (bytes)              offset 0xe0
+     * feeParams (FeeParams)     offset 0x100 (9th arg → pointer)
      * ```
      * Since each static argument occupies a 32-byte slot, the pointer to `feeParams`
      * lives at offset `0x100` (256 bytes) after the selector is removed.
@@ -259,9 +259,9 @@ contract EverclearBridgeV2 is BaseBridge, IBridge {
      * - The pointer gives the offset to the start of the `FeeParams` struct relative to the start of intentData.
      * - Within `FeeParams`, the layout is:
      *   ```
-     *   fee      (uint256) @ +0x00
-     *   deadline (uint256) @ +0x20
-     *   sig      (bytes)   @ +0x40 (stored as offset → length → data)
+     *   fee      (uint256) +0x00
+     *   deadline (uint256) +0x20
+     *   sig      (bytes)   +0x40 (stored as offset → length → data)
      *   ```
      * - The `sig` field is dynamic, so we read its offset (at +0x40) relative to the `FeeParams` base,
      *   then read the length at that offset, then slice out the actual signature bytes.

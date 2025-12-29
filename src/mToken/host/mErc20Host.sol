@@ -127,8 +127,9 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     }
 
     // solhint-enable gas-calldata-parameters
-
     // ----------- OWNER ------------
+    /// @notice Inits firewall
+    /// @param _firewall The firewall address
     function initFirewall(address _firewall) external onlyAdmin {
         _initHypernativeFirewall(_firewall, admin);
     }

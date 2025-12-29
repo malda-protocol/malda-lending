@@ -303,13 +303,16 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     }
 
     /**
-    /// @notice Set borrow caps for given mToken markets.
-    /// @dev Borrowing that brings total borrows to or above borrow cap will revert.
-    ///      A value of 0 corresponds to unlimited borrowing.
-    /// @param mTokens The addresses of the markets (tokens) to change the borrow caps for
-    /// @param newBorrowCaps The new borrow cap values in underlying to be set.
+     * /// @notice Set borrow caps for given mToken markets.
+     * /// @dev Borrowing that brings total borrows to or above borrow cap will revert.
+     * ///      A value of 0 corresponds to unlimited borrowing.
+     * /// @param mTokens The addresses of the markets (tokens) to change the borrow caps for
+     * /// @param newBorrowCaps The new borrow cap values in underlying to be set.
      */
-    function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newBorrowCaps) external onlyFirewallApprovedAllowEOA {
+    function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newBorrowCaps)
+        external
+        onlyFirewallApprovedAllowEOA
+    {
         // Requirements: the sender is admin or has guardian borrow cap role
         require(
             msg.sender == owner() || rolesOperator.isAllowedFor(msg.sender, rolesOperator.GUARDIAN_BORROW_CAP()),
@@ -329,7 +332,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
             emit NewBorrowCap(mTokens[i], newBorrowCaps[i]);
         }
     }
-
 
     /// @notice Set supply caps for the given mToken markets.
     /// @dev Supplying that brings total supply to or above supply cap will revert.
@@ -359,7 +361,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
             emit NewSupplyCap(mTokens[i], newSupplyCaps[i]);
         }
     }
-
 
     /// @inheritdoc IOperator
     function setPaused(address mToken, ImTokenOperationTypes.OperationType _type, bool state)
@@ -416,12 +417,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     }
 
     /// @inheritdoc IOperator
-    function enterMarkets(address[] calldata _mTokens)
-        external
-        override
-        onlyFirewallApprovedAllowEOA
-           
-    {
+    function enterMarkets(address[] calldata _mTokens) external override onlyFirewallApprovedAllowEOA {
         uint256 len = _mTokens.length;
         for (uint256 i = 0; i < len; i++) {
             // Interactions: activate the market
@@ -627,11 +623,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     }
 
     /// @inheritdoc IOperatorDefender
-    function beforeMTokenRepay(address mToken, address borrower)
-        external
-        view
-        onlyAllowedUser(borrower)
-    {
+    function beforeMTokenRepay(address mToken, address borrower) external view onlyAllowedUser(borrower) {
         // Requirements: the repay is not paused
         require(!_paused[mToken][OperationType.Repay], Operator_Paused());
 

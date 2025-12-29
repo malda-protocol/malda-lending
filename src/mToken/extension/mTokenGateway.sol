@@ -236,8 +236,14 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     /**
      * @inheritdoc ImTokenGateway
      */
-    function extractForRebalancing(uint256 amount) external notPaused(OperationType.Rebalancing) onlyFirewallApprovedAllowEOA {
-        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER())) revert mTokenGateway_NotRebalancer();
+    function extractForRebalancing(uint256 amount)
+        external
+        notPaused(OperationType.Rebalancing)
+        onlyFirewallApprovedAllowEOA
+    {
+        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER())) {
+            revert mTokenGateway_NotRebalancer();
+        }
         IERC20(underlying).safeTransfer(msg.sender, amount);
     }
 
@@ -302,7 +308,6 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         ifNotBlacklisted(receiver)
         onlyFirewallApprovedAllowEOA
     {
-
         _takeIn(underlying, amount, receiver);
 
         // Events: emit the supplied event
@@ -360,12 +365,6 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
             _outHere(journals[i], amounts[i], receiver);
         }
     }
-    
-    /// @notice Registers an account in the firewall
-    /// @param _account Account to register
-    function firewallRegister(address _account) public override(HypernativeFirewallProtected) {
-        super.firewallRegister(_account);
-    }
 
     // ----------- VIEW ------------
     /// @inheritdoc ImTokenGateway
@@ -376,6 +375,12 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     /// @inheritdoc ImTokenGateway
     function getProofData(address user, uint32) external view returns (uint256, uint256) {
         return (accAmountIn[user], accAmountOut[user]);
+    }
+
+    /// @notice Registers an account in the firewall
+    /// @param _account Account to register
+    function firewallRegister(address _account) public override(HypernativeFirewallProtected) {
+        super.firewallRegister(_account);
     }
 
     // ----------- PRIVATE ------------
