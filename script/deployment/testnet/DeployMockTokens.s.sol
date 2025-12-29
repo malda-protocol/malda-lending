@@ -70,8 +70,6 @@ contract DeployMockTokens is Script {
         console.log("1. Update deployment-config-testnet.json with these addresses:");
         console.log("   - USDCMock: %s", usdcMock);
         console.log("   - wstETHMock: %s", wstethMock);
-        console.log("2. Run: forge script script/deployment/testnet/UpdateConfigWithTokens.s.sol");
-        console.log("   (This will automatically update the config file)");
     }
 
     function deployToken(TokenConfig memory config, address owner, uint256 deployerKey) internal returns (address) {
