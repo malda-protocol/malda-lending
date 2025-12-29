@@ -134,6 +134,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         _initHypernativeFirewall(_firewall, admin);
     }
 
+    /// @notice Resets the market state
     function resetMarket() external onlyAdmin {
         totalBorrows = 0;
         totalReserves = 0;

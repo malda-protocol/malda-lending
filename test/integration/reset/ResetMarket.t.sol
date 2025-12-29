@@ -1,33 +1,34 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.28;
 
-import "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 import {ITransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
 
 interface IWhitelistLike {
     function setWhitelistStatus(bool status) external;
 }
 
 contract LineaResetMarketTest is Test {
-    address constant MARKET = 0x301E5481271fD4F4f4C0291F88d7d829c64E2B2b;
-    address constant OPERATOR = 0x4bbd2B599425026b8A504816D8A043636e2D7Ec7;
-    bytes32 constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
+    address internal constant MARKET = 0x301E5481271fD4F4f4C0291F88d7d829c64E2B2b;
+    address internal constant OPERATOR = 0x4bbd2B599425026b8A504816D8A043636e2D7Ec7;
 
-    address PROXY_ADMIN;
-    address NEW_IMPL;
-    address constant MARKET_ADMIN = address(0x3E8545884FE2450A2E3973c341F8A22A645289C5);
+    bytes32 internal constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
+
+    address internal constant MARKET_ADMIN = address(0x3E8545884FE2450A2E3973c341F8A22A645289C5);
+
+    address internal PROXY_ADMIN;
+    address internal NEW_IMPL;
 
     function setUp() external {
         vm.createSelectFork(vm.envString("LINEA_RPC_URL"));
 
         PROXY_ADMIN = address(uint160(uint256(vm.load(MARKET, ADMIN_SLOT))));
 
-        mErc20Host _impl = new mErc20Host();
-        NEW_IMPL = address(_impl);
+        mErc20Host impl = new mErc20Host();
+        NEW_IMPL = address(impl);
 
         vm.deal(MARKET_ADMIN, 100 ether);
     }
@@ -43,7 +44,6 @@ contract LineaResetMarketTest is Test {
         vm.stopPrank();
 
         assertEq(m.totalSupply(), 0, "totalSupply changed");
-
         assertEq(m.totalBorrows(), 0, "totalBorrows not reset");
         assertEq(m.totalReserves(), 0, "totalReserves not reset");
 
@@ -56,7 +56,6 @@ contract LineaResetMarketTest is Test {
         _assertViewMethodsDontRevert(m);
     }
 
-
     function test_linea_upgrade_resetMarket_and_actions() external {
         mErc20Host m = mErc20Host(MARKET);
 
@@ -68,7 +67,6 @@ contract LineaResetMarketTest is Test {
         vm.stopPrank();
 
         assertEq(m.totalSupply(), 0, "totalSupply changed");
-
         assertEq(m.totalBorrows(), 0, "totalBorrows not reset");
         assertEq(m.totalReserves(), 0, "totalReserves not reset");
 
@@ -100,8 +98,10 @@ contract LineaResetMarketTest is Test {
 
         uint256 borrowAmount = mintAmount / 10;
         m.borrow(borrowAmount);
-        assertGt(m.borrowBalanceStored(address(this)), 0, "borrow failed");
-        assertEq(m.totalBorrows(), m.borrowBalanceStored(address(this)));
+
+        uint256 userBorrow = m.borrowBalanceStored(address(this));
+        assertGt(userBorrow, 0, "borrow failed");
+        assertEq(m.totalBorrows(), userBorrow);
 
         _assertViewMethodsDontRevert(m);
     }
