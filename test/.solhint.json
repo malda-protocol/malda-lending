@@ -1,0 +1,48 @@
+{
+  "extends": "solhint:recommended",
+  "rules": {
+    "compiler-version": ["error", "=0.8.28"],
+    "func-visibility": [
+      "error",
+      {
+        "ignoreConstructors": true
+      }
+    ],
+    "max-line-length": "off",
+    "var-name-mixedcase": "off",
+    "one-contract-per-file": "off",
+    "named-parameters-mapping": "warn",
+    "modifier-name-mixedcase": "off",
+    "func-param-name-mixedcase": "off",
+    "func-name-mixedcase": "off",
+    "foundry-test-functions": "off",
+    "gas-custom-errors": "off",
+    "private-vars-leading-underscore": [
+      "off",
+      {
+        "strict": false
+      }
+    ],
+    "no-console": "off",
+    "not-rely-on-time": "off",
+    "no-inline-assembly": "off",
+    "no-unused-vars": "error",
+    "payable-fallback": "off",
+    "no-complex-fallback": "off",
+    "avoid-tx-origin": "error",
+    "avoid-low-level-calls": "off",
+    "ordering": "off",
+    "reentrancy": "off",
+    "import-path-check": "off",
+    "use-natspec": "off",
+    "gas-strict-inequalities": "off",
+    "no-empty-blocks": "off",
+    "gas-indexed-events": "off",
+    "gas-increment-by-one": "off",
+    "gas-struct-packing": "off",
+    "function-max-lines": "off",
+    "gas-small-strings": "off",
+    "contract-name-capwords": "off",
+    "max-states-count": "off"
+  }
+}

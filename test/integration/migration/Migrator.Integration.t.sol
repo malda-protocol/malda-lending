@@ -14,8 +14,6 @@ import {Risc0VerifierMock} from "../../mocks/Risc0VerifierMock.sol";
 import {OracleMock} from "../../mocks/OracleMock.sol";
 import {ImToken, ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
-import {ImToken} from "src/interfaces/ImToken.sol";
-
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract MigrationTests is Base_Integration_Test {
@@ -80,14 +78,15 @@ contract MigrationTests is Base_Integration_Test {
         operator.supportMarket(0xC7Bc6bD45Eb84D594f51cED3c5497E6812C7732f);
     }
 
-    function testCollectAllMendiPositions() external {
+    function testCollectAllMendiPositions() external pure {
         return;
-        vm.prank(USER_V1);
-        Migrator.Position[] memory positions = migrator.getAllPositions(USER_V1);
+        // TODO @Cosmin leave for now
+        // vm.prank(USER_V1);
+        // Migrator.Position[] memory positions = migrator.getAllPositions(USER_V1);
 
-        assertEq(positions.length, 1);
-        assertGt(positions[0].collateralUnderlyingAmount, 0.01 ether);
-        assertEq(positions[0].maldaMarket, address(MALDA_WETH_MARKET));
+        // assertEq(positions.length, 1);
+        // assertGt(positions[0].collateralUnderlyingAmount, 0.01 ether);
+        // assertEq(positions[0].maldaMarket, address(MALDA_WETH_MARKET));
     }
 
     function testGetAllCollateralMarkets() external view {
@@ -101,42 +100,30 @@ contract MigrationTests is Base_Integration_Test {
         address _prevOwner = MALDA_WETH_MARKET_OWNER;
         MALDA_WETH_MARKET_OWNER = address(this);
         vm.startPrank(MALDA_WETH_MARKET_OWNER);
-        Operator(migrator.MALDA_OPERATOR()).setPaused(
-            MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.AmountIn, false
-        );
-        Operator(migrator.MALDA_OPERATOR()).setPaused(
-            MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.AmountInHere, false
-        );
-        Operator(migrator.MALDA_OPERATOR()).setPaused(
-            MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.AmountOut, false
-        );
-        Operator(migrator.MALDA_OPERATOR()).setPaused(
-            MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.AmountOutHere, false
-        );
-        Operator(migrator.MALDA_OPERATOR()).setPaused(
-            MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Seize, false
-        );
-        Operator(migrator.MALDA_OPERATOR()).setPaused(
-            MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Transfer, false
-        );
-        Operator(migrator.MALDA_OPERATOR()).setPaused(
-            MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Mint, false
-        );
-        Operator(migrator.MALDA_OPERATOR()).setPaused(
-            MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Borrow, false
-        );
-        Operator(migrator.MALDA_OPERATOR()).setPaused(
-            MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Repay, false
-        );
-        Operator(migrator.MALDA_OPERATOR()).setPaused(
-            MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Redeem, false
-        );
-        Operator(migrator.MALDA_OPERATOR()).setPaused(
-            MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Liquidate, false
-        );
-        Operator(migrator.MALDA_OPERATOR()).setPaused(
-            MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Rebalancing, false
-        );
+        Operator(migrator.MALDA_OPERATOR())
+            .setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.AmountIn, false);
+        Operator(migrator.MALDA_OPERATOR())
+            .setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.AmountInHere, false);
+        Operator(migrator.MALDA_OPERATOR())
+            .setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.AmountOut, false);
+        Operator(migrator.MALDA_OPERATOR())
+            .setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.AmountOutHere, false);
+        Operator(migrator.MALDA_OPERATOR())
+            .setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Seize, false);
+        Operator(migrator.MALDA_OPERATOR())
+            .setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Transfer, false);
+        Operator(migrator.MALDA_OPERATOR())
+            .setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Mint, false);
+        Operator(migrator.MALDA_OPERATOR())
+            .setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Borrow, false);
+        Operator(migrator.MALDA_OPERATOR())
+            .setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Repay, false);
+        Operator(migrator.MALDA_OPERATOR())
+            .setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Redeem, false);
+        Operator(migrator.MALDA_OPERATOR())
+            .setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Liquidate, false);
+        Operator(migrator.MALDA_OPERATOR())
+            .setPaused(MALDA_WETH_MARKET, ImTokenOperationTypes.OperationType.Rebalancing, false);
         vm.stopPrank();
         MALDA_WETH_MARKET_OWNER = _prevOwner;
         vm.startPrank(MALDA_WETH_MARKET_OWNER);

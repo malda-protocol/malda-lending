@@ -3,8 +3,8 @@
   out = "out"
   src = "src"
   ffi = true
-
-  evm_version = 'london'
+  fuzz = { runs = 1000 }
+  evm_version = 'cancun'
   optimizer = true
   optimizer_runs = 200
   solc_version = '0.8.28'
@@ -32,33 +32,38 @@
     { access = "read-write", path = "./script/deployment/mainnet/output/" }
 ]
 
+[profile.ci]
+  fuzz = { runs = 10_000 }
+  verbosity = 3 # outputs stack trace for failed tests only (https://book.getfoundry.sh/reference/config/testing)
+
+[lint]
+  exclude_lints = ["asm-keccak256","unwrapped-modifier-logic","pascal-case-struct","mixed-case-function","unsafe-typecast","unsafe-cheatcode","mixed-case-variable"] # possibly reintroduce mixed-case-variable later
+  ignore = ["test/**/*", "script/**/*"]
+
 [rpc_endpoints]
-#mainnet
-linea="${LINEA_RPC_URL}"
-mainnet="${MAINNET_RPC_URL}"
-optimism="${OPTIMISM_RPC_URL}"
-base="${BASE_RPC_URL}"
-#testnet
-linea_sepolia = "${LINEA_SEPOLIA_RPC_URL}"
-op_sepolia = "${OP_SEPOLIA_RPC_URL}"
-sepolia = "${SEPOLIA_RPC_URL}"
-arbitrum_sepolia = "${ARBITRUM_SEPOLIA_RPC_URL}"
-base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
-anvil1 = "http://localhost:8545"
-anvil2 = "http://localhost:8546"
+  # Mainnet
+  linea = "${LINEA_RPC_URL}"
+  mainnet = "${MAINNET_RPC_URL}"
+  optimism = "${OPTIMISM_RPC_URL}"
+  base = "${BASE_RPC_URL}"
+
+  # Testnet
+  linea_sepolia = "${LINEA_SEPOLIA_RPC_URL}"
+  sepolia = "${SEPOLIA_RPC_URL}"
+  op_sepolia = "${OP_SEPOLIA_RPC_URL}"
+  base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
+  anvil1 = "http://localhost:8545"
+  anvil2 = "http://localhost:8546"
 
 [etherscan]
-#mainnet
-linea = {chain = "59144", url = "https://api.lineascan.build/api", key = "${LINEA_ETHERSCAN_API_KEY}"}
-mainnet = {chain = "1", url = "https://api.etherscan.io/api", key = "${MAINNET_ETHERSCAN_API_KEY}"}
-optimism = {chain = "10", url = "https://api-optimistic.etherscan.io/api", key = "${OPTIMISM_ETHERSCAN_API_KEY}"}
-base = {chain = "8453", url = "https://api.basescan.org/api", key = "${BASE_ETHERSCAN_API_KEY}"}
-#testnet
-linea_sepolia = {chain = "59141", url = "https://api-sepolia.lineascan.build/api", key = "${LINEA_SEPOLIA_ETHERSCAN_API_KEY}"}
-op_sepolia = {chain = "11155420", url = "https://api-sepolia-optimistic.etherscan.io/api", key = "${OP_SEPOLIA_ETHERSCAN_API_KEY}"}
-sepolia = {chain = "11155111", url = "https://api-sepolia.etherscan.io/api", key = "${SEPOLIA_ETHERSCAN_API_KEY}"}
-arbitrum_sepolia = {url = "https://api-sepolia-arbitrum.etherscan.io/api", key = "${ARBITRUM_SEPOLIA_ETHERSCAN_API_KEY}"}
-base_sepolia = {url = "https://api-sepolia-base.etherscan.io/api", key = "${BASE_SEPOLIA_ETHERSCAN_API_KEY}"}
-
-[fuzz]
-runs = 10
+  # Mainnet
+  linea = { chain = 59144, key = "${ETHERSCAN_API_KEY}" }
+  mainnet = { chain = 1, key = "${ETHERSCAN_API_KEY}" }
+  optimism = { chain = 10, key = "${ETHERSCAN_API_KEY}" }
+  base = { chain = 8453, key = "${ETHERSCAN_API_KEY}" }
+  
+  # Testnet
+  linea_sepolia = { chain = 59141, key = "${ETHERSCAN_API_KEY}" }
+  sepolia = { chain = 11155111, key = "${ETHERSCAN_API_KEY}" }
+  op_sepolia = { chain = 11155420, key = "${ETHERSCAN_API_KEY}" }
+  base_sepolia = { chain = 84532, key = "${ETHERSCAN_API_KEY}" }

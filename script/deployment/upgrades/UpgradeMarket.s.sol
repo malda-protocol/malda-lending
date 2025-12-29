@@ -7,7 +7,6 @@ import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
 import {ITransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
-import {StorageSlot} from "@openzeppelin/contracts/utils/StorageSlot.sol";
 
 contract UpgradeMarket is Script {
     // Market type enum to determine which implementation to deploy
@@ -21,7 +20,6 @@ contract UpgradeMarket is Script {
 
     function run() public {
         // Setup
-
         address proxy = 0x1eEa258B505cd6381171c1075EC6934F8D0Faf3b;
         MarketType marketType = MarketType.GATEWAY;
         string memory salt = "ReleaseV1.0.5-patch-blacklister0x1eEa258B505cd6381171c1075EC6934F8D0Faf3b";

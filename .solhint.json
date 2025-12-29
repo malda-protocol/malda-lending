@@ -1,0 +1,47 @@
+{
+  "extends": "solhint:recommended",
+  "excludedFiles": [
+    "src/interfaces/external/**/*.sol",
+    "src/libraries/BytesLib.sol",
+    "src/libraries/Bytes32AddressLib.sol",
+    "src/libraries/CREATE3.sol"
+  ],
+  "rules": {
+    "code-complexity": ["error", 8],
+    "compiler-version": ["error", "=0.8.28"],
+    "func-visibility": [
+      "error",
+      {
+        "ignoreConstructors": true
+      }
+    ],
+    "max-line-length": ["error", 125],
+    "one-contract-per-file": "warn",
+    "named-parameters-mapping": "warn",
+    "func-param-name-mixedcase": "error",
+    "modifier-name-mixedcase": "error",
+    "ordering": "error",
+    "func-name-mixedcase": "error",
+    "private-vars-leading-underscore": "off",
+    "no-console": "error",
+    "not-rely-on-time": "off",
+    "gas-custom-errors": "off",
+    "no-unused-vars": "error",
+    "no-complex-fallback": "off",
+    "payable-fallback": "off",
+    "avoid-tx-origin": "error",
+    "no-inline-assembly": "off",
+    "avoid-low-level-calls": "off",
+    "import-path-check": "off",
+    "use-natspec": "warn",
+    "gas-strict-inequalities": "off",
+    "no-empty-blocks": "off",
+    "gas-indexed-events": "off",
+    "gas-increment-by-one": "off",
+    "gas-struct-packing": "off",
+    "function-max-lines": "off",
+    "max-states-count": "off",
+    "contract-name-capwords": "off",
+    "event-name-capwords": "off"
+  }
+}

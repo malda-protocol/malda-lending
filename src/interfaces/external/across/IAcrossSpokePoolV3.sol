@@ -8,7 +8,6 @@ interface IAcrossSpokePoolV3 {
      *              ENUMS                 *
      *
      */
-
     // Fill status tracks on-chain state of deposit, uniquely identified by relayHash.
     enum FillStatus {
         Unfilled,
@@ -26,6 +25,7 @@ interface IAcrossSpokePoolV3 {
         // for a slow fill execution.
         SlowFill
     }
+
     // Slow fills are requested via requestSlowFill and executed by executeSlowRelayLeaf after a bundle containing
     // the slow fill is validated.
 

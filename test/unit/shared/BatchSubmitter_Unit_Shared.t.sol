@@ -126,10 +126,7 @@ abstract contract BatchSubmitter_Unit_Shared is Base_Unit_Test {
         uint32 dstChainId,
         bool L1inclusion
     ) internal pure returns (bytes memory) {
-        require(
-            senders.length == markets.length && markets.length == amounts.length,
-            "BatchSubmitter_Unit_Shared: Array lengths mismatch"
-        );
+        require(senders.length == markets.length && markets.length == amounts.length, "Array lengths mismatch");
 
         bytes[] memory journals = new bytes[](senders.length);
 

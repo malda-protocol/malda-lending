@@ -51,16 +51,17 @@ library CREATE3 {
     }
 
     function getDeployed(bytes32 salt) internal view returns (address) {
-        address proxy = keccak256(abi.encodePacked(bytes1(0xFF), address(this), salt, PROXY_BYTECODE_HASH))
+        address proxy = keccak256(abi.encodePacked(bytes1(0xFF), address(this), salt, PROXY_BYTECODE_HASH)).
             // Prefix:
             // Creator:
             // Salt:
             // Bytecode hash:
-            .fromLast20Bytes();
+            fromLast20Bytes();
 
-        return keccak256(abi.encodePacked(hex"d694", proxy, hex"01")) // Nonce of the proxy contract (1)
-            // 0xd6 = 0xc0 (short RLP prefix) + 0x16 (length of: 0x94 ++ proxy ++ 0x01)
-            // 0x94 = 0x80 + 0x14 (0x14 = the length of an address, 20 bytes, in hex)
-            .fromLast20Bytes();
+        return
+            keccak256(abi.encodePacked(hex"d694", proxy, hex"01")) // Nonce of the proxy contract (1)
+                .fromLast20Bytes();
+        // 0xd6 = 0xc0 (short RLP prefix) + 0x16 (length of: 0x94 ++ proxy ++ 0x01)
+        // 0x94 = 0x80 + 0x14 (0x14 = the length of an address, 20 bytes, in hex)
     }
 }

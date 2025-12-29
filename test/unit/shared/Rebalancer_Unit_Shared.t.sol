@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-import {IPauser} from "src/interfaces/IPauser.sol";
-
 import {BridgeMock} from "../../mocks/BridgeMock.sol";
 import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
 import {Base_Unit_Test} from "../../Base_Unit_Test.t.sol";

@@ -1,33 +1,22 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-import {Script, console} from "forge-std/Script.sol";
+import {console} from "forge-std/console.sol";
 import {stdJson} from "forge-std/StdJson.sol";
-
-import {
-    DeployConfig,
-    MarketRelease,
-    Role,
-    InterestConfig,
-    OracleConfigRelease,
-    OracleFeed
-} from "../../deployers/Types.sol";
 
 import {DeployBaseRelease} from "../../deployers/DeployBaseRelease.sol";
 
 contract InitialMint is DeployBaseRelease {
     using stdJson for string;
 
-    address[] marketList;
-
-    address constant RECEIVER = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
+    address internal constant RECEIVER = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
+    address[] internal marketList;
 
     function setUp() public override {
         configPath = "deployment-config-release.json";
         super.setUp();
-
 
         string memory marketsOutputPath = "script/deployment/mainnet/output/release-deployed-market-addresses.json";
         string memory rawMarketJson = vm.readFile(marketsOutputPath);
@@ -76,27 +65,20 @@ contract InitialMint is DeployBaseRelease {
 
             mErc20Host m = mErc20Host(marketList[i]);
 
+            vm.startBroadcast(key);
             // Approve underlying for mint
-            address underlying = m.underlying();
-            vm.startBroadcast(key);
-            IERC20Metadata(underlying).approve(address(m), 10_000);
-            vm.stopBroadcast();
-
+            IERC20(m.underlying()).approve(address(m), 10_000);
             // Mint into RECEIVER
-            vm.startBroadcast(key);
             m.mint(10_000, RECEIVER, 0);
-            vm.stopBroadcast();
 
-            // Transfer minted market tokens to burn address
-            uint256 bal = m.balanceOf(RECEIVER);
-            vm.startBroadcast(key);
-            IERC20Metadata(address(m)).transfer(address(0), bal);
+            // Transfer minted market tokens to burn address (no burn function on mToken)
+            bool success = IERC20(address(m)).transfer(address(0), m.balanceOf(RECEIVER));
+            require(success, "Transfer failed");
             vm.stopBroadcast();
 
             // Verify balances of address(0)
             uint256 addr0Balance = m.balanceOf(address(0));
             console.log("Burn address balance: ", addr0Balance);
-
         }
     }
 }

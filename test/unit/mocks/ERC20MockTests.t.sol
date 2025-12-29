@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import "forge-std/Test.sol";
-import "test/mocks/ERC20Mock.sol";
+import {Test} from "forge-std/Test.sol";
+import {ERC20Mock} from "test/mocks/ERC20Mock.sol";
 
 contract ERC20MockTest is Test {
-    ERC20Mock token;
-    address admin = address(0x1);
-    address user = address(0x2);
-    address pohVerify = address(0x3);
-    uint8 decimals = 18;
-    uint256 mintLimit = 1000e18;
+    ERC20Mock internal token;
+    address internal admin = address(0x1);
+    address internal user = address(0x2);
+    address internal pohVerify = address(0x3);
+    uint8 internal decimals = 18;
+    uint256 internal mintLimit = 1000e18;
 
     function setUp() public {
         token = new ERC20Mock("TestToken", "TTK", decimals, admin, pohVerify, 1000e18);
