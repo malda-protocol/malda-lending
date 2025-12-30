@@ -44,21 +44,31 @@ contract rsEthOftMessageExecutor is BaseOftMessageExecutor {
         address rebalancer,
         address refundAddress
     ) external payable override returns (MessagingReceipt memory) {
+        // Interactions: pull the tokens from the rebalancer
         _pullFromRebalancer(underlying, params.amountLD, rebalancer);
 
+        // Requirements: the bridge contract is not the underlying
         if (bridgeContract != underlying) {
+            // Interactions: check if the bridge contract is allowed
             try ILayerZeroOFTWrapper(underlying).allowedTokens(bridgeContract) returns (bool ok) {
-                if (!ok) revert Executor_DifferentInnerToken();
+                // Requirements: the bridge contract is not allowed
+                require(ok, Executor_DifferentInnerToken());
             } catch {
-                revert Executor_NoOft();
+                // Requirements: the bridge contract is not an OFT
+                require(false, Executor_NoOft());
             }
 
+            // Interactions: approve the tokens to the bridge contract
             _approve(underlying, bridgeContract, params.amountLD);
+
+            // Interactions: withdraw the tokens from the bridge contract
             ILayerZeroOFTWrapper(underlying).withdraw(bridgeContract, params.amountLD);
 
+            // Interactions: verify the minted tokens
             _verifyMinted(bridgeContract, params.amountLD);
         }
 
+        // Interactions: send the tokens via OFT
         return _sendOFT(bridgeContract, params, fees, refundAddress);
     }
 }

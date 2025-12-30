@@ -2,11 +2,8 @@
   "lib/LayerZero-v2": {
     "rev": "ab9b083410b9359285a5756807e1b6145d4711a7"
   },
-  "lib\\forge-std": {
-    "tag": {
-      "name": "v1.12.0",
-      "rev": "7117c90c8cf6c68e5acce4f09a6b24715cea4de6"
-    }
+  "lib/forge-std": {
+    "rev": "7117c90c8cf6c68e5acce4f09a6b24715cea4de6"
   },
   "lib/openzeppelin-contracts": {
     "rev": "dbb6104ce834628e473d2173bbc9d47f81a9eec3"
@@ -19,5 +16,11 @@
   },
   "lib/risc0-ethereum": {
     "rev": "4fa7de055d461b7fa948eb56107b7a172459e8fc"
+  },
+  "lib\\forge-std": {
+    "tag": {
+      "name": "v1.12.0",
+      "rev": "7117c90c8cf6c68e5acce4f09a6b24715cea4de6"
+    }
   }
 }

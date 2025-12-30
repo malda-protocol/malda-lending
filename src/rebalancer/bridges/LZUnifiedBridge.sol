@@ -108,19 +108,25 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
         bytes calldata _message,
         bytes calldata _extraData
     ) external payable onlyRebalancer {
+        // Requirements: the destination chain id is registered
         require(_dstChainId > 0, LZBridge_ChainNotRegistered());
 
         SendMsgLocalVars memory v;
 
         (v.market,,,) = abi.decode(_message, (address, uint256, uint256, bytes));
+        // Requirements: the market is the expected market
         require(_market == v.market, LZBridge_DestinationMismatch());
 
         v.underlying = ImTokenMinimal(_market).underlying();
+        // Requirements: the underlying token is the expected token
         require(v.underlying == _token, LZBridge_TokenMismatch());
+        // Requirements: the executor is set
         require(oftExecutors[v.underlying] != address(0), LZBridge_ExecutorNotSet());
 
         (v.fees, v.sendParam) = _getFee(_dstChainId, _message);
+        // Requirements: the native fee is enough
         require(msg.value >= v.fees.nativeFee, LZBridge_NotEnoughFees());
+        // Requirements: the extracted amount is the expected amount
         require(_extractedAmount == v.sendParam.amountLD, BaseBridge_AmountMismatch());
 
         v.bridgeContract = bridgeContracts[v.underlying];
@@ -129,6 +135,7 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
         }
 
         address refunder = abi.decode(_extraData, (address));
+        // Requirements: the refunder is valid
         require(refunder != address(0), LZBridge_RefunderNotValid());
 
         MessagingReceipt memory msgReceipt =
@@ -137,6 +144,7 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
         emit MsgSent(_dstChainId, v.market, v.sendParam.amountLD, v.sendParam.minAmountLD, msgReceipt.guid);
     }
 
+    //
     /// @notice LayerZero compose callback. Delegates compose execution to the configured executor.
     /// @param from Expected to be the bridge contract (OFT) for the decoded underlying.
     /// @param guid Unused.
@@ -147,10 +155,13 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
         external
         payable
     {
+        // slither-disable-start redundant-statements
         guid;
         executor;
         extraData;
+        // slither-disable-end redundant-statements
 
+        // Requirements: the sender is the endpoint
         require(msg.sender == ENDPOINT, LZBridge_OnlyEndpoint());
 
         address market = abi.decode(message, (address));
@@ -161,15 +172,18 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
             bridgeContract = underlying;
         }
 
+        // Requirements: the from is not the bridge contract
         require(from == bridgeContract, LZBridge_BadFrom());
 
         address oftExecutor = oftExecutors[underlying];
+        // Requirements: the executor is not set
         require(oftExecutor != address(0), LZBridge_ExecutorNotSet());
 
         bytes memory data =
             abi.encodeWithSelector(IOftMessageExecutor.executeCompose.selector, market, underlying, bridgeContract);
 
-        // slither-disable-next-line controlled-delegatecall
+        // Interactions: delegatecall the executor
+        // slither-disable-next-line controlled-delegatecall - only endpoint can call this
         (bool ok, bytes memory ret) = oftExecutor.delegatecall(data);
         if (!ok) {
             assembly {
@@ -189,12 +203,14 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
         }
 
         address oftExecutor = oftExecutors[underlying];
+        // Requirements: the executor is not set
         require(oftExecutor != address(0), LZBridge_ExecutorNotSet());
 
         bytes memory data =
             abi.encodeWithSelector(IOftMessageExecutor.processUncomposed.selector, _market, underlying, bridgeContract);
 
-        // slither-disable-next-line controlled-delegatecall
+        // Interactions: delegatecall the executor
+        // slither-disable-next-line controlled-delegatecall - only bridge configurator can call this
         (bool ok, bytes memory ret) = oftExecutor.delegatecall(data);
         if (!ok) {
             assembly {
@@ -213,9 +229,13 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
         view
         returns (uint256 nativeFee)
     {
+        // slither-disable-next-line redundant-statements
         _extraData;
+
+        // Requirements: the destination chain id is registered
         require(_dstChainId > 0, LZBridge_ChainNotRegistered());
 
+        // Interactions: get the fees
         (MessagingFee memory fees,) = _getFee(_dstChainId, _message);
         return fees.nativeFee;
     }
@@ -237,7 +257,10 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
         address refundAddress
     ) private returns (MessagingReceipt memory r) {
         address oftExecutor = oftExecutors[underlying];
+        // Requirements: the executor is not set
         require(oftExecutor != address(0), LZBridge_ExecutorNotSet());
+
+        // Requirements: the executor has code
         require(oftExecutor.code.length != 0, LZBridge_ExecutorNoCode());
 
         bytes memory data = abi.encodeWithSelector(
@@ -250,6 +273,8 @@ contract LZUnifiedBridge is BaseBridge, IBridge {
             refundAddress
         );
 
+        // Interactions: delegatecall the executor
+        // slither-disable-next-line controlled-delegatecall - only rebalancer can call this
         (bool ok, bytes memory ret) = oftExecutor.delegatecall(data);
         if (!ok) {
             assembly {

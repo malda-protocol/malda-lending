@@ -20,10 +20,17 @@ library LZOptions {
     uint8 internal constant OPTION_TYPE_LZCOMPOSE = 3;
     uint8 internal constant OPTION_TYPE_ORDERED_EXECUTION = 4;
 
+    /// @notice Creates new options.
+    /// @return options The options.
     function newOptions() internal pure returns (bytes memory) {
         return abi.encodePacked(TYPE_3);
     }
 
+    /// @notice Adds a LZ Receive option.
+    /// @param options The options.
+    /// @param gas The gas.
+    /// @param value The value.
+    /// @return options The options.
     function addExecutorLzReceiveOption(bytes memory options, uint128 gas, uint128 value)
         internal
         pure
@@ -37,6 +44,12 @@ library LZOptions {
         return abi.encodePacked(options, WORKER_ID, size, OPTION_TYPE_LZRECEIVE, data);
     }
 
+    /// @notice Adds a LZ Compose option.
+    /// @param options The options.
+    /// @param index The index.
+    /// @param gas The gas.
+    /// @param value The value.
+    /// @return options The options.
     function addExecutorLzComposeOption(bytes memory options, uint16 index, uint128 gas, uint128 value)
         internal
         pure
@@ -50,6 +63,9 @@ library LZOptions {
         return abi.encodePacked(options, WORKER_ID, size, OPTION_TYPE_LZCOMPOSE, data);
     }
 
+    /// @notice Adds an Ordered Execution option.
+    /// @param options The options.
+    /// @return options The options.
     function addExecutorOrderedExecutionOption(bytes memory options) internal pure returns (bytes memory) {
         bytes memory data = bytes("");
         uint16 size = uint16(1 + data.length);

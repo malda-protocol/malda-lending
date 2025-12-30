@@ -73,23 +73,46 @@ abstract contract BaseOftMessageExecutor is IOftMessageExecutor {
 
     // ---------------- INTERNAL HELPERS (NON-VIEW) ----------------
 
+    /// @notice Pulls tokens from the rebalancer.
+    /// @param underlying The underlying token address.
+    /// @param amount The amount of tokens to pull.
+    /// @param rebalancer The rebalancer address.
     function _pullFromRebalancer(address underlying, uint256 amount, address rebalancer) internal {
-        if (rebalancer != msg.sender) revert Executor_NotRebalancer();
+        // Requirements: the rebalancer is not the sender
+        require(rebalancer != msg.sender, Executor_NotRebalancer());
+
+        // Interactions: transfer the tokens from the rebalancer to the contract
+        // slither-disable-next-line arbitrary-send-erc20 - pulling tokens is fine
         IERC20(underlying).safeTransferFrom(rebalancer, address(this), amount);
     }
 
+    /// @notice Approves tokens to a spender.
+    /// @param token The token address.
+    /// @param spender The spender address.
+    /// @param amount The amount of tokens to approve.
     function _approve(address token, address spender, uint256 amount) internal {
         SafeApprove.safeApprove(token, spender, amount);
     }
 
+    /// @notice Sends tokens via OFT.
+    /// @param oft The OFT address.
+    /// @param params The send parameters.
+    /// @param fees The messaging fees.
+    /// @param refundAddress The refund address.
+    /// @return receipt The messaging receipt.
     function _sendOFT(address oft, SendParam calldata params, MessagingFee calldata fees, address refundAddress)
         internal
         returns (MessagingReceipt memory receipt)
     {
+        // Interactions: send the tokens via OFT
         // solhint-disable-next-line check-send-result
         (receipt,) = ILayerZeroOFT(oft).send{value: fees.nativeFee}(params, fees, refundAddress);
     }
 
+    /// @notice Falls back to underlying if the bridge contract is not the underlying.
+    /// @param market The market address.
+    /// @param underlying The underlying token address.
+    /// @param bridgeContract The bridge contract used for OFT operations.
     function _fallbackToUnderlying(address market, address underlying, address bridgeContract) internal {
         if (bridgeContract == underlying) {
             uint256 bal = IERC20(underlying).balanceOf(address(this));
@@ -109,6 +132,9 @@ abstract contract BaseOftMessageExecutor is IOftMessageExecutor {
 
     // ---------------- INTERNAL HELPERS (VIEW) ----------------
 
+    /// @notice Verifies the minted tokens.
+    /// @param oft The OFT address.
+    /// @param required The required amount of tokens.
     function _verifyMinted(address oft, uint256 required) internal view {
         uint256 bal = IERC20(oft).balanceOf(address(this));
         if (bal < required) revert Executor_AmountMismatch();
