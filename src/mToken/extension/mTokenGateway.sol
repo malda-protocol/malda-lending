@@ -211,9 +211,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         emit mTokenGateway_WhitelistDisabled();
     }
 
-    /**
-     * @inheritdoc ImTokenGateway
-     */
+    /// @inheritdoc ImTokenGateway
     function setPaused(OperationType _type, bool state) external override onlyFirewallApprovedAllowEOA {
         if (state) {
             // Requirements: if pausing, the caller is the owner or allowed for guardian pause
@@ -233,9 +231,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         emit mTokenGateway_PausedState(_type, state);
     }
 
-    /**
-     * @inheritdoc ImTokenGateway
-     */
+    /// @inheritdoc ImTokenGateway
     function extractForRebalancing(uint256 amount)
         external
         notPaused(OperationType.Rebalancing)
@@ -257,10 +253,8 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         emit mTokenGateway_GasFeeUpdated(amount);
     }
 
-    /**
-     * @notice Withdraw gas received so far
-     * @param receiver the receiver address
-     */
+    /// @notice Withdraw gas received so far
+    /// @param receiver the receiver address
     function withdrawGasFees(address payable receiver) external onlyFirewallApprovedAllowEOA {
         // Requirements: the sender is the owner or allowed for sequencer
         require(

@@ -44,9 +44,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
         borrowRateMaxMantissa = 0.0005e16;
     }
 
-    /**
-     * @inheritdoc ImToken
-     */
+    /// @inheritdoc ImToken
     function transfer(address dst, uint256 amount)
         external
         override
@@ -58,9 +56,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
         return true;
     }
 
-    /**
-     * @inheritdoc ImToken
-     */
+    /// @inheritdoc ImToken
     function transferFrom(address src, address dst, uint256 amount)
         external
         override
@@ -499,14 +495,12 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
         return borrowSnapshot.principal * borrowIndex / borrowSnapshot.interestIndex;
     }
 
-    /**
-     * @notice Borrows are repaid by another user (possibly the borrower).
-     * @param payer the account paying off the borrow
-     * @param borrower the account with the debt being payed off
-     * @param repayAmount the amount of underlying tokens, or `type(uint256).max` for full
-     * @param doTransfer If an actual transfer should be performed
-     * @return returns the actual repay amount
-     */
+    /// @notice Borrows are repaid by another user (possibly the borrower).
+    /// @param payer the account paying off the borrow
+    /// @param borrower the account with the debt being payed off
+    /// @param repayAmount the amount of underlying tokens, or `type(uint256).max` for full
+    /// @param doTransfer If an actual transfer should be performed
+    /// @return returns the actual repay amount
     function __repay(address payer, address borrower, uint256 repayAmount, bool doTransfer) private returns (uint256) {
         IOperatorDefender(operator).beforeMTokenRepay(address(this), borrower);
 
@@ -743,14 +737,12 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
     }
 
     // slither-disable-start reentrancy-benign
-    /**
-     * @notice Transfer `tokens` tokens from `src` to `dst` by `spender`
-     * @dev Called by both `transfer` and `transferFrom` internally
-     * @param spender The address of the account performing the transfer
-     * @param src The address of the source account
-     * @param dst The address of the destination account
-     * @param tokens The number of tokens to transfer
-     */
+    /// @notice Transfer `tokens` tokens from `src` to `dst` by `spender`
+    /// @dev Called by both `transfer` and `transferFrom` internally
+    /// @param spender The address of the account performing the transfer
+    /// @param src The address of the source account
+    /// @param dst The address of the destination account
+    /// @param tokens The number of tokens to transfer
     function _transferTokens(address spender, address src, address dst, uint256 tokens) private {
         IOperatorDefender(operator).beforeMTokenTransfer(address(this), src, dst, tokens);
 

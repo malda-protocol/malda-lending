@@ -31,10 +31,17 @@ interface IHypernativeFirewall {
 /// @notice Abstract contract that provides firewall protection for inheriting contracts.
 /// @dev Inherited from Hypernative and refactored for our needs without changing core behavior.
 abstract contract HypernativeFirewallProtected {
+    // ----------- CONSTANTS ------------
+
+    /// @notice Storage slot for the firewall address.
     bytes32 private constant HYPERNATIVE_ORACLE_STORAGE_SLOT =
         bytes32(uint256(keccak256("eip1967.hypernative.firewall")) - 1);
+
+    /// @notice Storage slot for the firewall admin address.
     bytes32 private constant HYPERNATIVE_ADMIN_STORAGE_SLOT =
         bytes32(uint256(keccak256("eip1967.hypernative.admin")) - 1);
+
+    /// @notice Storage slot for the firewall strict mode.
     bytes32 private constant HYPERNATIVE_MODE_STORAGE_SLOT =
         bytes32(uint256(keccak256("eip1967.hypernative.is_strict_mode")) - 1);
 
@@ -84,8 +91,10 @@ abstract contract HypernativeFirewallProtected {
     function setFirewall(address _firewall) public onlyFirewallAdmin {
         address oldFirewall = _hypernativeFirewall();
 
+        // Effects: set the firewall
         _setAddressBySlot(HYPERNATIVE_ORACLE_STORAGE_SLOT, _firewall);
 
+        // Events: emit the firewall address changed event
         emit FirewallAddressChanged(oldFirewall, _firewall);
     }
 
@@ -105,6 +114,8 @@ abstract contract HypernativeFirewallProtected {
 
     // ----------- INTERNAL FUNCTIONS ------------
 
+    /// @notice Validates the firewall gate.
+    /// @param sender The sender of the transaction.
     function _firewallGate(address sender) internal {
         IHypernativeFirewall firewall = IHypernativeFirewall(_hypernativeFirewall());
 
@@ -126,50 +137,82 @@ abstract contract HypernativeFirewallProtected {
     /// @param _firewall The firewall address.
     /// @param _admin The firewall admin address.
     function _initHypernativeFirewall(address _firewall, address _admin) internal {
+        // Effects: set the firewall admin
         _changeFirewallAdmin(_admin);
+
+        // Requirements: the firewall is not zero address
         require(_firewall != address(0), HypernativeFirewallProtected_NotValid());
+
+        // Effects: set the firewall
         setFirewall(_firewall);
     }
 
+    /// @notice Changes the firewall admin.
+    /// @param _newAdmin The new firewall admin address.
     function _changeFirewallAdmin(address _newAdmin) internal {
+        // Requirements: the new admin is not zero address
+        require(_newAdmin != address(0), HypernativeFirewallProtected_NotValid());
+
         address oldAdmin = hypernativeFirewallAdmin();
+
+        // Effects: set the firewall admin
         _setAddressBySlot(HYPERNATIVE_ADMIN_STORAGE_SLOT, _newAdmin);
+
+        // Events: emit the firewall admin changed event
         emit FirewallAdminChanged(oldAdmin, _newAdmin);
     }
 
+    /// @notice Modifier to restrict access to only approved firewall addresses and EOAs.
     function _onlyFirewallAdmin() internal view {
+        // Requirements: the caller is the firewall admin
         require(msg.sender == hypernativeFirewallAdmin(), HypernativeFirewallProtected_NotAdmin());
     }
 
     // ----------- PRIVATE ------------
+    /// @notice Returns the address by slot.
+    /// @param slot The slot to get the address from.
+    /// @return addr The address.
     function _getAddressBySlot(bytes32 slot) internal view returns (address addr) {
         assembly {
             addr := sload(slot)
         }
     }
 
+    /// @notice Returns the value by slot.
+    /// @param _slot The slot to get the value from.
+    /// @return value The value.
     function _getValueBySlot(bytes32 _slot) internal view returns (uint256 value) {
         assembly {
             value := sload(_slot)
         }
     }
 
+    /// @notice Sets the address by slot.
+    /// @param slot The slot to set the address to.
+    /// @param newAddress The new address.
     function _setAddressBySlot(bytes32 slot, address newAddress) private {
         assembly {
             sstore(slot, newAddress)
         }
     }
 
+    /// @notice Sets the value by slot.
+    /// @param _slot The slot to set the value to.
+    /// @param _value The new value.
     function _setValueBySlot(bytes32 _slot, uint256 _value) private {
         assembly {
             sstore(_slot, _value)
         }
     }
 
+    /// @notice Returns whether strict mode is enabled.
+    /// @return True if strict mode is enabled, false otherwise.
     function _hypernativeFirewallIsStrictMode() private view returns (bool) {
         return _getValueBySlot(HYPERNATIVE_MODE_STORAGE_SLOT) == 1;
     }
 
+    /// @notice Returns the firewall address.
+    /// @return The firewall address.
     function _hypernativeFirewall() private view returns (address) {
         return _getAddressBySlot(HYPERNATIVE_ORACLE_STORAGE_SLOT);
     }

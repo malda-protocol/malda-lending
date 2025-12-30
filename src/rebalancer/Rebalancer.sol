@@ -356,6 +356,8 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
 
     // ----------- INTERNAL METHODS ------------
 
+    /// @notice Initializes the Rebalancer from initialization data.
+    /// @param initData Initialization data.
     function _initFromData(bytes memory initData) internal {
         if (initData.length == 0) return;
 
@@ -378,11 +380,15 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         }
     }
 
+    /// @notice Initializes the markets.
+    /// @param markets Markets to initialize.
     function _initMarkets(address[] memory markets) internal {
         _setMarketStatus(markets, true);
         _setAllowList(markets, true);
     }
 
+    /// @notice Initializes the bridges.
+    /// @param bridges Bridges to initialize.
     function _initBridges(address[] memory bridges) internal {
         uint256 len = bridges.length;
         for (uint256 i; i < len; ++i) {
@@ -390,6 +396,8 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         }
     }
 
+    /// @notice Initializes the destinations.
+    /// @param destinations Destinations to initialize.
     function _initDestinations(uint32[] memory destinations) internal {
         uint256 len = destinations.length;
         for (uint256 i; i < len; ++i) {
@@ -397,6 +405,8 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         }
     }
 
+    /// @notice Initializes the bridge tokens.
+    /// @param bridgeTokens Bridge tokens to initialize.
     function _initBridgeTokens(BridgeTokens[] memory bridgeTokens) internal {
         uint256 len = bridgeTokens.length;
         for (uint256 i; i < len; ++i) {
@@ -404,6 +414,11 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         }
     }
 
+    /// @notice Checks the pre-conditions for sending a message.
+    /// @param _bridge Bridge address.
+    /// @param _market Market address.
+    /// @param _amount Amount to send.
+    /// @param _msg Message data.
     function _sendMsgPreChecks(address _bridge, address _market, uint256 _amount, Msg calldata _msg) internal {
         if (!roles.isAllowedFor(msg.sender, roles.REBALANCER_EOA())) revert Rebalancer_NotAuthorized();
         require(whitelistedBridges[_bridge], Rebalancer_BridgeNotWhitelisted());
@@ -416,6 +431,10 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         require(_amount > minTransferSizes[_msg.dstChainId][_msg.token], Rebalancer_TransferSizeMinNotMet());
     }
 
+    /// @notice Updates the transfer window and checks the maximum transfer size.
+    /// @param amount Amount to send.
+    /// @param dstChainId Destination chain id.
+    /// @param token Token address.
     function _updateTransferWindowAndCheckMax(uint256 amount, uint32 dstChainId, address token) internal {
         TransferInfo storage transferInfo = currentTransferSize[dstChainId][token];
         uint256 deadline = transferInfo.timestamp + transferTimeWindow;
@@ -433,6 +452,9 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         require(transferInfo.size <= maxSize, Rebalancer_TransferSizeExcedeed());
     }
 
+    /// @notice Sets the market status.
+    /// @param list Market addresses.
+    /// @param status Market status.
     function _setMarketStatus(address[] memory list, bool status) internal {
         uint256 len = list.length;
         for (uint256 i; i < len; i++) {
@@ -441,6 +463,9 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         emit MarketListUpdated(list, status);
     }
 
+    /// @notice Sets the allow list.
+    /// @param list Market addresses.
+    /// @param status Allow list status.
     function _setAllowList(address[] memory list, bool status) internal {
         uint256 len = list.length;
         for (uint256 i; i < len; i++) {
@@ -449,17 +474,27 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         emit AllowedListUpdated(list, status);
     }
 
+    /// @notice Sets the whitelisted bridge status.
+    /// @param _bridge Bridge address.
+    /// @param _status Whitelisted bridge status.
     function _setWhitelistedBridgeStatus(address _bridge, bool _status) internal {
         require(_bridge != address(0), Rebalancer_AddressNotValid());
         whitelistedBridges[_bridge] = _status;
         emit BridgeWhitelistedStatusUpdated(_bridge, _status);
     }
 
+    /// @notice Sets the whitelisted destination.
+    /// @param _dstId Destination chain id.
+    /// @param _status Whitelisted destination status.
     function _setWhitelistedDestination(uint32 _dstId, bool _status) internal {
         emit DestinationWhitelistedStatusUpdated(_dstId, _status);
         whitelistedDestinations[_dstId] = _status;
     }
 
+    /// @notice Sets the allowed tokens.
+    /// @param bridge Bridge address.
+    /// @param tokens Token addresses.
+    /// @param status Allowed tokens status.
     function _setAllowedTokens(address bridge, address[] memory tokens, bool status) internal {
         uint256 len = tokens.length;
         for (uint256 i; i < len; i++) {

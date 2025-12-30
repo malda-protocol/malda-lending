@@ -302,13 +302,11 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         }
     }
 
-    /**
-     * /// @notice Set borrow caps for given mToken markets.
-     * /// @dev Borrowing that brings total borrows to or above borrow cap will revert.
-     * ///      A value of 0 corresponds to unlimited borrowing.
-     * /// @param mTokens The addresses of the markets (tokens) to change the borrow caps for
-     * /// @param newBorrowCaps The new borrow cap values in underlying to be set.
-     */
+    /// @notice Set borrow caps for given mToken markets.
+    /// @dev Borrowing that brings total borrows to or above borrow cap will revert.
+    ///      A value of 0 corresponds to unlimited borrowing.
+    /// @param mTokens The addresses of the markets (tokens) to change the borrow caps for
+    /// @param newBorrowCaps The new borrow cap values in underlying to be set.
     function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newBorrowCaps)
         external
         onlyFirewallApprovedAllowEOA

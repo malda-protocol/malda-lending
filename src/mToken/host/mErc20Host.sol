@@ -148,9 +148,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         emit mErc20Host_ChainStatusUpdated(_chainId, status_);
     }
 
-    /**
-     * @inheritdoc ImErc20Host
-     */
+    /// @inheritdoc ImErc20Host
     function extractForRebalancing(uint256 amount) external onlyFirewallApprovedAllowEOA {
         // Interactions: check if rebalancing is paused
         IOperatorDefender(operator).beforeRebalancing(address(this));
@@ -308,9 +306,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         }
     }
 
-    /**
-     * @inheritdoc ImErc20Host
-     */
+    /// @inheritdoc ImErc20Host
     function performExtensionCall(uint256 actionType, uint256 amount, uint32 dstChainId)
         external
         payable
