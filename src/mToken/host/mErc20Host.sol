@@ -169,6 +169,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         require(_migrator != address(0), mErc20Host_AddressNotValid());
 
         // Effects: set the migrator
+        // slither-disable-next-line events-access
         migrator = _migrator;
     }
 

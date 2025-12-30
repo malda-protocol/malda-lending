@@ -124,23 +124,40 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
     /// @notice Initialize firewall.
     /// @param _firewall Firewall address.
     function initFirewall(address _firewall) external {
-        if (msg.sender != admin) revert Rebalancer_NotAuthorized();
+        require(msg.sender == admin, Rebalancer_NotAuthorized());
         _initHypernativeFirewall(_firewall, admin);
     }
 
     /// @notice Set admin.
     /// @param _account Admin address.
     function setAdmin(address _account) external {
-        if (msg.sender != admin) revert Rebalancer_NotAuthorized();
+        // Requirements: the account is not zero address
+        require(_account != address(0), Rebalancer_AddressNotValid());
+
+        // Requirements: the caller is the admin
+        require(msg.sender == admin, Rebalancer_NotAuthorized());
+
+        // Effects: set the admin
         admin = _account;
+
+        // Events: emit the new admin event
         emit NewAdmin(_account);
     }
 
     /// @notice Set save address.
     /// @param _save Save address.
     function setSaveAddress(address _save) external {
-        if (msg.sender != admin) revert Rebalancer_NotAuthorized();
+        // Requirements: the save address is not zero address
+        require(_save != address(0), Rebalancer_AddressNotValid());
+
+        // Requirements: the caller is the admin
+        require(msg.sender == admin, Rebalancer_NotAuthorized());
+
+        // Effects: set the save address
         saveAddress = _save;
+
+        // Events: emit the new save address event
+        emit SaveAddressUpdated(_save);
     }
 
     /// @notice Set allowed tokens for a bridge.
@@ -151,7 +168,10 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         external
         onlyFirewallApprovedAllowEOA
     {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+        // Requirements: the caller is allowed for guardian bridge
+        require(roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE()), Rebalancer_NotAuthorized());
+
+        // Effects: set the allowed tokens
         _setAllowedTokens(bridge, tokens, status);
     }
 
@@ -159,7 +179,10 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
     /// @param list Market addresses.
     /// @param status Whitelist status.
     function setMarketStatus(address[] calldata list, bool status) external onlyFirewallApprovedAllowEOA {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+        // Requirements: the caller is allowed for guardian bridge
+        require(roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE()), Rebalancer_NotAuthorized());
+
+        // Effects: set the market status
         _setMarketStatus(list, status);
     }
 
@@ -167,7 +190,10 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
     /// @param list Market addresses.
     /// @param status Allow list status.
     function setAllowList(address[] calldata list, bool status) external onlyFirewallApprovedAllowEOA {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+        // Requirements: the caller is allowed for guardian bridge
+        require(roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE()), Rebalancer_NotAuthorized());
+
+        // Effects: set the allow list
         _setAllowList(list, status);
     }
 
@@ -175,7 +201,10 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
     /// @param _bridge Bridge address.
     /// @param _status Whitelist status.
     function setWhitelistedBridgeStatus(address _bridge, bool _status) external onlyFirewallApprovedAllowEOA {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+        // Requirements: the caller is allowed for guardian bridge
+        require(roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE()), Rebalancer_NotAuthorized());
+
+        // Effects: set the whitelisted bridge status
         _setWhitelistedBridgeStatus(_bridge, _status);
     }
 
@@ -183,20 +212,26 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
     /// @param _dstId Destination chain id.
     /// @param _status Whitelist status.
     function setWhitelistedDestination(uint32 _dstId, bool _status) external onlyFirewallApprovedAllowEOA {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+        // Requirements: the caller is allowed for guardian bridge
+        require(roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE()), Rebalancer_NotAuthorized());
+
+        // Effects: set the whitelisted destination
         _setWhitelistedDestination(_dstId, _status);
     }
 
     /// @notice Sweep native ETH to the configured save address.
     function saveEth() external onlyFirewallApprovedAllowEOA {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+        // Requirements: the caller is allowed for guardian bridge
+        require(roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE()), Rebalancer_NotAuthorized());
 
         uint256 amount = address(this).balance;
 
+        // Interactions: sweep the native ETH to the save address
         // slither-disable-next-line arbitrary-send-eth
         (bool success,) = saveAddress.call{value: amount}("");
         require(success, Rebalancer_RequestNotValid());
 
+        // Events: emit the ETH saved event
         emit EthSaved(amount);
     }
 
@@ -204,13 +239,19 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
     /// @param token Token address to sweep.
     /// @param market Market to receive tokens.
     function saveTokens(address token, address market) external {
-        if (msg.sender != admin) revert Rebalancer_NotAuthorized();
+        // Requirements: the caller is the admin
+        require(msg.sender == admin, Rebalancer_NotAuthorized());
 
+        // Requirements: the market is valid
         address _underlying = ImTokenMinimal(market).underlying();
+        // Requirements: the underlying token is the same as the token
         require(_underlying == token, Rebalancer_RequestNotValid());
 
+        // Interactions: sweep the tokens to the market
         uint256 amount = IERC20(token).balanceOf(address(this));
         IERC20(token).safeTransfer(market, amount);
+
+        // Events: emit the tokens saved event
         emit TokensSaved(token, market, amount);
     }
 
@@ -222,8 +263,13 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         external
         onlyFirewallApprovedAllowEOA
     {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+        // Requirements: the caller is allowed for guardian bridge
+        require(roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE()), Rebalancer_NotAuthorized());
+
+        // Effects: set the minimum transfer size
         minTransferSizes[_dstChainId][_token] = _limit;
+
+        // Events: emit the minimum transfer size updated event
         emit MinTransferSizeUpdated(_dstChainId, _token, _limit);
     }
 
@@ -235,8 +281,13 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         external
         onlyFirewallApprovedAllowEOA
     {
-        if (!roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE())) revert Rebalancer_NotAuthorized();
+        // Requirements: the caller is allowed for guardian bridge
+        require(roles.isAllowedFor(msg.sender, roles.GUARDIAN_BRIDGE()), Rebalancer_NotAuthorized());
+
+        // Effects: set the maximum transfer size
         maxTransferSizes[_dstChainId][_token] = _limit;
+
+        // Events: emit the maximum transfer size updated event
         emit MaxTransferSizeUpdated(_dstChainId, _token, _limit);
     }
 
@@ -248,22 +299,35 @@ contract Rebalancer is IRebalancer, HypernativeFirewallProtected {
         payable
         onlyFirewallApprovedAllowEOA
     {
+        // Requirements: check the pre-conditions
         _sendMsgPreChecks(_bridge, _market, _amount, _msg);
+
+        // Effects: update the transfer window and check the maximum transfer size
         _updateTransferWindowAndCheckMax(_amount, _msg.dstChainId, _msg.token);
 
+        // Requirements: the market is allowed
         require(allowedList[_market], Rebalancer_MarketNotValid());
+
+        // Interactions: extract the tokens for rebalancing
         IRebalanceMarket(_market).extractForRebalancing(_amount);
 
+        // Effects: increment the nonce
         unchecked {
             ++nonce;
         }
+
+        // Effects: log the message
         logs[_msg.dstChainId][nonce] = _msg;
 
+        // Interactions: approve the tokens
         SafeApprove.safeApprove(_msg.token, _bridge, _amount);
+
+        // Interactions: send the message
         IBridge(_bridge).sendMsg{value: msg.value}(
             _amount, _market, _msg.dstChainId, _msg.token, _msg.message, _msg.bridgeData
         );
 
+        // Events: emit the message sent event
         emit MsgSent(_bridge, _msg.dstChainId, _msg.token, _msg.message, _msg.bridgeData);
     }
 

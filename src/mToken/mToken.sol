@@ -742,6 +742,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
         }
     }
 
+    // slither-disable-start reentrancy-benign
     /**
      * @notice Transfer `tokens` tokens from `src` to `dst` by `spender`
      * @dev Called by both `transfer` and `transferFrom` internally
@@ -785,6 +786,8 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFir
         // Events: emit the transfer event
         emit Transfer(src, dst, tokens);
     }
+
+    // slither-disable-end reentrancy-benign
 
     // ----------- PRIVATE VIEW ------------
     /// @notice Calculates seize token amount for liquidation

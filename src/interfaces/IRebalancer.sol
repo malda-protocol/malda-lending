@@ -108,6 +108,10 @@ interface IRebalancer {
     /// @param acc New admin address.
     event NewAdmin(address indexed acc);
 
+    /// @notice Emitted when the save address is updated.
+    /// @param save Save address.
+    event SaveAddressUpdated(address indexed save);
+
     // ----------- ERRORS ------------
 
     /// @notice Error thrown when caller not authorized.
