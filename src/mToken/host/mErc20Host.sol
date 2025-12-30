@@ -134,6 +134,15 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         _initHypernativeFirewall(_firewall, admin);
     }
 
+    /// @notice Resets the market state
+    function resetMarket() external onlyAdmin {
+        totalBorrows = 0;
+        totalReserves = 0;
+        totalSupply = 0;
+        accrualBlockTimestamp = block.timestamp;
+        borrowIndex = 1e18;
+    }
+
     /// @notice Updates an allowed chain status
     /// @param _chainId the chain id
     /// @param status_ the new status
