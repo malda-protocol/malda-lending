@@ -30,7 +30,7 @@ contract DeployerTest is Test {
         vm.deal(admin, 10 ether);
     }
 
-    function test_Constructor_SetsAdmin() public {
+    function test_Constructor_SetsAdmin() public view {
         assertEq(deployer.admin(), admin);
     }
 

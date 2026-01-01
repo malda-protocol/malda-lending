@@ -43,7 +43,7 @@ contract mTokenProofDecoderLibTest is Test {
         harness = new mTokenProofDecoderLibHarness();
     }
 
-    function testEncodeDecodeRoundTrip() public {
+    function testEncodeDecodeRoundTrip() public view {
         bytes memory encoded = harness.encode(address(0x1234), address(0x5678), 123, 456, 10, 20, true);
 
         assertEq(encoded.length, mTokenProofDecoderLib.ENTRY_SIZE);

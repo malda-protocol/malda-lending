@@ -105,6 +105,16 @@ contract MockV3Feed is IDefaultAdapter {
             oracle.setStaleness("MOCK", 1234);
         }
 
+        function test_constructor_revertWhenRolesZero() external {
+            string[] memory symbols = new string[](1);
+            symbols[0] = "MOCK";
+            IDefaultAdapter.PriceConfig[] memory configs = new IDefaultAdapter.PriceConfig[](1);
+            configs[0] = IDefaultAdapter.PriceConfig({defaultFeed: address(0), toSymbol: "USD", underlyingDecimals: 18});
+
+            vm.expectRevert(MixedPriceOracleV3.MixedPriceOracle_AddressNotValid.selector);
+            new MixedPriceOracleV3(symbols, configs, address(0), 1 days);
+        }
+
         function test_setConfig_revertsWhenZeroFeed() external {
             MockV3Feed feed = new MockV3Feed(8, 1e8);
             MixedPriceOracleV3 oracle = _deployOracle(address(feed), "MOCK", 18);
@@ -114,6 +124,41 @@ contract MockV3Feed is IDefaultAdapter {
 
             vm.expectRevert(MixedPriceOracleV3.MixedPriceOracle_InvalidConfig.selector);
             oracle.setConfig("MOCK", config);
+        }
+
+        function test_getPrice_revertWhenDefaultFeedMissing() external {
+            string[] memory symbols = new string[](1);
+            symbols[0] = "MOCK";
+            IDefaultAdapter.PriceConfig[] memory configs = new IDefaultAdapter.PriceConfig[](1);
+            configs[0] = IDefaultAdapter.PriceConfig({defaultFeed: address(0), toSymbol: "USD", underlyingDecimals: 18});
+
+            MixedPriceOracleV3 oracle = new MixedPriceOracleV3(symbols, configs, address(roles), 1 days);
+            MockV3MToken token = new MockV3MToken("MOCK", address(0));
+
+            vm.expectRevert(MixedPriceOracleV3.MixedPriceOracle_InvalidConfig.selector);
+            oracle.getPrice(address(token));
+        }
+
+        function test_getPrice_revertWhenInvalidPrice() external {
+            MockV3Feed feed = new MockV3Feed(8, 0);
+            MixedPriceOracleV3 oracle = _deployOracle(address(feed), "MOCK", 18);
+            MockV3MToken token = new MockV3MToken("MOCK", address(0));
+
+            vm.expectRevert(MixedPriceOracleV3.MixedPriceOracle_InvalidPrice.selector);
+            oracle.getPrice(address(token));
+        }
+
+        function test_getPrice_revertWhenStale() external {
+            MockV3Feed feed = new MockV3Feed(8, 1e8);
+            MixedPriceOracleV3 oracle = _deployOracle(address(feed), "MOCK", 18);
+            MockV3MToken token = new MockV3MToken("MOCK", address(0));
+
+            vm.warp(100);
+            oracle.setStaleness("MOCK", 1);
+            feed.setUpdatedAt(block.timestamp - 2);
+
+            vm.expectRevert(MixedPriceOracleV3.MixedPriceOracle_StalePrice.selector);
+            oracle.getPrice(address(token));
         }
 
         function test_setConfig_updatesMapping() external {

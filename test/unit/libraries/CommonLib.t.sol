@@ -93,7 +93,7 @@ contract CommonLibTest is Test {
         harness.checkLengthMatch2(1, 2);
     }
 
-    function testCheckLengthMatch2Succeeds() public {
+    function testCheckLengthMatch2Succeeds() public view {
         harness.checkLengthMatch2(2, 2);
     }
 
@@ -102,11 +102,11 @@ contract CommonLibTest is Test {
         harness.checkLengthMatch3(1, 2, 3);
     }
 
-    function testCheckLengthMatch3Succeeds() public {
+    function testCheckLengthMatch3Succeeds() public view {
         harness.checkLengthMatch3(3, 3, 3);
     }
 
-    function testComputeSum() public {
+    function testComputeSum() public view {
         uint256[] memory values = new uint256[](3);
         values[0] = 1;
         values[1] = 2;

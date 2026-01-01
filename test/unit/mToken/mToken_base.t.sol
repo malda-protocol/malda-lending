@@ -229,4 +229,58 @@ contract mToken_base is mToken_Unit_Shared {
         vm.expectRevert(mTokenStorage.mt_OnlyAdminOrRole.selector);
         mWeth.reduceReserves(amount / 2);
     }
+
+    function test_RevertWhen_MinAmountOutTooHigh() external whenMarketIsListed(address(mWeth)) {
+        uint256 amount = SMALL;
+        _getTokens(weth, address(this), amount);
+        weth.approve(address(mWeth), amount);
+
+        vm.expectRevert(mTokenStorage.mt_MinAmountNotValid.selector);
+        mWeth.mint(amount, address(this), amount);
+    }
+
+    function test_Mint_WhenTotalSupplyNonZero() external whenMarketIsListed(address(mWeth)) {
+        uint256 amount = SMALL;
+        _getTokens(weth, address(this), amount * 2);
+        weth.approve(address(mWeth), amount * 2);
+
+        mWeth.mint(amount, address(this), 0);
+        uint256 totalSupplyBefore = mWeth.totalSupply();
+
+        mWeth.mint(amount, address(this), 0);
+        assertEq(mWeth.totalSupply(), totalSupplyBefore + amount);
+    }
+
+    function test_ReduceReserves_RevertWhen_CashNotAvailable() external whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE) {
+        operator.supportMarket(address(mWeth));
+        operator.setCollateralFactor(address(mWeth), DEFAULT_COLLATERAL_FACTOR);
+
+        uint256 supplyAmount = 200 ether;
+        uint256 reservesAmount = 10 ether;
+        _getTokens(weth, address(this), supplyAmount + reservesAmount);
+        weth.approve(address(mWeth), supplyAmount);
+        mWeth.mint(supplyAmount, address(this), 0);
+
+        weth.approve(address(mWeth), reservesAmount);
+        mWeth.addReserves(reservesAmount);
+
+        mWeth.borrow(150 ether);
+
+        vm.expectRevert(mTokenStorage.mt_ReserveCashNotAvailable.selector);
+        mWeth.reduceReserves(70 ether);
+    }
+
+    function test_ReduceReserves_RevertWhen_AmountExceedsReserves() external {
+        operator.supportMarket(address(mWeth));
+
+        uint256 supplyAmount = 100 ether;
+        _getTokens(weth, address(this), supplyAmount + 10 ether);
+        weth.approve(address(mWeth), supplyAmount + 10 ether);
+        mWeth.mint(supplyAmount, address(this), 0);
+
+        mWeth.addReserves(10 ether);
+
+        vm.expectRevert(mTokenStorage.mt_ReserveCashNotAvailable.selector);
+        mWeth.reduceReserves(20 ether);
+    }
 }

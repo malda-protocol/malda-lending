@@ -44,6 +44,11 @@ contract mTokenConfiguration_test is mToken_Unit_Shared {
         assertEq(address(mWeth.rolesOperator()), address(newRoles));
     }
 
+    function test_SetRolesOperator_RevertWhenZero() external {
+        vm.expectRevert(mTokenStorage.mt_AddressNotValid.selector);
+        mWeth.setRolesOperator(address(0));
+    }
+
     function test_RevertWhen_NonAdminSetInterestRateModel() external {
         GoodInterestRateModel newModel = new GoodInterestRateModel();
 
@@ -86,6 +91,11 @@ contract mTokenConfiguration_test is mToken_Unit_Shared {
         mWeth.setBorrowRateMaxMantissa(newMax);
 
         assertEq(mWeth.borrowRateMaxMantissa(), newMax);
+    }
+
+    function test_SetReserveFactor_RevertWhenTooHigh() external {
+        vm.expectRevert(mTokenStorage.mt_ReserveFactorTooHigh.selector);
+        mWeth.setReserveFactor(1e18 + 1);
     }
 
     function test_AccrueInterestChecksBorrowRateMax() external {

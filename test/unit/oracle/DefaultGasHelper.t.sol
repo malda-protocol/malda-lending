@@ -19,7 +19,7 @@ contract DefaultGasHelperTest is Test {
         helper = new DefaultGasHelper(owner);
     }
 
-    function test_Constructor_SetsOwner() public {
+    function test_Constructor_SetsOwner() public view {
         assertEq(helper.owner(), owner);
     }
 
