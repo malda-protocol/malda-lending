@@ -49,6 +49,14 @@ contract MockToken {
     function underlying() external view returns (address) {
         return underlying_;
     }
+
+    function setSymbol(string calldata _symbol) external {
+        symbol_ = _symbol;
+    }
+
+    function setUnderlying(address _underlying) external {
+        underlying_ = _underlying;
+    }
 }
 
 contract MixedPriceOracleV4Test is Test {
@@ -178,6 +186,42 @@ contract MixedPriceOracleV4Test is Test {
         oracle.getPrice(address(token));
     }
 
+    function test_ComposedPrice_UsesParentUpdate() public {
+        MockAdapter api3Eth = new MockAdapter();
+        MockAdapter eOracleEth = new MockAdapter();
+        MockAdapter api3WeEth = new MockAdapter();
+        MockAdapter eOracleWeEth = new MockAdapter();
+
+        api3Eth.setPrice(2000e8);
+        eOracleEth.setPrice(2000e8);
+        api3WeEth.setPrice(2e8);
+        eOracleWeEth.setPrice(2e8);
+
+        api3Eth.setUpdatedAt(block.timestamp - 50);
+        api3WeEth.setUpdatedAt(block.timestamp - 10);
+        eOracleEth.setUpdatedAt(block.timestamp - 60);
+        eOracleWeEth.setUpdatedAt(block.timestamp - 20);
+
+        string[] memory symbols = new string[](2);
+        symbols[0] = "ETH";
+        symbols[1] = "WEETH";
+
+        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](2);
+        configs[0] = MixedPriceOracleV4.PriceConfig({
+            api3Feed: address(api3Eth), eOracleFeed: address(eOracleEth), toSymbol: "USD", underlyingDecimals: 18
+        });
+        configs[1] = MixedPriceOracleV4.PriceConfig({
+            api3Feed: address(api3WeEth), eOracleFeed: address(eOracleWeEth), toSymbol: "ETH", underlyingDecimals: 18
+        });
+
+        oracle = new MixedPriceOracleV4(symbols, configs, address(roles), 1 days);
+        roles.allow(address(this));
+
+        token.setSymbol("WEETH");
+        uint256 price = oracle.getPrice(address(token));
+        assertEq(price, 4000e18);
+    }
+
     function test_RevertsIfNegativePrice() public {
         api3.setPrice(-1);
         eOracle.setPrice(-1);
@@ -198,5 +242,17 @@ contract MixedPriceOracleV4Test is Test {
         oracle.setSymbolMaxPriceDelta(25000, "MOCK"); // 25%
         price = oracle.getPrice(address(token));
         assertEq(price, 100e18);
+    }
+
+    function testFuzz_setMaxPriceDelta(uint256 delta) public {
+        vm.assume(delta <= oracle.PRICE_DELTA_EXP());
+        oracle.setMaxPriceDelta(delta);
+        assertEq(oracle.maxPriceDelta(), delta);
+    }
+
+    function testFuzz_setSymbolMaxPriceDelta(uint256 delta) public {
+        vm.assume(delta <= oracle.PRICE_DELTA_EXP());
+        oracle.setSymbolMaxPriceDelta(delta, "MOCK");
+        assertEq(oracle.deltaPerSymbol("MOCK"), delta);
     }
 }

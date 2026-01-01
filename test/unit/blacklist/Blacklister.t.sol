@@ -42,6 +42,24 @@ contract BlacklisterTest is Test {
         vm.stopPrank();
     }
 
+    function testBlacklistRevertsForNonOwnerOrGuardian() public {
+        vm.prank(user);
+        vm.expectRevert(IBlacklister.Blacklister_NotAllowed.selector);
+        blacklister.blacklist(user);
+    }
+
+    function testGuardianCanBlacklistAndUnblacklist() public {
+        roles.setAllowed(guardian, true);
+
+        vm.prank(guardian);
+        blacklister.blacklist(user);
+        assertTrue(blacklister.isBlacklisted(user));
+
+        vm.prank(guardian);
+        blacklister.unblacklist(user);
+        assertFalse(blacklister.isBlacklisted(user));
+    }
+
     function testUnblacklistNotBlacklistedReverts() public {
         vm.prank(owner);
         vm.expectRevert(IBlacklister.Blacklister_NotBlacklisted.selector);
@@ -60,6 +78,18 @@ contract BlacklisterTest is Test {
         vm.stopPrank();
     }
 
+    function testUnblacklistSecondUserRemovesCorrectly() public {
+        address user2 = address(0xDEAD);
+        vm.startPrank(owner);
+        blacklister.blacklist(user);
+        blacklister.blacklist(user2);
+        blacklister.unblacklist(user2);
+        address[] memory list = blacklister.getBlacklistedAddresses();
+        assertEq(list.length, 1);
+        assertEq(list[0], user);
+        vm.stopPrank();
+    }
+
     function testGetBlacklistedAddresses() public {
         vm.startPrank(owner);
         blacklister.blacklist(user);
@@ -67,5 +97,41 @@ contract BlacklisterTest is Test {
         assertEq(list.length, 1);
         assertEq(list[0], user);
         vm.stopPrank();
+    }
+
+    function testUnblacklistByIndexRemovesUser() public {
+        address user2 = address(0xDEAD);
+        vm.startPrank(owner);
+        blacklister.blacklist(user);
+        blacklister.blacklist(user2);
+        blacklister.unblacklist(user, 0);
+        address[] memory list = blacklister.getBlacklistedAddresses();
+        assertEq(list.length, 1);
+        assertEq(list[0], user2);
+        vm.stopPrank();
+    }
+
+    function testUnblacklistByIndexRevertsOnMismatch() public {
+        address user2 = address(0xDEAD);
+        vm.startPrank(owner);
+        blacklister.blacklist(user);
+        blacklister.blacklist(user2);
+        vm.expectRevert(IBlacklister.Blacklister_NotBlacklisted.selector);
+        blacklister.unblacklist(user, 1);
+        vm.stopPrank();
+    }
+
+    function testUnblacklistByIndexRevertsWhenNotBlacklisted() public {
+        vm.prank(owner);
+        vm.expectRevert(IBlacklister.Blacklister_NotBlacklisted.selector);
+        blacklister.unblacklist(user, 0);
+    }
+
+    function testInitializeRevertsWithZeroRoles() public {
+        Blacklister blacklisterImp = new Blacklister();
+        bytes memory initData =
+            abi.encodeWithSelector(Blacklister.initialize.selector, address(owner), address(0));
+        vm.expectRevert(IBlacklister.Blacklister_InvalidRoles.selector);
+        new ERC1967Proxy(address(blacklisterImp), initData);
     }
 }
