@@ -129,8 +129,7 @@ contract BlacklisterTest is Test {
 
     function testInitializeRevertsWithZeroRoles() public {
         Blacklister blacklisterImp = new Blacklister();
-        bytes memory initData =
-            abi.encodeWithSelector(Blacklister.initialize.selector, address(owner), address(0));
+        bytes memory initData = abi.encodeWithSelector(Blacklister.initialize.selector, address(owner), address(0));
         vm.expectRevert(IBlacklister.Blacklister_InvalidRoles.selector);
         new ERC1967Proxy(address(blacklisterImp), initData);
     }

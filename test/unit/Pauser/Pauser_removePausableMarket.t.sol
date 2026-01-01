@@ -6,7 +6,7 @@ import {Pauser_Unit_Shared} from "../shared/Pauser_Unit_Shared.t.sol";
 
 contract Pauser_removePausableMarket is Pauser_Unit_Shared {
     function _setRegistered(address market, bool value) internal {
-        bytes32 slot = keccak256(abi.encode(market, uint256(1)));
+        bytes32 slot = keccak256(abi.encode(market, uint256(2)));
         vm.store(address(pauser), slot, bytes32(uint256(value ? 1 : 0)));
     }
 

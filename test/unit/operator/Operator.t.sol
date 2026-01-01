@@ -14,6 +14,10 @@ import {MockMToken} from "test/mocks/MockMToken.sol";
 import {MockFirewall} from "test/mocks/MockFirewall.sol";
 
 contract OperatorHarness is Operator {
+    function callOnlyAllowedUser(address user) external onlyAllowedUser(user) {}
+
+    function callIfNotBlacklisted(address user) external ifNotBlacklisted(user) {}
+
     function pushAllMarkets(address mToken) external {
         allMarkets.push(mToken);
     }
@@ -58,6 +62,14 @@ contract OperatorTest is Base_Unit_Test {
         operator.supportMarket(address(mToken));
     }
 
+    function _deployHarness() internal returns (OperatorHarness) {
+        OperatorHarness harnessImpl = new OperatorHarness();
+        bytes memory initData =
+            abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(blacklister), address(this));
+        ERC1967Proxy proxy = new ERC1967Proxy(address(harnessImpl), initData);
+        return OperatorHarness(address(proxy));
+    }
+
     function testWhitelistBlocksNonWhitelisted() public {
         _listMarket(market);
         operator.setWhitelistStatus(true);
@@ -75,9 +87,63 @@ contract OperatorTest is Base_Unit_Test {
         assertTrue(operator.checkMembership(alice, address(market)));
     }
 
+    function testWhitelistAllowsWhitelistedUserForListedMarket() public {
+        _listMarket(market);
+        operator.setWhitelistStatus(true);
+        operator.setWhitelistedUser(alice, true);
+
+        vm.prank(address(market));
+        operator.enterMarketsWithSender(alice);
+
+        assertTrue(operator.checkMembership(alice, address(market)));
+    }
+
+    function testOnlyAllowedUserUsesWhitelist() public {
+        OperatorHarness harness = _deployHarness();
+        harness.setWhitelistStatus(true);
+        harness.setWhitelistedUser(alice, true);
+
+        harness.callOnlyAllowedUser(alice);
+
+        vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
+        harness.callOnlyAllowedUser(bob);
+    }
+
+    function testWhitelistDisabledAllowsNonWhitelistedUser() public {
+        _listMarket(market);
+
+        assertFalse(operator.whitelistEnabled());
+        assertFalse(operator.userWhitelisted(alice));
+
+        address[] memory markets = new address[](1);
+        markets[0] = address(market);
+
+        vm.prank(alice);
+        operator.enterMarkets(markets);
+
+        assertTrue(operator.checkMembership(alice, address(market)));
+    }
+
     function testIfNotBlacklistedReverts() public {
         _listMarket(market);
         blacklister.blacklist(alice);
+        vm.expectRevert(OperatorStorage.Operator_UserBlacklisted.selector);
+        operator.beforeMTokenMint(address(market), alice, bob);
+    }
+
+    function testIfNotBlacklistedAllowsWhenClean() public {
+        OperatorHarness harness = _deployHarness();
+        harness.callIfNotBlacklisted(alice);
+
+        blacklister.blacklist(alice);
+        vm.expectRevert(OperatorStorage.Operator_UserBlacklisted.selector);
+        harness.callIfNotBlacklisted(alice);
+    }
+
+    function testBeforeMTokenMintRevertsWhenReceiverBlacklisted() public {
+        _listMarket(market);
+        blacklister.blacklist(bob);
+
         vm.expectRevert(OperatorStorage.Operator_UserBlacklisted.selector);
         operator.beforeMTokenMint(address(market), alice, bob);
     }
@@ -154,8 +220,8 @@ contract OperatorTest is Base_Unit_Test {
         operator.setPriceOracle(address(0));
     }
 
-    function testFuzzSetCloseFactor(uint256 closeFactor) public {
-        vm.assume(closeFactor >= CLOSE_FACTOR_MIN && closeFactor <= CLOSE_FACTOR_MAX);
+    function test_fuzz_setCloseFactor(uint256 closeFactor) public {
+        closeFactor = bound(closeFactor, CLOSE_FACTOR_MIN, CLOSE_FACTOR_MAX);
         operator.setCloseFactor(closeFactor);
         assertEq(operator.closeFactorMantissa(), closeFactor);
     }
@@ -312,6 +378,16 @@ contract OperatorTest is Base_Unit_Test {
         assertEq(operator.borrowCaps(address(market)), 100);
     }
 
+    function testSetMarketBorrowCapsOwner() public {
+        address[] memory markets = new address[](1);
+        uint256[] memory caps = new uint256[](1);
+        markets[0] = address(market);
+        caps[0] = 55;
+
+        operator.setMarketBorrowCaps(markets, caps);
+        assertEq(operator.borrowCaps(address(market)), 55);
+    }
+
     function testSetMarketBorrowCapsRevertsForNonGuardian() public {
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
@@ -351,6 +427,16 @@ contract OperatorTest is Base_Unit_Test {
         assertEq(operator.supplyCaps(address(market)), 100);
     }
 
+    function testSetMarketSupplyCapsOwner() public {
+        address[] memory markets = new address[](1);
+        uint256[] memory caps = new uint256[](1);
+        markets[0] = address(market);
+        caps[0] = 77;
+
+        operator.setMarketSupplyCaps(markets, caps);
+        assertEq(operator.supplyCaps(address(market)), 77);
+    }
+
     function testSetMarketSupplyCapsRevertsForNonGuardian() public {
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
@@ -371,6 +457,14 @@ contract OperatorTest is Base_Unit_Test {
         operator.setMarketSupplyCaps(markets, caps);
     }
 
+    function testSetMarketSupplyCapsRevertsOnEmptyArrays() public {
+        address[] memory markets = new address[](0);
+        uint256[] memory caps = new uint256[](0);
+
+        vm.expectRevert(OperatorStorage.Operator_InvalidInput.selector);
+        operator.setMarketSupplyCaps(markets, caps);
+    }
+
     function testSetPausedGuardianCanPauseOwnerUnpauses() public {
         roles.allowFor(guardian, roles.GUARDIAN_PAUSE(), true);
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
@@ -385,6 +479,17 @@ contract OperatorTest is Base_Unit_Test {
 
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
         assertFalse(operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint));
+    }
+
+    function testSetPausedRevertsWhenPausingWithoutRole() public {
+        vm.prank(alice);
+        vm.expectRevert(OperatorStorage.Operator_OnlyAdminOrRole.selector);
+        operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
+    }
+
+    function testSetPausedOwnerCanPause() public {
+        operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
+        assertTrue(operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Borrow));
     }
 
     function testInitializeRevertsOnInvalidInputs() public {
@@ -642,6 +747,19 @@ contract OperatorTest is Base_Unit_Test {
         operator.afterMTokenMint(address(market));
     }
 
+    function testAfterMTokenMintSucceedsWithinSupplyCap() public {
+        _listMarket(market);
+        address[] memory markets = new address[](1);
+        uint256[] memory caps = new uint256[](1);
+        markets[0] = address(market);
+        caps[0] = 100;
+        operator.setMarketSupplyCaps(markets, caps);
+        market.setTotals(0, 10, 0);
+        market.setExchangeRateStored(1e18);
+
+        operator.afterMTokenMint(address(market));
+    }
+
     function testBeforeMTokenRedeemSkipsWhenNotInMarket() public {
         _listMarket(market);
         operator.beforeMTokenRedeem(address(market), alice, 1);
@@ -659,6 +777,20 @@ contract OperatorTest is Base_Unit_Test {
         operator.enterMarkets(markets);
 
         vm.expectRevert(OperatorStorage.Operator_InsufficientLiquidity.selector);
+        operator.beforeMTokenRedeem(address(market), alice, 1);
+    }
+
+    function testBeforeMTokenRedeemSucceedsWhenInMarket() public {
+        _listMarket(market);
+        oracleOperator.setUnderlyingPrice(1e18);
+        operator.setCollateralFactor(address(market), 0.5e18);
+        market.setSnapshot(alice, 10, 0, 1e18);
+
+        address[] memory markets = new address[](1);
+        markets[0] = address(market);
+        vm.prank(alice);
+        operator.enterMarkets(markets);
+
         operator.beforeMTokenRedeem(address(market), alice, 1);
     }
 

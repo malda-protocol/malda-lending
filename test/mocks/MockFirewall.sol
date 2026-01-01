@@ -35,8 +35,7 @@ contract MockFirewall is IHypernativeFirewall {
     function validateForbiddenContextInteraction(address origin, address sender) external view {
         if (checkForbiddenContext) {
             require(
-                origin == expectedContextOrigin && sender == expectedContextSender,
-                "MockFirewall: forbidden context"
+                origin == expectedContextOrigin && sender == expectedContextSender, "MockFirewall: forbidden context"
             );
         }
     }

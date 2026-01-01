@@ -16,7 +16,9 @@ contract mToken_base is mToken_Unit_Shared {
         assertEq(mWeth.allowance(address(this), bob), amount);
     }
 
-    function test_Transfer_RevertWhenSameAddress(uint256 mintAmount) external whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+    function test_Transfer_RevertWhenSameAddress(uint256 mintAmount)
+        external
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
         operator.supportMarket(address(mWeth));
 
@@ -171,9 +173,10 @@ contract mToken_base is mToken_Unit_Shared {
         uint256 borrows = mWeth.totalBorrows();
         uint256 reserves = mWeth.totalReserves();
 
-        uint256 expectedBorrowRate = IInterestRateModel(mWeth.interestRateModel()).getBorrowRate(cash, borrows, reserves);
-        uint256 expectedSupplyRate =
-            IInterestRateModel(mWeth.interestRateModel()).getSupplyRate(cash, borrows, reserves, mWeth.reserveFactorMantissa());
+        uint256 expectedBorrowRate =
+            IInterestRateModel(mWeth.interestRateModel()).getBorrowRate(cash, borrows, reserves);
+        uint256 expectedSupplyRate = IInterestRateModel(mWeth.interestRateModel())
+            .getSupplyRate(cash, borrows, reserves, mWeth.reserveFactorMantissa());
 
         assertEq(mWeth.borrowRatePerBlock(), expectedBorrowRate);
         assertEq(mWeth.supplyRatePerBlock(), expectedSupplyRate);

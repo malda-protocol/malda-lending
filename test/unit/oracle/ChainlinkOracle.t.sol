@@ -65,7 +65,7 @@ contract ChainlinkOracleHarness is ChainlinkOracle {
         ChainlinkOracle(symbols_, feeds_, baseUnits_)
     {}
 
-    function exposed_getLatestPrice(string memory symbol) external view returns (uint256, uint256) {
+    function exposed_getLatestPrice(string calldata symbol) external view returns (uint256, uint256) {
         return _getLatestPrice(symbol);
     }
 }
@@ -155,7 +155,9 @@ contract ChainlinkOracleTest is Test {
         assertEq(price, expected);
     }
 
-    function testFuzz_getUnderlyingPrice_scales(uint8 feedDecimals, uint8 underlyingDecimals, uint64 rawPrice) external {
+    function testFuzz_getUnderlyingPrice_scales(uint8 feedDecimals, uint8 underlyingDecimals, uint64 rawPrice)
+        external
+    {
         vm.assume(feedDecimals <= 18);
         vm.assume(underlyingDecimals <= 18);
         vm.assume(rawPrice > 0);

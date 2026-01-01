@@ -17,11 +17,11 @@ contract ExponentialNoErrorHarness is ExponentialNoError {
         return isZeroExp(Exp({mantissa: value}));
     }
 
-    function callSafe224(uint256 n, string memory errorMessage) external pure returns (uint224) {
+    function callSafe224(uint256 n, string calldata errorMessage) external pure returns (uint224) {
         return safe224(n, errorMessage);
     }
 
-    function callSafe32(uint256 n, string memory errorMessage) external pure returns (uint32) {
+    function callSafe32(uint256 n, string calldata errorMessage) external pure returns (uint32) {
         return safe32(n, errorMessage);
     }
 

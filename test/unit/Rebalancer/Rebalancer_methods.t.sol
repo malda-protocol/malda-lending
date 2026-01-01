@@ -81,6 +81,15 @@ contract Rebalancer_methods is Rebalancer_Unit_Shared {
         assertTrue(isWhitelisted);
     }
 
+    function test_WhenIsMarketWhitelistedIsCalled() external givenSenderHasRoleGUARDIAN_BRIDGE {
+        address[] memory markets = new address[](1);
+        markets[0] = address(mWethHost);
+
+        rebalancer.setMarketStatus(markets, true);
+
+        assertTrue(rebalancer.isMarketWhitelisted(address(mWethHost)));
+    }
+
     function test_WhenSetWhitelistedBridgeStatusIsCalledToRemoveFromWhitelist()
         external
         givenSenderHasRoleGUARDIAN_BRIDGE

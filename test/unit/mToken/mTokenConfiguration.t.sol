@@ -2,6 +2,7 @@
 pragma solidity =0.8.28;
 
 import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
+import {Roles} from "src/Roles.sol";
 
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
 
@@ -34,6 +35,13 @@ contract mTokenConfiguration_test is mToken_Unit_Shared {
     function test_SetOperator_RevertWhenZero() external {
         vm.expectRevert(mTokenStorage.mt_OperatorNotValid.selector);
         mWeth.setOperator(address(0));
+    }
+
+    function test_SetRolesOperator_Updates() external {
+        Roles newRoles = new Roles(address(this));
+        mWeth.setRolesOperator(address(newRoles));
+
+        assertEq(address(mWeth.rolesOperator()), address(newRoles));
     }
 
     function test_RevertWhen_NonAdminSetInterestRateModel() external {
@@ -78,6 +86,15 @@ contract mTokenConfiguration_test is mToken_Unit_Shared {
         mWeth.setBorrowRateMaxMantissa(newMax);
 
         assertEq(mWeth.borrowRateMaxMantissa(), newMax);
+    }
+
+    function test_AccrueInterestChecksBorrowRateMax() external {
+        mWeth.setBorrowRateMaxMantissa(1e18);
+
+        vm.warp(block.timestamp + 1);
+        mWeth.accrueInterest();
+
+        assertEq(mWeth.borrowRateMaxMantissa(), 1e18);
     }
 
     function test_SetPendingAdmin_RevertWhenZero() external {

@@ -100,7 +100,7 @@ contract HypernativeFirewallProtectedTest is Test {
         harness.initFirewall(address(firewall), address(this));
 
         address eoa = address(0xBEEF);
-        vm.prank(eoa);
+        vm.prank(eoa, eoa);
         harness.callOnlyFirewallApprovedAllowEOA();
 
         assertEq(firewall.validateBlacklistedCount(), 1);
@@ -177,6 +177,12 @@ contract HypernativeFirewallProtectedTest is Test {
         vm.prank(newAdmin);
         harness.setIsStrictMode(true);
         assertTrue(harness.isStrictMode());
+    }
+
+    function testHypernativeFirewallAdminReturnsCurrent() public {
+        harness.initFirewall(address(firewall), address(this));
+
+        assertEq(harness.hypernativeFirewallAdmin(), address(this));
     }
 
     function testFirewallRegisterUsesStrictMode() public {

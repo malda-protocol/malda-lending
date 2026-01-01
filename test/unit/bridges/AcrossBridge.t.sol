@@ -9,8 +9,9 @@ import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 import {ERC20Mock} from "../../mocks/ERC20Mock.sol";
 
 contract MockAcrossSpokePool {
-    bytes4 private constant DEPOSIT_V3_NOW_SELECTOR =
-        bytes4(keccak256("depositV3Now(address,address,address,address,uint256,uint256,uint256,address,uint32,uint32,bytes)"));
+    bytes4 private constant DEPOSIT_V3_NOW_SELECTOR = bytes4(
+        keccak256("depositV3Now(address,address,address,address,uint256,uint256,uint256,address,uint32,uint32,bytes)")
+    );
 
     address public lastDepositor;
     address public lastRecipient;
@@ -28,7 +29,7 @@ contract MockAcrossSpokePool {
     receive() external payable {}
 
     fallback() external payable {
-        require(msg.sig == DEPOSIT_V3_NOW_SELECTOR, "MockAcrossSpokePool: unknown selector");
+        require(msg.sig == DEPOSIT_V3_NOW_SELECTOR, "MockAcrossSpokePool: unknown sel");
 
         uint256 addressMask = type(uint160).max;
         uint256 uint32Mask = type(uint32).max;
