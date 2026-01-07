@@ -96,4 +96,31 @@ contract Pauser_pause is Pauser_Unit_Shared {
         assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Repay));
         assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Redeem));
     }
+
+    function test_RevertWhen_ContractIsNotEnabled() external whenContractHasThePAUSE_MANAGERRole {
+        vm.expectRevert(IPauser.Pauser_ContractNotEnabled.selector);
+        pauser.emergencyPauseMarket(address(0xBEEF));
+    }
+
+    function testFuzz_EmergencyPauseMarketForHost(uint8 opIndex) external whenContractHasThePAUSE_MANAGERRole {
+        opIndex = uint8(bound(opIndex, 0, 11));
+        ImTokenOperationTypes.OperationType opType = ImTokenOperationTypes.OperationType(opIndex);
+
+        pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
+        assertFalse(operator.isPaused(address(mWethHost), opType));
+
+        pauser.emergencyPauseMarketFor(address(mWethHost), opType);
+        assertTrue(operator.isPaused(address(mWethHost), opType));
+    }
+
+    function testFuzz_EmergencyPauseMarketForExtension(uint8 opIndex) external whenContractHasThePAUSE_MANAGERRole {
+        opIndex = uint8(bound(opIndex, 0, 11));
+        ImTokenOperationTypes.OperationType opType = ImTokenOperationTypes.OperationType(opIndex);
+
+        pauser.addPausableMarket(address(mWethExtension), IPauser.PausableType.Extension);
+        assertFalse(mWethExtension.isPaused(opType));
+
+        pauser.emergencyPauseMarketFor(address(mWethExtension), opType);
+        assertTrue(mWethExtension.isPaused(opType));
+    }
 }

@@ -20,7 +20,7 @@ contract UpgradeMarketFromMultisig is Script {
     // Admin slot from ERC1967
     bytes32 internal constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 
-    function run() public {
+    function run() public view {
         // Setup
 
         /**
@@ -74,7 +74,7 @@ contract UpgradeMarketFromMultisig is Script {
         console2.log("This will upgrade proxy %s to new implementation %s", proxy, newImpl);
     }
 
-    function _deployHostImplementation(Deployer deployer, string memory salt) internal returns (address) {
+    function _deployHostImplementation(Deployer deployer, string memory salt) internal view returns (address) {
         bytes32 implSalt = keccak256(abi.encodePacked("mErc20HostImplementation", salt));
 
         bytes memory creationCode = type(mErc20Host).creationCode;
@@ -96,7 +96,7 @@ contract UpgradeMarketFromMultisig is Script {
         }
     }
 
-    function _deployGatewayImplementation(Deployer deployer, string memory salt) internal returns (address) {
+    function _deployGatewayImplementation(Deployer deployer, string memory salt) internal view returns (address) {
         bytes32 implSalt = keccak256(abi.encodePacked("mTokenGatewayImplementation", salt));
 
         bytes memory creationCode = type(mTokenGateway).creationCode;

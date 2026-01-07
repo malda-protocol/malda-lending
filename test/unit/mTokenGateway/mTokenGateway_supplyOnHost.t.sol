@@ -86,6 +86,17 @@ contract mTokenGateway_supplyOnHost is mToken_Unit_Shared {
         );
     }
 
+    function test_GivenUserHasEnoughBalance_ReceiverBlacklisted(uint256 amount) external whenAmountGreaterThan0 {
+        amount = bound(amount, SMALL, LARGE);
+
+        _getTokens(weth, address(this), amount);
+        weth.approve(address(mWethExtension), amount);
+
+        blacklister.blacklist(alice);
+        vm.expectRevert(ImTokenGateway.mTokenGateway_UserBlacklisted.selector);
+        mWethExtension.supplyOnHost(amount, alice, mTokenGateway_supplyOnHost.test_RevertWhen_AmountIs0.selector);
+    }
+
     function test_GivenUserHasEnoughBalance_ButWhitelistEnabled(uint256 amount) external whenAmountGreaterThan0 {
         amount = bound(amount, SMALL, LARGE);
 
