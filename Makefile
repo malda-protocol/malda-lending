@@ -39,8 +39,14 @@ fmt:
 test: ## Run tests
 	forge test --force --isolate -vvv --show-progress
 
+
+COVERAGE_EXCLUDES := --no-match-coverage "(test|mocks|dependencies|script|Bytes32AddressLib.sol|BytesLib.sol|CREATE3.sol|RewardDistributor.sol|Migrator.sol)"
+
 coverage-summary: ## Run tests and generate coverage summary
-	forge coverage --no-match-coverage "(test|mocks|dependencies)" --force --report summary
+	forge coverage $(COVERAGE_EXCLUDES) --force --report summary
+
+coverage-lcov: ## Run tests and generate coverage lcov
+	forge coverage $(COVERAGE_EXCLUDES) --force --report lcov
 
 COVERAGE_MIN := 100
 coverage-check: ## Check if test coverage is above the minimum

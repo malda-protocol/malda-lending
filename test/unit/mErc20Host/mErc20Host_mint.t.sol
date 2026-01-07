@@ -19,6 +19,24 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         mWethHost.updateAllowedChain(uint32(block.chainid), true);
     }
 
+    function _encodeJournal(
+        address sender,
+        address market,
+        uint256 accAmountIn,
+        uint256 accAmountOut,
+        uint32 chainId,
+        uint32 dstChainId,
+        bool l1Inclusion
+    ) internal pure returns (bytes memory) {
+        return abi.encodePacked(sender, market, accAmountIn, accAmountOut, chainId, dstChainId, l1Inclusion);
+    }
+
+    function _wrapJournal(bytes memory journal) internal pure returns (bytes memory) {
+        bytes[] memory journals = new bytes[](1);
+        journals[0] = journal;
+        return abi.encode(journals);
+    }
+
     function test_RevertGiven_MarketIsPausedForMinting(uint256 amount)
         external
         whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint)
@@ -177,6 +195,44 @@ contract mErc20Host_mint is mToken_Unit_Shared {
         assertEq(balanceWethBefore, balanceWethAfter);
 
         assertEq(totalSupplyAfter - amount, totalSupplyBefore);
+    }
+
+    function test_RevertWhen_MintAmountTooBig_WithAllowedCaller() external whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE) {
+        operator.supportMarket(address(mWethHost));
+
+        vm.prank(bob);
+        mWethHost.updateAllowedCallerStatus(alice, true);
+
+        bytes memory journal =
+            _encodeJournal(bob, address(mWethHost), 1, 1, uint32(block.chainid), uint32(block.chainid), true);
+        bytes memory journalData = _wrapJournal(journal);
+
+        uint256[] memory mintAmounts = new uint256[](1);
+        mintAmounts[0] = 2;
+        uint256[] memory minAmountsOut = new uint256[](1);
+        minAmountsOut[0] = 0;
+
+        vm.prank(alice);
+        vm.expectRevert(ImErc20Host.mErc20Host_AmountTooBig.selector);
+        mWethHost.mintExternal(journalData, "0x123", mintAmounts, minAmountsOut, alice);
+    }
+
+    function test_SkipL1InclusionWhenProofForwarder() external whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE) {
+        operator.supportMarket(address(mWethHost));
+        roles.allowFor(alice, roles.PROOF_FORWARDER(), true);
+
+        bytes memory journal =
+            _encodeJournal(alice, address(mWethHost), 1, 1, uint32(block.chainid), uint32(block.chainid), false);
+        bytes memory journalData = _wrapJournal(journal);
+
+        uint256[] memory mintAmounts = new uint256[](1);
+        mintAmounts[0] = 2;
+        uint256[] memory minAmountsOut = new uint256[](1);
+        minAmountsOut[0] = 0;
+
+        vm.prank(alice);
+        vm.expectRevert(ImErc20Host.mErc20Host_AmountTooBig.selector);
+        mWethHost.mintExternal(journalData, "0x123", mintAmounts, minAmountsOut, alice);
     }
 
     function test_SetReserveFactor(uint256 amount)
