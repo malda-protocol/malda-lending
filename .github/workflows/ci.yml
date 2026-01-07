@@ -140,23 +140,23 @@ jobs:
         run: "FOUNDRY_PROFILE=ci forge test --force --isolate -vvv --show-progress"
 
       # TODO: Uncomment once we have a coverage threshold
-      #   - name: "Check test coverage"
-      #     env:
-      #       COVERAGE_MIN: 100
-      #     run: |
-      #       FOUNDRY_PROFILE=lite forge coverage --no-match-coverage "(test|mocks)" --force --report summary | tee coverage.txt
-      #       coverage=$(grep "| Total" coverage.txt | awk '{print $4}' | sed 's/%//')
-      #       if [ -z "$coverage" ]; then
-      #         echo "❌ Failed to extract coverage percentage."
-      #         exit 1
-      #       fi
-      #       if (( $(echo "$coverage < $COVERAGE_MIN" | bc -l) )); then
-      #         echo "❌ Current coverage of $coverage% is below the minimum of $COVERAGE_MIN%."
-      #         exit 1
-      #       else
-      #         echo "✅ Current coverage of $coverage% meets the minimum of $COVERAGE_MIN%."
-      #       fi
-      #       rm coverage.txt
+      - name: "Check test coverage"
+        env:
+          COVERAGE_MIN: 100
+        run: |
+          forge coverage --no-match-coverage "(test|mocks|dependencies|script|Bytes32AddressLib.sol|BytesLib.sol|CREATE3.sol|RewardDistributor.sol|Migrator.sol)" --force --report summary | tee coverage.txt
+          coverage=$(grep "| Total" coverage.txt | awk '{print $4}' | sed 's/%//')
+          if [ -z "$coverage" ]; then
+            echo "❌ Failed to extract coverage percentage."
+            exit 1
+          fi
+          if (( $(echo "$coverage < $COVERAGE_MIN" | bc -l) )); then
+            echo "❌ Current coverage of $coverage% is below the minimum of $COVERAGE_MIN%."
+            exit 1
+          else
+            echo "✅ Current coverage of $coverage% meets the minimum of $COVERAGE_MIN%."
+          fi
+          rm coverage.txt
 
       - name: "Add test summary"
         run: |

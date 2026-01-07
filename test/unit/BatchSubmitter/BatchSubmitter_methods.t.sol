@@ -5,6 +5,20 @@ import {BatchSubmitter_Unit_Shared} from "../shared/BatchSubmitter_Unit_Shared.t
 import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
 import {ImTokenGateway} from "src/interfaces/ImTokenGateway.sol";
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
+import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
+
+contract MockBatchHost {
+    function repayExternal(bytes calldata, bytes calldata, uint256[] calldata, address) external {}
+
+    function liquidateExternal(
+        bytes calldata,
+        bytes calldata,
+        address[] calldata,
+        uint256[] calldata,
+        address[] calldata,
+        address
+    ) external {}
+}
 
 contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
     bytes[] internal journals;
@@ -123,6 +137,21 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
                 new address[](0)
             )
         );
+    }
+
+    function test_UpdateZkVerifier_RevertWhenZero() external {
+        vm.expectRevert(BatchSubmitter.BatchSubmitter_AddressNotValid.selector);
+        batchSubmitter.updateZkVerifier(address(0));
+    }
+
+    function test_UpdateZkVerifier_Updates() external {
+        ZkVerifier newVerifier = new ZkVerifier(address(this), "0x456", address(verifierMock));
+
+        vm.expectEmit(true, true, true, true);
+        emit BatchSubmitter.ZkVerifierUpdated(address(zkVerifier), address(newVerifier));
+
+        batchSubmitter.updateZkVerifier(address(newVerifier));
+        assertEq(address(batchSubmitter.verifier()), address(newVerifier));
     }
 
     function test_RevertWhen_InvalidSelector() external givenSenderHasProofForwarderRole {
@@ -779,6 +808,106 @@ contract BatchSubmitter_methods is BatchSubmitter_Unit_Shared {
                 singleCollateral2,
                 receivers[1]
             )
+        );
+
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers,
+                encodedJournals,
+                "0x123",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                userToLiquidate,
+                collateral
+            )
+        );
+    }
+
+    function test_WhenRepaySucceeds() external givenSenderHasProofForwarderRole givenJournalDataIsValid {
+        MockBatchHost mockHost = new MockBatchHost();
+
+        mTokens = new address[](1);
+        mTokens[0] = address(mockHost);
+
+        amounts = new uint256[](1);
+        amounts[0] = 1 ether;
+
+        selectors = new bytes4[](1);
+        selectors[0] = REPAY_SELECTOR;
+
+        receivers = new address[](1);
+        receivers[0] = address(this);
+
+        address[] memory senders = new address[](1);
+        senders[0] = address(this);
+
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
+        journals = abi.decode(encodedJournals, (bytes[]));
+
+        initHashes = new bytes32[](1);
+        initHashes[0] = keccak256(journals[0]);
+
+        vm.expectEmit(true, true, true, true);
+        emit BatchSubmitter.BatchProcessSuccess(
+            initHashes[0], receivers[0], mTokens[0], amounts[0], amounts[0], selectors[0]
+        );
+
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers,
+                encodedJournals,
+                "0x123",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
+            )
+        );
+    }
+
+    function test_WhenLiquidateSucceedsWithMock() external givenSenderHasProofForwarderRole givenJournalDataIsValid {
+        MockBatchHost mockHost = new MockBatchHost();
+
+        mTokens = new address[](1);
+        mTokens[0] = address(mockHost);
+
+        amounts = new uint256[](1);
+        amounts[0] = 1 ether;
+
+        selectors = new bytes4[](1);
+        selectors[0] = LIQUIDATE_SELECTOR;
+
+        receivers = new address[](1);
+        receivers[0] = address(this);
+
+        address[] memory userToLiquidate = new address[](1);
+        userToLiquidate[0] = address(0x123);
+
+        address[] memory collateral = new address[](1);
+        collateral[0] = address(0x456);
+
+        address[] memory senders = new address[](1);
+        senders[0] = address(this);
+
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
+        journals = abi.decode(encodedJournals, (bytes[]));
+
+        initHashes = new bytes32[](1);
+        initHashes[0] = keccak256(journals[0]);
+
+        vm.expectEmit(true, true, true, true);
+        emit BatchSubmitter.BatchProcessSuccess(
+            initHashes[0], receivers[0], mTokens[0], amounts[0], amounts[0], selectors[0]
         );
 
         batchSubmitter.batchProcess(
