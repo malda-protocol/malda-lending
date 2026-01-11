@@ -146,7 +146,7 @@ contract Rebalancer_admin is Rebalancer_Unit_Shared {
 
     function test_saveEth_revertsWhenSaveAddressRejects_withFirewall() external {
         RejectEthReceiver rejector = new RejectEthReceiver();
-        Rebalancer localRebalancer = new Rebalancer(address(roles), address(rejector), address(this));
+        Rebalancer localRebalancer = new Rebalancer(address(roles), address(rejector), address(this), "");
         MockFirewall firewall = new MockFirewall();
         vm.store(address(localRebalancer), ADMIN_SLOT, bytes32(uint256(uint160(address(this)))));
         localRebalancer.setFirewall(address(firewall));
@@ -212,7 +212,7 @@ contract Rebalancer_admin is Rebalancer_Unit_Shared {
     }
 
     function test_saveEth_withFirewallEnabled() external {
-        Rebalancer localRebalancer = new Rebalancer(address(roles), alice, address(this));
+        Rebalancer localRebalancer = new Rebalancer(address(roles), alice, address(this), "");
         MockFirewall firewall = new MockFirewall();
         vm.store(address(localRebalancer), ADMIN_SLOT, bytes32(uint256(uint160(address(this)))));
         localRebalancer.setFirewall(address(firewall));
@@ -376,6 +376,38 @@ contract Rebalancer_admin is Rebalancer_Unit_Shared {
         rebalancer.setMaxTransferSize(6, address(weth), 456);
     }
 
+    function test_setAdmin_updatesAdmin() external {
+        rebalancer.setAdmin(alice);
+        assertEq(rebalancer.admin(), alice);
+    }
+
+    function test_setAdmin_revertWhenUnauthorized() external {
+        vm.prank(alice);
+        vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+        rebalancer.setAdmin(bob);
+    }
+
+    function test_setAdmin_revertWhenZeroAddress() external {
+        vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
+        rebalancer.setAdmin(address(0));
+    }
+
+    function test_setSaveAddress_updatesSaveAddress() external {
+        rebalancer.setSaveAddress(alice);
+        assertEq(rebalancer.saveAddress(), alice);
+    }
+
+    function test_setSaveAddress_revertWhenUnauthorized() external {
+        vm.prank(alice);
+        vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+        rebalancer.setSaveAddress(bob);
+    }
+
+    function test_setSaveAddress_revertWhenZeroAddress() external {
+        vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
+        rebalancer.setSaveAddress(address(0));
+    }
+
     function test_saveTokens_revertWhenNotAdmin() external {
         vm.prank(alice);
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
@@ -398,7 +430,7 @@ contract Rebalancer_admin is Rebalancer_Unit_Shared {
     }
 
     function test_saveEth_transfersToSaveAddress() external {
-        Rebalancer localRebalancer = new Rebalancer(address(roles), alice, address(this));
+        Rebalancer localRebalancer = new Rebalancer(address(roles), alice, address(this), "");
 
         _allowGuardian();
         vm.deal(address(localRebalancer), 1 ether);
@@ -415,7 +447,7 @@ contract Rebalancer_admin is Rebalancer_Unit_Shared {
 
     function test_saveEth_revertsWhenSaveAddressRejects() external {
         RejectEthReceiver rejector = new RejectEthReceiver();
-        Rebalancer localRebalancer = new Rebalancer(address(roles), address(rejector), address(this));
+        Rebalancer localRebalancer = new Rebalancer(address(roles), address(rejector), address(this), "");
 
         roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), true);
         vm.deal(address(localRebalancer), 1 ether);
@@ -426,13 +458,75 @@ contract Rebalancer_admin is Rebalancer_Unit_Shared {
 
     function test_constructor_revertsOnZeroAddresses() external {
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
-        new Rebalancer(address(0), address(this), address(this));
+        new Rebalancer(address(0), address(this), address(this), "");
 
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
-        new Rebalancer(address(roles), address(0), address(this));
+        new Rebalancer(address(roles), address(0), address(this), "");
 
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
-        new Rebalancer(address(roles), address(this), address(0));
+        new Rebalancer(address(roles), address(this), address(0), "");
+    }
+
+    function test_constructor_initData_initializesLists() external {
+        address[] memory markets = new address[](2);
+        markets[0] = address(market);
+        markets[1] = address(mWethHost);
+
+        address[] memory bridges = new address[](1);
+        bridges[0] = address(bridgeMock);
+
+        uint32[] memory destinations = new uint32[](2);
+        destinations[0] = 10;
+        destinations[1] = 11;
+
+        address[] memory tokens = new address[](2);
+        tokens[0] = address(weth);
+        tokens[1] = address(usdc);
+
+        Rebalancer.BridgeTokens[] memory bridgeTokens = new Rebalancer.BridgeTokens[](1);
+        bridgeTokens[0] = Rebalancer.BridgeTokens({bridge: address(bridgeMock), tokens: tokens});
+
+        Rebalancer.InitInfo memory initInfo = Rebalancer.InitInfo({
+            bridgeTokens: bridgeTokens, markets: markets, bridges: bridges, destinations: destinations
+        });
+
+        Rebalancer localRebalancer = new Rebalancer(address(roles), address(this), address(this), abi.encode(initInfo));
+
+        assertTrue(localRebalancer.whitelistedMarkets(address(market)));
+        assertTrue(localRebalancer.allowedList(address(market)));
+        assertTrue(localRebalancer.whitelistedMarkets(address(mWethHost)));
+        assertTrue(localRebalancer.allowedList(address(mWethHost)));
+
+        assertTrue(localRebalancer.whitelistedBridges(address(bridgeMock)));
+        assertTrue(localRebalancer.isDestinationWhitelisted(10));
+        assertTrue(localRebalancer.isDestinationWhitelisted(11));
+
+        assertTrue(localRebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth)));
+        assertTrue(localRebalancer.allowedTokensPerBridge(address(bridgeMock), address(usdc)));
+    }
+
+    function test_initFirewall_setsAdminAndFirewall() external {
+        MockFirewall firewall = new MockFirewall();
+
+        rebalancer.initFirewall(address(firewall));
+        assertEq(rebalancer.hypernativeFirewallAdmin(), address(this));
+
+        _allowGuardian();
+        rebalancer.setWhitelistedDestination(1, true);
+
+        assertEq(firewall.validateBlacklistedCount(), 1);
+        assertEq(firewall.lastBlacklistedSender(), address(this));
+    }
+
+    function test_initFirewall_revertWhenUnauthorized() external {
+        // Verify admin is address(this), not bob
+        assertEq(rebalancer.admin(), address(this));
+
+        MockFirewall firewall = new MockFirewall();
+
+        vm.prank(bob);
+        vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+        rebalancer.initFirewall(address(firewall));
     }
 
     function test_firewallRegister_callsFirewall() external {

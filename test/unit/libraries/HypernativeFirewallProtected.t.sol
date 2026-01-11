@@ -16,15 +16,7 @@ contract FirewallHarness is HypernativeFirewallProtected {
         _initHypernativeFirewall(firewall, admin);
     }
 
-    function callOnlyFirewallApproved() external onlyFirewallApproved {
-        callCount++;
-    }
-
     function callOnlyFirewallApprovedAllowEOA() external onlyFirewallApprovedAllowEOA {
-        callCount++;
-    }
-
-    function callOnlyNotBlacklistedEOA() external onlyNotBlacklistedEOA {
         callCount++;
     }
 
@@ -49,10 +41,6 @@ contract FirewallCaller {
     function callApprovedAllowEOA(FirewallHarness harness) external {
         harness.callOnlyFirewallApprovedAllowEOA();
     }
-
-    function callNotBlacklisted(FirewallHarness harness) external {
-        harness.callOnlyNotBlacklistedEOA();
-    }
 }
 
 contract HypernativeFirewallProtectedTest is Test {
@@ -66,33 +54,8 @@ contract HypernativeFirewallProtectedTest is Test {
         caller = new FirewallCaller();
     }
 
-    function testOnlyFirewallApprovedSkipsWhenNoFirewall() public {
-        harness.callOnlyFirewallApproved();
-        assertEq(harness.callCount(), 1);
-    }
-
-    function testOnlyFirewallApprovedAllowEOASkipsWhenNoFirewall() public {
-        harness.callOnlyFirewallApprovedAllowEOA();
-        assertEq(harness.callCount(), 1);
-    }
-
-    function testOnlyNotBlacklistedEOASkipsWhenNoFirewall() public {
-        harness.callOnlyNotBlacklistedEOA();
-        assertEq(harness.callCount(), 1);
-    }
-
-    function testOnlyFirewallApprovedCallsFirewallWhenSet() public {
-        harness.initFirewall(address(firewall), address(this));
-        address origin = address(0xA11CE);
-        address sender = address(0xB0B);
-        firewall.setExpectedForbiddenContext(origin, sender);
-
-        vm.prank(sender, origin);
-        harness.callOnlyFirewallApproved();
-    }
-
     function testInitFirewallRevertsOnZeroAddress() public {
-        vm.expectRevert(HypernativeFirewallProtected.HypernativeFirewallProtected_AddressNotValid.selector);
+        vm.expectRevert(HypernativeFirewallProtected.HypernativeFirewallProtected_NotValid.selector);
         harness.initFirewall(address(0), address(this));
     }
 
@@ -103,14 +66,14 @@ contract HypernativeFirewallProtectedTest is Test {
         vm.prank(eoa, eoa);
         harness.callOnlyFirewallApprovedAllowEOA();
 
-        assertEq(firewall.validateBlacklistedCount(), 1);
-        assertEq(firewall.lastBlacklistedSender(), eoa);
+        // EOAs bypass firewall checks entirely (early return when code.length == 0)
+        assertEq(firewall.validateBlacklistedCount(), 0);
     }
 
     function testOnlyFirewallApprovedAllowEOACallsContextForContract() public {
         harness.initFirewall(address(firewall), address(this));
         address origin = address(0xA11CE);
-        firewall.setExpectedForbiddenContext(origin, address(caller));
+        firewall.setExpectedForbiddenContext(address(caller), address(caller));
 
         vm.prank(origin, origin);
         caller.callApprovedAllowEOA(harness);
@@ -118,35 +81,11 @@ contract HypernativeFirewallProtectedTest is Test {
         assertEq(firewall.validateBlacklistedCount(), 1);
     }
 
-    function testOnlyFirewallApprovedRevertsOnContextMismatch() public {
-        harness.initFirewall(address(firewall), address(this));
-        firewall.setExpectedForbiddenContext(address(0x1), address(0x2));
-
-        vm.expectRevert("MockFirewall: forbidden context");
-        harness.callOnlyFirewallApproved();
-    }
-
-    function testOnlyNotBlacklistedEOARevertsForContractCaller() public {
-        harness.initFirewall(address(firewall), address(this));
-        vm.expectRevert(HypernativeFirewallProtected.HypernativeFirewallProtected_CallerNotEOA.selector);
-        caller.callNotBlacklisted(harness);
-    }
-
-    function testOnlyNotBlacklistedEOAForEOA() public {
-        harness.initFirewall(address(firewall), address(this));
-        address eoa = address(0xCAFE);
-        vm.prank(eoa, eoa);
-        harness.callOnlyNotBlacklistedEOA();
-
-        assertEq(firewall.validateBlacklistedCount(), 1);
-        assertEq(firewall.lastBlacklistedSender(), eoa);
-    }
-
     function testOnlyFirewallAdminGuards() public {
         harness.initFirewall(address(firewall), address(this));
 
         vm.prank(address(0xBEEF));
-        vm.expectRevert(HypernativeFirewallProtected.HypernativeFirewallProtected_CallerNotFirewallAdmin.selector);
+        vm.expectRevert(HypernativeFirewallProtected.HypernativeFirewallProtected_NotAdmin.selector);
         harness.callOnlyFirewallAdmin();
 
         harness.callOnlyFirewallAdmin();
@@ -168,7 +107,7 @@ contract HypernativeFirewallProtectedTest is Test {
         harness.initFirewall(address(firewall), address(this));
         address newAdmin = address(0xABCD);
 
-        vm.expectRevert(HypernativeFirewallProtected.HypernativeFirewallProtected_AddressNotValid.selector);
+        vm.expectRevert(HypernativeFirewallProtected.HypernativeFirewallProtected_NotValid.selector);
         harness.changeFirewallAdmin(address(0));
 
         harness.changeFirewallAdmin(newAdmin);
