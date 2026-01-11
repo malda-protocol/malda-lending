@@ -84,12 +84,18 @@ contract OperatorTest is Base_Unit_Test {
         markets[0] = address(market);
 
         vm.prank(alice);
-        vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
         operator.enterMarkets(markets);
+        assertTrue(operator.checkMembership(alice, address(market)));
 
+        // enterMarketsWithSender does check whitelist and should revert
+        vm.prank(address(market));
+        vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
+        operator.enterMarketsWithSender(alice);
+
+        // After whitelisting, enterMarketsWithSender should succeed
         operator.setWhitelistedUser(alice, true);
-        vm.prank(alice);
-        operator.enterMarkets(markets);
+        vm.prank(address(market));
+        operator.enterMarketsWithSender(alice);
         assertTrue(operator.checkMembership(alice, address(market)));
     }
 

@@ -6,6 +6,7 @@ import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
+import {MockFirewall} from "test/mocks/MockFirewall.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
@@ -83,6 +84,14 @@ contract mErc20Host_admin is mToken_Unit_Shared {
     function testSetGasHelperRevertWhenZero() external {
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
         mWethHost.setGasHelper(address(0));
+    }
+
+    function testInitFirewall_setsFirewallAdmin() external {
+        MockFirewall firewall = new MockFirewall();
+
+        mWethHost.initFirewall(address(firewall));
+
+        assertEq(mWethHost.hypernativeFirewallAdmin(), address(this));
     }
 
     function testWithdrawGasFeesTransfers() external {
