@@ -23,3 +23,6 @@ coverage
 coverage.json
 .VSCodeCounter/
 docs/**
+
+# Deployment logs
+script/deployment/testnet/logs/

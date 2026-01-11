@@ -11,6 +11,19 @@ contract SetReserveFactor is Script {
 
         console.log("Setting reserve factor for market", market);
 
+        // Check current admin and reserve factor
+        address currentAdmin = mTokenConfiguration(market).admin();
+        uint256 currentFactor = mTokenConfiguration(market).reserveFactorMantissa();
+        console.log("  Current admin:", currentAdmin);
+        console.log("  Current reserve factor:", currentFactor);
+        console.log("  Caller address:", vm.addr(key));
+
+        // Skip if already set
+        if (currentFactor == factor) {
+            console.log("Reserve factor already set to", factor);
+            return;
+        }
+
         vm.startBroadcast(key);
         mTokenConfiguration(market).setReserveFactor(factor);
         vm.stopBroadcast();

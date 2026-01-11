@@ -32,6 +32,9 @@
     { access = "read-write", path = "./script/deployment/mainnet/output/" }
 ]
 
+[profile.testnet]
+  evm_version = 'paris' # Because Linea Sepolia is on Paris
+
 [profile.ci]
   fuzz = { runs = 10_000 }
   verbosity = 3 # outputs stack trace for failed tests only (https://book.getfoundry.sh/reference/config/testing)
@@ -50,7 +53,7 @@
   # Testnet
   linea_sepolia = "${LINEA_SEPOLIA_RPC_URL}"
   sepolia = "${SEPOLIA_RPC_URL}"
-  op_sepolia = "${OP_SEPOLIA_RPC_URL}"
+  op_sepolia = "${OPTIMISM_SEPOLIA_RPC_URL}"
   base_sepolia = "${BASE_SEPOLIA_RPC_URL}"
   anvil1 = "http://localhost:8545"
   anvil2 = "http://localhost:8546"
