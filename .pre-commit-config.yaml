@@ -6,7 +6,6 @@ repos:
         name: Mixed Line Ending (convert to LF)
         args: ["--fix=lf"]
         description: Forces to replace line ending by the UNIX 'lf' character.
-        exclude: "^docs/"
 
   - repo: local
     hooks:

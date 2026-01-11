@@ -86,6 +86,7 @@ contract DeployerTest is Test {
     function test_AcceptAdmin_RevertWhenNotPending(address newAdmin) public {
         vm.assume(newAdmin != address(0));
         vm.assume(newAdmin != admin);
+        vm.assume(newAdmin != other);
 
         vm.prank(admin);
         deployer.setPendingAdmin(newAdmin);
