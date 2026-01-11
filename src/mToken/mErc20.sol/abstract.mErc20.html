@@ -180,7 +180,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="merc20"><a class="header" href="#merc20">mErc20</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/18df59463d57a8b91223a8667e06b7206c93cdb8/src/mToken/mErc20.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/6bd60c372f35ff995cb0d03955ff1c134ff4d9ed/src/mToken/mErc20.sol">Git Source</a></p>
 <p><strong>Inherits:</strong>
 <a href="/src/mToken/mToken.sol/abstract.mToken.html">mToken</a>, <a href="/src/interfaces/ImErc20.sol/interface.ImErc20.html">ImErc20</a></p>
 <p><strong>Title:</strong>
@@ -207,7 +207,7 @@ Merge Layers Inc.</p>
 <h3 id="mint"><a class="header" href="#mint">mint</a></h3>
 <p>Sender supplies assets into the market and receives mTokens in exchange</p>
 <p>Accrues interest whether or not the operation succeeds, unless reverted</p>
-<pre><code class="language-solidity">function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external onlyFirewallApprovedAllowEOA;
+<pre><code class="language-solidity">function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -219,7 +219,7 @@ Merge Layers Inc.</p>
 <h3 id="redeem"><a class="header" href="#redeem">redeem</a></h3>
 <p>Sender redeems mTokens in exchange for the underlying asset</p>
 <p>Accrues interest whether or not the operation succeeds, unless reverted</p>
-<pre><code class="language-solidity">function redeem(uint256 redeemTokens) external onlyFirewallApprovedAllowEOA;
+<pre><code class="language-solidity">function redeem(uint256 redeemTokens) external;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -229,7 +229,7 @@ Merge Layers Inc.</p>
 <h3 id="redeemunderlying"><a class="header" href="#redeemunderlying">redeemUnderlying</a></h3>
 <p>Sender redeems mTokens in exchange for a specified amount of underlying asset</p>
 <p>Accrues interest whether or not the operation succeeds, unless reverted</p>
-<pre><code class="language-solidity">function redeemUnderlying(uint256 redeemAmount) external onlyFirewallApprovedAllowEOA;
+<pre><code class="language-solidity">function redeemUnderlying(uint256 redeemAmount) external;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -238,7 +238,7 @@ Merge Layers Inc.</p>
 </div>
 <h3 id="borrow"><a class="header" href="#borrow">borrow</a></h3>
 <p>Sender borrows assets from the protocol to their own address</p>
-<pre><code class="language-solidity">function borrow(uint256 borrowAmount) external onlyFirewallApprovedAllowEOA;
+<pre><code class="language-solidity">function borrow(uint256 borrowAmount) external;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -247,7 +247,7 @@ Merge Layers Inc.</p>
 </div>
 <h3 id="repay"><a class="header" href="#repay">repay</a></h3>
 <p>Sender repays their own borrow</p>
-<pre><code class="language-solidity">function repay(uint256 repayAmount) external onlyFirewallApprovedAllowEOA returns (uint256);
+<pre><code class="language-solidity">function repay(uint256 repayAmount) external returns (uint256);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -261,10 +261,7 @@ Merge Layers Inc.</p>
 </div>
 <h3 id="repaybehalf"><a class="header" href="#repaybehalf">repayBehalf</a></h3>
 <p>Sender repays a borrow belonging to borrower</p>
-<pre><code class="language-solidity">function repayBehalf(address borrower, uint256 repayAmount)
-    external
-    onlyFirewallApprovedAllowEOA
-    returns (uint256);
+<pre><code class="language-solidity">function repayBehalf(address borrower, uint256 repayAmount) external returns (uint256);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
@@ -279,9 +276,7 @@ Merge Layers Inc.</p>
 </div>
 <h3 id="liquidate"><a class="header" href="#liquidate">liquidate</a></h3>
 <p>The sender liquidates the borrowers collateral and transfers seized assets to the liquidator</p>
-<pre><code class="language-solidity">function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral)
-    external
-    onlyFirewallApprovedAllowEOA;
+<pre><code class="language-solidity">function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral) external;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
