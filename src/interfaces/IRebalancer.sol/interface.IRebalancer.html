@@ -180,220 +180,238 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="irebalancer"><a class="header" href="#irebalancer">IRebalancer</a></h1>
-<p><a href="https://github.com/malda-protocol/malda-lending/blob/6d812b34973dd3c025dc7778504966910a5534d7/src/interfaces/IRebalancer.sol">Git Source</a></p>
+<p><a href="https://github.com/malda-protocol/malda-lending/blob/e0c5e8b2c12a741247fda2d12a347d981090c68a/src/interfaces/IRebalancer.sol">Git Source</a></p>
 <p><strong>Title:</strong>
 IRebalancer</p>
 <p><strong>Author:</strong>
 Merge Layers Inc.</p>
-<p>Interface for rebalancer operations and configuration</p>
+<p>Interface for rebalancer operations and configuration.</p>
 <h2 id="functions"><a class="header" href="#functions">Functions</a></h2>
 <h3 id="sendmsg"><a class="header" href="#sendmsg">sendMsg</a></h3>
-<p>Sends a bridge message</p>
+<p>Sends a bridge message.</p>
 <pre><code class="language-solidity">function sendMsg(address bridge, address _market, uint256 _amount, Msg calldata _msg) external payable;
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>bridge</code></td><td><code>address</code></td><td>The whitelisted bridge address</td></tr>
-<tr><td><code>_market</code></td><td><code>address</code></td><td>The market to rebalance from address</td></tr>
-<tr><td><code>_amount</code></td><td><code>uint256</code></td><td>The amount to rebalance</td></tr>
-<tr><td><code>_msg</code></td><td><code>Msg</code></td><td>The message data</td></tr>
+<tr><td><code>bridge</code></td><td><code>address</code></td><td>The whitelisted bridge address.</td></tr>
+<tr><td><code>_market</code></td><td><code>address</code></td><td>The market to rebalance from address.</td></tr>
+<tr><td><code>_amount</code></td><td><code>uint256</code></td><td>The amount to rebalance.</td></tr>
+<tr><td><code>_msg</code></td><td><code>Msg</code></td><td>The message data.</td></tr>
 </tbody></table>
 </div>
 <h3 id="nonce"><a class="header" href="#nonce">nonce</a></h3>
-<p>Returns current nonce</p>
+<p>Returns current nonce.</p>
 <pre><code class="language-solidity">function nonce() external view returns (uint256 currentNonce);
 </code></pre>
 <p><strong>Returns</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>currentNonce</code></td><td><code>uint256</code></td><td>Nonce value</td></tr>
+<tr><td><code>currentNonce</code></td><td><code>uint256</code></td><td>Nonce value.</td></tr>
 </tbody></table>
 </div>
 <h3 id="isbridgewhitelisted"><a class="header" href="#isbridgewhitelisted">isBridgeWhitelisted</a></h3>
-<p>Returns if a bridge implementation is whitelisted</p>
+<p>Returns if a bridge implementation is whitelisted.</p>
 <pre><code class="language-solidity">function isBridgeWhitelisted(address bridge) external view returns (bool whitelisted);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>bridge</code></td><td><code>address</code></td><td>Bridge address</td></tr>
+<tr><td><code>bridge</code></td><td><code>address</code></td><td>Bridge address.</td></tr>
 </tbody></table>
 </div>
 <p><strong>Returns</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>whitelisted</code></td><td><code>bool</code></td><td>True if whitelisted</td></tr>
+<tr><td><code>whitelisted</code></td><td><code>bool</code></td><td>True if whitelisted.</td></tr>
 </tbody></table>
 </div>
 <h3 id="isdestinationwhitelisted"><a class="header" href="#isdestinationwhitelisted">isDestinationWhitelisted</a></h3>
-<p>Returns if a destination is whitelisted</p>
+<p>Returns if a destination is whitelisted.</p>
 <pre><code class="language-solidity">function isDestinationWhitelisted(uint32 dstId) external view returns (bool whitelisted);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>dstId</code></td><td><code>uint32</code></td><td>Destination chain ID</td></tr>
+<tr><td><code>dstId</code></td><td><code>uint32</code></td><td>Destination chain ID.</td></tr>
 </tbody></table>
 </div>
 <p><strong>Returns</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>whitelisted</code></td><td><code>bool</code></td><td>True if whitelisted</td></tr>
+<tr><td><code>whitelisted</code></td><td><code>bool</code></td><td>True if whitelisted.</td></tr>
 </tbody></table>
 </div>
 <h3 id="ismarketwhitelisted"><a class="header" href="#ismarketwhitelisted">isMarketWhitelisted</a></h3>
-<p>Returns if a market is whitelisted</p>
+<p>Returns if a market is whitelisted.</p>
 <pre><code class="language-solidity">function isMarketWhitelisted(address market) external view returns (bool whitelisted);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>market</code></td><td><code>address</code></td><td>Market address</td></tr>
+<tr><td><code>market</code></td><td><code>address</code></td><td>Market address.</td></tr>
 </tbody></table>
 </div>
 <p><strong>Returns</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>whitelisted</code></td><td><code>bool</code></td><td>True if whitelisted</td></tr>
+<tr><td><code>whitelisted</code></td><td><code>bool</code></td><td>True if whitelisted.</td></tr>
 </tbody></table>
 </div>
 <h2 id="events"><a class="header" href="#events">Events</a></h2>
 <h3 id="bridgewhitelistedstatusupdated"><a class="header" href="#bridgewhitelistedstatusupdated">BridgeWhitelistedStatusUpdated</a></h3>
-<p>Emitted when bridge whitelist status changes</p>
+<p>Emitted when bridge whitelist status changes.</p>
 <pre><code class="language-solidity">event BridgeWhitelistedStatusUpdated(address indexed bridge, bool status);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>bridge</code></td><td><code>address</code></td><td>Bridge address</td></tr>
-<tr><td><code>status</code></td><td><code>bool</code></td><td>Whitelist status</td></tr>
+<tr><td><code>bridge</code></td><td><code>address</code></td><td>Bridge address.</td></tr>
+<tr><td><code>status</code></td><td><code>bool</code></td><td>Whitelist status.</td></tr>
 </tbody></table>
 </div>
 <h3 id="msgsent"><a class="header" href="#msgsent">MsgSent</a></h3>
-<p>Emitted when a message is sent through a bridge</p>
+<p>Emitted when a message is sent through a bridge.</p>
 <pre><code class="language-solidity">event MsgSent(
     address indexed bridge, uint32 indexed dstChainId, address indexed token, bytes message, bytes bridgeData
 );
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>bridge</code></td><td><code>address</code></td><td>Bridge address</td></tr>
-<tr><td><code>dstChainId</code></td><td><code>uint32</code></td><td>Destination chain ID</td></tr>
-<tr><td><code>token</code></td><td><code>address</code></td><td>Token address</td></tr>
-<tr><td><code>message</code></td><td><code>bytes</code></td><td>Encoded message</td></tr>
-<tr><td><code>bridgeData</code></td><td><code>bytes</code></td><td>Bridge-specific data</td></tr>
+<tr><td><code>bridge</code></td><td><code>address</code></td><td>Bridge address.</td></tr>
+<tr><td><code>dstChainId</code></td><td><code>uint32</code></td><td>Destination chain ID.</td></tr>
+<tr><td><code>token</code></td><td><code>address</code></td><td>Token address.</td></tr>
+<tr><td><code>message</code></td><td><code>bytes</code></td><td>Encoded message.</td></tr>
+<tr><td><code>bridgeData</code></td><td><code>bytes</code></td><td>Bridge-specific data.</td></tr>
 </tbody></table>
 </div>
 <h3 id="ethsaved"><a class="header" href="#ethsaved">EthSaved</a></h3>
-<p>Emitted when ETH is saved back to treasury</p>
+<p>Emitted when ETH is saved back to treasury.</p>
 <pre><code class="language-solidity">event EthSaved(uint256 amount);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>amount</code></td><td><code>uint256</code></td><td>Amount saved</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>Amount saved.</td></tr>
 </tbody></table>
 </div>
 <h3 id="maxtransfersizeupdated"><a class="header" href="#maxtransfersizeupdated">MaxTransferSizeUpdated</a></h3>
-<p>Emitted when max transfer size is updated</p>
+<p>Emitted when max transfer size is updated.</p>
 <pre><code class="language-solidity">event MaxTransferSizeUpdated(uint32 indexed dstChainId, address indexed token, uint256 newLimit);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>dstChainId</code></td><td><code>uint32</code></td><td>Destination chain ID</td></tr>
-<tr><td><code>token</code></td><td><code>address</code></td><td>Token address</td></tr>
-<tr><td><code>newLimit</code></td><td><code>uint256</code></td><td>New limit</td></tr>
+<tr><td><code>dstChainId</code></td><td><code>uint32</code></td><td>Destination chain ID.</td></tr>
+<tr><td><code>token</code></td><td><code>address</code></td><td>Token address.</td></tr>
+<tr><td><code>newLimit</code></td><td><code>uint256</code></td><td>New limit.</td></tr>
 </tbody></table>
 </div>
 <h3 id="mintransfersizeupdated"><a class="header" href="#mintransfersizeupdated">MinTransferSizeUpdated</a></h3>
-<p>Emitted when min transfer size is updated</p>
+<p>Emitted when min transfer size is updated.</p>
 <pre><code class="language-solidity">event MinTransferSizeUpdated(uint32 indexed dstChainId, address indexed token, uint256 newLimit);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>dstChainId</code></td><td><code>uint32</code></td><td>Destination chain ID</td></tr>
-<tr><td><code>token</code></td><td><code>address</code></td><td>Token address</td></tr>
-<tr><td><code>newLimit</code></td><td><code>uint256</code></td><td>New limit</td></tr>
+<tr><td><code>dstChainId</code></td><td><code>uint32</code></td><td>Destination chain ID.</td></tr>
+<tr><td><code>token</code></td><td><code>address</code></td><td>Token address.</td></tr>
+<tr><td><code>newLimit</code></td><td><code>uint256</code></td><td>New limit.</td></tr>
 </tbody></table>
 </div>
 <h3 id="destinationwhitelistedstatusupdated"><a class="header" href="#destinationwhitelistedstatusupdated">DestinationWhitelistedStatusUpdated</a></h3>
-<p>Emitted when destination whitelist status changes</p>
+<p>Emitted when destination whitelist status changes.</p>
 <pre><code class="language-solidity">event DestinationWhitelistedStatusUpdated(uint32 indexed dstChainId, bool status);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>dstChainId</code></td><td><code>uint32</code></td><td>Destination chain ID</td></tr>
-<tr><td><code>status</code></td><td><code>bool</code></td><td>Whitelist status</td></tr>
+<tr><td><code>dstChainId</code></td><td><code>uint32</code></td><td>Destination chain ID.</td></tr>
+<tr><td><code>status</code></td><td><code>bool</code></td><td>Whitelist status.</td></tr>
 </tbody></table>
 </div>
 <h3 id="allowedlistupdated"><a class="header" href="#allowedlistupdated">AllowedListUpdated</a></h3>
-<p>Emitted when allowed list is updated</p>
+<p>Emitted when allowed list is updated.</p>
 <pre><code class="language-solidity">event AllowedListUpdated(address[] list, bool status);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>list</code></td><td><code>address[]</code></td><td>List of addresses</td></tr>
-<tr><td><code>status</code></td><td><code>bool</code></td><td>Whitelist status</td></tr>
+<tr><td><code>list</code></td><td><code>address[]</code></td><td>List of addresses.</td></tr>
+<tr><td><code>status</code></td><td><code>bool</code></td><td>Whitelist status.</td></tr>
 </tbody></table>
 </div>
 <h3 id="tokenssaved"><a class="header" href="#tokenssaved">TokensSaved</a></h3>
-<p>Emitted when tokens are rescued</p>
+<p>Emitted when tokens are rescued.</p>
 <pre><code class="language-solidity">event TokensSaved(address indexed token, address indexed market, uint256 amount);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>token</code></td><td><code>address</code></td><td>Token address</td></tr>
-<tr><td><code>market</code></td><td><code>address</code></td><td>Market address</td></tr>
-<tr><td><code>amount</code></td><td><code>uint256</code></td><td>Amount saved</td></tr>
+<tr><td><code>token</code></td><td><code>address</code></td><td>Token address.</td></tr>
+<tr><td><code>market</code></td><td><code>address</code></td><td>Market address.</td></tr>
+<tr><td><code>amount</code></td><td><code>uint256</code></td><td>Amount saved.</td></tr>
 </tbody></table>
 </div>
 <h3 id="allowedtokensupdated"><a class="header" href="#allowedtokensupdated">AllowedTokensUpdated</a></h3>
-<p>Emitted when allowed tokens list is updated for a bridge</p>
+<p>Emitted when allowed tokens list is updated for a bridge.</p>
 <pre><code class="language-solidity">event AllowedTokensUpdated(address indexed bridge, bool status, address[] list);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>bridge</code></td><td><code>address</code></td><td>Bridge address</td></tr>
-<tr><td><code>status</code></td><td><code>bool</code></td><td>Whitelist status</td></tr>
-<tr><td><code>list</code></td><td><code>address[]</code></td><td>Token list</td></tr>
+<tr><td><code>bridge</code></td><td><code>address</code></td><td>Bridge address.</td></tr>
+<tr><td><code>status</code></td><td><code>bool</code></td><td>Whitelist status.</td></tr>
+<tr><td><code>list</code></td><td><code>address[]</code></td><td>Token list.</td></tr>
 </tbody></table>
 </div>
 <h3 id="marketlistupdated"><a class="header" href="#marketlistupdated">MarketListUpdated</a></h3>
-<p>Emitted when market list is updated</p>
+<p>Emitted when the market whitelist list is updated.</p>
 <pre><code class="language-solidity">event MarketListUpdated(address[] list, bool status);
 </code></pre>
 <p><strong>Parameters</strong></p>
 <div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
-<tr><td><code>list</code></td><td><code>address[]</code></td><td>Market list</td></tr>
-<tr><td><code>status</code></td><td><code>bool</code></td><td>Whitelist status</td></tr>
+<tr><td><code>list</code></td><td><code>address[]</code></td><td>Market list.</td></tr>
+<tr><td><code>status</code></td><td><code>bool</code></td><td>Whitelist status.</td></tr>
+</tbody></table>
+</div>
+<h3 id="newadmin"><a class="header" href="#newadmin">NewAdmin</a></h3>
+<p>Emitted when a new admin is set.</p>
+<pre><code class="language-solidity">event NewAdmin(address indexed acc);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>acc</code></td><td><code>address</code></td><td>New admin address.</td></tr>
+</tbody></table>
+</div>
+<h3 id="saveaddressupdated"><a class="header" href="#saveaddressupdated">SaveAddressUpdated</a></h3>
+<p>Emitted when the save address is updated.</p>
+<pre><code class="language-solidity">event SaveAddressUpdated(address indexed save);
+</code></pre>
+<p><strong>Parameters</strong></p>
+<div class="table-wrapper"><table><thead><tr><th>Name</th><th>Type</th><th>Description</th></tr></thead><tbody>
+<tr><td><code>save</code></td><td><code>address</code></td><td>Save address.</td></tr>
 </tbody></table>
 </div>
 <h2 id="errors"><a class="header" href="#errors">Errors</a></h2>
 <h3 id="rebalancer_notauthorized"><a class="header" href="#rebalancer_notauthorized">Rebalancer_NotAuthorized</a></h3>
-<p>Error thrown when caller not authorized</p>
+<p>Error thrown when caller not authorized.</p>
 <pre><code class="language-solidity">error Rebalancer_NotAuthorized();
 </code></pre>
 <h3 id="rebalancer_marketnotvalid"><a class="header" href="#rebalancer_marketnotvalid">Rebalancer_MarketNotValid</a></h3>
-<p>Error thrown when market is not valid</p>
+<p>Error thrown when market is not valid.</p>
 <pre><code class="language-solidity">error Rebalancer_MarketNotValid();
 </code></pre>
 <h3 id="rebalancer_requestnotvalid"><a class="header" href="#rebalancer_requestnotvalid">Rebalancer_RequestNotValid</a></h3>
-<p>Error thrown when request is not valid</p>
+<p>Error thrown when request is not valid.</p>
 <pre><code class="language-solidity">error Rebalancer_RequestNotValid();
 </code></pre>
 <h3 id="rebalancer_addressnotvalid"><a class="header" href="#rebalancer_addressnotvalid">Rebalancer_AddressNotValid</a></h3>
-<p>Error thrown when address is not valid</p>
+<p>Error thrown when address is not valid.</p>
 <pre><code class="language-solidity">error Rebalancer_AddressNotValid();
 </code></pre>
 <h3 id="rebalancer_bridgenotwhitelisted"><a class="header" href="#rebalancer_bridgenotwhitelisted">Rebalancer_BridgeNotWhitelisted</a></h3>
-<p>Error thrown when bridge is not whitelisted</p>
+<p>Error thrown when bridge is not whitelisted.</p>
 <pre><code class="language-solidity">error Rebalancer_BridgeNotWhitelisted();
 </code></pre>
 <h3 id="rebalancer_transfersizeexcedeed"><a class="header" href="#rebalancer_transfersizeexcedeed">Rebalancer_TransferSizeExcedeed</a></h3>
-<p>Error thrown when transfer size exceeds maximum</p>
+<p>Error thrown when transfer size exceeds maximum.</p>
 <pre><code class="language-solidity">error Rebalancer_TransferSizeExcedeed();
 </code></pre>
 <h3 id="rebalancer_transfersizeminnotmet"><a class="header" href="#rebalancer_transfersizeminnotmet">Rebalancer_TransferSizeMinNotMet</a></h3>
-<p>Error thrown when transfer size below minimum</p>
+<p>Error thrown when transfer size below minimum.</p>
 <pre><code class="language-solidity">error Rebalancer_TransferSizeMinNotMet();
 </code></pre>
 <h3 id="rebalancer_destinationnotwhitelisted"><a class="header" href="#rebalancer_destinationnotwhitelisted">Rebalancer_DestinationNotWhitelisted</a></h3>
-<p>Error thrown when destination not whitelisted</p>
+<p>Error thrown when destination not whitelisted.</p>
 <pre><code class="language-solidity">error Rebalancer_DestinationNotWhitelisted();
 </code></pre>
 <h3 id="rebalancer_underlyingnotallowedforbridge"><a class="header" href="#rebalancer_underlyingnotallowedforbridge">Rebalancer_UnderlyingNotAllowedForBridge</a></h3>
-<p>Error thrown when underlying token not allowed for bridge</p>
+<p>Error thrown when underlying token not allowed for bridge.</p>
 <pre><code class="language-solidity">error Rebalancer_UnderlyingNotAllowedForBridge();
 </code></pre>
 <h2 id="structs"><a class="header" href="#structs">Structs</a></h2>
