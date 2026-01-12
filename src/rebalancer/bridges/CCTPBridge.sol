@@ -72,11 +72,19 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
     error CCTPBridge_NotImplemented();
     error CCTPBridge_DomainNotSet();
 
+    /// @notice Constructor for the CCTPBridge contract.
+    /// @param _roles Address of the Roles contract.
+    /// @param _tokenMessenger Address of the TokenMessenger contract.
+    /// @param _messageTransmitter Address of the MessageTransmitter contract.
+    /// @param _rebalancer Address of the Rebalancer contract.
     constructor(address _roles, address _tokenMessenger, address _messageTransmitter, address _rebalancer)
         BaseBridge(_roles)
         CCTPHelper(_tokenMessenger, _messageTransmitter)
     {
+        // Requirements: the rebalancer address is not zero
         require(_rebalancer != address(0), CCTPBridge_AddressNotValid());
+
+        // Effects: set the rebalancer address
         REBALANCER = _rebalancer;
     }
 
@@ -157,22 +165,8 @@ contract CCTPBridge is BaseBridge, CCTPHelper, IBridge, ReentrancyGuard {
 
     // ----------- VIEW ------------
 
-    /// @notice Returns the bridge fee.
-    /// @dev Not implemented for CCTP; protocol fees are handled by Circle.
-    /// @param _dstChainId Unused.
-    /// @param _payload Unused.
-    /// @param _options Unused.
-    /// @return fee Always reverts.
-    function getFee(uint32 _dstChainId, bytes calldata _payload, bytes calldata _options)
-        external
-        pure
-        override
-        returns (uint256 fee)
-    {
-        _dstChainId;
-        _payload;
-        _options;
-
+    /// @inheritdoc IBridge
+    function getFee(uint32, bytes calldata, bytes calldata) external pure override returns (uint256) {
         // Fee automatically deducted
         revert CCTPBridge_NotImplemented();
     }

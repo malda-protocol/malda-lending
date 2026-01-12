@@ -319,6 +319,11 @@ contract CCTPBridgeTest is Test {
         bridge.handleCCTPMessage(fakeCCTPMessage, "att");
     }
 
+    function test_getFee_revertsNotImplemented() public {
+        vm.expectRevert(CCTPBridge.CCTPBridge_NotImplemented.selector);
+        bridge.getFee(dstChainId, "", "");
+    }
+
     function _encodeHook(
         bytes32 tokenB32,
         uint256 amount,

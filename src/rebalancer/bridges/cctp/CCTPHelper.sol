@@ -123,9 +123,15 @@ abstract contract CCTPHelper {
     error CCTPHelper_PayloadMismatch();
     error CCTPHelper_MsgTooShort();
 
+    /// @notice Constructor for the CCTPHelper contract.
+    /// @param _tokenMessenger Address of the TokenMessenger contract.
+    /// @param _messageTransmitter Address of the MessageTransmitter contract.
     constructor(address _tokenMessenger, address _messageTransmitter) {
+        // Requirements: the token messenger and message transmitter addresses are not zero
         require(_tokenMessenger != address(0), CCTPHelper_AddressZero());
         require(_messageTransmitter != address(0), CCTPHelper_AddressZero());
+
+        // Effects: set the token messenger and message transmitter addresses
         TOKEN_MESSENGER = _tokenMessenger;
         MESSAGE_TRANSMITTER = _messageTransmitter;
     }
@@ -217,15 +223,27 @@ abstract contract CCTPHelper {
 
     // ----------- PRIVATE ------------
 
+    /// @notice Burns tokens via CCTP v2 and returns the nonce.
+    /// @param _token Token to burn.
+    /// @param _amount Amount to burn.
+    /// @param _dstDomain Destination CCTP domain.
+    /// @param _receiver Receiver bytes32 (typically the bridge address encoded).
+    /// @param _payload App payload to attach as hook data.
+    /// @return nonce Nonce of the burn.
     function _burnSrc(address _token, uint256 _amount, uint32 _dstDomain, bytes32 _receiver, bytes memory _payload)
         private
         returns (uint64 nonce)
     {
+        // Requirements: the amount is not zero
         require(_amount != 0, CCTPHelper_AmountZero());
+        // Requirements: the receiver is not zero
         require(_receiver != bytes32(0), CCTPHelper_AddressZero());
+        // Requirements: the token is accepted
         require(acceptedTokens[_token], CCTPHelper_TokenNotAccepted());
 
+        // Interactions: transfer the tokens to the contract
         IERC20(_token).safeTransferFrom(msg.sender, address(this), _amount);
+        // Interactions: approve the tokens to the token messenger
         SafeApprove.safeApprove(_token, TOKEN_MESSENGER, _amount);
 
         // @dev set to 0 to enforce that Circle cannot charge any CCTP fee on this path
@@ -239,6 +257,7 @@ abstract contract CCTPHelper {
         // @dev if set to zero, any address can call receiveMessage
         bytes32 destinationCaller = bytes32(0);
 
+        // Interactions: deposit the tokens for burn with the hook
         ITokenMessangerV2(TOKEN_MESSENGER)
             .depositForBurnWithHook(
                 _amount, _dstDomain, _receiver, _token, destinationCaller, maxFee, minFinalityThreshold, _payload
@@ -269,6 +288,9 @@ abstract contract CCTPHelper {
      *
      * Minimum length with empty payload is therefore 147 bytes.
      */
+    /// @notice Encodes a CCTPMessage into a compact, packed byte format.
+    /// @param message CCTPMessage to encode.
+    /// @return encoded Encoded packed representation of the message.
     function _encodeMsg(CCTPMessage memory message) private pure returns (bytes memory) {
         return abi.encodePacked(
             uint8(1),
@@ -301,6 +323,9 @@ abstract contract CCTPHelper {
      *
      * The `payload` bytes are copied verbatim into a new bytes array.
      */
+    /// @notice Decodes bytes produced by `_encodeMsg` back into a CCTPMessage.
+    /// @param encoded Encoded packed representation of the message.
+    /// @return message Decoded CCTPMessage.
     function _decodeMsg(bytes memory encoded) private pure returns (CCTPMessage memory message) {
         require(encoded.length >= 147, CCTPHelper_MsgTooShort());
 
