@@ -60,37 +60,44 @@ abstract contract mErc20 is mToken, ImErc20 {
 
     // ----------- MARKET PUBLIC ------------
     /// @inheritdoc ImErc20
-    function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external {
+    function mint(uint256 mintAmount, address receiver, uint256 minAmountOut) external onlyFirewallApprovedAllowEOA {
         _mint(msg.sender, receiver, mintAmount, minAmountOut, true);
     }
 
     /// @inheritdoc ImErc20
-    function redeem(uint256 redeemTokens) external {
+    function redeem(uint256 redeemTokens) external onlyFirewallApprovedAllowEOA {
         _redeem(msg.sender, redeemTokens, true);
     }
 
     /// @inheritdoc ImErc20
-    function redeemUnderlying(uint256 redeemAmount) external {
+    function redeemUnderlying(uint256 redeemAmount) external onlyFirewallApprovedAllowEOA {
         _redeemUnderlying(msg.sender, redeemAmount, true);
     }
 
     /// @inheritdoc ImErc20
-    function borrow(uint256 borrowAmount) external {
+    function borrow(uint256 borrowAmount) external onlyFirewallApprovedAllowEOA {
         _borrow(msg.sender, borrowAmount, true);
     }
 
     /// @inheritdoc ImErc20
-    function repay(uint256 repayAmount) external returns (uint256) {
+    function repay(uint256 repayAmount) external onlyFirewallApprovedAllowEOA returns (uint256) {
         return _repay(repayAmount, true);
     }
 
     /// @inheritdoc ImErc20
-    function repayBehalf(address borrower, uint256 repayAmount) external returns (uint256) {
+    function repayBehalf(address borrower, uint256 repayAmount)
+        external
+        onlyFirewallApprovedAllowEOA
+        returns (uint256)
+    {
         return _repayBehalf(borrower, repayAmount, true);
     }
 
     /// @inheritdoc ImErc20
-    function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral) external {
+    function liquidate(address borrower, uint256 repayAmount, address mTokenCollateral)
+        external
+        onlyFirewallApprovedAllowEOA
+    {
         _liquidate(msg.sender, borrower, repayAmount, mTokenCollateral, true);
     }
 
@@ -118,13 +125,10 @@ abstract contract mErc20 is mToken, ImErc20 {
         uint8 decimals_
     ) internal {
         // Requirements: the underlying is not zero address
-        require(underlying_ != address(0), mt_AddressNotValid());
-
-        // Requirements: the operator is not zero address
-        require(operator_ != address(0), mt_AddressNotValid());
-
-        // Requirements: the interest rate model is not zero address
-        require(interestRateModel_ != address(0), mt_AddressNotValid());
+        require(
+            underlying_ != address(0) && operator_ != address(0) && interestRateModel_ != address(0),
+            mt_AddressNotValid()
+        );
 
         // mToken initialize does the bulk of the work
         _initializeMToken(operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_);
@@ -136,6 +140,7 @@ abstract contract mErc20 is mToken, ImErc20 {
         ImTokenMinimal(underlying).totalSupply();
     }
 
+    // ----------- INTERNAL ------------
     /// @notice Performs a transfer in, reverting upon failure
     /// @param from Sender address
     /// @param amount Amount to transfer

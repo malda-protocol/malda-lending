@@ -33,24 +33,37 @@ import {IOracleOperator} from "src/interfaces/IOracleOperator.sol";
 // contracts
 import {mTokenConfiguration} from "./mTokenConfiguration.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {HypernativeFirewallProtected} from "src/libraries/HypernativeFirewallProtected.sol";
 
 /// @title Core mToken logic
 /// @author Merge Layers Inc.
 /// @notice Base ERC-20 compatible lending token logic
-abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
+abstract contract mToken is mTokenConfiguration, ReentrancyGuard, HypernativeFirewallProtected {
     /// @notice Sets initial borrow rate max mantissa
     constructor() {
         borrowRateMaxMantissa = 0.0005e16;
     }
 
     /// @inheritdoc ImToken
-    function transfer(address dst, uint256 amount) external override nonReentrant returns (bool) {
+    function transfer(address dst, uint256 amount)
+        external
+        override
+        nonReentrant
+        onlyFirewallApprovedAllowEOA
+        returns (bool)
+    {
         _transferTokens(msg.sender, msg.sender, dst, amount);
         return true;
     }
 
     /// @inheritdoc ImToken
-    function transferFrom(address src, address dst, uint256 amount) external override nonReentrant returns (bool) {
+    function transferFrom(address src, address dst, uint256 amount)
+        external
+        override
+        onlyFirewallApprovedAllowEOA
+        nonReentrant
+        returns (bool)
+    {
         _transferTokens(msg.sender, src, dst, amount);
         return true;
     }
@@ -105,7 +118,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
 
         // Effects: store the new reserves
         totalReserves = totalReservesNew; // reserves[n+1] = reserves[n] - reduceAmount
-
         // Interactions: transfer the reduce amount
         // doTransferOut reverts if anything goes wrong, since we can't be sure if side effects occurred.
         _doTransferOut(payable(msg.sender), reduceAmount);
@@ -429,7 +441,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         address mTokenCollateral,
         bool doTransfer
     ) internal {
-        // Requirements: the borrower is not the liquidator
         require(borrower != liquidator, mt_InvalidInput());
         // Requirements: the repay amount is greater than 0 and not the max value
         require(repayAmount > 0 && repayAmount != type(uint256).max, mt_InvalidInput());
@@ -487,12 +498,10 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     /// @notice Borrows are repaid by another user (possibly the borrower).
     /// @param payer the account paying off the borrow
     /// @param borrower the account with the debt being payed off
-    /// @param repayAmount the amount of underlying tokens being returned,
-    /// or `type(uint256).max` for the full outstanding amount
+    /// @param repayAmount the amount of underlying tokens, or `type(uint256).max` for full
     /// @param doTransfer If an actual transfer should be performed
-    /// @return Amount actually repaid
+    /// @return returns the actual repay amount
     function __repay(address payer, address borrower, uint256 repayAmount, bool doTransfer) private returns (uint256) {
-        // Interactions: check if the repay hooks pass
         IOperatorDefender(operator).beforeMTokenRepay(address(this), borrower);
 
         // Interactions: fetch the amount the borrower owes, with accumulated interest
@@ -727,6 +736,7 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         }
     }
 
+    // slither-disable-start reentrancy-benign
     /// @notice Transfer `tokens` tokens from `src` to `dst` by `spender`
     /// @dev Called by both `transfer` and `transferFrom` internally
     /// @param spender The address of the account performing the transfer
@@ -734,8 +744,6 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
     /// @param dst The address of the destination account
     /// @param tokens The number of tokens to transfer
     function _transferTokens(address spender, address src, address dst, uint256 tokens) private {
-        // Interactions: check if the transfer hooks pass
-        // slither-disable-next-line reentrancy-benign -- entrypoints transfer/transferFrom are nonReentrant
         IOperatorDefender(operator).beforeMTokenTransfer(address(this), src, dst, tokens);
 
         // Requirements: the source and destination are not the same
@@ -770,6 +778,8 @@ abstract contract mToken is mTokenConfiguration, ReentrancyGuard {
         // Events: emit the transfer event
         emit Transfer(src, dst, tokens);
     }
+
+    // slither-disable-end reentrancy-benign
 
     // ----------- PRIVATE VIEW ------------
     /// @notice Calculates seize token amount for liquidation

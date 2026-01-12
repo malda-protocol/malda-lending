@@ -212,7 +212,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     }
 
     /// @inheritdoc ImTokenGateway
-    function setPaused(OperationType _type, bool state) external override {
+    function setPaused(OperationType _type, bool state) external override onlyFirewallApprovedAllowEOA {
         if (state) {
             // Requirements: if pausing, the caller is the owner or allowed for guardian pause
             require(
@@ -232,11 +232,14 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
     }
 
     /// @inheritdoc ImTokenGateway
-    function extractForRebalancing(uint256 amount) external notPaused(OperationType.Rebalancing) {
-        // Requirements: the sender is allowed for rebalancer
-        require(rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER()), mTokenGateway_NotRebalancer());
-
-        // Effects: transfer the underlying to the sender
+    function extractForRebalancing(uint256 amount)
+        external
+        notPaused(OperationType.Rebalancing)
+        onlyFirewallApprovedAllowEOA
+    {
+        if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.REBALANCER())) {
+            revert mTokenGateway_NotRebalancer();
+        }
         IERC20(underlying).safeTransfer(msg.sender, amount);
     }
 
@@ -252,7 +255,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
 
     /// @notice Withdraw gas received so far
     /// @param receiver the receiver address
-    function withdrawGasFees(address payable receiver) external {
+    function withdrawGasFees(address payable receiver) external onlyFirewallApprovedAllowEOA {
         // Requirements: the sender is the owner or allowed for sequencer
         require(
             msg.sender == owner() || _isAllowedFor(msg.sender, _getSequencerRole()), mTokenGateway_CallerNotAllowed()
@@ -297,9 +300,8 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         onlyAllowedUser(msg.sender)
         ifNotBlacklisted(msg.sender)
         ifNotBlacklisted(receiver)
-        onlyFirewallApproved
+        onlyFirewallApprovedAllowEOA
     {
-        // Effects: take in the underlying
         _takeIn(underlying, amount, receiver);
 
         // Events: emit the supplied event
@@ -322,6 +324,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         override
         liquidateChecks
         ifNotBlacklisted(receiver)
+        onlyFirewallApprovedAllowEOA
     {
         // Effects: take in the underlying
         _takeIn(underlying, liquidateAmount, receiver);
@@ -338,7 +341,7 @@ contract mTokenGateway is OwnableUpgradeable, ImTokenGateway, ImTokenOperationTy
         notPaused(OperationType.AmountOutHere)
         ifNotBlacklisted(msg.sender)
         ifNotBlacklisted(receiver)
-        onlyFirewallApproved
+        onlyFirewallApprovedAllowEOA
     {
         // Requirements: if the sender is allowed for proof batch forwarder, verify the proof
         if (!rolesOperator.isAllowedFor(msg.sender, rolesOperator.PROOF_BATCH_FORWARDER())) {

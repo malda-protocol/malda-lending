@@ -107,22 +107,11 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         address zkVerifier_,
         address roles_
     ) external initializer {
-        // Requirements: the underlying is not zero address
-        require(underlying_ != address(0), mErc20Host_AddressNotValid());
-        // Requirements: the operator is not zero address
-        require(operator_ != address(0), mErc20Host_AddressNotValid());
-        // Requirements: the interest rate model is not zero address
-        require(interestRateModel_ != address(0), mErc20Host_AddressNotValid());
-        // Requirements: the ZkVerifier is not zero address
-        require(zkVerifier_ != address(0), mErc20Host_AddressNotValid());
-        // Requirements: the roles are not zero address
-        require(roles_ != address(0), mErc20Host_AddressNotValid());
-        // Requirements: the admin is not zero address
-        require(admin_ != address(0), mErc20Host_AddressNotValid());
-
-        // Initialize the base contract
-        _proxyInitialize(
-            underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_, admin_
+        // Requirements: the underlying, operator, interest rate model, ZkVerifier, roles, and admin are not zero addresses
+        require(
+            underlying_ != address(0) && operator_ != address(0) && interestRateModel_ != address(0)
+                && zkVerifier_ != address(0) && roles_ != address(0) && admin_ != address(0),
+            mErc20Host_AddressNotValid()
         );
 
         // Effects: set the ZkVerifier
@@ -131,13 +120,29 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         // Effects: set the roles
         rolesOperator = IRoles(roles_);
 
-        // Effects: set the proper admin, now that initialization is done
-        admin = admin_;
+        // Initialize the base contract
+        _proxyInitialize(
+            underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_, admin_
+        );
     }
 
     // solhint-enable gas-calldata-parameters
-
     // ----------- OWNER ------------
+    /// @notice Inits firewall
+    /// @param _firewall The firewall address
+    function initFirewall(address _firewall) external onlyAdmin {
+        _initHypernativeFirewall(_firewall, admin);
+    }
+
+    /// @notice Resets the market state
+    function resetMarket() external onlyAdmin {
+        totalBorrows = 0;
+        totalReserves = 0;
+        totalSupply = 0;
+        accrualBlockTimestamp = block.timestamp;
+        borrowIndex = 1e18;
+    }
+
     /// @notice Updates an allowed chain status
     /// @param _chainId the chain id
     /// @param status_ the new status
@@ -153,7 +158,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     }
 
     /// @inheritdoc ImErc20Host
-    function extractForRebalancing(uint256 amount) external {
+    function extractForRebalancing(uint256 amount) external onlyFirewallApprovedAllowEOA {
         // Interactions: check if rebalancing is paused
         IOperatorDefender(operator).beforeRebalancing(address(this));
 
@@ -171,10 +176,8 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         require(_migrator != address(0), mErc20Host_AddressNotValid());
 
         // Effects: set the migrator
+        // slither-disable-next-line events-access
         migrator = _migrator;
-
-        // Events: emit the migrator updated event
-        emit mErc20Host_MigratorUpdated(_migrator);
     }
 
     /// @notice Sets the gas fees helper address
@@ -185,9 +188,6 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
 
         // Effects: set the gas helper
         gasHelper = IGasFeesHelper(_helper);
-
-        // Events: emit the gas helper updated event
-        emit mErc20Host_GasHelperUpdated(_helper);
     }
 
     /// @notice Withdraw gas received so far
@@ -234,7 +234,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         uint256[] calldata liquidateAmount,
         address[] calldata collateral,
         address receiver
-    ) external override {
+    ) external override onlyFirewallApprovedAllowEOA {
         // If the sender is not the batch proof forwarder (e.g. self-sequencing), verify the proof
         if (!_isAllowedFor(msg.sender, _getBatchProofForwarderRole())) {
             _verifyProof(journalData, seal);
@@ -263,7 +263,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         uint256[] calldata mintAmount,
         uint256[] calldata minAmountsOut,
         address receiver
-    ) external override {
+    ) external override onlyFirewallApprovedAllowEOA {
         // If the sender is not the batch proof forwarder (e.g. self-sequencing), verify the proof
         if (!_isAllowedFor(msg.sender, _getBatchProofForwarderRole())) {
             _verifyProof(journalData, seal);
@@ -292,7 +292,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
         bytes calldata seal,
         uint256[] calldata repayAmount,
         address receiver
-    ) external override {
+    ) external override onlyFirewallApprovedAllowEOA {
         // If the sender is not the batch proof forwarder (e.g. self-sequencing), verify the proof
         if (!_isAllowedFor(msg.sender, _getBatchProofForwarderRole())) {
             _verifyProof(journalData, seal);
@@ -316,7 +316,12 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     }
 
     /// @inheritdoc ImErc20Host
-    function performExtensionCall(uint256 actionType, uint256 amount, uint32 dstChainId) external payable override {
+    function performExtensionCall(uint256 actionType, uint256 amount, uint32 dstChainId)
+        external
+        payable
+        override
+        onlyFirewallApprovedAllowEOA
+    {
         // actionType:
         // 1 - withdraw
         // 2 - borrow
@@ -353,6 +358,7 @@ contract mErc20Host is mErc20Upgradable, ImErc20Host, ImTokenOperationTypes {
     function mintOrBorrowMigration(bool isMint, uint256 amount, address receiver, address borrower, uint256 minAmount)
         external
         onlyMigrator
+        onlyFirewallApprovedAllowEOA
     {
         // Requirements: the amount is greater than 0
         require(amount > 0, mErc20Host_AmountNotValid());
