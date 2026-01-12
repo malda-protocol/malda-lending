@@ -238,7 +238,17 @@ contract EverclearBridgeV2 is BaseBridge, IBridge {
         (uint256 fee, uint256 deadline, bytes memory sig) = _extractFeeParams(intentData);
         IFeeAdapterV2.FeeParams memory feeParams = IFeeAdapterV2.FeeParams(fee, deadline, sig);
 
-        return IntentParams(destinations, receiver, inputAsset, outputAsset, amount, amountOutMin, ttl, data, feeParams);
+        return IntentParams({
+            destinations: destinations,
+            receiver: receiver,
+            inputAsset: inputAsset,
+            outputAsset: outputAsset,
+            amount: amount,
+            amountOutMin: amountOutMin,
+            ttl: ttl,
+            data: data,
+            feeParams: feeParams
+        });
     }
 
     /**
@@ -249,9 +259,9 @@ contract EverclearBridgeV2 is BaseBridge, IBridge {
      * - The pointer gives the offset to the start of the `FeeParams` struct relative to the start of intentData.
      * - Within `FeeParams`, the layout is:
      *   ```
-     *   fee      (uint256)  +0x00
-     *   deadline (uint256)  +0x20
-     *   sig      (bytes)    +0x40 (stored as offset → length → data)
+     *   fee      (uint256) +0x00
+     *   deadline (uint256) +0x20
+     *   sig      (bytes)   +0x40 (stored as offset → length → data)
      *   ```
      * - The `sig` field is dynamic, so we read its offset (at +0x40) relative to the `FeeParams` base,
      *   then read the length at that offset, then slice out the actual signature bytes.

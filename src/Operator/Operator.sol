@@ -309,7 +309,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @param newBorrowCaps The new borrow cap values in underlying to be set.
     function setMarketBorrowCaps(address[] calldata mTokens, uint256[] calldata newBorrowCaps)
         external
-        onlyFirewallApproved
+        onlyFirewallApprovedAllowEOA
     {
         // Requirements: the sender is admin or has guardian borrow cap role
         require(
@@ -338,7 +338,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @param newSupplyCaps The new supply cap values in underlying to be set.
     function setMarketSupplyCaps(address[] calldata mTokens, uint256[] calldata newSupplyCaps)
         external
-        onlyFirewallApproved
+        onlyFirewallApprovedAllowEOA
     {
         // Requirements: the sender is admin or has guardian supply cap role
         require(
@@ -363,7 +363,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     /// @inheritdoc IOperator
     function setPaused(address mToken, ImTokenOperationTypes.OperationType _type, bool state)
         external
-        onlyFirewallApproved
+        onlyFirewallApprovedAllowEOA
     {
         if (state) {
             // Requirements: if pausing, the caller is admin or has guardian pause role
@@ -415,12 +415,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     }
 
     /// @inheritdoc IOperator
-    function enterMarkets(address[] calldata _mTokens)
-        external
-        override
-        onlyAllowedUser(msg.sender)
-        onlyFirewallApproved
-    {
+    function enterMarkets(address[] calldata _mTokens) external override onlyFirewallApprovedAllowEOA {
         uint256 len = _mTokens.length;
         for (uint256 i = 0; i < len; i++) {
             // Interactions: activate the market
@@ -439,7 +434,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     }
 
     /// @inheritdoc IOperator
-    function exitMarket(address _mToken) external override onlyFirewallApproved {
+    function exitMarket(address _mToken) external override onlyFirewallApprovedAllowEOA {
         IOperatorData.Market storage marketToExit = markets[_mToken];
         // Return  if the sender is not already 'in' the market
         if (!marketToExit.accountMembership[msg.sender]) return;
@@ -485,7 +480,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         override
         ifNotBlacklisted(src)
         ifNotBlacklisted(dst)
-        onlyFirewallApproved
     {
         // Requirements: the transfer is not paused
         require(!_paused[mToken][OperationType.Transfer], Operator_Paused());
@@ -503,7 +497,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         override
         onlyAllowedUser(borrower)
         ifNotBlacklisted(borrower)
-        onlyFirewallApproved
     {
         // Requirements: the borrow is not paused
         require(!_paused[mToken][OperationType.Borrow], Operator_Paused());
@@ -584,6 +577,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         return _getHypotheticalAccountLiquidity(account, mTokenModify, redeemTokens, borrowAmount);
     }
 
+    // ----------- PUBLIC ------------
     /// @inheritdoc IOperatorDefender
     function beforeMTokenMint(address mToken, address minter, address receiver)
         external
@@ -592,7 +586,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         onlyAllowedUser(minter)
         ifNotBlacklisted(minter)
         ifNotBlacklisted(receiver)
-        onlyFirewallApproved
         onlyAllowedUser(minter)
     {
         // Requirements: the mint is not paused
@@ -623,18 +616,12 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         override
         onlyAllowedUser(redeemer)
         ifNotBlacklisted(redeemer)
-        onlyFirewallApproved
     {
         _beforeRedeem(mToken, redeemer, redeemTokens);
     }
 
     /// @inheritdoc IOperatorDefender
-    function beforeMTokenRepay(address mToken, address borrower)
-        external
-        view
-        onlyAllowedUser(borrower)
-        onlyFirewallApproved
-    {
+    function beforeMTokenRepay(address mToken, address borrower) external view onlyAllowedUser(borrower) {
         // Requirements: the repay is not paused
         require(!_paused[mToken][OperationType.Repay], Operator_Paused());
 
@@ -648,7 +635,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         address mTokenCollateral,
         address borrower,
         uint256 repayAmount
-    ) external view override onlyFirewallApproved {
+    ) external view override {
         // Requirements: the liquidate is not paused
         require(!_paused[mTokenBorrowed][OperationType.Liquidate], Operator_Paused());
 
@@ -679,7 +666,6 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
         view
         override
         ifNotBlacklisted(liquidator)
-        onlyFirewallApproved
     {
         // Requirements: the seize is not paused
         require(
@@ -714,7 +700,7 @@ contract Operator is OperatorStorage, ImTokenOperationTypes, OwnableUpgradeable,
     }
 
     /// @inheritdoc IOperatorDefender
-    function beforeRebalancing(address mToken) external view override onlyFirewallApproved {
+    function beforeRebalancing(address mToken) external view override {
         // Requirements: the rebalancing is not paused
         require(!_paused[mToken][OperationType.Rebalancing], Operator_Paused());
     }

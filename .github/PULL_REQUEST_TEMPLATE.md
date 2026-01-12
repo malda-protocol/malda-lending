@@ -25,7 +25,6 @@
 - [ ] All tests pass successfully when running `make test`.
 - [ ] NatSpec documentation is up to date and accurate.
 - [ ] NatSpec for external dependencies is added to the code, with file's appropriate Git blob linked (e.g. `https://github.com/malda-protocol/malda-lending/blob/6da3402491b0597592e7ce77df035b59e43e1167/src/mToken/host/mErc20Host.sol`).
-- [ ] Documentation has been generated locally using `make docs`.
 
 ## Additional Context
 

@@ -18,6 +18,24 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         mWethHost.updateAllowedChain(uint32(block.chainid), true);
     }
 
+    function _encodeJournal(
+        address sender,
+        address market,
+        uint256 accAmountIn,
+        uint256 accAmountOut,
+        uint32 chainId,
+        uint32 dstChainId,
+        bool l1Inclusion
+    ) internal pure returns (bytes memory) {
+        return abi.encodePacked(sender, market, accAmountIn, accAmountOut, chainId, dstChainId, l1Inclusion);
+    }
+
+    function _wrapJournal(bytes memory journal) internal pure returns (bytes memory) {
+        bytes[] memory journals = new bytes[](1);
+        journals[0] = journal;
+        return abi.encode(journals);
+    }
+
     function test_RevertGiven_MarketIsPausedForLiquidation(uint256 amount)
         external
         whenPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Liquidate)
@@ -137,6 +155,85 @@ contract mErc20Host_liquidate is mToken_Unit_Shared {
         bytes memory journalData = _createAccumulatedAmountJournal(alice, address(mWethHost), amount);
 
         vm.expectRevert(ImErc20Host.mErc20Host_CallerNotAllowed.selector);
+        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
+    }
+
+    function test_RevertWhen_JournalDstChainInvalid() external givenMarketIsNotPaused {
+        bytes memory journal = _encodeJournal(
+            address(this), address(mWethHost), 1, 1, uint32(block.chainid), uint32(block.chainid + 1), true
+        );
+        bytes memory journalData = _wrapJournal(journal);
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 1;
+        address[] memory users = new address[](1);
+        users[0] = alice;
+        address[] memory collaterals = new address[](1);
+        collaterals[0] = address(mWethHost);
+
+        vm.expectRevert(ImErc20Host.mErc20Host_DstChainNotValid.selector);
+        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
+    }
+
+    function test_RevertWhen_JournalMarketInvalid() external givenMarketIsNotPaused {
+        bytes memory journal =
+            _encodeJournal(address(this), address(mDaiHost), 1, 1, uint32(block.chainid), uint32(block.chainid), true);
+        bytes memory journalData = _wrapJournal(journal);
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 1;
+        address[] memory users = new address[](1);
+        users[0] = alice;
+        address[] memory collaterals = new address[](1);
+        collaterals[0] = address(mWethHost);
+
+        vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
+        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
+    }
+
+    function test_RevertWhen_JournalChainNotAllowed() external givenMarketIsNotPaused {
+        bytes memory journal =
+            _encodeJournal(address(this), address(mWethHost), 1, 1, uint32(block.chainid), uint32(block.chainid), true);
+        bytes memory journalData = _wrapJournal(journal);
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 1;
+        address[] memory users = new address[](1);
+        users[0] = alice;
+        address[] memory collaterals = new address[](1);
+        collaterals[0] = address(mWethHost);
+
+        mWethHost.updateAllowedChain(uint32(block.chainid), false);
+
+        vm.expectRevert(ImErc20Host.mErc20Host_ChainNotValid.selector);
+        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
+    }
+
+    function test_RevertWhen_L1InclusionMissing() external givenMarketIsNotPaused {
+        bytes memory journal = _encodeJournal(
+            address(this), address(mWethHost), 1, 1, uint32(block.chainid), uint32(block.chainid), false
+        );
+        bytes memory journalData = _wrapJournal(journal);
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 1;
+        address[] memory users = new address[](1);
+        users[0] = alice;
+        address[] memory collaterals = new address[](1);
+        collaterals[0] = address(mWethHost);
+
+        vm.expectRevert(ImErc20Host.mErc20Host_L1InclusionRequired.selector);
+        mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
+    }
+
+    function test_RevertWhen_LiquidateAmountTooBig() external givenMarketIsNotPaused {
+        bytes memory journal =
+            _encodeJournal(address(this), address(mWethHost), 1, 1, uint32(block.chainid), uint32(block.chainid), true);
+        bytes memory journalData = _wrapJournal(journal);
+        uint256[] memory amounts = new uint256[](1);
+        amounts[0] = 2;
+        address[] memory users = new address[](1);
+        users[0] = alice;
+        address[] memory collaterals = new address[](1);
+        collaterals[0] = address(mWethHost);
+
+        vm.expectRevert(ImErc20Host.mErc20Host_AmountTooBig.selector);
         mWethHost.liquidateExternal(journalData, "0x123", users, amounts, collaterals, address(this));
     }
 

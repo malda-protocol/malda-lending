@@ -57,7 +57,7 @@ jobs:
 
           echo "## Full forge build --sizes output" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          forge build --sizes | tee -a $GITHUB_STEP_SUMMARY | \
+          make build | tee -a $GITHUB_STEP_SUMMARY | \
           awk -F'|' -v max=$MAX_SIZE -v w20=$WARN20 -v w10=$WARN10 -v w5=$WARN5 '
             NR>4 && NF>4 {
               # column 2 = contract, column 3 = runtime size
@@ -117,6 +117,7 @@ jobs:
     env:
       LINEA_RPC_URL: ${{ secrets.LINEA_RPC_URL }}
       MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
+      BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
     steps:
       - name: "Check out the repo"
         uses: "actions/checkout@v4"
@@ -141,23 +142,23 @@ jobs:
         run: "FOUNDRY_PROFILE=ci forge test --force --isolate -vvv --show-progress"
 
       # TODO: Uncomment once we have a coverage threshold
-      #   - name: "Check test coverage"
-      #     env:
-      #       COVERAGE_MIN: 100
-      #     run: |
-      #       FOUNDRY_PROFILE=lite forge coverage --no-match-coverage "(test|mocks)" --force --report summary | tee coverage.txt
-      #       coverage=$(grep "| Total" coverage.txt | awk '{print $4}' | sed 's/%//')
-      #       if [ -z "$coverage" ]; then
-      #         echo "❌ Failed to extract coverage percentage."
-      #         exit 1
-      #       fi
-      #       if (( $(echo "$coverage < $COVERAGE_MIN" | bc -l) )); then
-      #         echo "❌ Current coverage of $coverage% is below the minimum of $COVERAGE_MIN%."
-      #         exit 1
-      #       else
-      #         echo "✅ Current coverage of $coverage% meets the minimum of $COVERAGE_MIN%."
-      #       fi
-      #       rm coverage.txt
+      - name: "Check test coverage"
+        env:
+          COVERAGE_MIN: 100
+        run: |
+          forge coverage --no-match-coverage "(test|mocks|dependencies|script|Bytes32AddressLib.sol|BytesLib.sol|CREATE3.sol|RewardDistributor.sol|Migrator.sol)" --force --report summary | tee coverage.txt
+          coverage=$(grep "| Total" coverage.txt | awk '{print $4}' | sed 's/%//')
+          if [ -z "$coverage" ]; then
+            echo "❌ Failed to extract coverage percentage."
+            exit 1
+          fi
+          if (( $(echo "$coverage < $COVERAGE_MIN" | bc -l) )); then
+            echo "❌ Current coverage of $coverage% is below the minimum of $COVERAGE_MIN%."
+            exit 1
+          else
+            echo "✅ Current coverage of $coverage% meets the minimum of $COVERAGE_MIN%."
+          fi
+          rm coverage.txt
 
       - name: "Add test summary"
         run: |

@@ -3,7 +3,7 @@ ifneq (,$(wildcard ./.env))
     export
 endif
 
-.PHONY: all clean build slither lint fmt test coverage-summary coverage-check pre-commit docs
+.PHONY: all clean build slither lint fmt test coverage-summary coverage-check pre-commit
 
 help: ## Print all targets and descriptions
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[.a-zA-Z0-9_-]+:.*?##/ { printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } END { printf "\n" }' $(MAKEFILE_LIST)
@@ -19,7 +19,7 @@ clean: ## Clean the project
 	forge clean && rm -rf cache out
 
 build: ## Build the project forcefully
-	forge build --force
+	forge build --force --sizes
 
 slither: ## Run slither
 	slither . --fail-low --config-file slither.config.json --exclude-dependencies
@@ -39,8 +39,14 @@ fmt:
 test: ## Run tests
 	forge test --force --isolate -vvv --show-progress
 
+
+COVERAGE_EXCLUDES := --no-match-coverage "(test|mocks|dependencies|script|Bytes32AddressLib.sol|BytesLib.sol|CREATE3.sol|RewardDistributor.sol|Migrator.sol)"
+
 coverage-summary: ## Run tests and generate coverage summary
-	forge coverage --no-match-coverage "(test|mocks|dependencies)" --force --report summary
+	forge coverage $(COVERAGE_EXCLUDES) --force --report summary
+
+coverage-lcov: ## Run tests and generate coverage lcov
+	forge coverage $(COVERAGE_EXCLUDES) --force --report lcov
 
 COVERAGE_MIN := 100
 coverage-check: ## Check if test coverage is above the minimum
@@ -59,10 +65,3 @@ coverage-check: ## Check if test coverage is above the minimum
 
 pre-commit: ## Run pre-commit hooks manually
 	@echo && pre-commit run --all-files
-
-docs: ## Generate documentation locally using `forge doc`
-	@echo ">>> Cleaning old docs..."
-	@rm -rf docs
-	@echo ">>> Generating documentation..."
-	@forge doc -o docs/
-	@echo "🎉 Docs generated successfully! 🎉"

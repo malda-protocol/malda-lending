@@ -186,6 +186,30 @@ contract mErc20Host_repay is mToken_Unit_Shared {
         assertGt(vars.accountBorrowAfter, 0);
     }
 
+    function test_RevertWhen_RepayAmountTooBig() external whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE) {
+        operator.supportMarket(address(mWethHost));
+        operator.setCollateralFactor(address(mWethHost), DEFAULT_COLLATERAL_FACTOR);
+        {
+            address[] memory markets = new address[](1);
+            markets[0] = address(mWethHost);
+            operator.enterMarkets(markets);
+        }
+
+        uint256 supplyAmount = 100 ether;
+        uint256 borrowAmount = 10 ether;
+        _getTokens(weth, address(this), supplyAmount);
+        weth.approve(address(mWethHost), supplyAmount);
+        mWethHost.mint(supplyAmount, address(this), 0);
+        mWethHost.borrow(borrowAmount);
+
+        bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethHost), 1);
+        uint256[] memory repayAmounts = new uint256[](1);
+        repayAmounts[0] = borrowAmount;
+
+        vm.expectRevert(ImErc20Host.mErc20Host_AmountTooBig.selector);
+        mWethHost.repayExternal(journalData, "0x123", repayAmounts, address(this));
+    }
+
     modifier whenRepayExternalIsCalled() {
         // @dev does nothing; for readability only
         _;

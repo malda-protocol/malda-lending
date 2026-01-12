@@ -6,6 +6,7 @@ import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 
 // contracts
 import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
+import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
 
 // tests
 import {mToken_Unit_Shared} from "../shared/mToken_Unit_Shared.t.sol";
@@ -64,6 +65,23 @@ contract mErc20_borrow is mToken_Unit_Shared {
         // cannot test this in a non-external flow
         vm.expectRevert();
         mWeth.borrow(amount);
+    }
+
+    function test_RevertWhen_BorrowCashNotAvailable_WithExternalCollateral()
+        external
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+    {
+        operator.supportMarket(address(mWeth));
+        operator.supportMarket(address(mDaiHost));
+        operator.setCollateralFactor(address(mDaiHost), DEFAULT_COLLATERAL_FACTOR);
+
+        uint256 collateralAmount = 1000 ether;
+        _getTokens(dai, address(this), collateralAmount);
+        dai.approve(address(mDaiHost), collateralAmount);
+        mDaiHost.mint(collateralAmount, address(this), 0);
+
+        vm.expectRevert(mTokenStorage.mt_BorrowCashNotAvailable.selector);
+        mWeth.borrow(1 ether);
     }
 
     function test_WhenBorrowCapIsReached(uint256 amount)

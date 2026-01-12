@@ -61,7 +61,7 @@ abstract contract Rebalancer_Unit_Shared is Base_Unit_Test {
         mWethExtension = mTokenGateway(address(gatewayProxy));
         vm.label(address(mWethExtension), "mWethExtension");
 
-        rebalancer = new Rebalancer(address(roles), address(this), address(this));
+        rebalancer = new Rebalancer(address(roles), address(this), address(this), "");
         vm.label(address(rebalancer), "Rebalancer");
         roles.allowFor(address(rebalancer), roles.REBALANCER(), true);
 

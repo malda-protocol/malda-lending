@@ -23,7 +23,7 @@ jobs:
         run: forge install
 
       - name: Clean old documentation
-        run: rm -rf docs
+        run: rm -rf docs && mkdir -p docs
 
       - name: Generate Documentation
         run: forge doc

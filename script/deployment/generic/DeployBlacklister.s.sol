@@ -17,10 +17,6 @@ import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transpa
  *     --broadcast
  */
 contract DeployBlacklister is Script {
-    //function run() public returns (address) {
-    //    Deployer deployer = Deployer(payable(0x8F91616F05b3D74A8Ae56e43C585F0972Ccb91Df));
-    //    address roles = 0xB97bB519743A5096505E4d3e6507a189Fa2B39f9;
-    //    address owner = 0xB819A871d20913839c37f316Dc914b0570bfc0eE;
     function run(Deployer deployer, address roles, address owner) public returns (address) {
         uint256 key = vm.envUint("PRIVATE_KEY");
 
