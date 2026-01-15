@@ -11,6 +11,9 @@
 - Provide internal documentation explaining the rationale for the change.
 - If integrating an external dependency, please provide a link to the dependency and a brief description of the assumptions made (e.g. `this param is set to X because Y`)
 
+## Critical Parts
+- What part of the code do you want most reviewed?
+
 ## How Has This Been Tested?
 
 - Please describe the tests that you ran to verify your changes.
@@ -28,4 +31,4 @@
 
 ## Additional Context
 
-- Add any other context about the pull request here (external docs, internal docs, etc.)
+- Add any other context about the pull request here (external docs, internal docs, previous audits, etc.)
