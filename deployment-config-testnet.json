@@ -38,7 +38,7 @@
           "name": "mUSDCMock",
           "supplyCap": 0,
           "symbol": "mUSDCMock",
-          "underlying": "0xc3F07Cf3FeeB6c133D29eBf04fB9B487f8F6744A"
+          "underlying": "0x9cA357A38825C6141dD81a8F26605f04d4A034ef"
         },
         {
           "borrowCap": 0,
@@ -56,7 +56,7 @@
           "name": "mwstETHMock",
           "supplyCap": 0,
           "symbol": "mwstETHMock",
-          "underlying": "0x3BC16464387d10d0f789C837e30F9e5f0793e9D2"
+          "underlying": "0x606d942DD94f31904Cb6882704b9f098FF0c908B"
         }
       ],
       "roles": [
@@ -132,7 +132,7 @@
           "name": "mUSDCMock",
           "supplyCap": 0,
           "symbol": "mUSDCMock",
-          "underlying": "0xc3F07Cf3FeeB6c133D29eBf04fB9B487f8F6744A"
+          "underlying": "0x9cA357A38825C6141dD81a8F26605f04d4A034ef"
         },
         {
           "borrowCap": 0,
@@ -150,7 +150,7 @@
           "name": "mwstETHMock",
           "supplyCap": 0,
           "symbol": "mwstETHMock",
-          "underlying": "0x3BC16464387d10d0f789C837e30F9e5f0793e9D2"
+          "underlying": "0x606d942DD94f31904Cb6882704b9f098FF0c908B"
         }
       ],
       "roles": [
@@ -225,7 +225,7 @@
           "name": "mUSDCMock",
           "supplyCap": 0,
           "symbol": "mUSDCMock",
-          "underlying": "0xc3F07Cf3FeeB6c133D29eBf04fB9B487f8F6744A"
+          "underlying": "0x9cA357A38825C6141dD81a8F26605f04d4A034ef"
         },
         {
           "borrowCap": 0,
@@ -243,7 +243,7 @@
           "name": "mwstETHMock",
           "supplyCap": 1000000000000000000000,
           "symbol": "mwstETHMock",
-          "underlying": "0x3BC16464387d10d0f789C837e30F9e5f0793e9D2"
+          "underlying": "0x606d942DD94f31904Cb6882704b9f098FF0c908B"
         }
       ],
       "roles": [
