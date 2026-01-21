@@ -59,12 +59,14 @@ echo ""
 # Run with progress bars in terminal, clean log to file
 if command -v unbuffer &> /dev/null; then
     unbuffer forge script script/deployment/testnet/DeployMockTokens.s.sol:DeployMockTokens \
-        --rpc-url linea_sepolia \
+        --slow \
+        --multi \
         --verify \
         --broadcast 2>&1 | tee /dev/tty | sed 's/\x1b\[[0-9;]*m//g; /^## Setting up/,/^ONCHAIN EXECUTION COMPLETE/d' > "$STEP1_LOG"
 else
     forge script script/deployment/testnet/DeployMockTokens.s.sol:DeployMockTokens \
-        --rpc-url linea_sepolia \
+        --slow \
+        --multi \
         --verify \
         --broadcast 2>&1 | tee "$STEP1_LOG"
 fi
