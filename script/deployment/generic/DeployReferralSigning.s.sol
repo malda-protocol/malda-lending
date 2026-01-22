@@ -7,7 +7,7 @@ import {Deployer} from "src/utils/Deployer.sol";
 
 contract DeployReferralSigning is Script {
     function run() public returns (address) {
-        Deployer _deployer = Deployer(payable(0xc781BaD08968E324D1B91Be3cca30fAd86E7BF98));
+        Deployer _deployer = Deployer(payable(0x8F91616F05b3D74A8Ae56e43C585F0972Ccb91Df));
         bytes32 salt = getSalt("ReferralSigningV1.0.0");
 
         console.log("Deploying ReferralSigning");
