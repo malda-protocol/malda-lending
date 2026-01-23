@@ -70,7 +70,8 @@ struct OracleFeedV4 {
     string symbol;
     address apiV3Feed;
     address chainlinkFeed;
-    string toSymbol;
+    string api3ToSymbol;
+    string chainlinkToSymbol;
     uint8 underlyingDecimals;
 }
 

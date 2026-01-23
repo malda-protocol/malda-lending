@@ -23,7 +23,8 @@ contract MixedPriceOracleV4 is IOracleOperator {
     struct PriceConfig {
         address api3Feed;
         address chainlinkFeed;
-        string toSymbol;
+        string api3ToSymbol;
+        string chainlinkToSymbol;
         uint256 underlyingDecimals;
     }
 
@@ -269,8 +270,8 @@ contract MixedPriceOracleV4 is IOracleOperator {
         price = uint256(api3Price) * 10 ** (18 - decimalsApi3Feed);
         lastUpdate = api3UpdatedAt;
 
-        if (keccak256(abi.encodePacked(config.toSymbol)) != keccak256(abi.encodePacked("USD"))) {
-            (uint256 api3CrtPrice, uint256 parentUpdate) = _getApi3Price(config.toSymbol);
+        if (keccak256(abi.encodePacked(config.api3ToSymbol)) != keccak256(abi.encodePacked("USD"))) {
+            (uint256 api3CrtPrice, uint256 parentUpdate) = _getApi3Price(config.api3ToSymbol);
             price = (price * api3CrtPrice) / 1e18;
 
             if (parentUpdate < lastUpdate) {
@@ -292,8 +293,8 @@ contract MixedPriceOracleV4 is IOracleOperator {
         price = uint256(chainlinkPrice) * 10 ** (18 - decimalsChainlinkFeed);
         lastUpdate = chainlinkUpdatedAt;
 
-        if (keccak256(abi.encodePacked(config.toSymbol)) != keccak256(abi.encodePacked("USD"))) {
-            (uint256 chainlinkCrtPrice, uint256 parentUpdate) = _getChainlinkPrice(config.toSymbol);
+        if (keccak256(abi.encodePacked(config.chainlinkToSymbol)) != keccak256(abi.encodePacked("USD"))) {
+            (uint256 chainlinkCrtPrice, uint256 parentUpdate) = _getChainlinkPrice(config.chainlinkToSymbol);
             price = (price * chainlinkCrtPrice) / 1e18;
 
             if (parentUpdate < lastUpdate) {

@@ -77,7 +77,11 @@ contract MixedPriceOracleV4Test is Test {
 
         MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](1);
         configs[0] = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(api3), chainlinkFeed: address(chainlink), toSymbol: "USD", underlyingDecimals: 18
+            api3Feed: address(api3),
+            chainlinkFeed: address(chainlink),
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
+            underlyingDecimals: 18
         });
 
         oracle = new MixedPriceOracleV4(symbols, configs, address(roles), 1 days);
@@ -99,7 +103,11 @@ contract MixedPriceOracleV4Test is Test {
 
         MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](1);
         configs[0] = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(api3), chainlinkFeed: address(chainlink), toSymbol: "USD", underlyingDecimals: 18
+            api3Feed: address(api3),
+            chainlinkFeed: address(chainlink),
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
+            underlyingDecimals: 18
         });
 
         MixedPriceOracleV4 newOracle = new MixedPriceOracleV4(symbols, configs, address(newRoles), 1 days);
@@ -114,7 +122,11 @@ contract MixedPriceOracleV4Test is Test {
 
         MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](1);
         configs[0] = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(api3), chainlinkFeed: address(chainlink), toSymbol: "USD", underlyingDecimals: 18
+            api3Feed: address(api3),
+            chainlinkFeed: address(chainlink),
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
+            underlyingDecimals: 18
         });
 
         vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_AddressNotValid.selector);
@@ -145,14 +157,22 @@ contract MixedPriceOracleV4Test is Test {
 
     function testSetConfig() public {
         MixedPriceOracleV4.PriceConfig memory cfg = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(api3), chainlinkFeed: address(chainlink), toSymbol: "USD", underlyingDecimals: 18
+            api3Feed: address(api3),
+            chainlinkFeed: address(chainlink),
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
+            underlyingDecimals: 18
         });
         oracle.setConfig("MOCK", cfg);
     }
 
     function testSetConfig_revertWhenApi3FeedZero() public {
         MixedPriceOracleV4.PriceConfig memory cfg = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(0), chainlinkFeed: address(chainlink), toSymbol: "USD", underlyingDecimals: 18
+            api3Feed: address(0),
+            chainlinkFeed: address(chainlink),
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
+            underlyingDecimals: 18
         });
 
         vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_InvalidConfig.selector);
@@ -161,17 +181,25 @@ contract MixedPriceOracleV4Test is Test {
 
     function testSetConfig_allowsChainlinkFeedZero() public {
         MixedPriceOracleV4.PriceConfig memory cfg = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(api3), chainlinkFeed: address(0), toSymbol: "USD", underlyingDecimals: 18
+            api3Feed: address(api3),
+            chainlinkFeed: address(0),
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
+            underlyingDecimals: 18
         });
 
         oracle.setConfig("MOCK", cfg);
-        (, address chainlinkFeed,,) = oracle.configs("MOCK");
+        (, address chainlinkFeed,,,) = oracle.configs("MOCK");
         assertEq(chainlinkFeed, address(0));
     }
 
     function testGetPrice_usesApi3WhenChainlinkMissing() public {
         MixedPriceOracleV4.PriceConfig memory cfg = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(api3), chainlinkFeed: address(0), toSymbol: "USD", underlyingDecimals: 18
+            api3Feed: address(api3),
+            chainlinkFeed: address(0),
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
+            underlyingDecimals: 18
         });
         oracle.setConfig("MOCK", cfg);
 
@@ -184,7 +212,11 @@ contract MixedPriceOracleV4Test is Test {
 
     function testGetPrice_revertWhenApi3StaleAndChainlinkMissing() public {
         MixedPriceOracleV4.PriceConfig memory cfg = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(api3), chainlinkFeed: address(0), toSymbol: "USD", underlyingDecimals: 18
+            api3Feed: address(api3),
+            chainlinkFeed: address(0),
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
+            underlyingDecimals: 18
         });
         oracle.setConfig("MOCK", cfg);
 
@@ -266,10 +298,18 @@ contract MixedPriceOracleV4Test is Test {
 
         MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](2);
         configs[0] = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(api3), chainlinkFeed: address(chainlink), toSymbol: "USD", underlyingDecimals: 18
+            api3Feed: address(api3),
+            chainlinkFeed: address(chainlink),
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
+            underlyingDecimals: 18
         });
         configs[1] = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(api3), chainlinkFeed: address(chainlink), toSymbol: "ETH", underlyingDecimals: 18
+            api3Feed: address(api3),
+            chainlinkFeed: address(chainlink),
+            api3ToSymbol: "ETH",
+            chainlinkToSymbol: "ETH",
+            underlyingDecimals: 18
         });
 
         oracle = new MixedPriceOracleV4(symbols, configs, address(roles), 1 days);
@@ -310,12 +350,17 @@ contract MixedPriceOracleV4Test is Test {
 
         MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](2);
         configs[0] = MixedPriceOracleV4.PriceConfig({
-            api3Feed: address(api3Eth), chainlinkFeed: address(chainlinkEth), toSymbol: "USD", underlyingDecimals: 18
+            api3Feed: address(api3Eth),
+            chainlinkFeed: address(chainlinkEth),
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
+            underlyingDecimals: 18
         });
         configs[1] = MixedPriceOracleV4.PriceConfig({
             api3Feed: address(api3WeEth),
             chainlinkFeed: address(chainlinkWeEth),
-            toSymbol: "ETH",
+            api3ToSymbol: "ETH",
+            chainlinkToSymbol: "ETH",
             underlyingDecimals: 18
         });
 
