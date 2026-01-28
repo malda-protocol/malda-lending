@@ -69,8 +69,9 @@ struct OracleFeed {
 struct OracleFeedV4 {
     string symbol;
     address apiV3Feed;
-    address eOracleFeed;
-    string toSymbol;
+    address chainlinkFeed;
+    string api3ToSymbol;
+    string chainlinkToSymbol;
     uint8 underlyingDecimals;
 }
 
