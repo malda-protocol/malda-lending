@@ -34,6 +34,8 @@
 
 [profile.testnet]
   evm_version = 'paris' # Because Linea Sepolia is on Paris
+  optimizer = true
+  optimizer_runs = 180
 
 [profile.ci]
   fuzz = { runs = 10_000 }

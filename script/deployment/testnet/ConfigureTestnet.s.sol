@@ -86,17 +86,17 @@ contract ConfigureTestnet is DeployBaseRelease {
         );
 
         // SET before running it!
-        deployer = Deployer(payable(0x6F6cA5F50B6b99a7298B4b7fE7E4Daa1f90552a2));
-        rolesContract = 0xF7731a207D6F1423231Fe7fF80DaF4D9fa95a879;
-        zkVerifier = 0xF2F6D7F7679eEB50284633B0851D7B1Af9E33ce9;
-        operator = 0x3fbe703927ADDF1d950edC03D89D8886645532Af;
-        oracle = 0xd9BD603C04371F2C8734e728E76AC88fAb2d45a0;
-        pauser = 0x26D4830769b00774d033aAb92e4Ba07Ee8260a7e;
+        deployer = Deployer(payable(0x0db9f8b32869373251C71108c95710A5d75f0647));
+        rolesContract = 0xe4Dc9ee18f45623145A5abEbD357C927C94b4faB;
+        zkVerifier = 0xfEe1EF4e641C277E049AC096Ac4c6e670d8004DA;
+        operator = 0xD202Fb929baB2b009DAd3Df9E73166fb6140B5d6;
+        oracle = 0xeaeb3A4bbe667b48A86Ec24fD22b1D3B2d489853;
+        pauser = 0xa8F8256F1D0196b04Ca4E71D1E05a37F38b6A5Bc;
 
         // Available after `DeployMarketsTestnet`. MUST be in the same order as in "deployment-config-testnet.json"
         // There are only 2 markets so not a big overhead. The discussion is different for release scripts.
-        marketAddresses.push(address(0x0A0873996508D0F4C5AD44A8Ce398A69A6bb8648));
-        marketAddresses.push(address(0x8A2db4C15Ea83984f03567f5AeC89C46883f6D19));
+        marketAddresses.push(address(0x58abB59Cb39Cd2365353F0978d0269e31Cee9A3b));
+        marketAddresses.push(address(0xCD62E4626636b0fB03152BcB6518267502d05Cf4));
 
         reserveFactors.push(uint256(100000000000000000));
         reserveFactors.push(uint256(50000000000000000));

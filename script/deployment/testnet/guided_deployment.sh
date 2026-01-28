@@ -59,11 +59,15 @@ echo ""
 # Run with progress bars in terminal, clean log to file
 if command -v unbuffer &> /dev/null; then
     unbuffer forge script script/deployment/testnet/DeployMockTokens.s.sol:DeployMockTokens \
-        --rpc-url linea_sepolia \
+        --slow \
+        --multi \
+        --verify \
         --broadcast 2>&1 | tee /dev/tty | sed 's/\x1b\[[0-9;]*m//g; /^## Setting up/,/^ONCHAIN EXECUTION COMPLETE/d' > "$STEP1_LOG"
 else
     forge script script/deployment/testnet/DeployMockTokens.s.sol:DeployMockTokens \
-        --rpc-url linea_sepolia \
+        --slow \
+        --multi \
+        --verify \
         --broadcast 2>&1 | tee "$STEP1_LOG"
 fi
 
@@ -97,11 +101,13 @@ if command -v unbuffer &> /dev/null; then
     unbuffer forge script script/deployment/testnet/DeployCoreTestnet.s.sol:DeployCoreTestnet \
         --slow \
         --multi \
+        --verify \
         --broadcast 2>&1 | tee /dev/tty | sed 's/\x1b\[[0-9;]*m//g; /^## Setting up/,/^ONCHAIN EXECUTION COMPLETE/d' > "$STEP2_LOG"
 else
     forge script script/deployment/testnet/DeployCoreTestnet.s.sol:DeployCoreTestnet \
         --slow \
         --multi \
+        --verify \
         --broadcast 2>&1 | tee "$STEP2_LOG"
 fi
 
@@ -139,11 +145,13 @@ if command -v unbuffer &> /dev/null; then
     unbuffer forge script script/deployment/testnet/DeployMarketsTestnet.s.sol:DeployMarketsTestnet \
         --slow \
         --multi \
+        --verify \
         --broadcast 2>&1 | tee /dev/tty | sed 's/\x1b\[[0-9;]*m//g; /^## Setting up/,/^ONCHAIN EXECUTION COMPLETE/d' > "$STEP3_LOG"
 else
     forge script script/deployment/testnet/DeployMarketsTestnet.s.sol:DeployMarketsTestnet \
         --slow \
         --multi \
+        --verify \
         --broadcast 2>&1 | tee "$STEP3_LOG"
 fi
 
@@ -206,12 +214,10 @@ echo "   - $STEP3_LOG"
 echo "   - $STEP4_LOG"
 echo ""
 echo "📋 Next Steps:"
-echo "   1. Verify all contracts on block explorers"
-echo "   2. Update malda-config repository with deployed addresses"
-echo "   3. Test basic functionality:"
+echo "   1. Update malda-config repository with deployed addresses"
+echo "   2. Test basic functionality:"
 echo "      - Mint mock tokens"
 echo "      - Supply to markets"
 echo "      - Borrow from markets"
-echo "   4. Document all deployed addresses"
+echo "   3. Document all deployed addresses"
 echo "=================================================="
-
