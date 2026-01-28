@@ -20,13 +20,19 @@ abstract contract Base_Integration_Test is Events, Helpers, Types {
 
     // ----------- FORKS ------------
     uint256 public lineaFork;
+    uint256 public ethFork;
+    uint256 public baseFork;
     string public lineaUrl = vm.envString("LINEA_RPC_URL");
+    string public ethUrl = vm.envString("MAINNET_RPC_URL");
+    string public baseUrl = vm.envString("BASE_RPC_URL");
 
     // ----------- MALDA ------------
     Roles public roles;
 
     function setUp() public virtual {
         lineaFork = vm.createSelectFork(lineaUrl);
+        ethFork = vm.createSelectFork(ethUrl);
+        baseFork = vm.createSelectFork(baseUrl);
 
         roles = new Roles(address(this));
         vm.label(address(roles), "Roles");

@@ -22,8 +22,9 @@ contract MixedPriceOracleV4 is IOracleOperator {
     // ----------- STORAGE ------------
     struct PriceConfig {
         address api3Feed;
-        address eOracleFeed;
-        string toSymbol;
+        address chainlinkFeed;
+        string api3ToSymbol;
+        string chainlinkToSymbol;
         uint256 underlyingDecimals;
     }
 
@@ -80,8 +81,8 @@ contract MixedPriceOracleV4 is IOracleOperator {
     /// @notice Error thrown when API3 feed price is stale
     error MixedPriceOracle_ApiV3StalePrice();
 
-    /// @notice Error thrown when eOracle feed price is stale
-    error MixedPriceOracle_eOracleStalePrice();
+    /// @notice Error thrown when secondary feed price is stale
+    error MixedPriceOracle_ChainlinkStalePrice();
 
     /// @notice Error thrown when price returned is invalid
     error MixedPriceOracle_InvalidPrice();
@@ -147,8 +148,8 @@ contract MixedPriceOracleV4 is IOracleOperator {
     /// @param symbol Symbol to configure
     /// @param config Price configuration
     function setConfig(string calldata symbol, PriceConfig calldata config) external onlyRole(ROLES.GUARDIAN_ORACLE()) {
-        // Requirements: the api3 feed and eOracle feed are not zero
-        require(config.api3Feed != address(0) && config.eOracleFeed != address(0), MixedPriceOracle_InvalidConfig());
+        // Requirements: the primary feed is set (secondary is optional e.g. for rsETH/ETH)
+        require(config.api3Feed != address(0), MixedPriceOracle_InvalidConfig());
 
         // Effects: set the price config
         configs[symbol] = config;
@@ -219,16 +220,11 @@ contract MixedPriceOracleV4 is IOracleOperator {
     /// @return USD price with 18 decimals
     function _getPriceUSD(string memory symbol) internal view returns (uint256) {
         PriceConfig memory config = configs[symbol];
-        // Requirements: the api3 feed and eOracle feed are not zero
-        require(config.api3Feed != address(0) && config.eOracleFeed != address(0), MixedPriceOracle_MissingFeed());
+        // Requirements: the primary feed is set
+        require(config.api3Feed != address(0), MixedPriceOracle_MissingFeed());
 
-        // Interactions: compute full USD prices from both oracle sources
+        // Interactions: compute USD price from primary feed
         (uint256 api3Usd, uint256 api3LastUpdate) = _getApi3Price(symbol);
-        (uint256 eOracleUsd, uint256 eOracleLastUpdate) = _geteOraclePrice(symbol);
-
-        // Calculate the price delta
-        uint256 delta = _absDiff(int256(api3Usd), int256(eOracleUsd));
-        uint256 deltaBps = (delta * PRICE_DELTA_EXP) / eOracleUsd;
 
         uint256 deltaSymbol = deltaPerSymbol[symbol];
         if (deltaSymbol == 0) deltaSymbol = maxPriceDelta;
@@ -237,11 +233,24 @@ contract MixedPriceOracleV4 is IOracleOperator {
         uint256 _staleness = _getStaleness(symbol);
         bool api3Fresh = _isFresh(api3LastUpdate, _staleness);
 
-        // If API3 is stale or delta is greater than the symbol max price delta, return the eOracle price
+        // If no secondary feed is configured, rely solely on API3
+        if (config.chainlinkFeed == address(0)) {
+            require(api3Fresh, MixedPriceOracle_ApiV3StalePrice());
+            return api3Usd;
+        }
+
+        // Interactions: compute USD price from secondary feed
+        (uint256 chainlinkUsd, uint256 chainlinkLastUpdate) = _getChainlinkPrice(symbol);
+
+        // Calculate the price delta
+        uint256 delta = _absDiff(int256(api3Usd), int256(chainlinkUsd));
+        uint256 deltaBps = (delta * PRICE_DELTA_EXP) / chainlinkUsd;
+
+        // If API3 is stale or delta is greater than the symbol max price delta, return the secondary price
         if (!api3Fresh || deltaBps > deltaSymbol) {
-            // Requirements: the eOracle feed is not stale
-            require(_isFresh(eOracleLastUpdate, _staleness), MixedPriceOracle_eOracleStalePrice());
-            return eOracleUsd;
+            // Requirements: the secondary feed is not stale
+            require(_isFresh(chainlinkLastUpdate, _staleness), MixedPriceOracle_ChainlinkStalePrice());
+            return chainlinkUsd;
         }
 
         // Requirements: the API3 feed is not stale
@@ -261,8 +270,8 @@ contract MixedPriceOracleV4 is IOracleOperator {
         price = uint256(api3Price) * 10 ** (18 - decimalsApi3Feed);
         lastUpdate = api3UpdatedAt;
 
-        if (keccak256(abi.encodePacked(config.toSymbol)) != keccak256(abi.encodePacked("USD"))) {
-            (uint256 api3CrtPrice, uint256 parentUpdate) = _getApi3Price(config.toSymbol);
+        if (keccak256(abi.encodePacked(config.api3ToSymbol)) != keccak256(abi.encodePacked("USD"))) {
+            (uint256 api3CrtPrice, uint256 parentUpdate) = _getApi3Price(config.api3ToSymbol);
             price = (price * api3CrtPrice) / 1e18;
 
             if (parentUpdate < lastUpdate) {
@@ -271,21 +280,22 @@ contract MixedPriceOracleV4 is IOracleOperator {
         }
     }
 
-    /// @notice Retrieves price and last update from eOracle feed
+    /// @notice Retrieves price and last update from secondary feed
     /// @param symbol Token symbol
     /// @return price Price scaled to 18 decimals
     /// @return lastUpdate Timestamp of last update
-    function _geteOraclePrice(string memory symbol) internal view returns (uint256 price, uint256 lastUpdate) {
+    function _getChainlinkPrice(string memory symbol) internal view returns (uint256 price, uint256 lastUpdate) {
         PriceConfig memory config = configs[symbol];
-        (, int256 eOraclePrice,, uint256 eOracleUpdatedAt,) = IDefaultAdapter(config.eOracleFeed).latestRoundData();
+        (, int256 chainlinkPrice,, uint256 chainlinkUpdatedAt,) =
+            IDefaultAdapter(config.chainlinkFeed).latestRoundData();
 
-        uint256 decimalseOracleFeed = IDefaultAdapter(config.eOracleFeed).decimals();
-        price = uint256(eOraclePrice) * 10 ** (18 - decimalseOracleFeed);
-        lastUpdate = eOracleUpdatedAt;
+        uint256 decimalsChainlinkFeed = IDefaultAdapter(config.chainlinkFeed).decimals();
+        price = uint256(chainlinkPrice) * 10 ** (18 - decimalsChainlinkFeed);
+        lastUpdate = chainlinkUpdatedAt;
 
-        if (keccak256(abi.encodePacked(config.toSymbol)) != keccak256(abi.encodePacked("USD"))) {
-            (uint256 eOracleCrtPrice, uint256 parentUpdate) = _geteOraclePrice(config.toSymbol);
-            price = (price * eOracleCrtPrice) / 1e18;
+        if (keccak256(abi.encodePacked(config.chainlinkToSymbol)) != keccak256(abi.encodePacked("USD"))) {
+            (uint256 chainlinkCrtPrice, uint256 parentUpdate) = _getChainlinkPrice(config.chainlinkToSymbol);
+            price = (price * chainlinkCrtPrice) / 1e18;
 
             if (parentUpdate < lastUpdate) {
                 lastUpdate = parentUpdate;

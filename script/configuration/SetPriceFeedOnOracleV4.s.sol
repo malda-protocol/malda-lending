@@ -19,7 +19,11 @@ contract SetPriceFeedOnOracleV4 is Script {
     function runTestnet(address oracle, string memory symbol, address priceFeed, uint8 underlyingDecimals) public {
         uint256 key = vm.envUint("PRIVATE_KEY");
         MixedPriceOracleV4.PriceConfig memory config = MixedPriceOracleV4.PriceConfig({
-            api3Feed: priceFeed, eOracleFeed: priceFeed, toSymbol: "USD", underlyingDecimals: underlyingDecimals
+            api3Feed: priceFeed,
+            chainlinkFeed: priceFeed,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
+            underlyingDecimals: underlyingDecimals
         });
 
         console.log("Setting oracle feed for %s", symbol);
@@ -32,95 +36,141 @@ contract SetPriceFeedOnOracleV4 is Script {
     function run(address oracle) public {
         uint256 key = vm.envUint("PRIVATE_KEY");
 
-        OracleFeedV4[] memory feeds = new OracleFeedV4[](12);
-        // usdc
+        OracleFeedV4[] memory feeds = new OracleFeedV4[](16);
+        // usdc - both feeds return USD
         feeds[0] = OracleFeedV4({
             symbol: "mUSDC",
             apiV3Feed: 0x874b4573B30629F696653EE101528C7426FFFb6b,
-            eOracleFeed: 0x6E4cda6DfFAB6b72682Bf1693c32ed75074905D9,
-            toSymbol: "USD",
+            chainlinkFeed: 0xAADAa473C1bDF7317ec07c915680Af29DeBfdCb5,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
             underlyingDecimals: 6
         });
         feeds[1] = OracleFeedV4({
             symbol: "USDC",
             apiV3Feed: 0x874b4573B30629F696653EE101528C7426FFFb6b,
-            eOracleFeed: 0x6E4cda6DfFAB6b72682Bf1693c32ed75074905D9,
-            toSymbol: "USD",
+            chainlinkFeed: 0xAADAa473C1bDF7317ec07c915680Af29DeBfdCb5,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
             underlyingDecimals: 6
         });
-        //usdt
+        // usdt - both feeds return USD
         feeds[2] = OracleFeedV4({
             symbol: "mUSDT",
             apiV3Feed: 0x0c547EC8B69F50d023D52391b8cB82020c46b848,
-            eOracleFeed: 0x71BEf769d87249D61Edd31941A6BB7257d4bAE5F,
-            toSymbol: "USD",
+            chainlinkFeed: 0xefCA2bbe0EdD0E22b2e0d2F8248E99F4bEf4A7dB,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
             underlyingDecimals: 6
         });
         feeds[3] = OracleFeedV4({
             symbol: "USDT",
             apiV3Feed: 0x0c547EC8B69F50d023D52391b8cB82020c46b848,
-            eOracleFeed: 0x71BEf769d87249D61Edd31941A6BB7257d4bAE5F,
-            toSymbol: "USD",
+            chainlinkFeed: 0xefCA2bbe0EdD0E22b2e0d2F8248E99F4bEf4A7dB,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
             underlyingDecimals: 6
         });
-        //WBTC
+        // WBTC - both feeds return USD
         feeds[4] = OracleFeedV4({
             symbol: "mWBTC",
             apiV3Feed: 0xa34Aa6654A7E45fB000F130453Ba967Fd57851C1,
-            eOracleFeed: 0xdEd5C17969220990de62cd1894BcDf49dC28583E,
-            toSymbol: "USD",
+            chainlinkFeed: 0x7A99092816C8BD5ec8ba229e3a6E6Da1E628E1F9,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
             underlyingDecimals: 8
         });
         feeds[5] = OracleFeedV4({
             symbol: "WBTC",
             apiV3Feed: 0xa34Aa6654A7E45fB000F130453Ba967Fd57851C1,
-            eOracleFeed: 0xdEd5C17969220990de62cd1894BcDf49dC28583E,
-            toSymbol: "USD",
+            chainlinkFeed: 0x7A99092816C8BD5ec8ba229e3a6E6Da1E628E1F9,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
             underlyingDecimals: 8
         });
-        //WETH
+        // WETH - both feeds return USD
         feeds[6] = OracleFeedV4({
             symbol: "mWETH",
             apiV3Feed: 0x2284eC83978Fe21A0E667298d9110bbeaED5E9B4,
-            eOracleFeed: 0x58B375D4A5ddAa7df7C54FE5A6A4B7024747fBE3,
-            toSymbol: "USD",
+            chainlinkFeed: 0x3c6Cd9Cc7c7a4c2Cf5a82734CD249D7D593354dA,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
             underlyingDecimals: 18
         });
         feeds[7] = OracleFeedV4({
             symbol: "WETH",
             apiV3Feed: 0x2284eC83978Fe21A0E667298d9110bbeaED5E9B4,
-            eOracleFeed: 0x58B375D4A5ddAa7df7C54FE5A6A4B7024747fBE3,
-            toSymbol: "USD",
+            chainlinkFeed: 0x3c6Cd9Cc7c7a4c2Cf5a82734CD249D7D593354dA,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
             underlyingDecimals: 18
         });
-        //ezETH
+        // ezETH - API3 returns USD, Chainlink returns ETH exchange rate
         feeds[8] = OracleFeedV4({
             symbol: "mezETH",
             apiV3Feed: 0x01600fE800B9a1c3638F24c1408F2d177133074C,
-            eOracleFeed: 0x1C19C36926D353fD5889F0FD9e2a72570196B4EC,
-            toSymbol: "USD",
+            chainlinkFeed: 0xb71F79770BA599940F454c70e63d4DE0E8606731,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "WETH",
             underlyingDecimals: 18
         });
         feeds[9] = OracleFeedV4({
             symbol: "ezETH",
             apiV3Feed: 0x01600fE800B9a1c3638F24c1408F2d177133074C,
-            eOracleFeed: 0x1C19C36926D353fD5889F0FD9e2a72570196B4EC,
-            toSymbol: "USD",
+            chainlinkFeed: 0xb71F79770BA599940F454c70e63d4DE0E8606731,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "WETH",
             underlyingDecimals: 18
         });
-        //wstETH
+        // weETH - API3 returns USD, Chainlink returns ETH exchange rate
         feeds[10] = OracleFeedV4({
-            symbol: "mwstETH",
-            apiV3Feed: 0x043F8c576154E19E05cD53b21Baab86deC75c728,
-            eOracleFeed: 0xB37568E6d24715E0C97e345C328f208dDbF8A7A9,
-            toSymbol: "USD",
+            symbol: "mweETH",
+            apiV3Feed: 0x6Bd45e0f0adaAE6481f2B4F3b867911BF5f8321b,
+            chainlinkFeed: 0x1FBc7d24654b10c71fd74d3730d9Df17836181EF,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "WETH",
             underlyingDecimals: 18
         });
         feeds[11] = OracleFeedV4({
+            symbol: "weETH",
+            apiV3Feed: 0x6Bd45e0f0adaAE6481f2B4F3b867911BF5f8321b,
+            chainlinkFeed: 0x1FBc7d24654b10c71fd74d3730d9Df17836181EF,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "WETH",
+            underlyingDecimals: 18
+        });
+        // wrsETH - API3 returns USD, no Chainlink feed
+        feeds[12] = OracleFeedV4({
+            symbol: "mwrsETH",
+            apiV3Feed: 0xB7b25D8e8490a138c854426e7000C7E114C2DebF,
+            chainlinkFeed: address(0),
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
+            underlyingDecimals: 18
+        });
+        feeds[13] = OracleFeedV4({
+            symbol: "wrsETH",
+            apiV3Feed: 0xB7b25D8e8490a138c854426e7000C7E114C2DebF,
+            chainlinkFeed: address(0),
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
+            underlyingDecimals: 18
+        });
+        // wstETH - both feeds return USD
+        feeds[14] = OracleFeedV4({
+            symbol: "mwstETH",
+            apiV3Feed: 0x043F8c576154E19E05cD53b21Baab86deC75c728,
+            chainlinkFeed: 0x8eCE1AbA32716FdDe8D6482bfd88E9a0ee01f565,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
+            underlyingDecimals: 18
+        });
+        feeds[15] = OracleFeedV4({
             symbol: "wstETH",
             apiV3Feed: 0x043F8c576154E19E05cD53b21Baab86deC75c728,
-            eOracleFeed: 0xB37568E6d24715E0C97e345C328f208dDbF8A7A9,
-            toSymbol: "USD",
+            chainlinkFeed: 0x8eCE1AbA32716FdDe8D6482bfd88E9a0ee01f565,
+            api3ToSymbol: "USD",
+            chainlinkToSymbol: "USD",
             underlyingDecimals: 18
         });
 
@@ -131,8 +181,9 @@ contract SetPriceFeedOnOracleV4 is Script {
             symbols[i] = feeds[i].symbol;
             configs[i] = MixedPriceOracleV4.PriceConfig({
                 api3Feed: feeds[i].apiV3Feed,
-                eOracleFeed: feeds[i].eOracleFeed,
-                toSymbol: feeds[i].toSymbol,
+                chainlinkFeed: feeds[i].chainlinkFeed,
+                api3ToSymbol: feeds[i].api3ToSymbol,
+                chainlinkToSymbol: feeds[i].chainlinkToSymbol,
                 underlyingDecimals: feeds[i].underlyingDecimals
             });
             unchecked {

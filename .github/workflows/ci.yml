@@ -116,6 +116,7 @@ jobs:
     runs-on: "ubuntu-latest"
     env:
       LINEA_RPC_URL: ${{ secrets.LINEA_RPC_URL }}
+      MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
       BASE_RPC_URL: ${{ secrets.BASE_RPC_URL }}
     steps:
       - name: "Check out the repo"
