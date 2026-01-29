@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.28;
-
+pragma solidity 0.8.28;
 // contracts
 import {Operator} from "src/Operator/Operator.sol";
-import {mToken_Unit_Shared} from "test/unit/shared/mToken_Unit_Shared.t.sol";
+import {BaseMTokenTest} from "test/v2/utils/BaseMTokenTest.t.sol";
 import {OracleMockPerToken} from "test/mocks/OracleMockPerToken.sol";
 
 import {console} from "forge-std/console.sol";
 
-contract LiquidationTest is mToken_Unit_Shared {
-    address internal borrower = address(0x1);
-    address internal liquidator = address(0x2);
+contract LiquidationTest is BaseMTokenTest {
+    address internal borrower;
+    address internal liquidator;
 
     function setUp() public virtual override {
         super.setUp();
+        borrower = users.alice;
+        liquidator = users.bob;
 
         operator.supportMarket(address(mWeth));
         operator.supportMarket(address(mDaiHost));
@@ -37,7 +38,11 @@ contract LiquidationTest is mToken_Unit_Shared {
         operator.setLiquidationIncentive(address(mDaiHost), 1e17);
     }
 
-    function test_Liquidate_Simulation_WhenCollateralFactorDropped() public {
+    ////////////////////////////////////////////////////////////
+    //                        Liquidate                         //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitLiquidate_success_Simulation_WhenCollateralFactorDropped() public {
         _getTokens(weth, borrower, 1000 ether);
         vm.startPrank(borrower);
         weth.approve(address(mWeth), type(uint256).max);
@@ -78,7 +83,7 @@ contract LiquidationTest is mToken_Unit_Shared {
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
 
-    function test_Liquidate_Simulation_PriceDropHalf() public {
+    function test_unitLiquidate_success_Simulation_PriceDropHalf() public {
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
         newOracle.setUnderlyingPrice(address(mWeth), 1e18);
@@ -118,7 +123,7 @@ contract LiquidationTest is mToken_Unit_Shared {
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
 
-    function test_Liquidate_Simulation_PriceDropHalf_AndLog() public {
+    function test_unitLiquidate_success_Simulation_PriceDropHalf_AndLog() public {
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
         newOracle.setUnderlyingPrice(address(mWeth), 1e18);
@@ -190,7 +195,7 @@ contract LiquidationTest is mToken_Unit_Shared {
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
 
-    function test_Liquidate_Simulation_PriceDropNormal_AndLog() public {
+    function test_unitLiquidate_success_Simulation_PriceDropNormal_AndLog() public {
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
         newOracle.setUnderlyingPrice(address(mWeth), 1e18);

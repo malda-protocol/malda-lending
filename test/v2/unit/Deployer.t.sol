@@ -1,19 +1,11 @@
-// SPDX-License-Identifier: BSL-1.1
-pragma solidity =0.8.28;
-
-import {Test} from "forge-std/Test.sol";
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.28;
+import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 import {Deployer} from "src/utils/Deployer.sol";
+import {DeployableMock} from "test/v2/mocks/DeployerMocks.t.sol";
 
-contract DeployableMock {
-    uint256 public value;
-
-    constructor(uint256 _value) payable {
-        value = _value;
-    }
-}
-
-contract DeployerTest is Test {
+contract DeployerTest is BaseTest {
     event AdminSet(address indexed _admin);
     event PendingAdminSet(address indexed _admin);
     event AdminAccepted(address indexed _admin);
@@ -22,24 +14,33 @@ contract DeployerTest is Test {
     address internal admin;
     address internal other;
 
-    function setUp() public {
-        admin = vm.addr(31);
-        other = vm.addr(32);
+    function setUp() public override {
+        super.setUp();
+        admin = users.admin;
+        other = users.bob;
 
         deployer = new Deployer(admin);
         vm.deal(admin, 10 ether);
     }
 
-    function test_Constructor_SetsAdmin() public view {
+    ////////////////////////////////////////////////////////////
+    //                       Constructor                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitConstructor_success_SetsAdmin() public view {
         assertEq(deployer.admin(), admin);
     }
 
-    function test_Constructor_RevertWhenZeroAdmin() public {
+    function test_unitConstructor_revertsWith_RevertWhenZeroAdmin() public {
         vm.expectRevert(abi.encodeWithSelector(Deployer.NotAuthorized.selector, address(0), address(this)));
         new Deployer(address(0));
     }
 
-    function test_SetPendingAdmin_Fuzz(address newAdmin) public {
+    ////////////////////////////////////////////////////////////
+    //                     SetPendingAdmin                      //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitSetPendingAdmin_success_Fuzz(address newAdmin) public {
         vm.assume(newAdmin != address(0));
         vm.assume(newAdmin != admin);
 
@@ -51,19 +52,23 @@ contract DeployerTest is Test {
         assertEq(deployer.pendingAdmin(), newAdmin);
     }
 
-    function test_SetPendingAdmin_RevertWhenNotAdmin() public {
+    function test_unitSetPendingAdmin_revertsWith_RevertWhenNotAdmin() public {
         vm.expectRevert(abi.encodeWithSelector(Deployer.NotAuthorized.selector, admin, other));
         vm.prank(other);
         deployer.setPendingAdmin(other);
     }
 
-    function test_SetPendingAdmin_RevertWhenZeroAddress() public {
+    function test_unitSetPendingAdmin_revertsWith_RevertWhenZeroAddress() public {
         vm.prank(admin);
         vm.expectRevert(abi.encodeWithSelector(Deployer.NotAuthorized.selector, address(0), admin));
         deployer.setPendingAdmin(address(0));
     }
 
-    function test_AcceptAdmin_TransfersControl(address newAdmin) public {
+    ////////////////////////////////////////////////////////////
+    //                       AcceptAdmin                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitAcceptAdmin_success_TransfersControl(address newAdmin) public {
         vm.assume(newAdmin != address(0));
         vm.assume(newAdmin != admin);
 
@@ -83,7 +88,7 @@ contract DeployerTest is Test {
         deployer.setNewAdmin(admin);
     }
 
-    function test_AcceptAdmin_RevertWhenNotPending(address newAdmin) public {
+    function test_unitAcceptAdmin_revertsWith_RevertWhenNotPending(address newAdmin) public {
         vm.assume(newAdmin != address(0));
         vm.assume(newAdmin != admin);
         vm.assume(newAdmin != other);
@@ -96,7 +101,11 @@ contract DeployerTest is Test {
         deployer.acceptAdmin();
     }
 
-    function test_SetNewAdmin_Updates(address newAdmin) public {
+    ////////////////////////////////////////////////////////////
+    //                       SetNewAdmin                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitSetNewAdmin_success_Updates(address newAdmin) public {
         vm.assume(newAdmin != address(0));
         vm.assume(newAdmin != admin);
 
@@ -108,13 +117,17 @@ contract DeployerTest is Test {
         assertEq(deployer.admin(), newAdmin);
     }
 
-    function test_SetNewAdmin_RevertWhenZeroAddress() public {
+    function test_unitSetNewAdmin_revertsWith_RevertWhenZeroAddress() public {
         vm.prank(admin);
         vm.expectRevert(abi.encodeWithSelector(Deployer.NotAuthorized.selector, address(0), admin));
         deployer.setNewAdmin(address(0));
     }
 
-    function test_SaveEth_Withdraws(uint96 amountRaw) public {
+    ////////////////////////////////////////////////////////////
+    //                         SaveEth                          //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitSaveEth_success_Withdraws(uint96 amountRaw) public {
         uint256 amount = bound(amountRaw, 1, 5 ether);
 
         vm.deal(address(deployer), amount);
@@ -127,13 +140,17 @@ contract DeployerTest is Test {
         assertEq(admin.balance, adminBalanceBefore + amount);
     }
 
-    function test_SaveEth_RevertWhenNotAdmin() public {
+    function test_unitSaveEth_revertsWith_RevertWhenNotAdmin() public {
         vm.expectRevert(abi.encodeWithSelector(Deployer.NotAuthorized.selector, admin, other));
         vm.prank(other);
         deployer.saveEth();
     }
 
-    function test_CreateAndPrecompute_Fuzz(bytes32 salt, uint96 valueRaw, uint256 storedValueRaw) public {
+    ////////////////////////////////////////////////////////////
+    //                   CreateAndPrecompute                    //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitCreateAndPrecompute_success_Fuzz(bytes32 salt, uint96 valueRaw, uint256 storedValueRaw) public {
         uint256 value = bound(valueRaw, 0, 1 ether);
         uint256 storedValue = bound(storedValueRaw, 0, 1e18);
 
@@ -150,7 +167,11 @@ contract DeployerTest is Test {
         assertEq(deployed.balance, value);
     }
 
-    function test_Create_RevertWhenNotAdmin(bytes32 salt) public {
+    ////////////////////////////////////////////////////////////
+    //                          Create                          //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitCreate_revertsWith_RevertWhenNotAdmin(bytes32 salt) public {
         bytes memory code = type(DeployableMock).creationCode;
 
         vm.expectRevert(abi.encodeWithSelector(Deployer.NotAuthorized.selector, admin, other));

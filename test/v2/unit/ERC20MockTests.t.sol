@@ -1,22 +1,29 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity =0.8.28;
-
-import {Test} from "forge-std/Test.sol";
+pragma solidity 0.8.28;
+import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 import {ERC20Mock} from "test/mocks/ERC20Mock.sol";
 
-contract ERC20MockTest is Test {
+contract ERC20MockTest is BaseTest {
     ERC20Mock internal token;
-    address internal admin = address(0x1);
-    address internal user = address(0x2);
-    address internal pohVerify = address(0x3);
+    address internal admin;
+    address internal user;
+    address internal pohVerify;
     uint8 internal decimals = 18;
     uint256 internal mintLimit = 1000e18;
 
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
+        admin = users.admin;
+        user = users.alice;
+        pohVerify = users.bob;
         token = new ERC20Mock("TestToken", "TTK", decimals, admin, pohVerify, 1000e18);
     }
 
-    function testDeployment() public view {
+    ////////////////////////////////////////////////////////////
+    //                        Deployment                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitDeployment_success() public view {
         assertEq(token.name(), "TestToken");
         assertEq(token.symbol(), "TTK");
         assertEq(token.decimals(), decimals);
@@ -25,26 +32,34 @@ contract ERC20MockTest is Test {
         assertEq(token.mintLimit(), mintLimit);
     }
 
-    function testSetOnlyVerify_NotAdmin() public {
+    ////////////////////////////////////////////////////////////
+    //                      SetOnlyVerify                       //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitSetOnlyVerify_success_NotAdmin() public {
         vm.prank(user);
         vm.expectRevert(ERC20Mock.ERC20Mock_NotAuthorized.selector);
         token.setOnlyVerify(true);
     }
 
-    function testSetOnlyVerify_Admin() public {
+    function test_unitSetOnlyVerify_success_Admin() public {
         vm.prank(admin);
         token.setOnlyVerify(true);
         assertTrue(token.onlyVerified());
     }
 
-    function testMint_NotOnlyVerified() public {
+    ////////////////////////////////////////////////////////////
+    //                           Mint                           //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitMint_success_NotOnlyVerified() public {
         vm.prank(user);
         token.mint(user, mintLimit - 1);
         assertEq(token.balanceOf(user), mintLimit - 1);
         assertEq(token.minted(user), mintLimit - 1);
     }
 
-    function testMint_ExceedsLimit() public {
+    function test_unitMint_success_ExceedsLimit() public {
         vm.prank(user);
         token.mint(user, mintLimit - 1);
         vm.prank(user);
@@ -52,7 +67,11 @@ contract ERC20MockTest is Test {
         token.mint(user, 2);
     }
 
-    function testBurn_Success() public {
+    ////////////////////////////////////////////////////////////
+    //                           Burn                           //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitBurn_success_Success() public {
         vm.prank(user);
         token.mint(user, 500);
         vm.prank(user);
@@ -61,7 +80,7 @@ contract ERC20MockTest is Test {
         assertEq(token.minted(user), 500);
     }
 
-    function testBurn_ExceedsBalance() public {
+    function test_unitBurn_success_ExceedsBalance() public {
         vm.prank(user);
         token.mint(user, 500);
         vm.prank(user);
@@ -69,7 +88,11 @@ contract ERC20MockTest is Test {
         token.burn(600);
     }
 
-    function testBurnFrom_Admin() public {
+    ////////////////////////////////////////////////////////////
+    //                         BurnFrom                         //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitBurnFrom_success_Admin() public {
         vm.prank(user);
         token.mint(user, 500);
         vm.prank(admin);
@@ -78,7 +101,7 @@ contract ERC20MockTest is Test {
         assertEq(token.minted(user), 500);
     }
 
-    function testBurnFrom_NotAdmin() public {
+    function test_unitBurnFrom_success_NotAdmin() public {
         vm.prank(user);
         token.mint(user, 500);
         vm.prank(user);

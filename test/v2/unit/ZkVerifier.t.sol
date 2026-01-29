@@ -1,7 +1,6 @@
-// SPDX-License-Identifier: BSL-1.1
-pragma solidity =0.8.28;
-
-import {Test} from "forge-std/Test.sol";
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.28;
+import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
 
@@ -15,35 +14,45 @@ contract ZkVerifierHarness is ZkVerifier {
     }
 }
 
-contract ZkVerifierTest is Test {
-    address internal owner = address(0xABCD);
+contract ZkVerifierTest is BaseTest {
+    address internal owner;
     bytes32 internal imageId = bytes32(uint256(1));
 
     Risc0VerifierMock internal verifierMock;
     ZkVerifierHarness internal zkVerifier;
 
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
+        owner = users.admin;
         verifierMock = new Risc0VerifierMock();
         zkVerifier = new ZkVerifierHarness(owner, imageId, address(verifierMock));
     }
 
-    function test_constructor_RevertWhenVerifierZero() public {
+    ////////////////////////////////////////////////////////////
+    //                       Constructor                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitConstructor_revertsWith_RevertWhenVerifierZero() public {
         vm.expectRevert(ZkVerifier.ZkVerifier_InputNotValid.selector);
         new ZkVerifier(owner, imageId, address(0));
     }
 
-    function test_constructor_RevertWhenImageIdZero() public {
+    function test_unitConstructor_revertsWith_RevertWhenImageIdZero() public {
         vm.expectRevert(ZkVerifier.ZkVerifier_InputNotValid.selector);
         new ZkVerifier(owner, bytes32(0), address(verifierMock));
     }
 
-    function test_setVerifier_RevertsWhenZero() public {
+    ////////////////////////////////////////////////////////////
+    //                       SetVerifier                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitSetVerifier_revertsWith_RevertsWhenZero() public {
         vm.prank(owner);
         vm.expectRevert(ZkVerifier.ZkVerifier_InputNotValid.selector);
         zkVerifier.setVerifier(address(0));
     }
 
-    function test_setVerifier_UpdatesAndEmits() public {
+    function test_unitSetVerifier_success_UpdatesAndEmits() public {
         Risc0VerifierMock newVerifier = new Risc0VerifierMock();
 
         vm.prank(owner);
@@ -54,13 +63,17 @@ contract ZkVerifierTest is Test {
         assertEq(address(zkVerifier.verifier()), address(newVerifier));
     }
 
-    function test_setImageId_RevertsWhenZero() public {
+    ////////////////////////////////////////////////////////////
+    //                        SetImageId                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitSetImageId_revertsWith_RevertsWhenZero() public {
         vm.prank(owner);
         vm.expectRevert(ZkVerifier.ZkVerifier_ImageNotValid.selector);
         zkVerifier.setImageId(bytes32(0));
     }
 
-    function test_setImageId_UpdatesAndEmits() public {
+    function test_unitSetImageId_success_UpdatesAndEmits() public {
         bytes32 newImageId = bytes32(uint256(2));
 
         vm.prank(owner);
@@ -71,7 +84,13 @@ contract ZkVerifierTest is Test {
         assertEq(zkVerifier.imageId(), newImageId);
     }
 
-    function test_verifyInput_RevertWhenVerifierNotSet(bytes memory journalEntry, bytes memory seal) public {
+    ////////////////////////////////////////////////////////////
+    //                       VerifyInput                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitVerifyInput_revertsWith_RevertWhenVerifierNotSet(bytes memory journalEntry, bytes memory seal)
+        public
+    {
         vm.assume(journalEntry.length <= 1024);
         vm.assume(seal.length <= 1024);
 
@@ -81,7 +100,7 @@ contract ZkVerifierTest is Test {
         zkVerifier.verifyInput(journalEntry, seal);
     }
 
-    function test_verifyInput_PassesToVerifier(bytes memory journalEntry, bytes memory seal) public {
+    function test_unitVerifyInput_success_PassesToVerifier(bytes memory journalEntry, bytes memory seal) public {
         vm.assume(journalEntry.length <= 1024);
         vm.assume(seal.length <= 1024);
 

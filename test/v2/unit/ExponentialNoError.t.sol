@@ -1,7 +1,6 @@
-// SPDX-License-Identifier: BSL-1.1
-pragma solidity =0.8.28;
-
-import {Test} from "forge-std/Test.sol";
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.28;
+import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
 
 contract ExponentialNoErrorHarness is ExponentialNoError {
@@ -86,143 +85,148 @@ contract ExponentialNoErrorHarness is ExponentialNoError {
     }
 }
 
-contract ExponentialNoErrorTest is Test {
+contract ExponentialNoErrorTest is BaseTest {
     ExponentialNoErrorHarness internal harness;
 
     uint256 internal constant EXP_SCALE = 1e18;
     uint256 internal constant DOUBLE_SCALE = 1e36;
     uint256 internal constant MAX_DOUBLE_NUMERATOR = type(uint256).max / DOUBLE_SCALE;
 
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
         harness = new ExponentialNoErrorHarness();
     }
 
-    function test_fuzz_lessThanOrEqualExp(uint256 left, uint256 right) external view {
+    ////////////////////////////////////////////////////////////
+    //                           Fuzz                           //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitFuzz_success_lessThanOrEqualExp(uint256 left, uint256 right) external view {
         assertEq(harness.callLessThanOrEqualExp(left, right), left <= right);
     }
 
-    function test_fuzz_greaterThanExp(uint256 left, uint256 right) external view {
+    function test_unitFuzz_success_greaterThanExp(uint256 left, uint256 right) external view {
         assertEq(harness.callGreaterThanExp(left, right), left > right);
     }
 
-    function test_fuzz_isZeroExp(uint256 value) external view {
+    function test_unitFuzz_success_isZeroExp(uint256 value) external view {
         assertEq(harness.callIsZeroExp(value), value == 0);
     }
 
-    function test_fuzz_safe224_Succeeds(uint224 value) external view {
+    function test_unitFuzz_success_safe224_Succeeds(uint224 value) external view {
         assertEq(harness.callSafe224(uint256(value), "SAFE224"), value);
     }
 
-    function test_fuzz_safe224_RevertsWhenTooLarge(uint256 value) external {
+    function test_unitFuzz_revertsWith_safe224_RevertsWhenTooLarge(uint256 value) external {
         value = bound(value, uint256(type(uint224).max) + 1, type(uint256).max);
         vm.expectRevert("SAFE224");
         harness.callSafe224(value, "SAFE224");
     }
 
-    function test_fuzz_safe32_Succeeds(uint32 value) external view {
+    function test_unitFuzz_success_safe32_Succeeds(uint32 value) external view {
         assertEq(harness.callSafe32(uint256(value), "SAFE32"), value);
     }
 
-    function test_fuzz_safe32_RevertsWhenTooLarge(uint256 value) external {
+    function test_unitFuzz_revertsWith_safe32_RevertsWhenTooLarge(uint256 value) external {
         value = bound(value, uint256(type(uint32).max) + 1, type(uint256).max);
         vm.expectRevert("SAFE32");
         harness.callSafe32(value, "SAFE32");
     }
 
-    function test_fuzz_addExp(uint256 left, uint256 right) external view {
+    function test_unitFuzz_success_addExp(uint256 left, uint256 right) external view {
         left = bound(left, 0, DOUBLE_SCALE);
         right = bound(right, 0, DOUBLE_SCALE);
         assertEq(harness.callAddExp(left, right), left + right);
     }
 
-    function test_fuzz_addDouble(uint256 left, uint256 right) external view {
+    function test_unitFuzz_success_addDouble(uint256 left, uint256 right) external view {
         left = bound(left, 0, DOUBLE_SCALE);
         right = bound(right, 0, DOUBLE_SCALE);
         assertEq(harness.callAddDouble(left, right), left + right);
     }
 
-    function test_fuzz_subExp(uint256 left, uint256 right) external view {
+    function test_unitFuzz_success_subExp(uint256 left, uint256 right) external view {
         left = bound(left, 0, DOUBLE_SCALE);
         right = bound(right, 0, left);
         assertEq(harness.callSubExp(left, right), left - right);
     }
 
-    function test_fuzz_subDouble(uint256 left, uint256 right) external view {
+    function test_unitFuzz_success_subDouble(uint256 left, uint256 right) external view {
         left = bound(left, 0, DOUBLE_SCALE);
         right = bound(right, 0, left);
         assertEq(harness.callSubDouble(left, right), left - right);
     }
 
-    function test_fuzz_subUint(uint256 left, uint256 right) external view {
+    function test_unitFuzz_success_subUint(uint256 left, uint256 right) external view {
         left = bound(left, 0, DOUBLE_SCALE);
         right = bound(right, 0, left);
         assertEq(harness.callSubUint(left, right), left - right);
     }
 
-    function test_fuzz_mulDoubleDouble(uint256 left, uint256 right) external view {
+    function test_unitFuzz_success_mulDoubleDouble(uint256 left, uint256 right) external view {
         left = bound(left, 0, DOUBLE_SCALE);
         right = bound(right, 0, DOUBLE_SCALE);
         uint256 expected = (left * right) / DOUBLE_SCALE;
         assertEq(harness.callMulDoubleDouble(left, right), expected);
     }
 
-    function test_fuzz_mulDoubleScalar(uint256 mantissa, uint256 scalar) external view {
+    function test_unitFuzz_success_mulDoubleScalar(uint256 mantissa, uint256 scalar) external view {
         mantissa = bound(mantissa, 0, DOUBLE_SCALE);
         scalar = bound(scalar, 0, EXP_SCALE);
         assertEq(harness.callMulDoubleScalar(mantissa, scalar), mantissa * scalar);
     }
 
-    function test_fuzz_mulUintDouble(uint256 value, uint256 mantissa) external view {
+    function test_unitFuzz_success_mulUintDouble(uint256 value, uint256 mantissa) external view {
         value = bound(value, 0, DOUBLE_SCALE);
         mantissa = bound(mantissa, 0, DOUBLE_SCALE);
         uint256 expected = (value * mantissa) / DOUBLE_SCALE;
         assertEq(harness.callMulUintDouble(value, mantissa), expected);
     }
 
-    function test_fuzz_divExpScalar(uint256 mantissa, uint256 divisor) external view {
+    function test_unitFuzz_success_divExpScalar(uint256 mantissa, uint256 divisor) external view {
         mantissa = bound(mantissa, 0, DOUBLE_SCALE);
         divisor = bound(divisor, 1, DOUBLE_SCALE);
         assertEq(harness.callDivExpScalar(mantissa, divisor), mantissa / divisor);
     }
 
-    function test_fuzz_divDoubleDouble(uint256 left, uint256 right) external view {
+    function test_unitFuzz_success_divDoubleDouble(uint256 left, uint256 right) external view {
         left = bound(left, 0, MAX_DOUBLE_NUMERATOR);
         right = bound(right, 1, DOUBLE_SCALE);
         uint256 expected = (left * DOUBLE_SCALE) / right;
         assertEq(harness.callDivDoubleDouble(left, right), expected);
     }
 
-    function test_fuzz_divDoubleScalar(uint256 mantissa, uint256 divisor) external view {
+    function test_unitFuzz_success_divDoubleScalar(uint256 mantissa, uint256 divisor) external view {
         mantissa = bound(mantissa, 0, DOUBLE_SCALE);
         divisor = bound(divisor, 1, DOUBLE_SCALE);
         assertEq(harness.callDivDoubleScalar(mantissa, divisor), mantissa / divisor);
     }
 
-    function test_fuzz_divUintDouble(uint256 value, uint256 mantissa) external view {
+    function test_unitFuzz_success_divUintDouble(uint256 value, uint256 mantissa) external view {
         value = bound(value, 0, MAX_DOUBLE_NUMERATOR);
         mantissa = bound(mantissa, 1, DOUBLE_SCALE);
         uint256 expected = (value * DOUBLE_SCALE) / mantissa;
         assertEq(harness.callDivUintDouble(value, mantissa), expected);
     }
 
-    function test_fuzz_divUpUint_RevertsWhenDivisorZero(uint256 value) external {
+    function test_unitFuzz_revertsWith_divUpUint_RevertsWhenDivisorZero(uint256 value) external {
         vm.expectRevert("DIV_BY_ZERO");
         harness.callDivUpUint(value, 0);
     }
 
-    function test_fuzz_divUpUint_ReturnsZeroWhenValueIsZero(uint256 divisor) external view {
+    function test_unitFuzz_success_divUpUint_ReturnsZeroWhenValueIsZero(uint256 divisor) external view {
         divisor = bound(divisor, 1, DOUBLE_SCALE);
         assertEq(harness.callDivUpUint(0, divisor), 0);
     }
 
-    function test_fuzz_divUpUint_Ceils(uint256 value, uint256 divisor) external view {
+    function test_unitFuzz_success_divUpUint_Ceils(uint256 value, uint256 divisor) external view {
         value = bound(value, 1, DOUBLE_SCALE);
         divisor = bound(divisor, 1, EXP_SCALE);
         uint256 expected = (value + divisor - 1) / divisor;
         assertEq(harness.callDivUpUint(value, divisor), expected);
     }
 
-    function test_fuzz_divUpExp(uint256 value, uint256 mantissa) external view {
+    function test_unitFuzz_success_divUpExp(uint256 value, uint256 mantissa) external view {
         uint256 maxValue = type(uint256).max / EXP_SCALE;
         value = bound(value, 0, maxValue);
         mantissa = bound(mantissa, 1, DOUBLE_SCALE);
@@ -231,7 +235,7 @@ contract ExponentialNoErrorTest is Test {
         assertEq(harness.callDivUpExp(value, mantissa), expected);
     }
 
-    function test_fuzz_fraction(uint256 value, uint256 divisor) external view {
+    function test_unitFuzz_success_fraction(uint256 value, uint256 divisor) external view {
         value = bound(value, 0, MAX_DOUBLE_NUMERATOR);
         divisor = bound(divisor, 1, DOUBLE_SCALE);
         uint256 expected = (value * DOUBLE_SCALE) / divisor;

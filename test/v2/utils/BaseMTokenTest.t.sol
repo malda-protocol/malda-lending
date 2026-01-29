@@ -1,10 +1,9 @@
-// SPDX-License-Identifier: BSL-1.1
-pragma solidity =0.8.28;
-
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.28;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {BaseProtocolTest} from "./BaseProtocolTest.t.sol";
+import {BaseUnitTest} from "test/v2/utils/BaseUnitTest.t.sol";
 
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
@@ -16,7 +15,7 @@ import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {ERC20Mock} from "test/mocks/ERC20Mock.sol";
 import {Risc0VerifierMock} from "test/mocks/Risc0VerifierMock.sol";
 
-abstract contract BaseMTokenTest is BaseProtocolTest {
+abstract contract BaseMTokenTest is BaseUnitTest {
     mErc20Host public mWethHost;
     mErc20Host public mDaiHost;
     mErc20Immutable public mWeth;

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity =0.8.28;
-
-import {Test} from "forge-std/Test.sol";
+pragma solidity 0.8.28;
+import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 import {ReferralSigning} from "src/referral/ReferralSigning.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import {DummyReferrer} from "test/v2/mocks/ReferralSigningMocks.t.sol";
 
-contract ReferralSigningTest is Test {
+contract ReferralSigningTest is BaseTest {
     ReferralSigning internal referral;
 
     address internal referrer;
@@ -13,7 +13,8 @@ contract ReferralSigningTest is Test {
     uint256 internal referrerKey;
     uint256 internal referredKey;
 
-    function setUp() public {
+    function setUp() public override {
+        super.setUp();
         (referrer, referrerKey) = makeAddrAndKey("referrer");
         (referred, referredKey) = makeAddrAndKey("referred");
 
@@ -31,7 +32,11 @@ contract ReferralSigningTest is Test {
         return abi.encodePacked(r, s, v);
     }
 
-    function test_ClaimReferral_Works() public {
+    ////////////////////////////////////////////////////////////
+    //                      ClaimReferral                       //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitClaimReferral_success_Works() public {
         uint256 nonce = referral.nonces(referred);
         bytes memory sig = sign(referredKey, referred, referrer, nonce);
 
@@ -45,7 +50,7 @@ contract ReferralSigningTest is Test {
         assertEq(referral.nonces(referred), nonce + 1);
     }
 
-    function test_ClaimReferral_RejectsSelfReferral() public {
+    function test_unitClaimReferral_success_RejectsSelfReferral() public {
         uint256 nonce = referral.nonces(referrer);
         bytes memory sig = sign(referrerKey, referrer, referrer, nonce);
 
@@ -54,7 +59,7 @@ contract ReferralSigningTest is Test {
         referral.claimReferral(sig, referrer);
     }
 
-    function test_ClaimReferral_RejectsDoubleClaim() public {
+    function test_unitClaimReferral_success_RejectsDoubleClaim() public {
         uint256 nonce = referral.nonces(referred);
         bytes memory sig = sign(referredKey, referred, referrer, nonce);
 
@@ -66,7 +71,7 @@ contract ReferralSigningTest is Test {
         referral.claimReferral(sig, referrer);
     }
 
-    function test_ClaimReferral_InvalidSignature() public {
+    function test_unitClaimReferral_success_InvalidSignature() public {
         uint256 nonce = referral.nonces(referred);
         // Signed by referrer instead of referred
         bytes memory sig = sign(referrerKey, referred, referrer, nonce);
@@ -76,7 +81,7 @@ contract ReferralSigningTest is Test {
         referral.claimReferral(sig, referrer);
     }
 
-    function test_ClaimReferral_RejectsContractReferrer() public {
+    function test_unitClaimReferral_success_RejectsContractReferrer() public {
         address contractReferrer = address(new DummyReferrer());
         uint256 nonce = referral.nonces(referred);
         bytes memory sig = sign(referredKey, referred, contractReferrer, nonce);
@@ -86,8 +91,3 @@ contract ReferralSigningTest is Test {
         referral.claimReferral(sig, contractReferrer);
     }
 }
-
-contract DummyReferrer {
-    // Just a dummy contract used to simulate contract referrer
-
-    }

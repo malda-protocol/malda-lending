@@ -1,38 +1,39 @@
-// SPDX-License-Identifier: BSL-1.1
-pragma solidity =0.8.28;
-
-import {Test} from "forge-std/Test.sol";
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.28;
+import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {Roles} from "src/Roles.sol";
 
-contract RolesTest is Test {
+contract RolesTest is BaseTest {
     Roles internal roles;
 
-    function setUp() public {
-        roles = new Roles(address(this));
+    function setUp() public override {
+        super.setUp();
+        roles = new Roles(users.admin);
     }
 
-    function test_allowFor_revertWhenContractZero() external {
-        address owner = makeAddr("owner");
-        Roles localRoles = new Roles(owner);
-        bytes32 pauseManager = localRoles.PAUSE_MANAGER();
-        vm.prank(owner);
+    ////////////////////////////////////////////////////////////
+    //                         AllowFor                         //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitAllowFor_revertsWith_revertWhenContractZero() external {
+        bytes32 pauseManager = roles.PAUSE_MANAGER();
+        vm.prank(users.admin);
         vm.expectRevert(IRoles.Roles_InputNotValid.selector);
-        localRoles.allowFor(address(0), pauseManager, true);
+        roles.allowFor(address(0), pauseManager, true);
     }
 
-    function test_allowFor_revertWhenRoleZero() external {
-        address owner = makeAddr("owner");
-        Roles localRoles = new Roles(owner);
-        vm.prank(owner);
+    function test_unitAllowFor_revertsWith_revertWhenRoleZero() external {
+        vm.prank(users.admin);
         vm.expectRevert(IRoles.Roles_InputNotValid.selector);
-        localRoles.allowFor(address(0xBEEF), bytes32(0), true);
+        roles.allowFor(users.alice, bytes32(0), true);
     }
 
-    function test_allowFor_setsRole() external {
-        Roles localRoles = new Roles(address(this));
-        localRoles.allowFor(address(0xBEEF), localRoles.PAUSE_MANAGER(), true);
-        assertTrue(localRoles.isAllowedFor(address(0xBEEF), localRoles.PAUSE_MANAGER()));
+    function test_unitAllowFor_success_setsRole() external {
+        bytes32 pauseManager = roles.PAUSE_MANAGER();
+        vm.prank(users.admin);
+        roles.allowFor(users.alice, pauseManager, true);
+        assertTrue(roles.isAllowedFor(users.alice, pauseManager));
     }
 }

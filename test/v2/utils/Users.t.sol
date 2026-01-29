@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSL-1.1
-pragma solidity =0.8.28;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.28;
 
 struct Users {
     address admin;

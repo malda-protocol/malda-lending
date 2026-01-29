@@ -1,8 +1,7 @@
-// SPDX-License-Identifier: BSL-1.1
-pragma solidity =0.8.28;
-
-import {Helpers} from "./Helpers.t.sol";
-import {Users} from "./Users.t.sol";
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.28;
+import {Helpers} from "test/v2/utils/Helpers.t.sol";
+import {Users} from "test/v2/utils/Users.t.sol";
 
 abstract contract BaseTest is Helpers {
     Users internal users;
@@ -11,6 +10,11 @@ abstract contract BaseTest is Helpers {
         vm.warp(DEFAULT_START_TIME);
         vm.chainId(DEFAULT_CHAIN_ID);
 
+        _initUsers();
+        _fundUsers();
+    }
+
+    function _initUsers() internal {
         users = Users({
             admin: makeAddr("Admin"),
             alice: makeAddr("Alice"),
@@ -20,7 +24,9 @@ abstract contract BaseTest is Helpers {
             pauser: makeAddr("Pauser"),
             feeReceiver: makeAddr("FeeReceiver")
         });
+    }
 
+    function _fundUsers() internal {
         vm.deal(users.admin, LARGE);
         vm.deal(users.alice, LARGE);
         vm.deal(users.bob, LARGE);

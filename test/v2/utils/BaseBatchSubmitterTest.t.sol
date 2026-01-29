@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: BSL-1.1
-pragma solidity =0.8.28;
-
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.28;
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {BaseProtocolTest} from "./BaseProtocolTest.t.sol";
+import {BaseUnitTest} from "test/v2/utils/BaseUnitTest.t.sol";
 
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
 import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
@@ -12,7 +11,7 @@ import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 
 import {Risc0VerifierMock} from "test/mocks/Risc0VerifierMock.sol";
 
-abstract contract BaseBatchSubmitterTest is BaseProtocolTest {
+abstract contract BaseBatchSubmitterTest is BaseUnitTest {
     mTokenGateway public mWethExtension;
     mTokenGateway public mUsdcExtension;
     BatchSubmitter public batchSubmitter;

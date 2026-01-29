@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: BSL-1.1
-pragma solidity =0.8.28;
-
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.28;
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-import {BaseProtocolTest} from "./BaseProtocolTest.t.sol";
+import {BaseUnitTest} from "test/v2/utils/BaseUnitTest.t.sol";
 
 import {BridgeMock} from "test/mocks/BridgeMock.sol";
 import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
@@ -13,7 +12,7 @@ import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 
 import {Risc0VerifierMock} from "test/mocks/Risc0VerifierMock.sol";
 
-abstract contract BaseRebalancerTest is BaseProtocolTest {
+abstract contract BaseRebalancerTest is BaseUnitTest {
     mErc20Host public mWethHost;
     BridgeMock public bridgeMock;
     Rebalancer public rebalancer;

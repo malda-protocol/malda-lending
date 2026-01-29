@@ -1,12 +1,11 @@
-// SPDX-License-Identifier: BSL-1.1
-pragma solidity =0.8.28;
-
-import {Base_Unit_Test} from "test/Base_Unit_Test.t.sol";
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.28;
+import {BaseUnitTest} from "test/v2/utils/BaseUnitTest.t.sol";
 
 import {Risc0VerifierMock} from "test/mocks/Risc0VerifierMock.sol";
 import {LendingProtocolMock} from "test/mocks/LendingProtocolMock.sol";
 
-contract LendingProtocolMock_test is Base_Unit_Test {
+contract LendingProtocolMock_test is BaseUnitTest {
     LendingProtocolMock public protocol;
     Risc0VerifierMock public verifierMock;
 
@@ -37,13 +36,21 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         _;
     }
 
-    function test_GivenTheCallerIsNotTheOwner() external whenSetVerifierIsCalled {
-        _resetContext(alice);
+    ////////////////////////////////////////////////////////////
+    //               GivenTheCallerIsNotTheOwner                //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitGivenTheCallerIsNotTheOwner_success() external whenSetVerifierIsCalled {
+        _resetContext(users.alice);
         vm.expectRevert();
         protocol.setVerifier(address(this));
     }
 
-    function test_GivenTheCallerIsTheOwner() external whenSetVerifierIsCalled {
+    ////////////////////////////////////////////////////////////
+    //                 GivenTheCallerIsTheOwner                 //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitGivenTheCallerIsTheOwner_success() external whenSetVerifierIsCalled {
         protocol.setVerifier(address(this));
         assertEq(address(protocol.verifier()), address(this));
     }
@@ -53,13 +60,21 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         _;
     }
 
-    function test_GivenTheCallerIsNotOwner() external whenSetBorrowImageIdIsCalled {
-        _resetContext(alice);
+    ////////////////////////////////////////////////////////////
+    //                 GivenTheCallerIsNotOwner                 //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitGivenTheCallerIsNotOwner_success() external whenSetBorrowImageIdIsCalled {
+        _resetContext(users.alice);
         vm.expectRevert();
         protocol.setBorrowImageId(bytes32("0x1"));
     }
 
-    function test_GivenTheCallerIsOwnerX() external whenSetBorrowImageIdIsCalled {
+    ////////////////////////////////////////////////////////////
+    //                  GivenTheCallerIsOwnerX                  //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitGivenTheCallerIsOwnerX_success() external whenSetBorrowImageIdIsCalled {
         protocol.setBorrowImageId(bytes32("0x1"));
         assertEq(protocol.borrowImageId(), bytes32("0x1"));
     }
@@ -69,7 +84,11 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         _;
     }
 
-    function test_GivenTheAmountIsZero() external whenDepositIsCalled {
+    ////////////////////////////////////////////////////////////
+    //                   GivenTheAmountIsZero                   //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitGivenTheAmountIsZero_success() external whenDepositIsCalled {
         uint256 balanceBefore = protocol.balanceOf(address(this));
         protocol.deposit(0, address(this));
         uint256 balanceAfter = protocol.balanceOf(address(this));
@@ -77,7 +96,11 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         assertEq(balanceAfter, balanceBefore);
     }
 
-    function test_WhenTheAmountIsGreaterThanZero(uint256 amount) external whenDepositIsCalled {
+    ////////////////////////////////////////////////////////////
+    //              WhenTheAmountIsGreaterThanZero              //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitWhenTheAmountIsGreaterThanZero_success(uint256 amount) external whenDepositIsCalled {
         amount = bound(amount, SMALL, LARGE);
 
         _getTokens(weth, address(this), amount);
@@ -101,7 +124,11 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         _;
     }
 
-    function test_GivenTheJournalDataIsInvalid(uint256 amount) external whenBorrowIsCalled {
+    ////////////////////////////////////////////////////////////
+    //               GivenTheJournalDataIsInvalid               //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitGivenTheJournalDataIsInvalid_success(uint256 amount) external whenBorrowIsCalled {
         amount = bound(amount, SMALL, LARGE);
 
         // it should revert with LendingProtocolMock_JournalNotValid
@@ -109,7 +136,11 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         protocol.borrow(amount, "", "0x123");
     }
 
-    function test_GivenTheLiquidityIsInsufficientX(uint256 amount) external whenBorrowIsCalled {
+    ////////////////////////////////////////////////////////////
+    //             GivenTheLiquidityIsInsufficientX             //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitGivenTheLiquidityIsInsufficientX_success(uint256 amount) external whenBorrowIsCalled {
         amount = bound(amount, SMALL, LARGE);
 
         bytes memory journalData = _createJournal(amount / 2, address(this));
@@ -124,7 +155,11 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         _;
     }
 
-    function test_WhenThereAreEnoughTokensInTheContract(uint256 amount)
+    ////////////////////////////////////////////////////////////
+    //          WhenThereAreEnoughTokensInTheContract           //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitWhenThereAreEnoughTokensInTheContract_success(uint256 amount)
         external
         whenBorrowIsCalled
         whenLiquidityIsSufficient
@@ -152,7 +187,11 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         assertEq(balanceBorrowAfter, balanceBorrowBefore + amount);
     }
 
-    function test_GivenThereAreNotEnoughTokensInTheContract(uint256 amount)
+    ////////////////////////////////////////////////////////////
+    //        GivenThereAreNotEnoughTokensInTheContract         //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitGivenThereAreNotEnoughTokensInTheContract_success(uint256 amount)
         external
         whenBorrowIsCalled
         whenLiquidityIsSufficient
@@ -172,14 +211,22 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         _;
     }
 
-    function test_GivenTheBorrowBalanceIsInsufficient(uint256 amount) external whenRepayIsCalled {
+    ////////////////////////////////////////////////////////////
+    //           GivenTheBorrowBalanceIsInsufficient            //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitGivenTheBorrowBalanceIsInsufficient_success(uint256 amount) external whenRepayIsCalled {
         amount = bound(amount, SMALL, LARGE);
 
         vm.expectRevert(LendingProtocolMock.LendingProtocolMock_InsufficientBalance.selector);
         protocol.repay(amount);
     }
 
-    function test_WhenTheBorrowBalanceIsSufficient(uint256 amount) external whenRepayIsCalled {
+    ////////////////////////////////////////////////////////////
+    //             WhenTheBorrowBalanceIsSufficient             //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitWhenTheBorrowBalanceIsSufficient_success(uint256 amount) external whenRepayIsCalled {
         amount = bound(amount, SMALL, LARGE);
 
         _getTokens(weth, address(this), amount);
@@ -208,7 +255,11 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         _;
     }
 
-    function test_GivenTheUsersBalanceIsInsufficient(uint256 amount) external whenWithdrawIsCalled {
+    ////////////////////////////////////////////////////////////
+    //            GivenTheUsersBalanceIsInsufficient            //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitGivenTheUsersBalanceIsInsufficient_success(uint256 amount) external whenWithdrawIsCalled {
         amount = bound(amount, SMALL, LARGE);
 
         bytes memory journalData = _createJournal(amount, address(this));
@@ -216,7 +267,11 @@ contract LendingProtocolMock_test is Base_Unit_Test {
         protocol.withdraw(amount, journalData, "0x123");
     }
 
-    function test_WhenTheUsersBalanceIsSufficient(uint256 amount) external whenWithdrawIsCalled {
+    ////////////////////////////////////////////////////////////
+    //             WhenTheUsersBalanceIsSufficient              //
+    ////////////////////////////////////////////////////////////
+
+    function test_unitWhenTheUsersBalanceIsSufficient_success(uint256 amount) external whenWithdrawIsCalled {
         amount = bound(amount, SMALL, LARGE);
 
         _getTokens(weth, address(this), amount);
