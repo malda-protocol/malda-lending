@@ -1,5 +1,6 @@
 # code
 .vscode/
+.worktrees/
 
 # locals
 .DS_Store
