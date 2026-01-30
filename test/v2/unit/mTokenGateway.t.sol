@@ -43,10 +43,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                 InitFirewallAndRegister                  //
+    //                    FirewallRegister                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitInitFirewallAndRegister_success() external {
+    function test_unit_firewallRegister_success() external {
         MockFirewall firewall = new MockFirewall();
 
         mWethExtension.initFirewall(address(firewall));
@@ -57,28 +57,24 @@ contract mTokenGatewayTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                  SetBlacklisterUpdates                   //
+    //                     SetBlacklister                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetBlacklisterUpdates_success() external {
+    function test_unit_setBlacklister_success() external {
         mWethExtension.setBlacklister(address(blacklister));
         assertEq(address(mWethExtension.blacklistOperator()), address(blacklister));
     }
 
-    ////////////////////////////////////////////////////////////
-    //               SetBlacklisterRevertWhenZero               //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetBlacklisterRevertWhenZero_revertsWith() external {
+    function test_unit_setBlacklister_revertsWith_mTokenGateway_AddressNotValid_revertsWhenZero() external {
         vm.expectRevert(ImTokenGateway.mTokenGateway_AddressNotValid.selector);
         mWethExtension.setBlacklister(address(0));
     }
 
     ////////////////////////////////////////////////////////////
-    //                     DisableWhitelist                     //
+    //                    EnableWhitelist                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitDisableWhitelist_success() external {
+    function test_unit_enableWhitelist_success() external {
         mWethExtension.enableWhitelist();
         assertTrue(mWethExtension.whitelistEnabled());
 
@@ -87,10 +83,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                 SetPausedUnpauseAsOwner                  //
+    //                       SetPaused                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetPausedUnpauseAsOwner_success() external {
+    function test_unit_setPaused_success() external {
         mWethExtension.setPaused(ImTokenOperationTypes.OperationType.AmountIn, true);
         assertTrue(mWethExtension.paused(ImTokenOperationTypes.OperationType.AmountIn));
 
@@ -98,21 +94,13 @@ contract mTokenGatewayTest is BaseMTokenTest {
         assertFalse(mWethExtension.paused(ImTokenOperationTypes.OperationType.AmountIn));
     }
 
-    ////////////////////////////////////////////////////////////
-    //               SetPausedRevertWhenNonOwner                //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetPausedRevertWhenNonOwner_revertsWith() external {
+    function test_unit_setPaused_revertsWith_mTokenGateway_CallerNotAllowed_revertsWhenNonOwner() external {
         vm.prank(users.alice);
         vm.expectRevert(ImTokenGateway.mTokenGateway_CallerNotAllowed.selector);
         mWethExtension.setPaused(ImTokenOperationTypes.OperationType.AmountIn, true);
     }
 
-    ////////////////////////////////////////////////////////////
-    //            UnpauseRevertWhenGuardianNotOwner             //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitUnpauseRevertWhenGuardianNotOwner_revertsWith() external {
+    function test_unit_setPaused_revertsWith_mTokenGateway_CallerNotAllowed() external {
         mWethExtension.setPaused(ImTokenOperationTypes.OperationType.AmountIn, true);
         roles.allowFor(users.bob, roles.GUARDIAN_PAUSE(), true);
 
@@ -122,10 +110,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //         ExtractForRebalancingTransfersUnderlying         //
+    //                 ExtractForRebalancing                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitExtractForRebalancingTransfersUnderlying_success() external {
+    function test_unit_extractForRebalancing_success() external {
         uint256 amount = 1 ether;
         _getTokens(weth, address(mWethExtension), amount);
         roles.allowFor(users.alice, roles.REBALANCER(), true);
@@ -137,11 +125,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         assertEq(weth.balanceOf(users.alice), balanceBefore + amount);
     }
 
-    ////////////////////////////////////////////////////////////
-    //          ExtractForRebalancingRevertWhenPaused           //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitExtractForRebalancingRevertWhenPaused_revertsWith() external {
+    function test_unit_extractForRebalancing_revertsWith_mTokenGateway_Paused_revertsWhenPaused() external {
         mWethExtension.setPaused(ImTokenOperationTypes.OperationType.Rebalancing, true);
 
         vm.expectRevert(
@@ -152,21 +136,19 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.extractForRebalancing(1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //       ExtractForRebalancingRevertWhenNotRebalancer       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitExtractForRebalancingRevertWhenNotRebalancer_revertsWith() external {
+    function test_unit_extractForRebalancing_revertsWith_mTokenGateway_NotRebalancer_revertsWhenNotRebalancer()
+        external
+    {
         vm.prank(users.alice);
         vm.expectRevert(ImTokenGateway.mTokenGateway_NotRebalancer.selector);
         mWethExtension.extractForRebalancing(1);
     }
 
     ////////////////////////////////////////////////////////////
-    //                  WithdrawGasFeesByOwner                  //
+    //                        Payable                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitWithdrawGasFeesByOwner_success() external {
+    function test_unit_payable_success_byOwner() external {
         vm.deal(address(mWethExtension), 1 ether);
         uint256 receiverBalanceBefore = users.alice.balance;
 
@@ -176,11 +158,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         assertEq(users.alice.balance, receiverBalanceBefore + 1 ether);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                WithdrawGasFeesBySequencer                //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitWithdrawGasFeesBySequencer_success() external {
+    function test_unit_payable_success_bySequencer() external {
         vm.deal(address(mWethExtension), 1 ether);
         roles.allowFor(users.bob, roles.SEQUENCER(), true);
 
@@ -193,29 +171,25 @@ contract mTokenGatewayTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //          WithdrawGasFeesRevertWhenUnauthorized           //
+    //                    WithdrawGasFees                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitWithdrawGasFeesRevertWhenUnauthorized_revertsWith() external {
+    function test_unit_withdrawGasFees_revertsWith_mTokenGateway_CallerNotAllowed_revertsWhenUnauthorized() external {
         vm.prank(users.alice);
         vm.expectRevert(ImTokenGateway.mTokenGateway_CallerNotAllowed.selector);
         mWethExtension.withdrawGasFees(payable(users.alice));
     }
 
-    ////////////////////////////////////////////////////////////
-    //          WithdrawGasFeesRevertWhenReceiverZero           //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitWithdrawGasFeesRevertWhenReceiverZero_revertsWith() external {
+    function test_unit_withdrawGasFees_revertsWith_mTokenGateway_AddressNotValid_revertsWhenReceiverZero() external {
         vm.expectRevert(ImTokenGateway.mTokenGateway_AddressNotValid.selector);
         mWethExtension.withdrawGasFees(payable(address(0)));
     }
 
     ////////////////////////////////////////////////////////////
-    //                 UpdateZkVerifierUpdates                  //
+    //                    UpdateZkVerifier                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitUpdateZkVerifierUpdates_success() external {
+    function test_unit_updateZkVerifier_success_variant2() external {
         ZkVerifier newVerifier = new ZkVerifier(address(this), "0x456", address(verifierMock));
 
         mWethExtension.updateZkVerifier(address(newVerifier));
@@ -223,30 +197,26 @@ contract mTokenGatewayTest is BaseMTokenTest {
         assertEq(address(mWethExtension.verifier()), address(newVerifier));
     }
 
-    ////////////////////////////////////////////////////////////
-    //              UpdateZkVerifierRevertWhenZero              //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitUpdateZkVerifierRevertWhenZero_revertsWith() external {
+    function test_unit_updateZkVerifier_revertsWith_mTokenGateway_AddressNotValid_revertsWhenZero() external {
         vm.expectRevert(ImTokenGateway.mTokenGateway_AddressNotValid.selector);
         mWethExtension.updateZkVerifier(address(0));
     }
 
     ////////////////////////////////////////////////////////////
-    //             GetProofDataReturnsAccumulators              //
+    //                      GetProofData                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGetProofDataReturnsAccumulators_success() external view {
+    function test_unit_getProofData_success_returnsAccumulators() external view {
         (uint256 amountIn, uint256 amountOut) = mWethExtension.getProofData(users.alice, 0);
         assertEq(amountIn, 0);
         assertEq(amountOut, 0);
     }
 
     ////////////////////////////////////////////////////////////
-    //              InitializeRevertWhenRolesZero               //
+    //                      Constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitInitializeRevertWhenRolesZero_revertsWith() external {
+    function test_unit_constructor_revertsWith_mTokenGateway_AddressNotValid() external {
         mTokenGateway impl = new mTokenGateway();
         bytes memory initData = _gatewayInitData(address(weth), address(0), address(blacklister), address(zkVerifier));
 
@@ -254,11 +224,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         new ERC1967Proxy(address(impl), initData);
     }
 
-    ////////////////////////////////////////////////////////////
-    //             InitializeRevertWhenVerifierZero             //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitInitializeRevertWhenVerifierZero_revertsWith() external {
+    function test_unit_constructor_revertsWith_mTokenGateway_AddressNotValid_variant2() external {
         mTokenGateway impl = new mTokenGateway();
         bytes memory initData = _gatewayInitData(address(weth), address(roles), address(blacklister), address(0));
 
@@ -266,11 +232,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         new ERC1967Proxy(address(impl), initData);
     }
 
-    ////////////////////////////////////////////////////////////
-    //           InitializeRevertWhenBlacklisterZero            //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitInitializeRevertWhenBlacklisterZero_revertsWith() external {
+    function test_unit_constructor_revertsWith_mTokenGateway_AddressNotValid_variant3() external {
         mTokenGateway impl = new mTokenGateway();
         bytes memory initData = _gatewayInitData(address(weth), address(roles), address(0), address(zkVerifier));
 
@@ -278,11 +240,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         new ERC1967Proxy(address(impl), initData);
     }
 
-    ////////////////////////////////////////////////////////////
-    //            InitializeRevertWhenUnderlyingZero            //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitInitializeRevertWhenUnderlyingZero_revertsWith() external {
+    function test_unit_constructor_revertsWith_mTokenGateway_AddressNotValid_variant4() external {
         mTokenGateway impl = new mTokenGateway();
         bytes memory initData = _gatewayInitData(address(0), address(roles), address(blacklister), address(zkVerifier));
 
@@ -291,16 +249,16 @@ contract mTokenGatewayTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                      MTokenGateway                       //
+    //                       Liquidate                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitMTokenGateway_revertsWith_liquidate_RevertWhen_AmountIs0() external {
+    function test_unit_liquidate_revertsWith_mTokenGateway_AmountNotValid_variant2() external {
         // it should revert
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountNotValid.selector);
         mWethExtension.liquidate(borrower, 0, address(mWethHost), address(this));
     }
 
-    function test_unitMTokenGateway_revertsWith_liquidate_RevertWhen_MarketPaused(uint256 amount) external {
+    function test_unit_liquidate_revertsWith_liquidate_RevertsWhen_MarketPaused(uint256 amount) external {
         amount = bound(amount, SMALL, LARGE);
 
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.Liquidate, true);
@@ -310,11 +268,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.liquidate(borrower, amount, address(mWethHost), address(this));
     }
 
-    ////////////////////////////////////////////////////////////
-    //                        RevertWhen                        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitRevertWhen_revertsWith_AmountInPaused(uint256 amount) external {
+    function test_unit_liquidate_revertsWith_AmountInPaused(uint256 amount) external {
         amount = bound(amount, SMALL, LARGE);
 
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.AmountIn, true);
@@ -329,11 +283,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         _;
     }
 
-    ////////////////////////////////////////////////////////////
-    //                      MTokenGateway                       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitMTokenGateway_revertsWith_liquidate_RevertGiven_UserHasNotEnoughBalance(uint256 amount)
+    function test_unit_liquidate_revertsWith_liquidate_RevertGiven_UserHasNotEnoughBalance(uint256 amount)
         external
         mTokenGateway_liquidate_whenAmountGreaterThan0
     {
@@ -345,7 +295,11 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.liquidate(borrower, amount, address(mWethHost), address(this));
     }
 
-    function test_unitMTokenGateway_success_liquidate_GivenUserHasEnoughBalance(uint256 amount)
+    ////////////////////////////////////////////////////////////
+    //                         Uint32                         //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_uint32_success_liquidate_GivenUserHasEnoughBalance(uint256 amount)
         external
         mTokenGateway_liquidate_whenAmountGreaterThan0
     {
@@ -375,7 +329,11 @@ contract mTokenGatewayTest is BaseMTokenTest {
         assertGt(accAmountInAfter, accAmountInBefore);
     }
 
-    function test_unitMTokenGateway_success_liquidate_GivenUserHasEnoughBalance_ButBlacklisted(uint256 amount)
+    ////////////////////////////////////////////////////////////
+    //                       Liquidate                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_liquidate_revertsWith_mTokenGateway_UserBlacklisted_variant2(uint256 amount)
         external
         mTokenGateway_liquidate_whenAmountGreaterThan0
     {
@@ -390,11 +348,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.liquidate(borrower, amount, address(mWethHost), address(this));
     }
 
-    ////////////////////////////////////////////////////////////
-    //                GivenUserHasEnoughBalance                 //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitGivenUserHasEnoughBalance_success_ButReceiverBlacklisted(uint256 amount)
+    function test_unit_liquidate_revertsWith_mTokenGateway_UserBlacklisted_givenUserHasEnoughBalance(uint256 amount)
         external
         mTokenGateway_liquidate_whenAmountGreaterThan0
     {
@@ -410,10 +364,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                      MTokenGateway                       //
+    //                         Uint32                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitMTokenGateway_success_liquidate_GivenUserHasEnoughBalance_ButWhitelistEnabled(uint256 amount)
+    function test_unit_uint32_revertsWith_mTokenGateway_UserNotWhitelisted_variant2(uint256 amount)
         external
         mTokenGateway_liquidate_whenAmountGreaterThan0
     {
@@ -454,11 +408,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         assertGt(accAmountInAfter, accAmountInBefore);
     }
 
-    ////////////////////////////////////////////////////////////
-    //             LiquidateWithDifferentParameters             //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitLiquidateWithDifferentParameters_success() external {
+    function test_unit_uint32_success() external {
         uint256 amount = 1 ether;
         address userToLiquidate = otherUser;
         address collateral = address(mDaiHost);
@@ -478,11 +428,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         assertEq(mWethExtension.accAmountIn(payoutReceiver), amount);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                   LiquidateWithGasFee                    //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitLiquidateWithGasFee_success() external {
+    function test_unit_uint32_success_variant2() external {
         uint256 amount = 1 ether;
         uint256 gasFee = 0.01 ether;
 
@@ -503,10 +449,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        RevertWhen                        //
+    //                        Approve                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitRevertWhen_revertsWith_NotEnoughGasFee() external {
+    function test_unit_approve_revertsWith_mTokenGateway_NotEnoughGasFee() external {
         uint256 amount = 1 ether;
         uint256 gasFee = 0.01 ether;
 
@@ -520,10 +466,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       RevertGiven                        //
+    //                        OutHere                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitRevertGiven_revertsWith_IsPaused(uint256 amount) external {
+    function test_unit_outHere_revertsWith_IsPaused_revertGiven(uint256 amount) external {
         amount = bound(amount, SMALL, LARGE);
 
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.AmountOutHere, true);
@@ -538,11 +484,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
         _;
     }
 
-    ////////////////////////////////////////////////////////////
-    //                        RevertWhen                        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitRevertWhen_revertsWith_AmountIs(uint256 amount) external givenMarketIsNotPaused {
+    function test_unit_outHere_revertsWith_mTokenGateway_AmountNotValid(uint256 amount)
+        external
+        givenMarketIsNotPaused
+    {
         amount = bound(amount, SMALL, LARGE);
 
         // it should revert
@@ -554,11 +499,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
 
-    ////////////////////////////////////////////////////////////
-    //      WhenAccumulatedAmountReceivedOrLessThanNeeded       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitWhenAccumulatedAmountReceivedOrLessThanNeeded_success(uint256 amount)
+    function test_unit_outHere_revertsWith_mTokenGateway_AmountTooBig_whenAccumulatedAmountReceivedOrLessThanNeeded(uint256 amount)
         external
         givenMarketIsNotPaused
     {
@@ -572,11 +513,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
 
-    ////////////////////////////////////////////////////////////
-    //              WhenMarketDoesNotHaveLiquidity              //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitWhenMarketDoesNotHaveLiquidity_success(uint256 amount) external givenMarketIsNotPaused {
+    function test_unit_outHere_revertsWith_mTokenGateway_ReleaseCashNotAvailable_whenMarketDoesNotHaveLiquidity(uint256 amount)
+        external
+        givenMarketIsNotPaused
+    {
         amount = bound(amount, SMALL, LARGE);
 
         // it should revert with mTokenGateway_ReleaseCashNotAvailable
@@ -587,11 +527,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
 
-    ////////////////////////////////////////////////////////////
-    //                        RevertWhen                        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitRevertWhen_revertsWith_CallerNotAllowedXQ(uint256 amount) external givenMarketIsNotPaused {
+    function test_unit_outHere_revertsWith_mTokenGateway_CallerNotAllowed(uint256 amount)
+        external
+        givenMarketIsNotPaused
+    {
         amount = bound(amount, SMALL, LARGE);
 
         // it should revert
@@ -619,7 +558,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         return abi.encode(journals);
     }
 
-    function test_unitRevertWhen_revertsWith_JournalIsEmpty() external givenMarketIsNotPaused {
+    function test_unit_outHere_revertsWith_mTokenGateway_JournalNotValid() external givenMarketIsNotPaused {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 1;
 
@@ -627,7 +566,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.outHere("", "0x123", amounts, address(this));
     }
 
-    function test_unitRevertWhen_revertsWith_JournalLengthMismatch() external givenMarketIsNotPaused {
+    function test_unit_outHere_revertsWith_mTokenGateway_LengthNotValid() external givenMarketIsNotPaused {
         bytes memory journal =
             _encodeJournal(address(this), address(mWethExtension), 1, 1, LINEA_CHAIN_ID, uint32(block.chainid), true);
         bytes[] memory journals = new bytes[](2);
@@ -641,21 +580,21 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.outHere(_wrapJournals(journals), "0x123", amounts, address(this));
     }
 
-    function test_unitRevertWhen_revertsWith_CallerBlacklisted() external givenMarketIsNotPaused {
+    function test_unit_outHere_revertsWith_mTokenGateway_UserBlacklisted_variant3() external givenMarketIsNotPaused {
         blacklister.blacklist(address(this));
 
         vm.expectRevert(ImTokenGateway.mTokenGateway_UserBlacklisted.selector);
         mWethExtension.outHere("", "0x123", new uint256[](0), address(this));
     }
 
-    function test_unitRevertWhen_revertsWith_ReceiverBlacklisted() external givenMarketIsNotPaused {
+    function test_unit_outHere_revertsWith_mTokenGateway_UserBlacklisted_variant2() external givenMarketIsNotPaused {
         blacklister.blacklist(users.alice);
 
         vm.expectRevert(ImTokenGateway.mTokenGateway_UserBlacklisted.selector);
         mWethExtension.outHere("", "0x123", new uint256[](0), users.alice);
     }
 
-    function test_unitRevertWhen_revertsWith_JournalSenderBlacklisted() external givenMarketIsNotPaused {
+    function test_unit_outHere_revertsWith_mTokenGateway_UserBlacklisted() external givenMarketIsNotPaused {
         blacklister.blacklist(users.alice);
 
         bytes memory journal =
@@ -670,7 +609,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.outHere(_wrapJournals(journals), "0x123", amounts, address(this));
     }
 
-    function test_unitRevertWhen_revertsWith_JournalSourceChainInvalid() external givenMarketIsNotPaused {
+    function test_unit_outHere_revertsWith_mTokenGateway_ChainNotValid_variant2() external givenMarketIsNotPaused {
         bytes memory journal = _encodeJournal(
             address(this), address(mWethExtension), 1, 1, uint32(LINEA_CHAIN_ID + 1), uint32(block.chainid), true
         );
@@ -684,7 +623,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.outHere(_wrapJournals(journals), "0x123", amounts, address(this));
     }
 
-    function test_unitRevertWhen_revertsWith_JournalDstChainInvalid() external givenMarketIsNotPaused {
+    function test_unit_outHere_revertsWith_mTokenGateway_ChainNotValid() external givenMarketIsNotPaused {
         bytes memory journal = _encodeJournal(
             address(this), address(mWethExtension), 1, 1, LINEA_CHAIN_ID, uint32(block.chainid + 1), true
         );
@@ -698,7 +637,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.outHere(_wrapJournals(journals), "0x123", amounts, address(this));
     }
 
-    function test_unitRevertWhen_revertsWith_L1InclusionMissing() external givenMarketIsNotPaused {
+    function test_unit_outHere_revertsWith_mTokenGateway_L1InclusionRequired() external givenMarketIsNotPaused {
         bytes memory journal =
             _encodeJournal(address(this), address(mWethExtension), 1, 1, LINEA_CHAIN_ID, uint32(block.chainid), false);
         bytes[] memory journals = new bytes[](1);
@@ -712,10 +651,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                  WhenParametersAreRight                  //
+    //                       BalanceOf                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitWhenParametersAreRight_success(uint256 amount) external givenMarketIsNotPaused {
+    function test_unit_balanceOf_success_variant2(uint256 amount) external givenMarketIsNotPaused {
         amount = bound(amount, SMALL, LARGE);
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethExtension), amount);
@@ -735,11 +674,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         assertEq(balanceUserBefore + amount, balanceUserAfter);
     }
 
-    ////////////////////////////////////////////////////////////
-    //          WhenParametersAreRightDifferentUsersQE          //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitWhenParametersAreRightDifferentUsersQE_success(uint256 amount) external givenMarketIsNotPaused {
+    function test_unit_balanceOf_success(uint256 amount) external givenMarketIsNotPaused {
         amount = bound(amount, SMALL, LARGE);
 
         vm.chainId(LINEA_CHAIN_ID);
@@ -765,16 +700,16 @@ contract mTokenGatewayTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                      MTokenGateway                       //
+    //                      SupplyOnHost                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unitMTokenGateway_revertsWith_supplyOnHost_RevertWhen_AmountIs0() external {
+    function test_unit_supplyOnHost_revertsWith_mTokenGateway_AmountNotValid() external {
         // it should revert
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountNotValid.selector);
         mWethExtension.supplyOnHost(0, address(this), LINEA_MINT_SELECTOR);
     }
 
-    function test_unitMTokenGateway_revertsWith_supplyOnHost_RevertWhen_MarketPaused(uint256 amount) external {
+    function test_unit_supplyOnHost_revertsWith_supplyOnHost_RevertsWhen_MarketPaused(uint256 amount) external {
         amount = bound(amount, SMALL, LARGE);
 
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.AmountIn, true);
@@ -789,7 +724,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         _;
     }
 
-    function test_unitMTokenGateway_revertsWith_supplyOnHost_RevertGiven_UserHasNotEnoughBalance(uint256 amount)
+    function test_unit_supplyOnHost_revertsWith_supplyOnHost_RevertGiven_UserHasNotEnoughBalance(uint256 amount)
         external
         mTokenGateway_supplyOnHost_whenAmountGreaterThan0
     {
@@ -801,7 +736,11 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.supplyOnHost(amount, address(this), LINEA_MINT_SELECTOR);
     }
 
-    function test_unitMTokenGateway_success_supplyOnHost_GivenUserHasEnoughBalance(uint256 amount)
+    ////////////////////////////////////////////////////////////
+    //                      AccAmountIn                       //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_accAmountIn_success_supplyOnHost_GivenUserHasEnoughBalance(uint256 amount)
         external
         mTokenGateway_supplyOnHost_whenAmountGreaterThan0
     {
@@ -825,7 +764,11 @@ contract mTokenGatewayTest is BaseMTokenTest {
         assertGt(accAmountInAfter, accAmountInBefore);
     }
 
-    function test_unitMTokenGateway_success_supplyOnHost_GivenUserHasEnoughBalance_ButBlacklisted(uint256 amount)
+    ////////////////////////////////////////////////////////////
+    //                      SupplyOnHost                      //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_supplyOnHost_revertsWith_mTokenGateway_UserBlacklisted(uint256 amount)
         external
         mTokenGateway_supplyOnHost_whenAmountGreaterThan0
     {
@@ -840,11 +783,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.supplyOnHost(amount, address(this), LINEA_MINT_SELECTOR);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                GivenUserHasEnoughBalance                 //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitGivenUserHasEnoughBalance_success_ReceiverBlacklisted(uint256 amount)
+    function test_unit_supplyOnHost_revertsWith_mTokenGateway_UserBlacklisted_givenUserHasEnoughBalance(uint256 amount)
         external
         mTokenGateway_supplyOnHost_whenAmountGreaterThan0
     {
@@ -858,11 +797,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.supplyOnHost(amount, users.alice, LINEA_MINT_SELECTOR);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                      MTokenGateway                       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitMTokenGateway_success_supplyOnHost_GivenUserHasEnoughBalance_ButWhitelistEnabled(uint256 amount)
+    function test_unit_supplyOnHost_revertsWith_mTokenGateway_UserNotWhitelisted(uint256 amount)
         external
         mTokenGateway_supplyOnHost_whenAmountGreaterThan0
     {
@@ -898,10 +833,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                      WrapAndSupply                       //
+    //                      AccAmountIn                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitWrapAndSupply_success() external {
+    function test_unit_accAmountIn_success_variant3() external {
         WrapAndSupply wrapAndSupply = new WrapAndSupply(address(weth));
         vm.label(address(wrapAndSupply), "WrapAndSupply Helper");
 

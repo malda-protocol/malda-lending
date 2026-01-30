@@ -29,30 +29,30 @@ contract ZkVerifierTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       Constructor                        //
+    //                      Constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitConstructor_revertsWith_RevertWhenVerifierZero() public {
+    function test_unit_constructor_revertsWith_ZkVerifier_InputNotValid_variant2() public {
         vm.expectRevert(ZkVerifier.ZkVerifier_InputNotValid.selector);
         new ZkVerifier(owner, imageId, address(0));
     }
 
-    function test_unitConstructor_revertsWith_RevertWhenImageIdZero() public {
+    function test_unit_constructor_revertsWith_ZkVerifier_InputNotValid() public {
         vm.expectRevert(ZkVerifier.ZkVerifier_InputNotValid.selector);
         new ZkVerifier(owner, bytes32(0), address(verifierMock));
     }
 
     ////////////////////////////////////////////////////////////
-    //                       SetVerifier                        //
+    //                      SetVerifier                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetVerifier_revertsWith_RevertsWhenZero() public {
+    function test_unit_setVerifier_revertsWith_ZkVerifier_InputNotValid() public {
         vm.prank(owner);
         vm.expectRevert(ZkVerifier.ZkVerifier_InputNotValid.selector);
         zkVerifier.setVerifier(address(0));
     }
 
-    function test_unitSetVerifier_success_UpdatesAndEmits() public {
+    function test_unit_setVerifier_success_updatesAndEmits() public {
         Risc0VerifierMock newVerifier = new Risc0VerifierMock();
 
         vm.prank(owner);
@@ -64,16 +64,16 @@ contract ZkVerifierTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        SetImageId                        //
+    //                       SetImageId                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetImageId_revertsWith_RevertsWhenZero() public {
+    function test_unit_setImageId_revertsWith_ZkVerifier_ImageNotValid() public {
         vm.prank(owner);
         vm.expectRevert(ZkVerifier.ZkVerifier_ImageNotValid.selector);
         zkVerifier.setImageId(bytes32(0));
     }
 
-    function test_unitSetImageId_success_UpdatesAndEmits() public {
+    function test_unit_setImageId_success_updatesAndEmits() public {
         bytes32 newImageId = bytes32(uint256(2));
 
         vm.prank(owner);
@@ -85,10 +85,10 @@ contract ZkVerifierTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       VerifyInput                        //
+    //                      VerifyInput                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitVerifyInput_revertsWith_RevertWhenVerifierNotSet(bytes memory journalEntry, bytes memory seal)
+    function test_unit_verifyInput_revertsWith_ZkVerifier_VerifierNotSet(bytes memory journalEntry, bytes memory seal)
         public
     {
         vm.assume(journalEntry.length <= 1024);
@@ -100,7 +100,7 @@ contract ZkVerifierTest is BaseTest {
         zkVerifier.verifyInput(journalEntry, seal);
     }
 
-    function test_unitVerifyInput_success_PassesToVerifier(bytes memory journalEntry, bytes memory seal) public {
+    function test_unit_verifyInput_success_passesToVerifier(bytes memory journalEntry, bytes memory seal) public {
         vm.assume(journalEntry.length <= 1024);
         vm.assume(seal.length <= 1024);
 

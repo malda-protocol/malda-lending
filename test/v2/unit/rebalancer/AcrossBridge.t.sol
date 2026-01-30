@@ -40,55 +40,55 @@ contract AcrossBridgeTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       Constructor                        //
+    //                      Constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitConstructor_revertsWith_revertWhenSpokePoolZero() external {
+    function test_unit_constructor_revertsWith_AcrossBridge_AddressNotValid_variant2() external {
         vm.expectRevert(AccrossBridge.AcrossBridge_AddressNotValid.selector);
         new AccrossBridge(address(roles), address(0), address(rebalancer));
     }
 
-    function test_unitConstructor_revertsWith_revertWhenRebalancerZero() external {
+    function test_unit_constructor_revertsWith_AcrossBridge_AddressNotValid() external {
         vm.expectRevert(AccrossBridge.AcrossBridge_AddressNotValid.selector);
         new AccrossBridge(address(roles), address(spokePool), address(0));
     }
 
     ////////////////////////////////////////////////////////////
-    //                  SetWhitelistedRelayer                   //
+    //                 SetWhitelistedRelayer                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetWhitelistedRelayer_revertsWith_revertWhenNotConfigurator() external {
+    function test_unit_setWhitelistedRelayer_revertsWith_BaseBridge_NotAuthorized() external {
         roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), false);
         vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
         bridge.setWhitelistedRelayer(MAINNET_CHAIN_ID, users.bob, true);
     }
 
-    function test_unitSetWhitelistedRelayer_revertsWith_revertWhenRelayerZero() external {
+    function test_unit_setWhitelistedRelayer_revertsWith_AcrossBridge_AddressNotValid() external {
         vm.expectRevert(AccrossBridge.AcrossBridge_AddressNotValid.selector);
         bridge.setWhitelistedRelayer(MAINNET_CHAIN_ID, address(0), true);
     }
 
-    function test_unitSetWhitelistedRelayer_success_updatesMapping() external {
+    function test_unit_setWhitelistedRelayer_success_updatesMapping() external {
         bridge.setWhitelistedRelayer(MAINNET_CHAIN_ID, users.bob, true);
         assertTrue(bridge.isRelayerWhitelisted(1, users.bob));
     }
 
     ////////////////////////////////////////////////////////////
-    //                  HandleV3AcrossMessage                   //
+    //                 HandleV3AcrossMessage                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitHandleV3AcrossMessage_revertsWith_revertWhenCallerNotSpokePool() external {
+    function test_unit_handleV3AcrossMessage_revertsWith_AcrossBridge_NotAuthorized() external {
         vm.expectRevert(AccrossBridge.AcrossBridge_NotAuthorized.selector);
         bridge.handleV3AcrossMessage(address(token), 1, address(0), abi.encode(address(market)));
     }
 
-    function test_unitHandleV3AcrossMessage_revertsWith_revertWhenMarketNotWhitelisted() external {
+    function test_unit_handleV3AcrossMessage_revertsWith_AcrossBridge_InvalidReceiver() external {
         vm.prank(address(spokePool));
         vm.expectRevert(AccrossBridge.AcrossBridge_InvalidReceiver.selector);
         bridge.handleV3AcrossMessage(address(token), 1, address(0), abi.encode(address(market)));
     }
 
-    function test_unitHandleV3AcrossMessage_revertsWith_revertWhenTokenMismatch() external {
+    function test_unit_handleV3AcrossMessage_revertsWith_AcrossBridge_TokenMismatch() external {
         MockMarket otherMarket = new MockMarket(users.bob);
         rebalancer.setWhitelisted(address(otherMarket), true);
 
@@ -97,7 +97,7 @@ contract AcrossBridgeTest is BaseTest {
         bridge.handleV3AcrossMessage(address(token), 1, address(0), abi.encode(address(otherMarket)));
     }
 
-    function test_unitHandleV3AcrossMessage_success_transfersToMarket() external {
+    function test_unit_handleV3AcrossMessage_success_transfersToMarket() external {
         rebalancer.setWhitelisted(address(market), true);
         token.mint(address(bridge), 5e18);
 
@@ -108,24 +108,24 @@ contract AcrossBridgeTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                         SendMsg                          //
+    //                        SendMsg                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSendMsg_revertsWith_revertWhenAmountMismatch() external {
+    function test_unit_sendMsg_revertsWith_BaseBridge_AmountMismatch() external {
         bytes memory message = _encodeMessage(10, 10, users.bob);
 
         vm.expectRevert(BaseBridge.BaseBridge_AmountMismatch.selector);
         bridge.sendMsg(9, address(market), MAINNET_CHAIN_ID, address(token), message, "");
     }
 
-    function test_unitSendMsg_revertsWith_revertWhenRelayerNotWhitelisted() external {
+    function test_unit_sendMsg_revertsWith_AcrossBridge_RelayerNotValid() external {
         bytes memory message = _encodeMessage(10, 10, users.bob);
 
         vm.expectRevert(AccrossBridge.AcrossBridge_RelayerNotValid.selector);
         bridge.sendMsg(10, address(market), MAINNET_CHAIN_ID, address(token), message, "");
     }
 
-    function test_unitSendMsg_revertsWith_revertWhenOutputBelowMin() external {
+    function test_unit_sendMsg_revertsWith_AcrossBridge_MaxFeeExceeded() external {
         bridge.setWhitelistedRelayer(MAINNET_CHAIN_ID, users.bob, true);
         bytes memory message = _encodeMessage(100, 80, users.bob);
 
@@ -133,7 +133,7 @@ contract AcrossBridgeTest is BaseTest {
         bridge.sendMsg(100, address(market), MAINNET_CHAIN_ID, address(token), message, "");
     }
 
-    function test_unitSendMsg_success_transfersAndDeposits() external {
+    function test_unit_sendMsg_success_transfersAndDeposits() external {
         bridge.setWhitelistedRelayer(MAINNET_CHAIN_ID, users.bob, true);
 
         uint256 inputAmount = 100;
@@ -160,10 +160,10 @@ contract AcrossBridgeTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                          GetFee                          //
+    //                         GetFee                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGetFee_revertsWith_reverts() external {
+    function test_unit_getFee_revertsWith_AcrossBridge_NotImplemented() external {
         vm.expectRevert(AccrossBridge.AcrossBridge_NotImplemented.selector);
         bridge.getFee(MAINNET_CHAIN_ID, "", "");
     }

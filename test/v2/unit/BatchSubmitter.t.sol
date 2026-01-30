@@ -101,20 +101,43 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        RevertWhen                        //
+    //                      Constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitRevertWhen_revertsWith_RolesZero() external {
+    function test_unit_constructor_revertsWith_BatchSubmitter_AddressNotValid_variant2() external {
         vm.expectRevert(BatchSubmitter.BatchSubmitter_AddressNotValid.selector);
         new BatchSubmitter(address(0), address(1), address(this));
     }
 
-    function test_unitRevertWhen_revertsWith_ZkVerifierZero() external {
+    function test_unit_constructor_revertsWith_BatchSubmitter_AddressNotValid() external {
         vm.expectRevert(BatchSubmitter.BatchSubmitter_AddressNotValid.selector);
         new BatchSubmitter(address(1), address(0), address(this));
     }
 
-    function test_unitRevertWhen_revertsWith_CallerIsNotProofForwarder()
+    ////////////////////////////////////////////////////////////
+    //                    UpdateZkVerifier                    //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_updateZkVerifier_revertsWith_BatchSubmitter_AddressNotValid() external {
+        vm.expectRevert(BatchSubmitter.BatchSubmitter_AddressNotValid.selector);
+        batchSubmitter.updateZkVerifier(address(0));
+    }
+
+    function test_unit_updateZkVerifier_success_updates() external {
+        ZkVerifier newVerifier = new ZkVerifier(address(this), "0x456", address(verifierMock));
+
+        vm.expectEmit(true, true, true, true);
+        emit BatchSubmitter.ZkVerifierUpdated(address(zkVerifier), address(newVerifier));
+
+        batchSubmitter.updateZkVerifier(address(newVerifier));
+        assertEq(address(batchSubmitter.verifier()), address(newVerifier));
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                      BatchProcess                      //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_batchProcess_revertsWith_BatchSubmitter_CallerNotAllowed()
         external
         givenSenderDoesNotHaveProofForwarderRole
     {
@@ -137,7 +160,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         );
     }
 
-    function test_unitRevertWhen_revertsWith_JournalDataIsEmpty()
+    function test_unit_batchProcess_revertsWith_BatchSubmitter_JournalNotValid()
         external
         givenSenderHasProofForwarderRole
         givenJournalDataIsEmpty
@@ -167,30 +190,10 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         );
     }
 
-    ////////////////////////////////////////////////////////////
-    //                     UpdateZkVerifier                     //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitUpdateZkVerifier_revertsWith_RevertWhenZero() external {
-        vm.expectRevert(BatchSubmitter.BatchSubmitter_AddressNotValid.selector);
-        batchSubmitter.updateZkVerifier(address(0));
-    }
-
-    function test_unitUpdateZkVerifier_success_Updates() external {
-        ZkVerifier newVerifier = new ZkVerifier(address(this), "0x456", address(verifierMock));
-
-        vm.expectEmit(true, true, true, true);
-        emit BatchSubmitter.ZkVerifierUpdated(address(zkVerifier), address(newVerifier));
-
-        batchSubmitter.updateZkVerifier(address(newVerifier));
-        assertEq(address(batchSubmitter.verifier()), address(newVerifier));
-    }
-
-    ////////////////////////////////////////////////////////////
-    //                        RevertWhen                        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitRevertWhen_revertsWith_InvalidSelector() external givenSenderHasProofForwarderRole {
+    function test_unit_batchProcess_revertsWith_BatchSubmitter_InvalidSelector()
+        external
+        givenSenderHasProofForwarderRole
+    {
         bytes4[] memory invalidSelectors = new bytes4[](1);
         invalidSelectors[0] = bytes4(0x12345678);
 
@@ -228,7 +231,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         );
     }
 
-    function test_unitRevertWhen_revertsWith_JournalsDoNotMatch() external givenSenderHasProofForwarderRole {
+    function test_unit_batchProcess_revertsWith_JournalsDoNotMatch() external givenSenderHasProofForwarderRole {
         bytes memory encodedJournals = abi.encode(journals);
 
         bytes32[] memory invalidInitHashes = new bytes32[](2);
@@ -253,7 +256,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         );
     }
 
-    function test_unitRevertWhen_revertsWith_AmountsLengthMismatch() external givenSenderHasProofForwarderRole {
+    function test_unit_batchProcess_revertsWith_AmountsLengthMismatch() external givenSenderHasProofForwarderRole {
         uint256[] memory invalidAmounts = new uint256[](1);
         invalidAmounts[0] = 1 ether;
 
@@ -277,7 +280,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         );
     }
 
-    function test_unitRevertWhen_revertsWith_TokenAmountsLengthMismatch() external givenSenderHasProofForwarderRole {
+    function test_unit_batchProcess_revertsWith_TokenAmountsLengthMismatch() external givenSenderHasProofForwarderRole {
         uint256[] memory invalidTokenAmounts = new uint256[](1);
         invalidTokenAmounts[0] = 1 ether;
 
@@ -301,7 +304,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         );
     }
 
-    function test_unitRevertWhen_revertsWith_MarketIsNotListed() external givenSenderHasProofForwarderRole {
+    function test_unit_batchProcess_success_marketIsNotListed_failed() external givenSenderHasProofForwarderRole {
         mErc20Host mErc20HostImpl = new mErc20Host();
         bytes memory initData = abi.encodeWithSelector(
             mErc20Host.initialize.selector,
@@ -364,11 +367,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         );
     }
 
-    ////////////////////////////////////////////////////////////
-    //                 WhenBatchProcessIsCalled                 //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitWhenBatchProcessIsCalled_success()
+    function test_unit_batchProcess_success_variant4()
         external
         givenSenderHasProofForwarderRole
         whenMarketIsListed(address(mWethHost))
@@ -392,11 +391,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         );
     }
 
-    ////////////////////////////////////////////////////////////
-    //             WhenBatchProcessIsCalledWithMint             //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitWhenBatchProcessIsCalledWithMint_success()
+    function test_unit_batchProcess_success_variant3()
         external
         givenSenderHasProofForwarderRole
         whenMarketIsListed(address(mWethHost))
@@ -424,11 +419,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         );
     }
 
-    ////////////////////////////////////////////////////////////
-    //            WhenBatchProcessIsCalledWithRepay             //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitWhenBatchProcessIsCalledWithRepay_success()
+    function test_unit_batchProcess_success_variant2()
         external
         givenSenderHasProofForwarderRole
         whenMarketIsListed(address(mWethHost))
@@ -464,11 +455,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         );
     }
 
-    ////////////////////////////////////////////////////////////
-    //          WhenBatchProcessIsCalledWithLiquidate           //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitWhenBatchProcessIsCalledWithLiquidate_success()
+    function test_unit_batchProcess_success()
         external
         givenSenderHasProofForwarderRole
         whenMarketIsListed(address(mWethHost))

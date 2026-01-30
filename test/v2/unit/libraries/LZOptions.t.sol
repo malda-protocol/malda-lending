@@ -5,19 +5,19 @@ import {LZOptions} from "src/libraries/LZOptions.sol";
 
 contract LZOptionsTest is BaseTest {
     ////////////////////////////////////////////////////////////
-    //                        NewOptions                        //
+    //                       NewOptions                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitNewOptions_success_returnsType3Prefix() external {
+    function test_unit_newOptions_success() external {
         bytes memory options = LZOptions.newOptions();
         assertEq(options, abi.encodePacked(uint16(3)));
     }
 
     ////////////////////////////////////////////////////////////
-    //                AddExecutorLzReceiveOption                //
+    //               AddExecutorLzReceiveOption               //
     ////////////////////////////////////////////////////////////
 
-    function test_unitAddExecutorLzReceiveOption_success_appendsData() external {
+    function test_unit_addExecutorLzReceiveOption_success() external {
         bytes memory options = LZOptions.newOptions();
         uint128 gas = 1000;
         uint128 value = 2000;
@@ -32,10 +32,10 @@ contract LZOptionsTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                AddExecutorLzComposeOption                //
+    //               AddExecutorLzComposeOption               //
     ////////////////////////////////////////////////////////////
 
-    function test_unitAddExecutorLzComposeOption_success_appendsData() external {
+    function test_unit_addExecutorLzComposeOption_success() external {
         bytes memory options = LZOptions.newOptions();
         uint16 index = 4;
         uint128 gas = 1111;
@@ -51,10 +51,10 @@ contract LZOptionsTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //            AddExecutorOrderedExecutionOption             //
+    //           AddExecutorOrderedExecutionOption            //
     ////////////////////////////////////////////////////////////
 
-    function test_unitAddExecutorOrderedExecutionOption_success_appendsData() external {
+    function test_unit_addExecutorOrderedExecutionOption_success() external {
         bytes memory options = LZOptions.newOptions();
 
         bytes memory updated = LZOptions.addExecutorOrderedExecutionOption(options);

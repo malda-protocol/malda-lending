@@ -8,20 +8,24 @@ import {BasePauserTest} from "test/v2/utils/BasePauserTest.t.sol";
 
 contract PauserTest is BasePauserTest {
     ////////////////////////////////////////////////////////////
-    //                        RevertWhen                        //
+    //                      Constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitRevertWhen_revertsWith_RolesIsZero() external {
+    function test_unit_constructor_revertsWith_Pauser_AddressNotValid_variant2() external {
         vm.expectRevert(IPauser.Pauser_AddressNotValid.selector);
         new Pauser(address(0), address(1), address(this));
     }
 
-    function test_unitRevertWhen_revertsWith_OperatorIsZero() external {
+    function test_unit_constructor_revertsWith_Pauser_AddressNotValid() external {
         vm.expectRevert(IPauser.Pauser_AddressNotValid.selector);
         new Pauser(address(1), address(0), address(this));
     }
 
-    function test_unitRevertWhen_revertsWith_ContractIsAddress0() external {
+    ////////////////////////////////////////////////////////////
+    //                   AddPausableMarket                    //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_addPausableMarket_revertsWith_Pauser_AddressNotValid() external {
         vm.expectRevert(IPauser.Pauser_AddressNotValid.selector);
         pauser.addPausableMarket(address(0), IPauser.PausableType.Host);
 
@@ -29,21 +33,19 @@ contract PauserTest is BasePauserTest {
         pauser.addPausableMarket(address(0), IPauser.PausableType.Extension);
     }
 
-    ////////////////////////////////////////////////////////////
-    //               WhenContractIsNotRegistered                //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitWhenContractIsNotRegistered_success() external {
+    function test_unit_addPausableMarket_success() external {
         pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
         assertTrue(pauser.registeredContracts(address(mWethHost)));
         assertEq(uint256(pauser.contractTypes(address(mWethHost))), uint256(IPauser.PausableType.Host));
     }
 
     ////////////////////////////////////////////////////////////
-    //             WhenContractDoesNotHaveThePAUSE              //
+    //                EmergencyPauseMarketFor                 //
     ////////////////////////////////////////////////////////////
 
-    function test_unitWhenContractDoesNotHaveThePAUSE_success_MANAGERRole() external {
+    function test_unit_emergencyPauseMarketFor_revertsWith_Pauser_NotAuthorized_whenContractDoesNotHaveThePAUSE()
+        external
+    {
         pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
         pauser.addPausableMarket(address(mWethExtension), IPauser.PausableType.Extension);
 
@@ -64,10 +66,10 @@ contract PauserTest is BasePauserTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //            GivenEmergencyPauseMarketIsCalled             //
+    //                   AddPausableMarket                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGivenEmergencyPauseMarketIsCalled_success() external whenContractHasThePAUSE_MANAGERRole {
+    function test_unit_addPausableMarket_success_variant3() external whenContractHasThePAUSE_MANAGERRole {
         pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
 
         assertFalse(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint));
@@ -94,11 +96,7 @@ contract PauserTest is BasePauserTest {
         assertTrue(mWethExtension.isPaused(ImTokenOperationTypes.OperationType.Redeem));
     }
 
-    ////////////////////////////////////////////////////////////
-    //           GivenEmergencyPauseMarketForIsCalled           //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitGivenEmergencyPauseMarketForIsCalled_success() external whenContractHasThePAUSE_MANAGERRole {
+    function test_unit_addPausableMarket_success_variant2() external whenContractHasThePAUSE_MANAGERRole {
         pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
         assertFalse(operator.isPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint));
         pauser.emergencyPauseMarketFor(address(mWethHost), ImTokenOperationTypes.OperationType.Mint);
@@ -112,10 +110,10 @@ contract PauserTest is BasePauserTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //              GivenEmergencyPauseAllIsCalled              //
+    //                   EmergencyPauseAll                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGivenEmergencyPauseAllIsCalled_success() external whenContractHasThePAUSE_MANAGERRole {
+    function test_unit_emergencyPauseAll_success() external whenContractHasThePAUSE_MANAGERRole {
         pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
         pauser.addPausableMarket(address(mWethExtension), IPauser.PausableType.Extension);
         pauser.emergencyPauseAll();
@@ -139,19 +137,22 @@ contract PauserTest is BasePauserTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        RevertWhen                        //
+    //                  EmergencyPauseMarket                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitRevertWhen_revertsWith_ContractIsNotEnabled() external whenContractHasThePAUSE_MANAGERRole {
+    function test_unit_emergencyPauseMarket_revertsWith_Pauser_ContractNotEnabled()
+        external
+        whenContractHasThePAUSE_MANAGERRole
+    {
         vm.expectRevert(IPauser.Pauser_ContractNotEnabled.selector);
         pauser.emergencyPauseMarket(users.bob);
     }
 
     ////////////////////////////////////////////////////////////
-    //               EmergencyPauseMarketForHost                //
+    //                   AddPausableMarket                    //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzzEmergencyPauseMarketForHost_success(uint8 opIndex) external whenContractHasThePAUSE_MANAGERRole {
+    function test_fuzz_addPausableMarket_success(uint8 opIndex) external whenContractHasThePAUSE_MANAGERRole {
         opIndex = uint8(bound(opIndex, 0, 11));
         ImTokenOperationTypes.OperationType opType = ImTokenOperationTypes.OperationType(opIndex);
 
@@ -162,14 +163,7 @@ contract PauserTest is BasePauserTest {
         assertTrue(operator.isPaused(address(mWethHost), opType));
     }
 
-    ////////////////////////////////////////////////////////////
-    //             EmergencyPauseMarketForExtension             //
-    ////////////////////////////////////////////////////////////
-
-    function test_fuzzEmergencyPauseMarketForExtension_success(uint8 opIndex)
-        external
-        whenContractHasThePAUSE_MANAGERRole
-    {
+    function test_fuzz_addPausableMarket_success_variant2(uint8 opIndex) external whenContractHasThePAUSE_MANAGERRole {
         opIndex = uint8(bound(opIndex, 0, 11));
         ImTokenOperationTypes.OperationType opType = ImTokenOperationTypes.OperationType(opIndex);
 
@@ -186,19 +180,19 @@ contract PauserTest is BasePauserTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        RevertWhen                        //
+    //                  RemovePausableMarket                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitRevertWhen_revertsWith_ContractIsNotRegistered() external {
+    function test_unit_removePausableMarket_revertsWith_Pauser_EntryNotFound_variant2() external {
         vm.expectRevert(IPauser.Pauser_EntryNotFound.selector);
         pauser.removePausableMarket(address(mWethHost));
     }
 
     ////////////////////////////////////////////////////////////
-    //                 WhenContractIsRegistered                 //
+    //                   PausableContracts                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitWhenContractIsRegistered_success() external {
+    function test_unit_pausableContracts_revertsWith() external {
         pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
         pauser.addPausableMarket(address(mWethExtension), IPauser.PausableType.Extension);
 
@@ -216,10 +210,10 @@ contract PauserTest is BasePauserTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        RevertWhen                        //
+    //                  RemovePausableMarket                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitRevertWhen_revertsWith_RegisteredButNotInArray() external {
+    function test_unit_removePausableMarket_revertsWith_Pauser_EntryNotFound() external {
         pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
 
         address phantom = users.bob;

@@ -14,23 +14,23 @@ contract RolesTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                         AllowFor                         //
+    //                        AllowFor                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitAllowFor_revertsWith_revertWhenContractZero() external {
+    function test_unit_allowFor_revertsWith_Roles_InputNotValid_variant2() external {
         bytes32 pauseManager = roles.PAUSE_MANAGER();
         vm.prank(users.admin);
         vm.expectRevert(IRoles.Roles_InputNotValid.selector);
         roles.allowFor(address(0), pauseManager, true);
     }
 
-    function test_unitAllowFor_revertsWith_revertWhenRoleZero() external {
+    function test_unit_allowFor_revertsWith_Roles_InputNotValid() external {
         vm.prank(users.admin);
         vm.expectRevert(IRoles.Roles_InputNotValid.selector);
         roles.allowFor(users.alice, bytes32(0), true);
     }
 
-    function test_unitAllowFor_success_setsRole() external {
+    function test_unit_allowFor_success_setsRole() external {
         bytes32 pauseManager = roles.PAUSE_MANAGER();
         vm.prank(users.admin);
         roles.allowFor(users.alice, pauseManager, true);

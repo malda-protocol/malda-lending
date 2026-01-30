@@ -77,10 +77,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //              WhitelistBlocksNonWhitelisted               //
+    //                 EnterMarketsWithSender                 //
     ////////////////////////////////////////////////////////////
 
-    function test_unitWhitelistBlocksNonWhitelisted_success() public {
+    function test_unit_enterMarketsWithSender_revertsWith_Operator_UserNotWhitelisted() public {
         _listMarket(market);
         operator.setWhitelistStatus(true);
 
@@ -103,11 +103,7 @@ contract OperatorTest is BaseUnitTest {
         assertTrue(operator.checkMembership(users.alice, address(market)));
     }
 
-    ////////////////////////////////////////////////////////////
-    //      WhitelistAllowsWhitelistedUserForListedMarket       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitWhitelistAllowsWhitelistedUserForListedMarket_success() public {
+    function test_unit_enterMarketsWithSender_success() public {
         _listMarket(market);
         operator.setWhitelistStatus(true);
         operator.setWhitelistedUser(users.alice, true);
@@ -119,10 +115,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //               OnlyAllowedUserUsesWhitelist               //
+    //                  CallOnlyAllowedUser                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitOnlyAllowedUserUsesWhitelist_success() public {
+    function test_unit_callOnlyAllowedUser_revertsWith_Operator_UserNotWhitelisted() public {
         OperatorHarness harness = _deployHarness();
         harness.callOnlyAllowedUser(users.bob);
 
@@ -136,10 +132,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //        WhitelistDisabledAllowsNonWhitelistedUser         //
+    //                    CheckMembership                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitWhitelistDisabledAllowsNonWhitelistedUser_success() public {
+    function test_unit_checkMembership_success_variant2() public {
         _listMarket(market);
 
         assertFalse(operator.whitelistEnabled());
@@ -155,10 +151,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                 IfNotBlacklistedReverts                  //
+    //                    BeforeMTokenMint                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitIfNotBlacklistedReverts_revertsWith() public {
+    function test_unit_beforeMTokenMint_revertsWith_Operator_UserBlacklisted_ifNotBlacklistedReverts() public {
         _listMarket(market);
         blacklister.blacklist(users.alice);
         vm.expectRevert(OperatorStorage.Operator_UserBlacklisted.selector);
@@ -166,10 +162,12 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //             IfNotBlacklistedAllowsWhenClean              //
+    //                  CallIfNotBlacklisted                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitIfNotBlacklistedAllowsWhenClean_success() public {
+    function test_unit_callIfNotBlacklisted_revertsWith_Operator_UserBlacklisted_ifNotBlacklistedAllowsWhenClean()
+        public
+    {
         OperatorHarness harness = _deployHarness();
         harness.callIfNotBlacklisted(users.alice);
 
@@ -179,10 +177,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //      BeforeMTokenMintRevertsWhenReceiverBlacklisted      //
+    //                    BeforeMTokenMint                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenMintRevertsWhenReceiverBlacklisted_revertsWith() public {
+    function test_unit_beforeMTokenMint_revertsWith_Operator_UserBlacklisted_revertsWhenReceiverBlacklisted() public {
         _listMarket(market);
         blacklister.blacklist(users.bob);
 
@@ -191,10 +189,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                 InitFirewallAndRegister                  //
+    //                    FirewallRegister                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitInitFirewallAndRegister_success() public {
+    function test_unit_firewallRegister_success() public {
         MockFirewall firewall = new MockFirewall();
         operator.initFirewall(address(firewall));
         operator.firewallRegister(users.alice);
@@ -205,10 +203,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                      SetBlacklister                      //
+    //                     SetBlacklister                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetBlacklister_success() public {
+    function test_unit_setBlacklister_success_variant2() public {
         Blacklister blacklisterImp = new Blacklister();
         bytes memory initData = abi.encodeWithSelector(Blacklister.initialize.selector, address(this), address(roles));
         ERC1967Proxy proxy = new ERC1967Proxy(address(blacklisterImp), initData);
@@ -217,20 +215,16 @@ contract OperatorTest is BaseUnitTest {
         assertEq(address(operator.blacklistOperator()), address(proxy));
     }
 
-    ////////////////////////////////////////////////////////////
-    //               SetBlacklisterRevertsOnZero                //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetBlacklisterRevertsOnZero_revertsWith() public {
+    function test_unit_setBlacklister_revertsWith_Operator_AddressNotValid_revertsOnZero() public {
         vm.expectRevert(Operator.Operator_AddressNotValid.selector);
         operator.setBlacklister(address(0));
     }
 
     ////////////////////////////////////////////////////////////
-    //                           Fuzz                           //
+    //                    SetBorrowSizeMin                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitFuzz_success_setBorrowSizeMin(uint8 len, uint256 seed, uint256 amount) public {
+    function test_fuzz_setBorrowSizeMin_success(uint8 len, uint256 seed, uint256 amount) public {
         vm.assume(len > 0 && len < 5);
         vm.assume(amount <= type(uint256).max - len);
 
@@ -247,11 +241,7 @@ contract OperatorTest is BaseUnitTest {
         }
     }
 
-    ////////////////////////////////////////////////////////////
-    //        SetBorrowSizeMinRevertsOnMismatchedLength         //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetBorrowSizeMinRevertsOnMismatchedLength_revertsWith() public {
+    function test_unit_setBorrowSizeMin_revertsWith_Operator_InvalidInput_revertsOnMismatchedLength() public {
         address[] memory markets = new address[](1);
         uint256[] memory amounts = new uint256[](2);
         markets[0] = address(1);
@@ -261,58 +251,50 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                SetWhitelistStatusDisables                //
+    //                   SetWhitelistStatus                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetWhitelistStatusDisables_success() public {
+    function test_unit_setWhitelistStatus_success() public {
         operator.setWhitelistStatus(true);
         operator.setWhitelistStatus(false);
         assertFalse(operator.whitelistEnabled());
     }
 
     ////////////////////////////////////////////////////////////
-    //                     SetRolesOperator                     //
+    //                    SetRolesOperator                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetRolesOperator_success() public {
+    function test_unit_setRolesOperator_success_variant3() public {
         Roles newRoles = new Roles(address(this));
         operator.setRolesOperator(address(newRoles));
         assertEq(address(operator.rolesOperator()), address(newRoles));
     }
 
-    ////////////////////////////////////////////////////////////
-    //              SetRolesOperatorRevertsOnZero               //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetRolesOperatorRevertsOnZero_revertsWith() public {
+    function test_unit_setRolesOperator_revertsWith_Operator_InvalidInput_revertsOnZero() public {
         vm.expectRevert(OperatorStorage.Operator_InvalidInput.selector);
         operator.setRolesOperator(address(0));
     }
 
     ////////////////////////////////////////////////////////////
-    //               SetPriceOracleRevertsOnZero                //
+    //                     SetPriceOracle                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetPriceOracleRevertsOnZero_revertsWith() public {
+    function test_unit_setPriceOracle_revertsWith_Operator_InvalidInput_revertsOnZero() public {
         vm.expectRevert(OperatorStorage.Operator_InvalidInput.selector);
         operator.setPriceOracle(address(0));
     }
 
     ////////////////////////////////////////////////////////////
-    //                           Fuzz                           //
+    //                     SetCloseFactor                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitFuzz_success_setCloseFactor(uint256 closeFactor) public {
+    function test_fuzz_setCloseFactor_success(uint256 closeFactor) public {
         closeFactor = bound(closeFactor, CLOSE_FACTOR_MIN, CLOSE_FACTOR_MAX);
         operator.setCloseFactor(closeFactor);
         assertEq(operator.closeFactorMantissa(), closeFactor);
     }
 
-    ////////////////////////////////////////////////////////////
-    //             SetCloseFactorRevertsOutOfRange              //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetCloseFactorRevertsOutOfRange_revertsWith() public {
+    function test_unit_setCloseFactor_revertsWith_Operator_InvalidInput_revertsOutOfRange() public {
         vm.expectRevert(OperatorStorage.Operator_InvalidInput.selector);
         operator.setCloseFactor(CLOSE_FACTOR_MIN - 1);
 
@@ -321,30 +303,22 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //          SetCollateralFactorRevertsForUnlisted           //
+    //                  SetCollateralFactor                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetCollateralFactorRevertsForUnlisted_revertsWith() public {
+    function test_unit_setCollateralFactor_revertsWith_Operator_MarketNotListed_revertsForUnlisted() public {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         operator.setCollateralFactor(address(market), 0.5e18);
     }
 
-    ////////////////////////////////////////////////////////////
-    //          SetCollateralFactorRevertsForPriceZero          //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetCollateralFactorRevertsForPriceZero_revertsWith() public {
+    function test_unit_setCollateralFactor_revertsWith_Operator_EmptyPrice_revertsForPriceZero() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(0);
         vm.expectRevert(OperatorStorage.Operator_EmptyPrice.selector);
         operator.setCollateralFactor(address(market), 0.5e18);
     }
 
-    ////////////////////////////////////////////////////////////
-    //            SetCollateralFactorRevertsAboveMax            //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetCollateralFactorRevertsAboveMax_revertsWith() public {
+    function test_unit_setCollateralFactor_revertsWith_Operator_InvalidCollateralFactor_revertsAboveMax() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         vm.expectRevert(OperatorStorage.Operator_InvalidCollateralFactor.selector);
@@ -352,10 +326,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                SetCollateralFactorUpdates                //
+    //                        Markets                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetCollateralFactorUpdates_success() public {
+    function test_unit_markets_success() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setCollateralFactor(address(market), 0.5e18);
@@ -364,20 +338,16 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //           SupportMarketRevertsIfAlreadyListed            //
+    //                     SupportMarket                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSupportMarketRevertsIfAlreadyListed_revertsWith() public {
+    function test_unit_supportMarket_revertsWith_Operator_MarketAlreadyListed_revertsIfAlreadyListed() public {
         _listMarket(market);
         vm.expectRevert(OperatorStorage.Operator_MarketAlreadyListed.selector);
         operator.supportMarket(address(market));
     }
 
-    ////////////////////////////////////////////////////////////
-    //        SupportMarketRevertsIfAlreadyInAllMarkets         //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSupportMarketRevertsIfAlreadyInAllMarkets_revertsWith() public {
+    function test_unit_supportMarket_revertsWith_Operator_MarketAlreadyListed() public {
         OperatorHarness harnessImpl = new OperatorHarness();
         bytes memory initData =
             abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(blacklister), address(this));
@@ -392,29 +362,25 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                SetOutflowVolumeTimeWindow                //
+    //               SetOutflowVolumeTimeWindow               //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzzSetOutflowVolumeTimeWindow_success(uint256 newTimeWindow) public {
+    function test_fuzz_setOutflowVolumeTimeWindow_success(uint256 newTimeWindow) public {
         vm.assume(newTimeWindow > 0);
         operator.setOutflowVolumeTimeWindow(newTimeWindow);
         assertEq(operator.outflowResetTimeWindow(), newTimeWindow);
     }
 
-    ////////////////////////////////////////////////////////////
-    //         SetOutflowVolumeTimeWindowRevertsOnZero          //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetOutflowVolumeTimeWindowRevertsOnZero_revertsWith() public {
+    function test_unit_setOutflowVolumeTimeWindow_revertsWith_Operator_InvalidInput_revertsOnZero() public {
         vm.expectRevert(OperatorStorage.Operator_InvalidInput.selector);
         operator.setOutflowVolumeTimeWindow(0);
     }
 
     ////////////////////////////////////////////////////////////
-    //                    ResetOutflowVolume                    //
+    //                   ResetOutflowVolume                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitResetOutflowVolume_success() public {
+    function test_unit_resetOutflowVolume_success() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setOutflowTimeLimitInUSD(10);
@@ -429,20 +395,18 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //    CheckOutflowVolumeLimitRevertsWhenMarketNotListed     //
+    //                CheckOutflowVolumeLimit                 //
     ////////////////////////////////////////////////////////////
 
-    function test_unitCheckOutflowVolumeLimitRevertsWhenMarketNotListed_revertsWith() public {
+    function test_unit_checkOutflowVolumeLimit_revertsWith_Operator_MarketNotListed_revertsWhenMarketNotListed()
+        public
+    {
         vm.prank(address(market));
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         operator.checkOutflowVolumeLimit(1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //        CheckOutflowVolumeLimitDisabledDoesNothing        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitCheckOutflowVolumeLimitDisabledDoesNothing_success() public {
+    function test_unit_checkOutflowVolumeLimit_success() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         vm.prank(address(market));
@@ -450,11 +414,7 @@ contract OperatorTest is BaseUnitTest {
         assertEq(operator.cumulativeOutflowVolume(), 0);
     }
 
-    ////////////////////////////////////////////////////////////
-    //      CheckOutflowVolumeLimitResetsWindowAndUpdates       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitCheckOutflowVolumeLimitResetsWindowAndUpdates_success() public {
+    function test_unit_checkOutflowVolumeLimit_success_variant2() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setOutflowTimeLimitInUSD(10);
@@ -468,11 +428,7 @@ contract OperatorTest is BaseUnitTest {
         assertEq(operator.cumulativeOutflowVolume(), 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //     CheckOutflowVolumeLimitDoesNotResetWithinWindow      //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitCheckOutflowVolumeLimitDoesNotResetWithinWindow_success() public {
+    function test_unit_checkOutflowVolumeLimit_success_variant3() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setOutflowTimeLimitInUSD(10);
@@ -485,11 +441,7 @@ contract OperatorTest is BaseUnitTest {
         assertEq(operator.cumulativeOutflowVolume(), 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //       CheckOutflowVolumeLimitRevertsWhenOverLimit        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitCheckOutflowVolumeLimitRevertsWhenOverLimit_revertsWith() public {
+    function test_unit_checkOutflowVolumeLimit_revertsWith_Operator_OutflowVolumeReached_revertsWhenOverLimit() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setOutflowTimeLimitInUSD(1);
@@ -499,11 +451,9 @@ contract OperatorTest is BaseUnitTest {
         operator.checkOutflowVolumeLimit(2e10);
     }
 
-    ////////////////////////////////////////////////////////////
-    //       CheckOutflowVolumeLimitRevertsWhenOracleZero       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitCheckOutflowVolumeLimitRevertsWhenOracleZero_revertsWith() public {
+    function test_unit_checkOutflowVolumeLimit_revertsWith_Operator_OracleUnderlyingFetchError_revertsWhenOracleZero()
+        public
+    {
         _listMarket(market);
         operator.setOutflowTimeLimitInUSD(1);
 
@@ -513,10 +463,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //               SetMarketBorrowCapsGuardian                //
+    //                  SetMarketBorrowCaps                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetMarketBorrowCapsGuardian_success() public {
+    function test_unit_setMarketBorrowCaps_success() public {
         roles.allowFor(guardian, roles.GUARDIAN_BORROW_CAP(), true);
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
@@ -528,11 +478,7 @@ contract OperatorTest is BaseUnitTest {
         assertEq(operator.borrowCaps(address(market)), 100);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                 SetMarketBorrowCapsOwner                 //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetMarketBorrowCapsOwner_success() public {
+    function test_unit_setMarketBorrowCaps_success_variant2() public {
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
         markets[0] = address(market);
@@ -542,11 +488,7 @@ contract OperatorTest is BaseUnitTest {
         assertEq(operator.borrowCaps(address(market)), 55);
     }
 
-    ////////////////////////////////////////////////////////////
-    //         SetMarketBorrowCapsRevertsForNonGuardian         //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetMarketBorrowCapsRevertsForNonGuardian_revertsWith() public {
+    function test_unit_setMarketBorrowCaps_revertsWith_Operator_OnlyAdminOrRole_revertsForNonGuardian() public {
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
         markets[0] = address(market);
@@ -557,22 +499,14 @@ contract OperatorTest is BaseUnitTest {
         operator.setMarketBorrowCaps(markets, caps);
     }
 
-    ////////////////////////////////////////////////////////////
-    //         SetMarketBorrowCapsRevertsOnInvalidInput         //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetMarketBorrowCapsRevertsOnInvalidInput_revertsWith() public {
+    function test_unit_setMarketBorrowCaps_revertsWith_Operator_InvalidInput_revertsOnInvalidInput() public {
         address[] memory markets = new address[](0);
         uint256[] memory caps = new uint256[](0);
         vm.expectRevert(OperatorStorage.Operator_InvalidInput.selector);
         operator.setMarketBorrowCaps(markets, caps);
     }
 
-    ////////////////////////////////////////////////////////////
-    //      SetMarketBorrowCapsRevertsOnMismatchedLengths       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetMarketBorrowCapsRevertsOnMismatchedLengths_revertsWith() public {
+    function test_unit_setMarketBorrowCaps_revertsWith_Operator_InvalidInput_revertsOnMismatchedLengths() public {
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](2);
         markets[0] = address(market);
@@ -582,10 +516,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //               SetMarketSupplyCapsGuardian                //
+    //                  SetMarketSupplyCaps                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetMarketSupplyCapsGuardian_success() public {
+    function test_unit_setMarketSupplyCaps_success() public {
         roles.allowFor(guardian, roles.GUARDIAN_SUPPLY_CAP(), true);
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
@@ -597,11 +531,7 @@ contract OperatorTest is BaseUnitTest {
         assertEq(operator.supplyCaps(address(market)), 100);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                 SetMarketSupplyCapsOwner                 //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetMarketSupplyCapsOwner_success() public {
+    function test_unit_setMarketSupplyCaps_success_variant2() public {
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
         markets[0] = address(market);
@@ -611,11 +541,7 @@ contract OperatorTest is BaseUnitTest {
         assertEq(operator.supplyCaps(address(market)), 77);
     }
 
-    ////////////////////////////////////////////////////////////
-    //         SetMarketSupplyCapsRevertsForNonGuardian         //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetMarketSupplyCapsRevertsForNonGuardian_revertsWith() public {
+    function test_unit_setMarketSupplyCaps_revertsWith_Operator_OnlyAdminOrRole_revertsForNonGuardian() public {
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
         markets[0] = address(market);
@@ -626,11 +552,7 @@ contract OperatorTest is BaseUnitTest {
         operator.setMarketSupplyCaps(markets, caps);
     }
 
-    ////////////////////////////////////////////////////////////
-    //         SetMarketSupplyCapsRevertsOnInvalidInput         //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetMarketSupplyCapsRevertsOnInvalidInput_revertsWith() public {
+    function test_unit_setMarketSupplyCaps_revertsWith_Operator_InvalidInput_revertsOnInvalidInput() public {
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](0);
         markets[0] = address(market);
@@ -639,11 +561,7 @@ contract OperatorTest is BaseUnitTest {
         operator.setMarketSupplyCaps(markets, caps);
     }
 
-    ////////////////////////////////////////////////////////////
-    //         SetMarketSupplyCapsRevertsOnEmptyArrays          //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetMarketSupplyCapsRevertsOnEmptyArrays_revertsWith() public {
+    function test_unit_setMarketSupplyCaps_revertsWith_Operator_InvalidInput_revertsOnEmptyArrays() public {
         address[] memory markets = new address[](0);
         uint256[] memory caps = new uint256[](0);
 
@@ -651,11 +569,7 @@ contract OperatorTest is BaseUnitTest {
         operator.setMarketSupplyCaps(markets, caps);
     }
 
-    ////////////////////////////////////////////////////////////
-    //   SetMarketCapsRevertsForUnauthorizedAndInvalidInputs    //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetMarketCapsRevertsForUnauthorizedAndInvalidInputs_revertsWith() public {
+    function test_unit_setMarketSupplyCaps_revertsWith_Operator_OnlyAdminOrRole() public {
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
         markets[0] = address(market);
@@ -680,10 +594,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                 CapsAndPauseGuardsRevert                 //
+    //                       SetPaused                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitCapsAndPauseGuardsRevert_revertsWith() public {
+    function test_unit_setPaused_revertsWith_Operator_OnlyAdminOrRole() public {
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
         markets[0] = address(market);
@@ -718,10 +632,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //          AdminActionsSucceedWithFirewallEnabled          //
+    //                  SetMarketBorrowCaps                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitAdminActionsSucceedWithFirewallEnabled_success() public {
+    function test_unit_setMarketBorrowCaps_success_variant2_variant2() public {
         _enableFirewall();
 
         address[] memory markets = new address[](1);
@@ -744,10 +658,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //          SetPausedGuardianCanPauseOwnerUnpauses          //
+    //                       SetPaused                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetPausedGuardianCanPauseOwnerUnpauses_success() public {
+    function test_unit_setPaused_revertsWith_Operator_OnlyAdmin() public {
         roles.allowFor(guardian, roles.GUARDIAN_PAUSE(), true);
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
 
@@ -763,21 +677,13 @@ contract OperatorTest is BaseUnitTest {
         assertFalse(operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint));
     }
 
-    ////////////////////////////////////////////////////////////
-    //          SetPausedRevertsWhenPausingWithoutRole          //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetPausedRevertsWhenPausingWithoutRole_revertsWith() public {
+    function test_unit_setPaused_revertsWith_Operator_OnlyAdminOrRole_revertsWhenPausingWithoutRole() public {
         vm.prank(users.alice);
         vm.expectRevert(OperatorStorage.Operator_OnlyAdminOrRole.selector);
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
     }
 
-    ////////////////////////////////////////////////////////////
-    //      SetPausedRevertsForUnauthorizedPauseAndUnpause      //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetPausedRevertsForUnauthorizedPauseAndUnpause_revertsWith() public {
+    function test_unit_setPaused_revertsWith_Operator_OnlyAdminOrRole_revertsForUnauthorizedPauseAndUnpause() public {
         vm.prank(users.alice);
         vm.expectRevert(OperatorStorage.Operator_OnlyAdminOrRole.selector);
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
@@ -789,20 +695,16 @@ contract OperatorTest is BaseUnitTest {
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, false);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                  SetPausedOwnerCanPause                  //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetPausedOwnerCanPause_success() public {
+    function test_unit_setPaused_success_variant2() public {
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
         assertTrue(operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Borrow));
     }
 
     ////////////////////////////////////////////////////////////
-    //             InitializeRevertsOnInvalidInputs             //
+    //                       Initialize                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitInitializeRevertsOnInvalidInputs_revertsWith() public {
+    function test_unit_initialize_revertsWith_Operator_InvalidRolesOperator() public {
         Operator operatorImpl = new Operator();
         ERC1967Proxy proxy = new ERC1967Proxy(address(operatorImpl), "");
         Operator freshOperator = Operator(address(proxy));
@@ -818,31 +720,25 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //           EnterMarketsWithSenderRequiresListed           //
+    //                 EnterMarketsWithSender                 //
     ////////////////////////////////////////////////////////////
 
-    function test_unitEnterMarketsWithSenderRequiresListed_success() public {
+    function test_unit_enterMarketsWithSender_revertsWith_Operator_MarketNotListed_requiresListed() public {
         vm.prank(address(market));
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         operator.enterMarketsWithSender(users.alice);
     }
 
-    ////////////////////////////////////////////////////////////
-    //           EnterMarketsWithSenderAddsMembership           //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitEnterMarketsWithSenderAddsMembership_success() public {
+    function test_unit_enterMarketsWithSender_success_variant3() public {
         _listMarket(market);
         vm.prank(address(market));
         operator.enterMarketsWithSender(users.alice);
         assertTrue(operator.checkMembership(users.alice, address(market)));
     }
 
-    ////////////////////////////////////////////////////////////
-    //    EnterMarketsWithSenderRevertsWhenWhitelistEnabled     //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitEnterMarketsWithSenderRevertsWhenWhitelistEnabled_revertsWith() public {
+    function test_unit_enterMarketsWithSender_revertsWith_Operator_UserNotWhitelisted_revertsWhenWhitelistEnabled()
+        public
+    {
         _listMarket(market);
         operator.setWhitelistStatus(true);
 
@@ -852,10 +748,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //          EnterMarketsRevertsWhenMarketNotListed          //
+    //                      EnterMarkets                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unitEnterMarketsRevertsWhenMarketNotListed_revertsWith() public {
+    function test_unit_enterMarkets_revertsWith_Operator_MarketNotListed_revertsWhenMarketNotListed() public {
         address[] memory markets = new address[](1);
         markets[0] = address(market);
 
@@ -865,10 +761,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //           EnterMarketsAddsAssetAndGetAssetsIn            //
+    //                      GetAssetsIn                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitEnterMarketsAddsAssetAndGetAssetsIn_success() public {
+    function test_unit_getAssetsIn_success() public {
         _listMarket(market);
         address[] memory markets = new address[](1);
         markets[0] = address(market);
@@ -882,10 +778,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                 GetAllMarketsReturnsList                 //
+    //                     GetAllMarkets                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGetAllMarketsReturnsList_success() public {
+    function test_unit_getAllMarkets_success_returnsList() public {
         _listMarket(market);
         _listMarket(market2);
 
@@ -896,21 +792,17 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //              ExitMarketReturnsWhenNotMember              //
+    //                       ExitMarket                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitExitMarketReturnsWhenNotMember_success() public {
+    function test_unit_exitMarket_success_variant4() public {
         _listMarket(market);
         vm.prank(users.alice);
         operator.exitMarket(address(market));
         assertFalse(operator.checkMembership(users.alice, address(market)));
     }
 
-    ////////////////////////////////////////////////////////////
-    //             ExitMarketRevertsWhenBorrowOwed              //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitExitMarketRevertsWhenBorrowOwed_revertsWith() public {
+    function test_unit_exitMarket_revertsWith_Operator_Deactivate_MarketBalanceOwed_revertsWhenBorrowOwed() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setCollateralFactor(address(market), 0.5e18);
@@ -926,11 +818,9 @@ contract OperatorTest is BaseUnitTest {
         operator.exitMarket(address(market));
     }
 
-    ////////////////////////////////////////////////////////////
-    //       ExitMarketRevertsWhenBorrowOwedWithFirewall        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitExitMarketRevertsWhenBorrowOwedWithFirewall_revertsWith() public {
+    function test_unit_exitMarket_revertsWith_Operator_Deactivate_MarketBalanceOwed_revertsWhenBorrowOwedWithFirewall()
+        public
+    {
         _enableFirewall();
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
@@ -947,11 +837,7 @@ contract OperatorTest is BaseUnitTest {
         operator.exitMarket(address(market));
     }
 
-    ////////////////////////////////////////////////////////////
-    //            ExitMarketRevertsWhenAssetNotFound            //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitExitMarketRevertsWhenAssetNotFound_revertsWith() public {
+    function test_unit_exitMarket_revertsWith_Operator_AssetNotFound() public {
         OperatorHarness harnessImpl = new OperatorHarness();
         bytes memory initData =
             abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(blacklister), address(this));
@@ -966,11 +852,7 @@ contract OperatorTest is BaseUnitTest {
         harness.exitMarket(address(market));
     }
 
-    ////////////////////////////////////////////////////////////
-    //   ExitMarketRevertsWhenAssetNotFoundWithNonEmptyAssets   //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitExitMarketRevertsWhenAssetNotFoundWithNonEmptyAssets_revertsWith() public {
+    function test_unit_exitMarket_revertsWith_Operator_AssetNotFound_variant2() public {
         OperatorHarness harness = _deployHarness();
         MockMToken otherMarket = new MockMToken();
 
@@ -989,10 +871,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //    ExitMarketRevertsWhenAssetMissingAndTransferPaused    //
+    //                  BeforeMTokenTransfer                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitExitMarketRevertsWhenAssetMissingAndTransferPaused_revertsWith() public {
+    function test_unit_beforeMTokenTransfer_revertsWith_Operator_AssetNotFound() public {
         OperatorHarness harness = _deployHarness();
         harness.setPriceOracle(address(oracleOperator));
         oracleOperator.setUnderlyingPrice(1e18);
@@ -1012,10 +894,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                  ExitMarketRemovesAsset                  //
+    //                       ExitMarket                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitExitMarketRemovesAsset_success() public {
+    function test_unit_exitMarket_success_variant2() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setCollateralFactor(address(market), 0.5e18);
@@ -1032,11 +914,7 @@ contract OperatorTest is BaseUnitTest {
         assertEq(operator.getAssetsIn(users.alice).length, 0);
     }
 
-    ////////////////////////////////////////////////////////////
-    //        EnterExitMarketsSucceedWithFirewallEnabled        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitEnterExitMarketsSucceedWithFirewallEnabled_success() public {
+    function test_unit_exitMarket_success_variant3() public {
         _enableFirewall();
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
@@ -1054,11 +932,7 @@ contract OperatorTest is BaseUnitTest {
         assertEq(operator.getAssetsIn(users.alice).length, 0);
     }
 
-    ////////////////////////////////////////////////////////////
-    //               ExitMarketRemovesMiddleAsset               //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitExitMarketRemovesMiddleAsset_success() public {
+    function test_unit_exitMarket_success_variant4_variant2() public {
         _listMarket(market);
         _listMarket(market2);
         oracleOperator.setUnderlyingPrice(1e18);
@@ -1083,10 +957,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //          BeforeMTokenTransferRevertsWhenPaused           //
+    //                  BeforeMTokenTransfer                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenTransferRevertsWhenPaused_revertsWith() public {
+    function test_unit_beforeMTokenTransfer_revertsWith_Operator_Paused_revertsWhenPaused() public {
         _listMarket(market);
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Transfer, true);
 
@@ -1094,11 +968,7 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenTransfer(address(market), users.alice, users.bob, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //           BeforeMTokenTransferAccruesInterest            //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenTransferAccruesInterest_success() public {
+    function test_unit_beforeMTokenTransfer_success() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setCollateralFactor(address(market), 0.5e18);
@@ -1114,10 +984,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                BeforeOpsRevertWhenPaused                 //
+    //                   BeforeRebalancing                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeOpsRevertWhenPaused_revertsWith() public {
+    function test_unit_beforeRebalancing_revertsWith_Operator_Paused() public {
         _listMarket(market);
         _listMarket(market2);
 
@@ -1151,10 +1021,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //           BeforeOpsSucceedWithFirewallEnabled            //
+    //                   BeforeMTokenRepay                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeOpsSucceedWithFirewallEnabled_success() public {
+    function test_unit_beforeMTokenRepay_success() public {
         _enableFirewall();
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
@@ -1178,10 +1048,12 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //    BeforeMTokenTransferRevertsWhenReceiverBlacklisted    //
+    //                  BeforeMTokenTransfer                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenTransferRevertsWhenReceiverBlacklisted_revertsWith() public {
+    function test_unit_beforeMTokenTransfer_revertsWith_Operator_UserBlacklisted_revertsWhenReceiverBlacklisted()
+        public
+    {
         _listMarket(market);
         blacklister.blacklist(users.bob);
 
@@ -1190,41 +1062,31 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //           BeforeMTokenBorrowRevertsWhenPaused            //
+    //                   BeforeMTokenBorrow                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenBorrowRevertsWhenPaused_revertsWith() public {
+    function test_unit_beforeMTokenBorrow_revertsWith_Operator_Paused_revertsWhenPaused() public {
         _listMarket(market);
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //       BeforeMTokenBorrowRevertsWhenMarketNotListed       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenBorrowRevertsWhenMarketNotListed_revertsWith() public {
+    function test_unit_beforeMTokenBorrow_revertsWith_Operator_MarketNotListed_revertsWhenMarketNotListed() public {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //       BeforeMTokenBorrowRevertsWhenSenderNotToken        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenBorrowRevertsWhenSenderNotToken_revertsWith() public {
+    function test_unit_beforeMTokenBorrow_revertsWith_Operator_SenderMustBeToken_revertsWhenSenderNotToken() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         vm.expectRevert(OperatorStorage.Operator_SenderMustBeToken.selector);
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //BeforeMTokenBorrowRevertsWhenWhitelistEnabledAndNotWhitelisted//
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenBorrowRevertsWhenWhitelistEnabledAndNotWhitelisted_revertsWith() public {
+    function test_unit_beforeMTokenBorrow_revertsWith_Operator_UserNotWhitelisted_revertsWhenWhitelistEnabledAndNotWhitelisted()
+        public
+    {
         _listMarket(market);
         operator.setWhitelistStatus(true);
 
@@ -1233,11 +1095,7 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //     BeforeMTokenBorrowSucceedsWhenWhitelistedEnabled     //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenBorrowSucceedsWhenWhitelistedEnabled_success() public {
+    function test_unit_beforeMTokenBorrow_success_succeedsWhenWhitelistedEnabled() public {
         _listMarket(market);
         operator.setWhitelistStatus(true);
         operator.setWhitelistedUser(users.alice, true);
@@ -1256,22 +1114,16 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //          BeforeMTokenBorrowRevertsWhenPriceZero          //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenBorrowRevertsWhenPriceZero_revertsWith() public {
+    function test_unit_beforeMTokenBorrow_revertsWith_Operator_EmptyPrice_revertsWhenPriceZero() public {
         _listMarket(market);
         vm.prank(address(market));
         vm.expectRevert(OperatorStorage.Operator_EmptyPrice.selector);
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //      BeforeMTokenBorrowRevertsWhenBorrowCapReached       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenBorrowRevertsWhenBorrowCapReached_revertsWith() public {
+    function test_unit_beforeMTokenBorrow_revertsWith_Operator_MarketBorrowCapReached_revertsWhenBorrowCapReached()
+        public
+    {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
 
@@ -1287,11 +1139,7 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //       BeforeMTokenBorrowSucceedsWhenBorrowCapZero        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenBorrowSucceedsWhenBorrowCapZero_success() public {
+    function test_unit_beforeMTokenBorrow_success_succeedsWhenBorrowCapZero() public {
         _listMarket(market);
         operator.setWhitelistStatus(true);
         operator.setWhitelistedUser(users.alice, true);
@@ -1304,11 +1152,9 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //      BeforeMTokenBorrowRevertsWhenBorrowSizeNotMet       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenBorrowRevertsWhenBorrowSizeNotMet_revertsWith() public {
+    function test_unit_beforeMTokenBorrow_revertsWith_Operator_MarketBorrowSizeNotMet_revertsWhenBorrowSizeNotMet()
+        public
+    {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
 
@@ -1323,11 +1169,9 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenBorrow(address(market), users.alice, 50);
     }
 
-    ////////////////////////////////////////////////////////////
-    //    BeforeMTokenBorrowRevertsWhenInsufficientLiquidity    //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenBorrowRevertsWhenInsufficientLiquidity_revertsWith() public {
+    function test_unit_beforeMTokenBorrow_revertsWith_Operator_InsufficientLiquidity_revertsWhenInsufficientLiquidity()
+        public
+    {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setCollateralFactor(address(market), 0);
@@ -1338,11 +1182,7 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //            BeforeMTokenBorrowRevertsForChecks            //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenBorrowRevertsForChecks_revertsWith() public {
+    function test_unit_beforeMTokenBorrow_revertsWith_Operator_MarketNotListed_revertsForChecks() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
 
@@ -1392,10 +1232,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //     BeforeMTokenBorrowMintRepayRevertsForGuardChecks     //
+    //                   BeforeMTokenRepay                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenBorrowMintRepayRevertsForGuardChecks_revertsWith() public {
+    function test_unit_beforeMTokenRepay_revertsWith_Operator_Paused() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
 
@@ -1463,10 +1303,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                BeforeMTokenBorrowSucceeds                //
+    //                       SetTotals                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenBorrowSucceeds_success() public {
+    function test_unit_setTotals_success_variant5() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setCollateralFactor(address(market), 0.5e18);
@@ -1486,10 +1326,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //BeforeMTokenBorrowSucceedsWhenAlreadyMemberAndCallerNotToken//
+    //                   BeforeMTokenBorrow                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenBorrowSucceedsWhenAlreadyMemberAndCallerNotToken_success() public {
+    function test_unit_beforeMTokenBorrow_success_succeedsWhenAlreadyMemberAndCallerNotToken() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setCollateralFactor(address(market), 0.5e18);
@@ -1505,30 +1345,22 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //            BeforeMTokenMintRevertsWhenPaused             //
+    //                    BeforeMTokenMint                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenMintRevertsWhenPaused_revertsWith() public {
+    function test_unit_beforeMTokenMint_revertsWith_Operator_Paused_revertsWhenPaused() public {
         _listMarket(market);
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, true);
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
         operator.beforeMTokenMint(address(market), users.alice, users.bob);
     }
 
-    ////////////////////////////////////////////////////////////
-    //        BeforeMTokenMintRevertsWhenMarketNotListed        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenMintRevertsWhenMarketNotListed_revertsWith() public {
+    function test_unit_beforeMTokenMint_revertsWith_Operator_MarketNotListed_revertsWhenMarketNotListed() public {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         operator.beforeMTokenMint(address(market), users.alice, users.bob);
     }
 
-    ////////////////////////////////////////////////////////////
-    //       BeforeMTokenMintRevertsWhenWhitelistEnabled        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenMintRevertsWhenWhitelistEnabled_revertsWith() public {
+    function test_unit_beforeMTokenMint_revertsWith_Operator_UserNotWhitelisted_revertsWhenWhitelistEnabled() public {
         _listMarket(market);
         operator.setWhitelistStatus(true);
 
@@ -1537,10 +1369,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //           BeforeMTokenMintAndRepayRevertChecks           //
+    //                   BeforeMTokenRepay                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenMintAndRepayRevertChecks_revertsWith() public {
+    function test_unit_beforeMTokenRepay_revertsWith_Operator_Paused_variant2() public {
         _listMarket(market);
 
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, true);
@@ -1559,10 +1391,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //         BeforeMTokenMintSucceedsWhenWhitelisted          //
+    //                    BeforeMTokenMint                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenMintSucceedsWhenWhitelisted_success() public {
+    function test_unit_beforeMTokenMint_success_succeedsWhenWhitelisted() public {
         _listMarket(market);
         operator.setWhitelistStatus(true);
         operator.setWhitelistedUser(users.alice, true);
@@ -1570,20 +1402,16 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenMint(address(market), users.alice, users.bob);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                 BeforeMTokenMintSucceeds                 //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenMintSucceeds_success() public {
+    function test_unit_beforeMTokenMint_success_succeeds() public {
         _listMarket(market);
         operator.beforeMTokenMint(address(market), users.alice, users.bob);
     }
 
     ////////////////////////////////////////////////////////////
-    //       AfterMTokenMintRevertsWhenSupplyCapExceeded        //
+    //                    AfterMTokenMint                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitAfterMTokenMintRevertsWhenSupplyCapExceeded_revertsWith() public {
+    function test_unit_afterMTokenMint_revertsWith_Operator_MarketSupplyReached_revertsWhenSupplyCapExceeded() public {
         _listMarket(market);
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
@@ -1597,11 +1425,7 @@ contract OperatorTest is BaseUnitTest {
         operator.afterMTokenMint(address(market));
     }
 
-    ////////////////////////////////////////////////////////////
-    //          AfterMTokenMintSucceedsWithinSupplyCap          //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitAfterMTokenMintSucceedsWithinSupplyCap_success() public {
+    function test_unit_afterMTokenMint_success_succeedsWithinSupplyCap() public {
         _listMarket(market);
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
@@ -1615,19 +1439,15 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //          BeforeMTokenRedeemSkipsWhenNotInMarket          //
+    //                   BeforeMTokenRedeem                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenRedeemSkipsWhenNotInMarket_success() public {
+    function test_unit_beforeMTokenRedeem_success_skipsWhenNotInMarket() public {
         _listMarket(market);
         operator.beforeMTokenRedeem(address(market), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //      BeforeMTokenRedeemRevertsWhenWhitelistEnabled       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenRedeemRevertsWhenWhitelistEnabled_revertsWith() public {
+    function test_unit_beforeMTokenRedeem_revertsWith_Operator_UserNotWhitelisted_revertsWhenWhitelistEnabled() public {
         _listMarket(market);
         operator.setWhitelistStatus(true);
 
@@ -1635,11 +1455,7 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenRedeem(address(market), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //           BeforeMTokenRedeemRevertsOnShortfall           //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenRedeemRevertsOnShortfall_revertsWith() public {
+    function test_unit_beforeMTokenRedeem_revertsWith_Operator_InsufficientLiquidity_revertsOnShortfall() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setCollateralFactor(address(market), 0);
@@ -1654,11 +1470,7 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenRedeem(address(market), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //          BeforeMTokenRedeemSucceedsWhenInMarket          //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenRedeemSucceedsWhenInMarket_success() public {
+    function test_unit_beforeMTokenRedeem_success_succeedsWhenInMarket() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setCollateralFactor(address(market), 0.5e18);
@@ -1673,30 +1485,22 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //            BeforeMTokenRepayRevertsWhenPaused            //
+    //                   BeforeMTokenRepay                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenRepayRevertsWhenPaused_revertsWith() public {
+    function test_unit_beforeMTokenRepay_revertsWith_Operator_Paused_revertsWhenPaused() public {
         _listMarket(market);
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Repay, true);
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
         operator.beforeMTokenRepay(address(market), users.alice);
     }
 
-    ////////////////////////////////////////////////////////////
-    //       BeforeMTokenRepayRevertsWhenMarketNotListed        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenRepayRevertsWhenMarketNotListed_revertsWith() public {
+    function test_unit_beforeMTokenRepay_revertsWith_Operator_MarketNotListed_revertsWhenMarketNotListed() public {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         operator.beforeMTokenRepay(address(market), users.alice);
     }
 
-    ////////////////////////////////////////////////////////////
-    //       BeforeMTokenRepayRevertsWhenWhitelistEnabled       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenRepayRevertsWhenWhitelistEnabled_revertsWith() public {
+    function test_unit_beforeMTokenRepay_revertsWith_Operator_UserNotWhitelisted_revertsWhenWhitelistEnabled() public {
         _listMarket(market);
         operator.setWhitelistStatus(true);
 
@@ -1704,11 +1508,7 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenRepay(address(market), users.alice);
     }
 
-    ////////////////////////////////////////////////////////////
-    //         BeforeMTokenRepaySucceedsWhenWhitelisted         //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenRepaySucceedsWhenWhitelisted_success() public {
+    function test_unit_beforeMTokenRepay_success_succeedsWhenWhitelisted() public {
         _listMarket(market);
         operator.setWhitelistStatus(true);
         operator.setWhitelistedUser(users.alice, true);
@@ -1716,20 +1516,18 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenRepay(address(market), users.alice);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                BeforeMTokenRepaySucceeds                 //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenRepaySucceeds_success() public {
+    function test_unit_beforeMTokenRepay_success_succeeds() public {
         _listMarket(market);
         operator.beforeMTokenRepay(address(market), users.alice);
     }
 
     ////////////////////////////////////////////////////////////
-    //     BeforeMTokenLiquidateDeprecatedRequiresFullRepay     //
+    //                 BeforeMTokenLiquidate                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenLiquidateDeprecatedRequiresFullRepay_success() public {
+    function test_unit_beforeMTokenLiquidate_revertsWith_Operator_RepayAmountNotValid_deprecatedRequiresFullRepay()
+        public
+    {
         _listMarket(market);
         _listMarket(market2);
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
@@ -1742,11 +1540,9 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenLiquidate(address(market), address(market2), users.alice, 100);
     }
 
-    ////////////////////////////////////////////////////////////
-    //     BeforeMTokenLiquidateDeprecatedRepayAmountChecks     //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenLiquidateDeprecatedRepayAmountChecks_success() public {
+    function test_unit_beforeMTokenLiquidate_revertsWith_Operator_RepayAmountNotValid_deprecatedRepayAmountChecks()
+        public
+    {
         _listMarket(market);
         _listMarket(market2);
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
@@ -1759,11 +1555,7 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenLiquidate(address(market), address(market2), users.alice, 100);
     }
 
-    ////////////////////////////////////////////////////////////
-    //       BeforeMTokenLiquidateRevertsForListingChecks       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenLiquidateRevertsForListingChecks_revertsWith() public {
+    function test_unit_beforeMTokenLiquidate_revertsWith_Operator_MarketNotListed() public {
         MockMToken unlistedBorrowed = new MockMToken();
         MockMToken unlistedCollateral = new MockMToken();
 
@@ -1776,11 +1568,9 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenLiquidate(address(market), address(unlistedCollateral), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //       BeforeMTokenLiquidateRevertsWhenNoShortfall        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenLiquidateRevertsWhenNoShortfall_revertsWith() public {
+    function test_unit_beforeMTokenLiquidate_revertsWith_Operator_InsufficientLiquidity_revertsWhenNoShortfall()
+        public
+    {
         _listMarket(market);
         _listMarket(market2);
         oracleOperator.setUnderlyingPrice(1e18);
@@ -1797,11 +1587,9 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenLiquidate(address(market), address(market2), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //  BeforeMTokenLiquidateRevertsForShortfallAndCloseFactor  //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenLiquidateRevertsForShortfallAndCloseFactor_revertsWith() public {
+    function test_unit_beforeMTokenLiquidate_revertsWith_Operator_InsufficientLiquidity_revertsForShortfallAndCloseFactor()
+        public
+    {
         _listMarket(market);
         _listMarket(market2);
         oracleOperator.setUnderlyingPrice(1e18);
@@ -1826,11 +1614,7 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenLiquidate(address(market), address(market2), users.alice, 60);
     }
 
-    ////////////////////////////////////////////////////////////
-    //BeforeMTokenLiquidateRevertsForDeprecatedAndShortfallChecks//
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenLiquidateRevertsForDeprecatedAndShortfallChecks_revertsWith() public {
+    function test_unit_beforeMTokenLiquidate_revertsWith_Operator_Paused() public {
         _listMarket(market);
         _listMarket(market2);
         oracleOperator.setUnderlyingPrice(1e18);
@@ -1884,11 +1668,7 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenLiquidate(address(market), address(market2), users.bob, 60);
     }
 
-    ////////////////////////////////////////////////////////////
-    //          BeforeMTokenLiquidateRevertsWhenPaused          //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenLiquidateRevertsWhenPaused_revertsWith() public {
+    function test_unit_beforeMTokenLiquidate_revertsWith_Operator_Paused_revertsWhenPaused() public {
         _listMarket(market);
         _listMarket(market2);
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Liquidate, true);
@@ -1897,31 +1677,23 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenLiquidate(address(market), address(market2), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //    BeforeMTokenLiquidateRevertsWhenBorrowedNotListed     //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenLiquidateRevertsWhenBorrowedNotListed_revertsWith() public {
+    function test_unit_beforeMTokenLiquidate_revertsWith_Operator_MarketNotListed_revertsWhenBorrowedNotListed()
+        public
+    {
         _listMarket(market2);
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         operator.beforeMTokenLiquidate(address(market), address(market2), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //   BeforeMTokenLiquidateRevertsWhenCollateralNotListed    //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenLiquidateRevertsWhenCollateralNotListed_revertsWith() public {
+    function test_unit_beforeMTokenLiquidate_revertsWith_Operator_MarketNotListed_revertsWhenCollateralNotListed()
+        public
+    {
         _listMarket(market);
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         operator.beforeMTokenLiquidate(address(market), address(market2), users.alice, 1);
     }
 
-    ////////////////////////////////////////////////////////////
-    //     BeforeMTokenLiquidateRevertsWhenRepayingTooMuch      //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenLiquidateRevertsWhenRepayingTooMuch_revertsWith() public {
+    function test_unit_beforeMTokenLiquidate_revertsWith_Operator_RepayingTooMuch_revertsWhenRepayingTooMuch() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setCollateralFactor(address(market), 0);
@@ -1939,11 +1711,7 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenLiquidate(address(market), address(market), users.alice, 60);
     }
 
-    ////////////////////////////////////////////////////////////
-    //       BeforeMTokenLiquidateSucceedsWithCloseFactor       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenLiquidateSucceedsWithCloseFactor_success() public {
+    function test_unit_beforeMTokenLiquidate_success_succeedsWithCloseFactor() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setCollateralFactor(address(market), 0);
@@ -1961,10 +1729,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //   LiquidationSeizeRebalanceSucceedWithFirewallEnabled    //
+    //                   BeforeRebalancing                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitLiquidationSeizeRebalanceSucceedWithFirewallEnabled_success() public {
+    function test_unit_beforeRebalancing_success() public {
         _enableFirewall();
         _listMarket(market);
         _listMarket(market2);
@@ -1986,10 +1754,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //            BeforeMTokenSeizeRevertsWhenPaused            //
+    //                   BeforeMTokenSeize                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenSeizeRevertsWhenPaused_revertsWith() public {
+    function test_unit_beforeMTokenSeize_revertsWith_Operator_Paused_revertsWhenPaused() public {
         _listMarket(market);
         _listMarket(market2);
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Seize, true);
@@ -1998,11 +1766,7 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenSeize(address(market), address(market2), users.alice);
     }
 
-    ////////////////////////////////////////////////////////////
-    //        BeforeMTokenSeizeRevertsWhenBorrowedPaused        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenSeizeRevertsWhenBorrowedPaused_revertsWith() public {
+    function test_unit_beforeMTokenSeize_revertsWith_Operator_Paused_revertsWhenBorrowedPaused() public {
         _listMarket(market);
         _listMarket(market2);
         operator.setPaused(address(market2), ImTokenOperationTypes.OperationType.Seize, true);
@@ -2011,30 +1775,18 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenSeize(address(market), address(market2), users.alice);
     }
 
-    ////////////////////////////////////////////////////////////
-    //       BeforeMTokenSeizeRevertsWhenMarketNotListed        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenSeizeRevertsWhenMarketNotListed_revertsWith() public {
+    function test_unit_beforeMTokenSeize_revertsWith_Operator_MarketNotListed_revertsWhenMarketNotListed() public {
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         operator.beforeMTokenSeize(address(market), address(market2), users.alice);
     }
 
-    ////////////////////////////////////////////////////////////
-    //     BeforeMTokenSeizeRevertsWhenCollateralNotListed      //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenSeizeRevertsWhenCollateralNotListed_revertsWith() public {
+    function test_unit_beforeMTokenSeize_revertsWith_Operator_MarketNotListed_revertsWhenCollateralNotListed() public {
         _listMarket(market2);
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
         operator.beforeMTokenSeize(address(market), address(market2), users.alice);
     }
 
-    ////////////////////////////////////////////////////////////
-    //      BeforeMTokenSeizeRevertsWhenOperatorsMismatch       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenSeizeRevertsWhenOperatorsMismatch_revertsWith() public {
+    function test_unit_beforeMTokenSeize_revertsWith_Operator_Mismatch_revertsWhenOperatorsMismatch() public {
         _listMarket(market);
         _listMarket(market2);
         market.setOperator(users.bob);
@@ -2045,10 +1797,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //    BeforeMTokenSeizeRevertsForPauseListingAndMismatch    //
+    //                   BeforeRebalancing                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenSeizeRevertsForPauseListingAndMismatch_revertsWith() public {
+    function test_unit_beforeRebalancing_revertsWith_Operator_Paused_variant2() public {
         _listMarket(market);
         _listMarket(market2);
 
@@ -2075,10 +1827,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //         BeforeMTokenSeizeRevertsForListingChecks         //
+    //                   BeforeMTokenSeize                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeMTokenSeizeRevertsForListingChecks_revertsWith() public {
+    function test_unit_beforeMTokenSeize_revertsWith_Operator_MarketNotListed_variant2() public {
         MockMToken unlistedMarket = new MockMToken();
 
         _listMarket(market);
@@ -2090,21 +1842,17 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenSeize(address(unlistedMarket), address(market), users.alice);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                BeforeMTokenSeizeSucceeds                 //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeMTokenSeizeSucceeds_success() public {
+    function test_unit_beforeMTokenSeize_success_succeeds() public {
         _listMarket(market);
         _listMarket(market2);
         operator.beforeMTokenSeize(address(market), address(market2), users.alice);
     }
 
     ////////////////////////////////////////////////////////////
-    //             GetHypotheticalAccountLiquidity              //
+    //            GetHypotheticalAccountLiquidity             //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGetHypotheticalAccountLiquidity_success() public {
+    function test_unit_getHypotheticalAccountLiquidity_success() public {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setCollateralFactor(address(market), 0);
@@ -2120,11 +1868,9 @@ contract OperatorTest is BaseUnitTest {
         assertEq(shortfall, 0);
     }
 
-    ////////////////////////////////////////////////////////////
-    //   GetHypotheticalAccountLiquidityRevertsWhenOracleZero   //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitGetHypotheticalAccountLiquidityRevertsWhenOracleZero_revertsWith() public {
+    function test_unit_getHypotheticalAccountLiquidity_revertsWith_Operator_OracleUnderlyingFetchError_revertsWhenOracleZero()
+        public
+    {
         _listMarket(market);
         operator.setCollateralFactor(address(market), 0);
         market.setSnapshot(users.alice, 10, 0, 1e18);
@@ -2139,10 +1885,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //         GetUSDValueForAllMarketsSkipsDeprecated          //
+    //                GetUSDValueForAllMarkets                //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGetUSDValueForAllMarketsSkipsDeprecated_success() public {
+    function test_unit_getUSDValueForAllMarkets_success_skipsDeprecated() public {
         _listMarket(market);
         _listMarket(market2);
         oracleOperator.setUnderlyingPrice(1e18);
@@ -2157,10 +1903,10 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //              IsDeprecatedAndIsMarketListed               //
+    //                      IsDeprecated                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unitIsDeprecatedAndIsMarketListed_success() public {
+    function test_unit_isDeprecated_success_andIsMarketListed() public {
         _listMarket(market);
         assertTrue(operator.isMarketListed(address(market)));
         assertFalse(operator.isDeprecated(address(market)));
@@ -2171,21 +1917,17 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //            BeforeRebalancingRevertsWhenPaused            //
+    //                   BeforeRebalancing                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBeforeRebalancingRevertsWhenPaused_revertsWith() public {
+    function test_unit_beforeRebalancing_revertsWith_Operator_Paused_revertsWhenPaused() public {
         _listMarket(market);
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Rebalancing, true);
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
         operator.beforeRebalancing(address(market));
     }
 
-    ////////////////////////////////////////////////////////////
-    //                BeforeRebalancingSucceeds                 //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBeforeRebalancingSucceeds_success() public {
+    function test_unit_beforeRebalancing_success_succeeds() public {
         _listMarket(market);
         operator.beforeRebalancing(address(market));
     }

@@ -46,11 +46,14 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
     receive() external payable {}
 
     /// @notice weETH Linea -> Base send flow (fork test)
+
+    // TODO add revert cases
+
     ////////////////////////////////////////////////////////////
-    //                       LineaToBase                        //
+    //                        SendMsg                         //
     ////////////////////////////////////////////////////////////
 
-    function test_forkSendMsg_success_lineaToBaseWeEth() external {
+    function test_fork_sendMsg_success_lineaToBaseWeEth() external {
         vm.skip(true);
         _selectLineaFork();
 
@@ -80,11 +83,8 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
 
     /// @notice weETH Base -> Linea send flow (requires Cancun)
     /// @dev Run with: forge test --mt test_BaseToLinea_weETH_SendFrom --evm-version cancun -vvvv
-    ////////////////////////////////////////////////////////////
-    //                       BaseToLinea                        //
-    ////////////////////////////////////////////////////////////
 
-    function test_forkSendMsg_success_baseToLineaWeEth() external {
+    function test_fork_sendMsg_success_baseToLineaWeEth() external {
         vm.skip(true);
 
         address impl = 0xde8A2C33655ACA88f258988ED74D1511876343D1;
@@ -115,11 +115,8 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
     }
 
     /// @notice weETH Ethereum -> Linea send flow (fork test)
-    ////////////////////////////////////////////////////////////
-    //                        EthToLinea                        //
-    ////////////////////////////////////////////////////////////
 
-    function test_forkSendMsg_success_ethToLineaWeEth() external {
+    function test_fork_sendMsg_success_ethToLineaWeEth() external {
         vm.skip(true);
         _selectEthFork();
 

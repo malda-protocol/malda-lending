@@ -35,10 +35,10 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                      DecodeMessage                       //
+    //                     DecodeMessage                      //
     ////////////////////////////////////////////////////////////
 
-    function test_forkDecodeMessage_success() public pure {
+    function test_fork_decodeMessage_success() public pure {
         bytes memory data = new bytes(TEST_MESSAGE.length - 4);
         for (uint256 i = 4; i < TEST_MESSAGE.length; i++) {
             data[i - 4] = TEST_MESSAGE[i];
@@ -72,11 +72,7 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         assertEq(amountOutMin, 14785500);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                     ExtractFeeParams                     //
-    ////////////////////////////////////////////////////////////
-
-    function test_forkExtractFeeParams_success() public pure {
+    function test_fork_decodeMessage_success_variant2() public pure {
         bytes memory data = new bytes(TEST_MESSAGE.length - 4);
         for (uint256 i = 4; i < TEST_MESSAGE.length; i++) {
             data[i - 4] = TEST_MESSAGE[i];
@@ -107,10 +103,12 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                      CallFeeAdapter                      //
+    //                     CallNewIntent                      //
     ////////////////////////////////////////////////////////////
 
-    function test_forkCallFeeAdapter_success() public {
+    // TODO Possibly merge `_callNewIntent` into this test
+
+    function test_fork_callNewIntent_success() public {
         // Decode the message into intent parameters
         (
             uint32[] memory destinations,
@@ -142,11 +140,14 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
     // skipping for now because we would need to call the API with `surl`
     // otherwise the deadline is in the past and this fails with
     // $ cast 4byte 0x634f518f -> FeeAdapter_InvalidDeadline()
+
     ////////////////////////////////////////////////////////////
-    //                         SendMsg                          //
+    //                        SendMsg                         //
     ////////////////////////////////////////////////////////////
 
-    function test_forkSendMsg_success() public {
+    // TODO add revert cases and unskip
+
+    function test_fork_sendMsg_success() public {
         vm.skip(true);
         console.log("\n=== Test: sendMsg Success ===");
 

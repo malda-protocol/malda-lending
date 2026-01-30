@@ -82,10 +82,10 @@ contract MigrationForkTest is BaseForkTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                 CollectAllMendiPositions                 //
+    //                    GetAllPositions                     //
     ////////////////////////////////////////////////////////////
 
-    function test_forkCollectAllMendiPositions_success() external pure {
+    function test_fork_getAllPositions_success() external pure {
         return;
         // TODO @Cosmin leave for now
         // vm.prank(USER_V1);
@@ -97,21 +97,22 @@ contract MigrationForkTest is BaseForkTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                 GetAllCollateralMarkets                  //
+    //                GetAllCollateralMarkets                 //
     ////////////////////////////////////////////////////////////
 
-    function test_forkGetAllCollateralMarkets_success() external view {
+    function test_fork_getAllCollateralMarkets_success() external view {
         address[] memory positions = migrator.getAllCollateralMarkets(USER_V1);
         assertEq(positions.length, 2);
         assertEq(positions[1], WETH_MARKET_V1);
     }
 
     //The following will revert until a new market is deployed.
+
     ////////////////////////////////////////////////////////////
-    //                   MigrateAllPositions                    //
+    //                  MigrateAllPositions                   //
     ////////////////////////////////////////////////////////////
 
-    function test_forkMigrateAllPositions_success() external {
+    function test_fork_migrateAllPositions_revertsWith() external {
         address _prevOwner = MALDA_WETH_MARKET_OWNER;
         MALDA_WETH_MARKET_OWNER = address(this);
         vm.startPrank(MALDA_WETH_MARKET_OWNER);

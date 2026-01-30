@@ -20,10 +20,10 @@ contract ERC20MockTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        Deployment                        //
+    //                       MintLimit                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitDeployment_success() public view {
+    function test_unit_mintLimit_success() public view {
         assertEq(token.name(), "TestToken");
         assertEq(token.symbol(), "TTK");
         assertEq(token.decimals(), decimals);
@@ -33,33 +33,33 @@ contract ERC20MockTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                      SetOnlyVerify                       //
+    //                     SetOnlyVerify                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetOnlyVerify_success_NotAdmin() public {
+    function test_unit_setOnlyVerify_revertsWith_ERC20Mock_NotAuthorized() public {
         vm.prank(user);
         vm.expectRevert(ERC20Mock.ERC20Mock_NotAuthorized.selector);
         token.setOnlyVerify(true);
     }
 
-    function test_unitSetOnlyVerify_success_Admin() public {
+    function test_unit_setOnlyVerify_success_admin() public {
         vm.prank(admin);
         token.setOnlyVerify(true);
         assertTrue(token.onlyVerified());
     }
 
     ////////////////////////////////////////////////////////////
-    //                           Mint                           //
+    //                          Mint                          //
     ////////////////////////////////////////////////////////////
 
-    function test_unitMint_success_NotOnlyVerified() public {
+    function test_unit_mint_success_notOnlyVerified_ed() public {
         vm.prank(user);
         token.mint(user, mintLimit - 1);
         assertEq(token.balanceOf(user), mintLimit - 1);
         assertEq(token.minted(user), mintLimit - 1);
     }
 
-    function test_unitMint_success_ExceedsLimit() public {
+    function test_unit_mint_revertsWith_ERC20Mock_AlreadyMinted() public {
         vm.prank(user);
         token.mint(user, mintLimit - 1);
         vm.prank(user);
@@ -68,10 +68,10 @@ contract ERC20MockTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                           Burn                           //
+    //                          Burn                          //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBurn_success_Success() public {
+    function test_unit_burn_success_success() public {
         vm.prank(user);
         token.mint(user, 500);
         vm.prank(user);
@@ -80,7 +80,7 @@ contract ERC20MockTest is BaseTest {
         assertEq(token.minted(user), 500);
     }
 
-    function test_unitBurn_success_ExceedsBalance() public {
+    function test_unit_burn_revertsWith_ERC20Mock_TooMuch() public {
         vm.prank(user);
         token.mint(user, 500);
         vm.prank(user);
@@ -88,11 +88,7 @@ contract ERC20MockTest is BaseTest {
         token.burn(600);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                         BurnFrom                         //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBurnFrom_success_Admin() public {
+    function test_unit_burn_success_admin() public {
         vm.prank(user);
         token.mint(user, 500);
         vm.prank(admin);
@@ -101,7 +97,7 @@ contract ERC20MockTest is BaseTest {
         assertEq(token.minted(user), 500);
     }
 
-    function test_unitBurnFrom_success_NotAdmin() public {
+    function test_unit_burn_revertsWith_ERC20Mock_NotAuthorized_from() public {
         vm.prank(user);
         token.mint(user, 500);
         vm.prank(user);

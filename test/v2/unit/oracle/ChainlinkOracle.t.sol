@@ -18,10 +18,10 @@ contract ChainlinkOracleHarness is ChainlinkOracle {
 
 contract ChainlinkOracleTest is BaseTest {
     ////////////////////////////////////////////////////////////
-    //                         GetPrice                         //
+    //                        GetPrice                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGetPrice_success_scalesFeedDecimals() external {
+    function test_unit_getPrice_success_scalesFeedDecimals() external {
         MockAggregatorV3 feed = new MockAggregatorV3(8, 2_000e8);
         MockMToken token = new MockMToken("MOCK", address(0));
 
@@ -39,10 +39,10 @@ contract ChainlinkOracleTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                    GetUnderlyingPrice                    //
+    //                   GetUnderlyingPrice                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGetUnderlyingPrice_success_scalesBaseUnits() external {
+    function test_unit_getUnderlyingPrice_success_scalesBaseUnits() external {
         MockAggregatorV3 feed = new MockAggregatorV3(8, 3_500e8);
         MockSymbolToken underlying = new MockSymbolToken("MOCK");
         MockMToken token = new MockMToken("mMOCK", address(underlying));
@@ -61,10 +61,10 @@ contract ChainlinkOracleTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        RevertWhen                        //
+    //                 ExposedGetLatestPrice                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitRevertWhen_revertsWith_NoFeed() external {
+    function test_unit_exposedGetLatestPrice_revertsWith_ChainlinkOracle_NoPriceFeed() external {
         string[] memory symbols = new string[](0);
         IAggregatorV3[] memory feeds = new IAggregatorV3[](0);
         uint256[] memory baseUnits = new uint256[](0);
@@ -75,7 +75,11 @@ contract ChainlinkOracleTest is BaseTest {
         oracle.exposed_getLatestPrice("MISSING");
     }
 
-    function test_unitRevertWhen_revertsWith_ZeroPrice() external {
+    ////////////////////////////////////////////////////////////
+    //                        GetPrice                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_getPrice_revertsWith_ChainlinkOracle_ZeroPrice() external {
         MockAggregatorV3 feed = new MockAggregatorV3(8, 0);
         MockMToken token = new MockMToken("MOCK", address(0));
 
@@ -92,11 +96,7 @@ contract ChainlinkOracleTest is BaseTest {
         oracle.getPrice(address(token));
     }
 
-    ////////////////////////////////////////////////////////////
-    //                         GetPrice                         //
-    ////////////////////////////////////////////////////////////
-
-    function test_fuzzGetPrice_success_scales(uint8 feedDecimals, uint64 rawPrice) external {
+    function test_fuzz_getPrice_success_scales(uint8 feedDecimals, uint64 rawPrice) external {
         vm.assume(feedDecimals <= 18);
         vm.assume(rawPrice > 0);
 
@@ -118,12 +118,14 @@ contract ChainlinkOracleTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                    GetUnderlyingPrice                    //
+    //                   GetUnderlyingPrice                   //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzzGetUnderlyingPrice_success_scales(uint8 feedDecimals, uint8 underlyingDecimals, uint64 rawPrice)
-        external
-    {
+    function test_fuzz_getUnderlyingPrice_success_scales_variant2(
+        uint8 feedDecimals,
+        uint8 underlyingDecimals,
+        uint64 rawPrice
+    ) external {
         vm.assume(feedDecimals <= 18);
         vm.assume(underlyingDecimals <= 18);
         vm.assume(rawPrice > 0);

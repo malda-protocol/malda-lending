@@ -63,10 +63,10 @@ contract CCTPHelperTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                      CreateAndBurn                       //
+    //                  ExposedCreateAndBurn                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitCreateAndBurn_success_success() public {
+    function test_unit_exposedCreateAndBurn_success_success() public {
         vm.startPrank(user);
 
         bytes memory payload = abi.encode(users.bob);
@@ -94,14 +94,14 @@ contract CCTPHelperTest is BaseTest {
         vm.stopPrank();
     }
 
-    function test_unitCreateAndBurn_revertsWith_revert_zero_amount() public {
+    function test_unit_exposedCreateAndBurn_revertsWith_CCTPHelper_AmountZero() public {
         vm.prank(user);
         vm.expectRevert(CCTPHelper.CCTPHelper_AmountZero.selector);
 
         helper.exposedCreateAndBurn(address(token), 0, DST, bytes32(uint256(uint160(users.bob))), "", SRC);
     }
 
-    function test_unitCreateAndBurn_revertsWith_revert_zero_receiver() public {
+    function test_unit_exposedCreateAndBurn_revertsWith_CCTPHelper_AddressZero() public {
         vm.prank(user);
         vm.expectRevert(CCTPHelper.CCTPHelper_AddressZero.selector);
 
@@ -109,10 +109,10 @@ contract CCTPHelperTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                   HandleDestinationMsg                   //
+    //              ExposedHandleDestinationMsg               //
     ////////////////////////////////////////////////////////////
 
-    function test_unitHandleDestinationMsg_success_success() public {
+    function test_unit_exposedHandleDestinationMsg_success_success() public {
         bytes memory fakeHook = abi.encodePacked(
             uint8(1),
             bytes32(uint256(uint160(address(token)))),
@@ -135,23 +135,19 @@ contract CCTPHelperTest is BaseTest {
         assertEq(msgData.nonce, 777);
     }
 
-    function test_unitHandleDestinationMsg_revertsWith_revert_receive_fail() public {
+    function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_ReceiveFailed() public {
         transmitter.setShouldSucceed(false);
 
         vm.expectRevert(CCTPHelper.CCTPHelper_ReceiveFailed.selector);
         helper.exposedHandleDestinationMsg("msg", "att");
     }
 
-    function test_unitHandleDestinationMsg_revertsWith_revert_short_message() public {
+    function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_MsgTooShort() public {
         vm.expectRevert(CCTPHelper.CCTPHelper_MsgTooShort.selector);
         helper.exposedHandleDestinationMsg(new bytes(10), "att");
     }
 
-    ////////////////////////////////////////////////////////////
-    //                          Decode                          //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitDecode_revertsWith_revert_bad_payload_type() public {
+    function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_PayloadMismatch() public {
         bytes memory payload = abi.encode(users.bob);
 
         bytes memory badHook = abi.encodePacked(

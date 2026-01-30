@@ -42,10 +42,10 @@ contract LineaResetMarketTest is BaseForkTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                          Linea                           //
+    //                      ResetMarket                       //
     ////////////////////////////////////////////////////////////
 
-    function test_forkLinea_success_upgradeResetMarketAndViews() external {
+    function test_fork_resetMarket_success_upgradeResetMarketAndViews() external {
         mErc20Host m = mErc20Host(MARKET);
 
         _assertViewMethodsDontRevert(m);
@@ -68,7 +68,7 @@ contract LineaResetMarketTest is BaseForkTest {
         _assertViewMethodsDontRevert(m);
     }
 
-    function test_forkLinea_success_upgradeResetMarketAndActions() external {
+    function test_fork_resetMarket_success_upgradeResetMarketAndActions() external {
         mErc20Host m = mErc20Host(MARKET);
 
         _assertViewMethodsDontRevert(m);

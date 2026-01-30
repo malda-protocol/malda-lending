@@ -42,13 +42,14 @@ contract FirewallForkTest is BaseForkTest {
         vm.label(address(extensionMarket), "extensionMarket");
     }
 
-    // forge test --mt test_mint_without_firewall --evm-version cancun
+    // forge test --mt test_fork_supplyOnHost_success --evm-version cancun
     // Need to run with `cancun` otherwise you may get `NotActivated`
+
     ////////////////////////////////////////////////////////////
-    //                           Mint                           //
+    //                      SupplyOnHost                      //
     ////////////////////////////////////////////////////////////
 
-    function test_forkMint_success_withoutFirewall() external {
+    function test_fork_supplyOnHost_success() external {
         uint256 amount = 1e17;
 
         deal(baseChainUnderlying, address(this), amount);
@@ -69,7 +70,7 @@ contract FirewallForkTest is BaseForkTest {
         assertGt(accAmountInAfter, accAmountInBefore);
     }
 
-    function test_forkMint_success_withFirewall() external {
+    function test_fork_supplyOnHost_revertsWith_AccountNotRegistered() external {
         vm.skip(true);
 
         uint256 amount = 1e17;

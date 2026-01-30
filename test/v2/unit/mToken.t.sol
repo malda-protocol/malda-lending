@@ -27,52 +27,48 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        RevertWhen                        //
+    //                      SetOperator                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitRevertWhen_revertsWith_NonAdminSetOperator() external {
+    function test_unit_setOperator_revertsWith_mt_OnlyAdmin() external {
         vm.prank(users.alice);
         vm.expectRevert(mTokenStorage.mt_OnlyAdmin.selector);
         mWeth.setOperator(address(operator));
     }
 
-    ////////////////////////////////////////////////////////////
-    //                       SetOperator                        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetOperator_success_Updates() external {
+    function test_unit_setOperator_success_updates() external {
         address newOperator = users.bob;
         mWeth.setOperator(newOperator);
 
         assertEq(mWeth.operator(), newOperator);
     }
 
-    function test_unitSetOperator_revertsWith_RevertWhenZero() external {
+    function test_unit_setOperator_revertsWith_mt_OperatorNotValid() external {
         vm.expectRevert(mTokenStorage.mt_OperatorNotValid.selector);
         mWeth.setOperator(address(0));
     }
 
     ////////////////////////////////////////////////////////////
-    //                     SetRolesOperator                     //
+    //                    SetRolesOperator                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetRolesOperator_success_Updates() external {
+    function test_unit_setRolesOperator_success_updates() external {
         Roles newRoles = new Roles(address(this));
         mWeth.setRolesOperator(address(newRoles));
 
         assertEq(address(mWeth.rolesOperator()), address(newRoles));
     }
 
-    function test_unitSetRolesOperator_revertsWith_RevertWhenZero() external {
+    function test_unit_setRolesOperator_revertsWith_mt_AddressNotValid() external {
         vm.expectRevert(mTokenStorage.mt_AddressNotValid.selector);
         mWeth.setRolesOperator(address(0));
     }
 
     ////////////////////////////////////////////////////////////
-    //                        RevertWhen                        //
+    //                  SetInterestRateModel                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitRevertWhen_revertsWith_NonAdminSetInterestRateModel() external {
+    function test_unit_setInterestRateModel_revertsWith_mt_OnlyAdmin() external {
         GoodInterestRateModel newModel = new GoodInterestRateModel();
 
         vm.prank(users.alice);
@@ -80,18 +76,14 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.setInterestRateModel(address(newModel));
     }
 
-    ////////////////////////////////////////////////////////////
-    //                   SetInterestRateModel                   //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitSetInterestRateModel_success_Updates() external {
+    function test_unit_setInterestRateModel_success_updates_variant2() external {
         GoodInterestRateModel newModel = new GoodInterestRateModel();
         mWeth.setInterestRateModel(address(newModel));
 
         assertEq(mWeth.interestRateModel(), address(newModel));
     }
 
-    function test_unitSetInterestRateModel_revertsWith_RevertWhenInvalid() external {
+    function test_unit_setInterestRateModel_revertsWith_mt_MarketMethodNotValid() external {
         BadInterestRateModel badModel = new BadInterestRateModel();
 
         vm.expectRevert(mTokenStorage.mt_MarketMethodNotValid.selector);
@@ -99,17 +91,17 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                 SetBorrowRateMaxMantissa                 //
+    //                SetBorrowRateMaxMantissa                //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetBorrowRateMaxMantissa_success_NoSupply(uint256 newMax) external {
+    function test_unit_setBorrowRateMaxMantissa_success_noSupply(uint256 newMax) external {
         newMax = bound(newMax, 0, 1e18);
         mWeth.setBorrowRateMaxMantissa(newMax);
 
         assertEq(mWeth.borrowRateMaxMantissa(), newMax);
     }
 
-    function test_unitSetBorrowRateMaxMantissa_success_WithSupply(uint256 mintAmount, uint256 newMax) external {
+    function test_unit_setBorrowRateMaxMantissa_success_withSupply(uint256 mintAmount, uint256 newMax) external {
         operator.supportMarket(address(mWeth));
 
         mintAmount = bound(mintAmount, SMALL, LARGE);
@@ -125,19 +117,19 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                     SetReserveFactor                     //
+    //                    SetReserveFactor                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetReserveFactor_revertsWith_RevertWhenTooHigh() external {
+    function test_unit_setReserveFactor_revertsWith_mt_ReserveFactorTooHigh() external {
         vm.expectRevert(mTokenStorage.mt_ReserveFactorTooHigh.selector);
         mWeth.setReserveFactor(1e18 + 1);
     }
 
     ////////////////////////////////////////////////////////////
-    //            AccrueInterestChecksBorrowRateMax             //
+    //                     AccrueInterest                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitAccrueInterestChecksBorrowRateMax_success() external {
+    function test_unit_accrueInterest_success() external {
         mWeth.setBorrowRateMaxMantissa(1e18);
 
         vm.warp(block.timestamp + 1);
@@ -147,21 +139,25 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                     SetPendingAdmin                      //
+    //                    SetPendingAdmin                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetPendingAdmin_revertsWith_RevertWhenZero() external {
+    function test_unit_setPendingAdmin_revertsWith_mt_AddressNotValid() external {
         vm.expectRevert(mTokenStorage.mt_AddressNotValid.selector);
         mWeth.setPendingAdmin(payable(address(0)));
     }
 
-    function test_unitSetPendingAdmin_revertsWith_RevertWhenNotAdmin() external {
+    function test_unit_setPendingAdmin_revertsWith_mt_OnlyAdmin() external {
         vm.prank(users.alice);
         vm.expectRevert(mTokenStorage.mt_OnlyAdmin.selector);
         mWeth.setPendingAdmin(payable(users.bob));
     }
 
-    function test_unitSetPendingAdmin_success_AndAcceptAdmin() external {
+    ////////////////////////////////////////////////////////////
+    //                        Payable                         //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_payable_success_andAcceptAdmin() external {
         address newAdmin = users.bob;
 
         mWeth.setPendingAdmin(payable(newAdmin));
@@ -175,19 +171,19 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       AcceptAdmin                        //
+    //                      AcceptAdmin                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitAcceptAdmin_revertsWith_RevertWhenNotPending() external {
+    function test_unit_acceptAdmin_revertsWith_mt_OnlyAdmin() external {
         vm.expectRevert(mTokenStorage.mt_OnlyAdmin.selector);
         mWeth.acceptAdmin();
     }
 
     ////////////////////////////////////////////////////////////
-    //                   ApproveAndAllowance                    //
+    //                        Approve                         //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzzApproveAndAllowance_success(uint256 amount) external {
+    function test_fuzz_approve_success(uint256 amount) external {
         amount = bound(amount, 0, LARGE);
 
         mWeth.approve(users.bob, amount);
@@ -196,10 +192,10 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                         Transfer                         //
+    //                        Transfer                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitTransfer_revertsWith_RevertWhenSameAddress(uint256 mintAmount)
+    function test_unit_transfer_revertsWith_mt_TransferNotValid(uint256 mintAmount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
@@ -214,7 +210,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.transfer(address(this), 1);
     }
 
-    function test_fuzzTransfer_success_UpdatesBalances(uint256 mintAmount, uint256 transferAmount)
+    function test_fuzz_transfer_success_updatesBalances(uint256 mintAmount, uint256 transferAmount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
@@ -235,10 +231,10 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       TransferFrom                       //
+    //                      TransferFrom                      //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzzTransferFrom_success_UsesAllowance(uint256 mintAmount, uint256 transferAmount)
+    function test_fuzz_transferFrom_success_usesAllowance(uint256 mintAmount, uint256 transferAmount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
@@ -263,7 +259,7 @@ contract mTokenTest is BaseMTokenTest {
         assertEq(mWeth.balanceOf(users.carol), transferAmount);
     }
 
-    function test_fuzzTransferFrom_success_ByOwner_SkipsAllowance(uint256 mintAmount, uint256 transferAmount)
+    function test_fuzz_transferFrom_success_byOwner_SkipsAllowance(uint256 mintAmount, uint256 transferAmount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
@@ -287,10 +283,10 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //        TotalBorrowsCurrentAndBorrowBalanceCurrent        //
+    //                  BorrowBalanceCurrent                  //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzzTotalBorrowsCurrentAndBorrowBalanceCurrent_success(uint256 borrowAmount)
+    function test_fuzz_borrowBalanceCurrent_success(uint256 borrowAmount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
@@ -310,10 +306,10 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                    BorrowWithReceiver                    //
+    //                 MintOrBorrowMigration                  //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzzBorrowWithReceiver_success_FromMigrator(uint256 supplyAmount, uint256 borrowAmount)
+    function test_fuzz_mintOrBorrowMigration_success_fromMigrator(uint256 supplyAmount, uint256 borrowAmount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
@@ -337,10 +333,10 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //        BalanceOfUnderlyingAndExchangeRateCurrent         //
+    //                  BalanceOfUnderlying                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBalanceOfUnderlyingAndExchangeRateCurrent_success(uint256 mintAmount)
+    function test_unit_balanceOfUnderlying_success_andExchangeRateCurrent(uint256 mintAmount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
@@ -359,10 +355,10 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                     GetCashAndRates                      //
+    //                        GetCash                         //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzzGetCashAndRates_success(uint256 mintAmount) external {
+    function test_fuzz_getCash_success(uint256 mintAmount) external {
         mintAmount = bound(mintAmount, SMALL, LARGE);
         operator.supportMarket(address(mWeth));
 
@@ -386,10 +382,10 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                   AddAndReduceReserves                   //
+    //                     ReduceReserves                     //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzzAddAndReduceReserves_success_AsAdmin(uint256 amount) external {
+    function test_fuzz_reduceReserves_success_asAdmin(uint256 amount) external {
         amount = bound(amount, SMALL, LARGE);
 
         _getTokens(weth, address(this), amount);
@@ -406,7 +402,7 @@ contract mTokenTest is BaseMTokenTest {
         assertEq(mWeth.totalUnderlying(), totalUnderlyingBefore - reduceAmount);
     }
 
-    function test_fuzzAddAndReduceReserves_success_AsGuardian(uint256 amount) external {
+    function test_fuzz_reduceReserves_success_asGuardian(uint256 amount) external {
         amount = bound(amount, SMALL, LARGE);
 
         _getTokens(weth, address(this), amount);
@@ -424,11 +420,7 @@ contract mTokenTest is BaseMTokenTest {
         assertEq(mWethHost.totalReserves(), amount - reduceAmount);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                      ReduceReserves                      //
-    ////////////////////////////////////////////////////////////
-
-    function test_fuzzReduceReserves_revertsWith_RevertWhenNotAllowed(uint256 amount) external {
+    function test_fuzz_reduceReserves_revertsWith_mt_OnlyAdminOrRole(uint256 amount) external {
         amount = bound(amount, SMALL, LARGE);
 
         _getTokens(weth, address(this), amount);
@@ -442,10 +434,10 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        RevertWhen                        //
+    //                          Mint                          //
     ////////////////////////////////////////////////////////////
 
-    function test_unitRevertWhen_revertsWith_MinAmountOutTooHigh() external whenMarketIsListed(address(mWeth)) {
+    function test_unit_mint_revertsWith_mt_MinAmountNotValid() external whenMarketIsListed(address(mWeth)) {
         uint256 amount = SMALL;
         _getTokens(weth, address(this), amount);
         weth.approve(address(mWeth), amount);
@@ -454,11 +446,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.mint(amount, address(this), amount);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                           Mint                           //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitMint_success_WhenTotalSupplyNonZero() external whenMarketIsListed(address(mWeth)) {
+    function test_unit_mint_success_whenTotalSupplyNonZero() external whenMarketIsListed(address(mWeth)) {
         uint256 amount = SMALL;
         _getTokens(weth, address(this), amount * 2);
         weth.approve(address(mWeth), amount * 2);
@@ -471,10 +459,10 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                      ReduceReserves                      //
+    //                     ReduceReserves                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitReduceReserves_revertsWith_RevertWhen_CashNotAvailable()
+    function test_unit_reduceReserves_revertsWith_mt_ReserveCashNotAvailable_variant2()
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
@@ -496,7 +484,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.reduceReserves(70 ether);
     }
 
-    function test_unitReduceReserves_revertsWith_RevertWhen_AmountExceedsReserves() external {
+    function test_unit_reduceReserves_revertsWith_mt_ReserveCashNotAvailable() external {
         operator.supportMarket(address(mWeth));
 
         uint256 supplyAmount = 100 ether;
@@ -514,10 +502,10 @@ contract mTokenTest is BaseMTokenTest {
     address internal liquidator;
 
     ////////////////////////////////////////////////////////////
-    //                          Seize                           //
+    //                         Seize                          //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSeize_revertsWith_RevertWhen_BorrowerIsLiquidator() external {
+    function test_unit_seize_revertsWith_mt_InvalidInput() external {
         operator.supportMarket(address(mWeth));
         operator.supportMarket(address(mDaiHost));
 
@@ -527,26 +515,26 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        Liquidate                         //
+    //                       Liquidate                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitLiquidate_revertsWith_RevertWhen_BorrowerIsLiquidator() external {
+    function test_unit_liquidate_revertsWith_mt_InvalidInput_variant3() external {
         vm.prank(liquidator);
         vm.expectRevert(mTokenStorage.mt_InvalidInput.selector);
         mDaiHost.liquidate(liquidator, 1 ether, address(mWeth));
     }
 
-    function test_unitLiquidate_revertsWith_RevertWhen_RepayAmountIsZero() external {
+    function test_unit_liquidate_revertsWith_mt_InvalidInput_variant2() external {
         vm.expectRevert(mTokenStorage.mt_InvalidInput.selector);
         mDaiHost.liquidate(borrower, 0, address(mWeth));
     }
 
-    function test_unitLiquidate_revertsWith_RevertWhen_RepayAmountIsMax() external {
+    function test_unit_liquidate_revertsWith_mt_InvalidInput() external {
         vm.expectRevert(mTokenStorage.mt_InvalidInput.selector);
         mDaiHost.liquidate(borrower, type(uint256).max, address(mWeth));
     }
 
-    function test_unitLiquidate_revertsWith_RevertWhen_CollateralBlockTimestampNotValid() external {
+    function test_unit_liquidate_revertsWith_mt_CollateralBlockTimestampNotValid() external {
         uint256 repayAmount = 1 ether;
 
         vm.mockCall(
@@ -570,7 +558,7 @@ contract mTokenTest is BaseMTokenTest {
         mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
     }
 
-    function test_unitLiquidate_revertsWith_RevertWhen_PriceFetchFailed() external {
+    function test_unit_liquidate_revertsWith_mt_PriceFetchFailed() external {
         uint256 borrowAmount = 100 ether;
         uint256 repayAmount = 10 ether;
         _setupBorrowerPosition(borrower, 1000 ether, borrowAmount);
@@ -596,7 +584,7 @@ contract mTokenTest is BaseMTokenTest {
         mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
     }
 
-    function test_unitLiquidate_revertsWith_RevertWhen_SeizeTooMuch() external {
+    function test_unit_liquidate_revertsWith_mt_LiquidateSeizeTooMuch() external {
         uint256 borrowAmount = 100 ether;
         uint256 repayAmount = 10 ether;
         _setupBorrowerPosition(borrower, 1000 ether, borrowAmount);

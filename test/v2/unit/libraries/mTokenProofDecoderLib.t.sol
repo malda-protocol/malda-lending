@@ -44,10 +44,10 @@ contract mTokenProofDecoderLibTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                  EncodeDecodeRoundTrip                   //
+    //                         Encode                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitEncodeDecodeRoundTrip_success() public view {
+    function test_unit_encode_success() public view {
         bytes memory encoded = harness.encode(users.alice, users.bob, 123, 456, 10, 20, true);
 
         assertEq(encoded.length, mTokenProofDecoderLib.ENTRY_SIZE);
@@ -72,10 +72,10 @@ contract mTokenProofDecoderLibTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //             DecodeRevertsOnInvalidInclusion              //
+    //                         Decode                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitDecodeRevertsOnInvalidInclusion_revertsWith() public {
+    function test_unit_decode_revertsWith_mTokenProofDecoderLib_InvalidInclusion_revertsOnInvalidInclusion() public {
         bytes memory encoded = harness.encode(users.alice, users.bob, 1, 2, 1, 2, false);
 
         encoded[encoded.length - 1] = bytes1(uint8(2));

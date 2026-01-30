@@ -15,17 +15,17 @@ contract SafeApproveHarness {
 
 contract SafeApproveTest is BaseTest {
     ////////////////////////////////////////////////////////////
-    //                       SafeApprove                        //
+    //                    CallSafeApprove                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSafeApprove_revertsWith_revertWhenNoContract() external {
+    function test_unit_callSafeApprove_revertsWith_SafeApprove_NoContract() external {
         SafeApproveHarness harness = new SafeApproveHarness();
 
         vm.expectRevert(SafeApprove.SafeApprove_NoContract.selector);
         harness.callSafeApprove(users.alice, users.bob, 1);
     }
 
-    function test_unitSafeApprove_revertsWith_revertWhenFirstApproveFails() external {
+    function test_unit_callSafeApprove_revertsWith_SafeApprove_Failed_variant2() external {
         SafeApproveHarness harness = new SafeApproveHarness();
         MockApproveRevert token = new MockApproveRevert();
 
@@ -33,7 +33,7 @@ contract SafeApproveTest is BaseTest {
         harness.callSafeApprove(address(token), users.bob, 1);
     }
 
-    function test_unitSafeApprove_revertsWith_revertWhenSecondApproveReturnsFalse() external {
+    function test_unit_callSafeApprove_revertsWith_SafeApprove_Failed() external {
         SafeApproveHarness harness = new SafeApproveHarness();
         MockApproveReturnFalse token = new MockApproveReturnFalse();
 

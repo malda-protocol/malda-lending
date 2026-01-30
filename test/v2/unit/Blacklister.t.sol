@@ -28,10 +28,21 @@ contract BlacklisterTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                 BlacklistAndUnblacklist                  //
+    //                      Constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitBlacklistAndUnblacklist_success() public {
+    function test_unit_constructor_revertsWith_Blacklister_InvalidRoles() public {
+        Blacklister blacklisterImp = new Blacklister();
+        bytes memory initData = abi.encodeWithSelector(Blacklister.initialize.selector, address(owner), address(0));
+        vm.expectRevert(IBlacklister.Blacklister_InvalidRoles.selector);
+        new ERC1967Proxy(address(blacklisterImp), initData);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                       Blacklist                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_blacklist_success() public {
         vm.prank(owner);
         blacklister.blacklist(user);
         assertTrue(blacklister.isBlacklisted(user));
@@ -41,11 +52,7 @@ contract BlacklisterTest is BaseTest {
         assertFalse(blacklister.isBlacklisted(user));
     }
 
-    ////////////////////////////////////////////////////////////
-    //            BlacklistAlreadyBlacklistedReverts            //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBlacklistAlreadyBlacklistedReverts_revertsWith() public {
+    function test_unit_blacklist_revertsWith_Blacklister_AlreadyBlacklisted() public {
         vm.startPrank(owner);
         blacklister.blacklist(user);
         vm.expectRevert(IBlacklister.Blacklister_AlreadyBlacklisted.selector);
@@ -53,21 +60,13 @@ contract BlacklisterTest is BaseTest {
         vm.stopPrank();
     }
 
-    ////////////////////////////////////////////////////////////
-    //          BlacklistRevertsForNonOwnerOrGuardian           //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitBlacklistRevertsForNonOwnerOrGuardian_revertsWith() public {
+    function test_unit_blacklist_revertsWith_Blacklister_NotAllowed() public {
         vm.prank(user);
         vm.expectRevert(IBlacklister.Blacklister_NotAllowed.selector);
         blacklister.blacklist(user);
     }
 
-    ////////////////////////////////////////////////////////////
-    //            GuardianCanBlacklistAndUnblacklist            //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitGuardianCanBlacklistAndUnblacklist_success() public {
+    function test_unit_blacklist_success_whenCalledByGuardian() public {
         roles.setAllowed(guardian, true);
 
         vm.prank(guardian);
@@ -80,20 +79,20 @@ contract BlacklisterTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //             UnblacklistNotBlacklistedReverts             //
+    //                      Unblacklist                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitUnblacklistNotBlacklistedReverts_revertsWith() public {
+    function test_unit_unblacklist_revertsWith_Blacklister_NotBlacklisted() public {
         vm.prank(owner);
         vm.expectRevert(IBlacklister.Blacklister_NotBlacklisted.selector);
         blacklister.unblacklist(user);
     }
 
     ////////////////////////////////////////////////////////////
-    //           UnblacklistRemovesCorrectlyFromArray           //
+    //                GetBlacklistedAddresses                 //
     ////////////////////////////////////////////////////////////
 
-    function test_unitUnblacklistRemovesCorrectlyFromArray_success() public {
+    function test_unit_getBlacklistedAddresses_success_variant1() public {
         address user2 = users.bob;
         vm.startPrank(owner);
         blacklister.blacklist(user);
@@ -105,11 +104,7 @@ contract BlacklisterTest is BaseTest {
         vm.stopPrank();
     }
 
-    ////////////////////////////////////////////////////////////
-    //          UnblacklistSecondUserRemovesCorrectly           //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitUnblacklistSecondUserRemovesCorrectly_success() public {
+    function test_unit_getBlacklistedAddresses_success_variant2() public {
         address user2 = users.bob;
         vm.startPrank(owner);
         blacklister.blacklist(user);
@@ -121,11 +116,7 @@ contract BlacklisterTest is BaseTest {
         vm.stopPrank();
     }
 
-    ////////////////////////////////////////////////////////////
-    //                 GetBlacklistedAddresses                  //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitGetBlacklistedAddresses_success() public {
+    function test_unit_getBlacklistedAddresses_success_variant3() public {
         vm.startPrank(owner);
         blacklister.blacklist(user);
         address[] memory list = blacklister.getBlacklistedAddresses();
@@ -134,11 +125,7 @@ contract BlacklisterTest is BaseTest {
         vm.stopPrank();
     }
 
-    ////////////////////////////////////////////////////////////
-    //              UnblacklistByIndexRemovesUser               //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitUnblacklistByIndexRemovesUser_success() public {
+    function test_unit_getBlacklistedAddresses_success_variant4() public {
         address user2 = users.bob;
         vm.startPrank(owner);
         blacklister.blacklist(user);
@@ -151,10 +138,10 @@ contract BlacklisterTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //           UnblacklistByIndexRevertsOnMismatch            //
+    //                      Unblacklist                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitUnblacklistByIndexRevertsOnMismatch_revertsWith() public {
+    function test_unit_unblacklist_revertsWith_Blacklister_NotBlacklisted_byIndex() public {
         address user2 = users.bob;
         vm.startPrank(owner);
         blacklister.blacklist(user);
@@ -164,24 +151,9 @@ contract BlacklisterTest is BaseTest {
         vm.stopPrank();
     }
 
-    ////////////////////////////////////////////////////////////
-    //       UnblacklistByIndexRevertsWhenNotBlacklisted        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitUnblacklistByIndexRevertsWhenNotBlacklisted_revertsWith() public {
+    function test_unit_unblacklist_revertsWith_Blacklister_NotBlacklisted_withoutIndex() public {
         vm.prank(owner);
         vm.expectRevert(IBlacklister.Blacklister_NotBlacklisted.selector);
         blacklister.unblacklist(user, 0);
-    }
-
-    ////////////////////////////////////////////////////////////
-    //              InitializeRevertsWithZeroRoles              //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitInitializeRevertsWithZeroRoles_revertsWith() public {
-        Blacklister blacklisterImp = new Blacklister();
-        bytes memory initData = abi.encodeWithSelector(Blacklister.initialize.selector, address(owner), address(0));
-        vm.expectRevert(IBlacklister.Blacklister_InvalidRoles.selector);
-        new ERC1967Proxy(address(blacklisterImp), initData);
     }
 }

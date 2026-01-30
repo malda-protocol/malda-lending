@@ -36,10 +36,10 @@ contract MarketHostForkTest is BaseForkTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                   MarketHost18decimals                   //
+    //                  SetInterestRateModel                  //
     ////////////////////////////////////////////////////////////
 
-    function test_forkMarketHost18Decimals_revertsWith_setNewInterestModelFailure() public {
+    function test_fork_setInterestRateModel_revertsWith_mt_BorrowRateTooHigh() public {
         uint256 crtBorrowRateMaxMantissa = mTokenStorage(address(market18Decimals)).borrowRateMaxMantissa();
         console2.log("Current borrowRateMaxMantissa: ", crtBorrowRateMaxMantissa);
 
@@ -58,7 +58,7 @@ contract MarketHostForkTest is BaseForkTest {
         //assertEq(mTokenConfiguration(address(market18Decimals)).interestRateModel(), address(newInterestModel), "interest set issue");
     }
 
-    function test_forkMarketHost18Decimals_success_setNewInterestModel() public {
+    function test_fork_setInterestRateModel_success_setNewInterestModel() public {
         uint256 crtBorrowRate = mToken(address(market18Decimals)).borrowRatePerBlock();
 
         vm.startPrank(ownerOnChain);
@@ -118,7 +118,11 @@ contract MarketHostForkTest is BaseForkTest {
         console2.log(" - After borrow          : ", borrowRateAfterSecondBorrow);
     }
 
-    function test_forkMarketHost18Decimals_success_safeZonePoc() public {
+    ////////////////////////////////////////////////////////////
+    //                         Borrow                         //
+    ////////////////////////////////////////////////////////////
+
+    function test_fork_borrow_success_safeZonePoc() public {
         console2.log("=== SAFE ZONE PROOF OF CONCEPT ===");
         console2.log("Demonstrates that with larger liquidity and multiple suppliers,");
         console2.log("utilization naturally stays below 100%, even under heavy borrow demand");
@@ -235,7 +239,7 @@ contract MarketHostForkTest is BaseForkTest {
         //     multiple suppliers, it becomes statistically impossible to cross 100% utilization.
     }
 
-    function test_forkMarketHost18Decimals_success_setNewInterestModelPocAnalysis() public {
+    function test_fork_borrow_revertsWith_Operator_InsufficientLiquidity() public {
         // =============================================================
         // 0. Setup & context
         // =============================================================
@@ -380,7 +384,11 @@ contract MarketHostForkTest is BaseForkTest {
         //     multiple suppliers, it becomes statistically impossible to cross 100% utilization.
     }
 
-    function test_forkMarketHost18Decimals_success_thinLiquidityPoc() public {
+    ////////////////////////////////////////////////////////////
+    //                    UtilizationRate                     //
+    ////////////////////////////////////////////////////////////
+
+    function test_fork_utilizationRate_success_thinLiquidityPoc() public {
         // =============================================================
         // 0. Setup
         // =============================================================
@@ -445,7 +453,7 @@ contract MarketHostForkTest is BaseForkTest {
         // Utilization (scaled 1e18):  586187999258024
     }
 
-    function test_forkMarketHost18Decimals_success_compareOldVsNewModel() public {
+    function test_fork_utilizationRate_success_compareOldVsNewModel() public {
         console2.log("=== OLD VS NEW INTEREST MODEL COMPARISON ===");
         console2.log("Demonstrates identical liquidity setup producing overflow in old model");
         console2.log("while the new model keeps utilization and borrowRate capped at 1e18");
@@ -533,7 +541,12 @@ contract MarketHostForkTest is BaseForkTest {
     // - how the new model safeguards it
     // - quanitifies at which liquidity level (and borrower count) the problem dissappears
     // - logs all relevant metrics: utilization, borrow limits, effective collateral, solvency ratio
-    function test_forkMarketHost18Decimals_success_liquidityThresholdAndMitigationPoc() public {
+
+    ////////////////////////////////////////////////////////////
+    //                         Borrow                         //
+    ////////////////////////////////////////////////////////////
+
+    function test_fork_borrow_success_liquidityThresholdAndMitigationPoc() public {
         console2.log("=== UTILIZATION OVERFLOW & UNDERCOLLATERALIZATION POC ===");
         console2.log("Goal: Map the risk of first-borrower undercollateralization vs liquidity level");
         console2.log("      and prove that the capped utilization model + initial mintBurn fix it");
@@ -663,7 +676,11 @@ contract MarketHostForkTest is BaseForkTest {
         }
     }
 
-    function test_forkMarketHost18Decimals_success_lifecycleUtilizationPoc() public {
+    ////////////////////////////////////////////////////////////
+    //                    UtilizationRate                     //
+    ////////////////////////////////////////////////////////////
+
+    function test_fork_utilizationRate_success_lifecycleUtilizationPoc() public {
         console2.log("=== LIFECYCLE UTILIZATION STABILITY POC ===");
         console2.log(
             "Goal: observe utilization evolution across mint/borrow/repay/redeem cycles - basically what happened with our tests"

@@ -39,10 +39,10 @@ contract LiquidationTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        Liquidate                         //
+    //                       BalanceOf                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitLiquidate_success_Simulation_WhenCollateralFactorDropped() public {
+    function test_unit_balanceOf_success_simulation_WhenCollateralFactorDropped() public {
         _getTokens(weth, borrower, 1000 ether);
         vm.startPrank(borrower);
         weth.approve(address(mWeth), type(uint256).max);
@@ -83,7 +83,7 @@ contract LiquidationTest is BaseMTokenTest {
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
 
-    function test_unitLiquidate_success_Simulation_PriceDropHalf() public {
+    function test_unit_balanceOf_success_simulation_PriceDropHalf() public {
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
         newOracle.setUnderlyingPrice(address(mWeth), 1e18);
@@ -123,7 +123,7 @@ contract LiquidationTest is BaseMTokenTest {
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
 
-    function test_unitLiquidate_success_Simulation_PriceDropHalf_AndLog() public {
+    function test_unit_balanceOf_success_simulation_PriceDropHalf_AndLog() public {
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
         newOracle.setUnderlyingPrice(address(mWeth), 1e18);
@@ -195,7 +195,11 @@ contract LiquidationTest is BaseMTokenTest {
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
 
-    function test_unitLiquidate_success_Simulation_PriceDropNormal_AndLog() public {
+    ////////////////////////////////////////////////////////////
+    //                   SetUnderlyingPrice                   //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_setUnderlyingPrice_success_simulation_PriceDropNormal_AndLog() public {
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
         newOracle.setUnderlyingPrice(address(mWeth), 1e18);

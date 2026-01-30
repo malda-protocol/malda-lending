@@ -33,10 +33,10 @@ contract ReferralSigningTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                      ClaimReferral                       //
+    //                     ClaimReferral                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unitClaimReferral_success_Works() public {
+    function test_unit_claimReferral_success_works() public {
         uint256 nonce = referral.nonces(referred);
         bytes memory sig = sign(referredKey, referred, referrer, nonce);
 
@@ -50,7 +50,7 @@ contract ReferralSigningTest is BaseTest {
         assertEq(referral.nonces(referred), nonce + 1);
     }
 
-    function test_unitClaimReferral_success_RejectsSelfReferral() public {
+    function test_unit_claimReferral_revertsWith_ReferralSigning_SameUser() public {
         uint256 nonce = referral.nonces(referrer);
         bytes memory sig = sign(referrerKey, referrer, referrer, nonce);
 
@@ -59,7 +59,7 @@ contract ReferralSigningTest is BaseTest {
         referral.claimReferral(sig, referrer);
     }
 
-    function test_unitClaimReferral_success_RejectsDoubleClaim() public {
+    function test_unit_claimReferral_revertsWith_ReferralSigning_UserAlreadyReferred() public {
         uint256 nonce = referral.nonces(referred);
         bytes memory sig = sign(referredKey, referred, referrer, nonce);
 
@@ -71,7 +71,7 @@ contract ReferralSigningTest is BaseTest {
         referral.claimReferral(sig, referrer);
     }
 
-    function test_unitClaimReferral_success_InvalidSignature() public {
+    function test_unit_claimReferral_revertsWith_ReferralSigning_InvalidSignature() public {
         uint256 nonce = referral.nonces(referred);
         // Signed by referrer instead of referred
         bytes memory sig = sign(referrerKey, referred, referrer, nonce);
@@ -81,7 +81,7 @@ contract ReferralSigningTest is BaseTest {
         referral.claimReferral(sig, referrer);
     }
 
-    function test_unitClaimReferral_success_RejectsContractReferrer() public {
+    function test_unit_claimReferral_revertsWith_ReferralSigning_ContractReferrerNotAllowed() public {
         address contractReferrer = address(new DummyReferrer());
         uint256 nonce = referral.nonces(referred);
         bytes memory sig = sign(referredKey, referred, contractReferrer, nonce);

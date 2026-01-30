@@ -37,15 +37,15 @@ contract MixedPriceOracleV4Test is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       SetStaleness                       //
+    //                      SetStaleness                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetStaleness_success() public {
+    function test_unit_setStaleness_success() public {
         oracle.setStaleness("MOCK", 1234);
         assertEq(oracle.stalenessPerSymbol("MOCK"), 1234);
     }
 
-    function test_unitSetStaleness_revertsWith_revertWhenUnauthorized() public {
+    function test_unit_setStaleness_revertsWith_MixedPriceOracle_Unauthorized() public {
         MockRoles newRoles = new MockRoles();
 
         string[] memory symbols = new string[](1);
@@ -67,10 +67,10 @@ contract MixedPriceOracleV4Test is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       Constructor                        //
+    //                      Constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitConstructor_revertsWith_revertWhenRolesZero() public {
+    function test_unit_constructor_revertsWith_MixedPriceOracle_AddressNotValid() public {
         string[] memory symbols = new string[](1);
         symbols[0] = "MOCK";
 
@@ -88,40 +88,40 @@ contract MixedPriceOracleV4Test is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                     SetMaxPriceDelta                     //
+    //                    SetMaxPriceDelta                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetMaxPriceDelta_success() public {
+    function test_unit_setMaxPriceDelta_success() public {
         oracle.setMaxPriceDelta(500);
         assertEq(oracle.maxPriceDelta(), 500);
     }
 
-    function test_unitSetMaxPriceDelta_revertsWith_revertWhenTooHigh() public {
+    function test_unit_setMaxPriceDelta_revertsWith_MixedPriceOracle_DeltaTooHigh() public {
         uint256 delta = oracle.PRICE_DELTA_EXP() + 1;
         vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_DeltaTooHigh.selector);
         oracle.setMaxPriceDelta(delta);
     }
 
     ////////////////////////////////////////////////////////////
-    //                  SetSymbolMaxPriceDelta                  //
+    //                 SetSymbolMaxPriceDelta                 //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetSymbolMaxPriceDelta_success() public {
+    function test_unit_setSymbolMaxPriceDelta_success() public {
         oracle.setSymbolMaxPriceDelta(400, "MOCK");
         assertEq(oracle.deltaPerSymbol("MOCK"), 400);
     }
 
-    function test_unitSetSymbolMaxPriceDelta_revertsWith_revertWhenTooHigh() public {
+    function test_unit_setSymbolMaxPriceDelta_revertsWith_MixedPriceOracle_DeltaTooHigh() public {
         uint256 delta = oracle.PRICE_DELTA_EXP() + 1;
         vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_DeltaTooHigh.selector);
         oracle.setSymbolMaxPriceDelta(delta, "MOCK");
     }
 
     ////////////////////////////////////////////////////////////
-    //                        SetConfig                         //
+    //                       SetConfig                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetConfig_success() public {
+    function test_unit_setConfig_success() public {
         MixedPriceOracleV4.PriceConfig memory cfg = MixedPriceOracleV4.PriceConfig({
             api3Feed: address(api3),
             chainlinkFeed: address(chainlink),
@@ -132,7 +132,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         oracle.setConfig("MOCK", cfg);
     }
 
-    function test_unitSetConfig_revertsWith_revertWhenApi3FeedZero() public {
+    function test_unit_setConfig_revertsWith_MixedPriceOracle_InvalidConfig() public {
         MixedPriceOracleV4.PriceConfig memory cfg = MixedPriceOracleV4.PriceConfig({
             api3Feed: address(0),
             chainlinkFeed: address(chainlink),
@@ -145,7 +145,11 @@ contract MixedPriceOracleV4Test is BaseTest {
         oracle.setConfig("MOCK", cfg);
     }
 
-    function test_unitSetConfig_success_allowsChainlinkFeedZero() public {
+    ////////////////////////////////////////////////////////////
+    //                        Configs                         //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_configs_success_allowsChainlinkFeedZero() public {
         MixedPriceOracleV4.PriceConfig memory cfg = MixedPriceOracleV4.PriceConfig({
             api3Feed: address(api3),
             chainlinkFeed: address(0),
@@ -160,10 +164,10 @@ contract MixedPriceOracleV4Test is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                         GetPrice                         //
+    //                        GetPrice                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGetPrice_success_usesApi3WhenChainlinkMissing() public {
+    function test_unit_getPrice_success_usesApi3WhenChainlinkMissing() public {
         MixedPriceOracleV4.PriceConfig memory cfg = MixedPriceOracleV4.PriceConfig({
             api3Feed: address(api3),
             chainlinkFeed: address(0),
@@ -180,7 +184,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         assertEq(price, 123e18);
     }
 
-    function test_unitGetPrice_revertsWith_revertWhenApi3StaleAndChainlinkMissing() public {
+    function test_unit_getPrice_revertsWith_MixedPriceOracle_ApiV3StalePrice() public {
         MixedPriceOracleV4.PriceConfig memory cfg = MixedPriceOracleV4.PriceConfig({
             api3Feed: address(api3),
             chainlinkFeed: address(0),
@@ -196,13 +200,13 @@ contract MixedPriceOracleV4Test is BaseTest {
         oracle.getPrice(address(token));
     }
 
-    function test_unitGetPrice_success() public {
+    function test_unit_getPrice_success() public {
         chainlink.setUpdatedAt(block.timestamp - 10);
         uint256 price = oracle.getPrice(address(token));
         assertEq(price, 1e18); // since price is 1e8 and decimals = 8
     }
 
-    function test_unitGetPrice_success_usesApi3WhenFresh() public {
+    function test_unit_getPrice_success_usesApi3WhenFresh() public {
         api3.setPrice(100e8);
         chainlink.setPrice(101e8);
         api3.setUpdatedAt(block.timestamp);
@@ -212,27 +216,27 @@ contract MixedPriceOracleV4Test is BaseTest {
         assertEq(price, 100e18);
     }
 
-    function test_unitGetPrice_revertsWith_revertWhenMissingFeed() public {
+    function test_unit_getPrice_revertsWith_MixedPriceOracle_MissingFeed() public {
         token.setSymbol("MISSING");
         vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_MissingFeed.selector);
         oracle.getPrice(address(token));
     }
 
     ////////////////////////////////////////////////////////////
-    //                    GetUnderlyingPrice                    //
+    //                   GetUnderlyingPrice                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGetUnderlyingPrice_success() public {
+    function test_unit_getUnderlyingPrice_success() public {
         chainlink.setUpdatedAt(block.timestamp - 10);
         uint256 price = oracle.getUnderlyingPrice(address(token));
         assertEq(price, 1e18); // same as getPrice because underlyingDecimals = 18
     }
 
     ////////////////////////////////////////////////////////////
-    //                 UseChainlinkOnApi3Stale                  //
+    //                        GetPrice                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unitUseChainlinkOnApi3Stale_success() public {
+    function test_unit_getPrice_success_variant2() public {
         api3.setUpdatedAt(block.timestamp - 2 days);
         chainlink.setPrice(2e8);
         chainlink.setUpdatedAt(block.timestamp);
@@ -241,11 +245,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         assertEq(price, 2e18);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                    RevertIfBothStale                     //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitRevertIfBothStale_revertsWith() public {
+    function test_unit_getPrice_revertsWith_MixedPriceOracle_ChainlinkStalePrice_revertIfBothStale() public {
         api3.setUpdatedAt(block.timestamp - 2 days);
         chainlink.setUpdatedAt(block.timestamp - 2 days);
 
@@ -253,11 +253,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         oracle.getPrice(address(token));
     }
 
-    ////////////////////////////////////////////////////////////
-    //            FallbackToChainlinkOnDeltaTooHigh             //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitFallbackToChainlinkOnDeltaTooHigh_success() public {
+    function test_unit_getPrice_success_variant3() public {
         // api3 = 1e8, chainlink = 3e8 -> 200% delta
         chainlink.setPrice(3e8);
         chainlink.setUpdatedAt(block.timestamp);
@@ -268,11 +264,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         assertEq(price, 3e18);
     }
 
-    ////////////////////////////////////////////////////////////
-    //           FailsIfDeltaTooHighAndChainlinkStale           //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitFailsIfDeltaTooHighAndChainlinkStale_revertsWith() public {
+    function test_unit_getPrice_revertsWith_MixedPriceOracle_ChainlinkStalePrice() public {
         chainlink.setPrice(3e8);
         chainlink.setUpdatedAt(block.timestamp - 2 days);
         oracle.setSymbolMaxPriceDelta(1500, "MOCK");
@@ -281,11 +273,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         oracle.getPrice(address(token));
     }
 
-    ////////////////////////////////////////////////////////////
-    //                      ComposedPrice                       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitComposedPrice_success_OneHop() public {
+    function test_unit_getPrice_revertsWith_OneHop() public {
         string[] memory symbols = new string[](2);
         symbols[0] = "ETH";
         symbols[1] = "weETH";
@@ -322,7 +310,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         oracle.getPrice(address(token));
     }
 
-    function test_unitComposedPrice_success_UsesParentUpdate() public {
+    function test_unit_getPrice_success_usesParentUpdate() public {
         MockAdapter api3Eth = new MockAdapter();
         MockAdapter chainlinkEth = new MockAdapter();
         MockAdapter api3WeEth = new MockAdapter();
@@ -366,11 +354,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         assertEq(price, 4000e18);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                  RevertsIfNegativePrice                  //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitRevertsIfNegativePrice_revertsWith() public {
+    function test_unit_getPrice_revertsWith() public {
         api3.setPrice(-1);
         chainlink.setPrice(-1);
 
@@ -378,11 +362,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         oracle.getPrice(address(token));
     }
 
-    ////////////////////////////////////////////////////////////
-    //                 UsesSymbolSpecificDelta                  //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitUsesSymbolSpecificDelta_success() public {
+    function test_unit_getPrice_success_variant4() public {
         api3.setPrice(100e8);
         chainlink.setPrice(120e8);
         api3.setUpdatedAt(block.timestamp);
@@ -397,20 +377,20 @@ contract MixedPriceOracleV4Test is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                     SetMaxPriceDelta                     //
+    //                    SetMaxPriceDelta                    //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzzSetMaxPriceDelta_success(uint256 delta) public {
+    function test_fuzz_setMaxPriceDelta_success(uint256 delta) public {
         vm.assume(delta <= oracle.PRICE_DELTA_EXP());
         oracle.setMaxPriceDelta(delta);
         assertEq(oracle.maxPriceDelta(), delta);
     }
 
     ////////////////////////////////////////////////////////////
-    //                  SetSymbolMaxPriceDelta                  //
+    //                 SetSymbolMaxPriceDelta                 //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzzSetSymbolMaxPriceDelta_success(uint256 delta) public {
+    function test_fuzz_setSymbolMaxPriceDelta_success(uint256 delta) public {
         vm.assume(delta <= oracle.PRICE_DELTA_EXP());
         oracle.setSymbolMaxPriceDelta(delta, "MOCK");
         assertEq(oracle.deltaPerSymbol("MOCK"), delta);

@@ -90,10 +90,10 @@ contract MixedPriceOracleV3_Test is Operator, BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       GetPriceUSD                        //
+    //                   GetUnderlyingPrice                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGetPriceUSD_success() public view {
+    function test_unit_getUnderlyingPrice_success() public view {
         uint256 btcPrice = mixedPriceOracle.getUnderlyingPrice(address(mBTC));
         uint256 ethPrice = mixedPriceOracle.getUnderlyingPrice(address(mETH));
         uint256 usdcPrice = mixedPriceOracle.getUnderlyingPrice(address(mUSDC));

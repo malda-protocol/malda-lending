@@ -24,10 +24,10 @@ contract JumpRateModelV4Test is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       Constructor                        //
+    //                       Getters                          //
     ////////////////////////////////////////////////////////////
 
-    function test_unitConstructor_success_SetsState() public view {
+    function test_unit_getters_success() public view {
         assertEq(model.blocksPerYear(), 1000);
         assertEq(model.baseRatePerBlock(), 1e16);
         assertEq(model.multiplierPerBlock(), 2e16);
@@ -36,21 +36,49 @@ contract JumpRateModelV4Test is BaseTest {
         assertEq(model.name(), "MODEL");
     }
 
-    function test_unitConstructor_revertsWith_RevertWhenNameEmpty() public {
+    ////////////////////////////////////////////////////////////
+    //                      Constructor                       //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_constructor_revertsWith_JumpRateModelV4_ZeroValueNotAllowed_variant2() public {
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
         new JumpRateModelV4(1000, 1, 1, 1, 1, owner, "");
     }
 
-    function test_unitConstructor_revertsWith_RevertWhenBlocksPerYearZero() public {
+    function test_unit_constructor_revertsWith_JumpRateModelV4_ZeroValueNotAllowed() public {
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
         new JumpRateModelV4(0, 1, 1, 1, 1, owner, "MODEL");
     }
 
     ////////////////////////////////////////////////////////////
-    //                UpdateJumpRateModelDirect                 //
+    //               UpdateJumpRateModelDirect                //
     ////////////////////////////////////////////////////////////
 
-    function test_unitUpdateJumpRateModelDirect_success_Updates() public {
+    function test_unit_updateJumpRateModelDirect_revertsWith_OwnableUnauthorizedAccount() public {
+        vm.prank(other);
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, other));
+        model.updateJumpRateModelDirect(1, 1, 1, 1);
+    }
+
+    function test_unit_updateJumpRateModelDirect_revertsWith_JumpRateModelV4_ZeroValueNotAllowed_variant3() public {
+        vm.prank(owner);
+        vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+        model.updateJumpRateModelDirect(1, 0, 1, 1);
+    }
+
+    function test_unit_updateJumpRateModelDirect_revertsWith_JumpRateModelV4_ZeroValueNotAllowed_variant2() public {
+        vm.prank(owner);
+        vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+        model.updateJumpRateModelDirect(1, 1, 0, 1);
+    }
+
+    function test_unit_updateJumpRateModelDirect_revertsWith_JumpRateModelV4_ZeroValueNotAllowed() public {
+        vm.prank(owner);
+        vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+        model.updateJumpRateModelDirect(1, 1, 1, 0);
+    }
+
+    function test_unit_updateJumpRateModelDirect_success() public {
         uint256 base = 0;
         uint256 multiplier = 5e16;
         uint256 jump = 7e16;
@@ -67,35 +95,11 @@ contract JumpRateModelV4Test is BaseTest {
         assertEq(model.kink(), kink);
     }
 
-    function test_unitUpdateJumpRateModelDirect_revertsWith_RevertWhenNotOwner() public {
-        vm.prank(other);
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, other));
-        model.updateJumpRateModelDirect(1, 1, 1, 1);
-    }
-
-    function test_unitUpdateJumpRateModelDirect_revertsWith_RevertWhenMultiplierZero() public {
-        vm.prank(owner);
-        vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
-        model.updateJumpRateModelDirect(1, 0, 1, 1);
-    }
-
-    function test_unitUpdateJumpRateModelDirect_revertsWith_RevertWhenJumpMultiplierZero() public {
-        vm.prank(owner);
-        vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
-        model.updateJumpRateModelDirect(1, 1, 0, 1);
-    }
-
-    function test_unitUpdateJumpRateModelDirect_revertsWith_RevertWhenKinkZero() public {
-        vm.prank(owner);
-        vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
-        model.updateJumpRateModelDirect(1, 1, 1, 0);
-    }
-
     ////////////////////////////////////////////////////////////
-    //                   UpdateJumpRateModel                    //
+    //                  UpdateJumpRateModel                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitUpdateJumpRateModel_success_Updates() public {
+    function test_unit_updateJumpRateModel_success() public {
         uint256 baseRatePerYear = 1000;
         uint256 multiplierPerYear = 2000;
         uint256 jumpMultiplierPerYear = 3000;
@@ -116,41 +120,41 @@ contract JumpRateModelV4Test is BaseTest {
         assertEq(model.kink(), kink);
     }
 
-    function test_unitUpdateJumpRateModel_revertsWith_RevertWhenBaseRateZero() public {
+    function test_unit_updateJumpRateModel_revertsWith_JumpRateModelV4_ZeroValueNotAllowed_variant4() public {
         vm.prank(owner);
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
         model.updateJumpRateModel(0, 1, 1, 1);
     }
 
-    function test_unitUpdateJumpRateModel_revertsWith_RevertWhenMultiplierZero() public {
+    function test_unit_updateJumpRateModel_revertsWith_JumpRateModelV4_ZeroValueNotAllowed_variant3() public {
         vm.prank(owner);
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
         model.updateJumpRateModel(1, 0, 1, 1);
     }
 
-    function test_unitUpdateJumpRateModel_revertsWith_RevertWhenJumpMultiplierZero() public {
+    function test_unit_updateJumpRateModel_revertsWith_JumpRateModelV4_ZeroValueNotAllowed_variant2() public {
         vm.prank(owner);
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
         model.updateJumpRateModel(1, 1, 0, 1);
     }
 
-    function test_unitUpdateJumpRateModel_revertsWith_RevertWhenKinkZero() public {
+    function test_unit_updateJumpRateModel_revertsWith_JumpRateModelV4_ZeroValueNotAllowed() public {
         vm.prank(owner);
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
         model.updateJumpRateModel(1, 1, 1, 0);
     }
 
-    function test_unitUpdateJumpRateModel_revertsWith_RevertWhenNotOwner() public {
+    function test_unit_updateJumpRateModel_revertsWith_OwnableUnauthorizedAccount() public {
         vm.prank(other);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, other));
         model.updateJumpRateModel(1, 1, 1, 1);
     }
 
     ////////////////////////////////////////////////////////////
-    //                   UpdateBlocksPerYear                    //
+    //                  updateBlocksPerYear                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitUpdateBlocksPerYear_success_Updates(uint256 newBlocksPerYear) public {
+    function test_unit_updateBlocksPerYear_success(uint256 newBlocksPerYear) public {
         newBlocksPerYear = bound(newBlocksPerYear, 1, 1e12);
 
         vm.prank(owner);
@@ -161,51 +165,51 @@ contract JumpRateModelV4Test is BaseTest {
         assertEq(model.blocksPerYear(), newBlocksPerYear);
     }
 
-    function test_unitUpdateBlocksPerYear_revertsWith_RevertWhenZero() public {
+    function test_unit_updateBlocksPerYear_revertsWith_JumpRateModelV4_ZeroValueNotAllowed() public {
         vm.prank(owner);
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
         model.updateBlocksPerYear(0);
     }
 
-    function test_unitUpdateBlocksPerYear_revertsWith_RevertWhenNotOwner() public {
+    function test_unit_updateBlocksPerYear_revertsWith_OwnableUnauthorizedAccount() public {
         vm.prank(other);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, other));
         model.updateBlocksPerYear(1);
     }
 
     ////////////////////////////////////////////////////////////
-    //                   IsInterestRateModel                    //
+    //                  IsInterestRateModel                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitIsInterestRateModel_success() public view {
+    function test_unit_isInterestRateModel_success() public view {
         assertTrue(model.isInterestRateModel());
     }
 
     ////////////////////////////////////////////////////////////
-    //                     UtilizationRate                      //
+    //                    UtilizationRate                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitUtilizationRate_success_ZeroBorrows() public view {
+    function test_unit_utilizationRate_success_zeroBorrows() public view {
         assertEq(model.utilizationRate(100, 0, 0), 0);
     }
 
-    function test_unitUtilizationRate_success_CappedAtOne() public view {
+    function test_unit_utilizationRate_success_cappedAtOne() public view {
         uint256 util = model.utilizationRate(10, 90, 50);
         assertEq(util, 1e18);
     }
 
     ////////////////////////////////////////////////////////////
-    //                      GetBorrowRate                       //
+    //                     GetBorrowRate                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGetBorrowRate_success_BelowKink() public view {
+    function test_unit_getBorrowRate_success_belowKink() public view {
         uint256 util = model.utilizationRate(100, 100, 0);
         uint256 expected = util * model.multiplierPerBlock() / 1e18 + model.baseRatePerBlock();
         uint256 rate = model.getBorrowRate(100, 100, 0);
         assertEq(rate, expected);
     }
 
-    function test_unitGetBorrowRate_success_AboveKink() public view {
+    function test_unit_getBorrowRate_success_aboveKink() public view {
         uint256 util = model.utilizationRate(1, 9, 0);
         uint256 normalRate = model.kink() * model.multiplierPerBlock() / 1e18 + model.baseRatePerBlock();
         uint256 expected = (util - model.kink()) * model.jumpMultiplierPerBlock() / 1e18 + normalRate;
@@ -213,11 +217,7 @@ contract JumpRateModelV4Test is BaseTest {
         assertEq(rate, expected);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                      GetSupplyRate                       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitGetSupplyRate_success() public view {
+    function test_unit_getBorrowRate_success() public view {
         uint256 cash = 100;
         uint256 borrows = 100;
         uint256 reserves = 0;

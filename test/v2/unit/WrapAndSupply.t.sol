@@ -14,19 +14,19 @@ contract WrapAndSupplyTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       Constructor                        //
+    //                      Constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitConstructor_revertsWith_revertWhenWrappedNativeZero() external {
+    function test_unit_constructor_revertsWith_WrapAndSupply_AddressNotValid() external {
         vm.expectRevert(WrapAndSupply.WrapAndSupply_AddressNotValid.selector);
         new WrapAndSupply(address(0));
     }
 
     ////////////////////////////////////////////////////////////
-    //                WrapAndSupplyOnHostMarket                 //
+    //                     MockHostMarket                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitWrapAndSupplyOnHostMarket_revertsWith_revertWhenReceiverZero() external {
+    function test_unit_mockHostMarket_revertsWith_WrapAndSupply_AddressNotValid_variant2() external {
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockHostMarket market = new MockHostMarket(address(wrapped));
 
@@ -34,7 +34,7 @@ contract WrapAndSupplyTest is BaseTest {
         helper.wrapAndSupplyOnHostMarket{value: 1 ether}(address(market), address(0), 1);
     }
 
-    function test_unitWrapAndSupplyOnHostMarket_revertsWith_revertWhenUnderlyingMismatch() external {
+    function test_unit_mockHostMarket_revertsWith_WrapAndSupply_AddressNotValid_variant2_variant2() external {
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockHostMarket market = new MockHostMarket(users.alice);
 
@@ -42,7 +42,11 @@ contract WrapAndSupplyTest is BaseTest {
         helper.wrapAndSupplyOnHostMarket{value: 1 ether}(address(market), address(this), 1);
     }
 
-    function test_unitWrapAndSupplyOnHostMarket_revertsWith_revertWhenAmountZero() external {
+    ////////////////////////////////////////////////////////////
+    //               WrapAndSupplyOnHostMarket                //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_wrapAndSupplyOnHostMarket_revertsWith_WrapAndSupply_AmountNotValid() external {
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockHostMarket market = new MockHostMarket(address(wrapped));
 
@@ -50,7 +54,11 @@ contract WrapAndSupplyTest is BaseTest {
         helper.wrapAndSupplyOnHostMarket(address(market), address(this), 1);
     }
 
-    function test_unitWrapAndSupplyOnHostMarket_success_success() external {
+    ////////////////////////////////////////////////////////////
+    //                     MockHostMarket                     //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_mockHostMarket_success_success() external {
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockHostMarket market = new MockHostMarket(address(wrapped));
 
@@ -64,10 +72,10 @@ contract WrapAndSupplyTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //              WrapAndSupplyOnExtensionMarket              //
+    //                         Bytes4                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitWrapAndSupplyOnExtensionMarket_revertsWith_revertWhenReceiverZero() external {
+    function test_unit_bytes4_revertsWith_WrapAndSupply_AddressNotValid_variant2_variant2_variant2() external {
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockGateway gateway = new MockGateway(address(wrapped), 0.1 ether);
 
@@ -75,7 +83,7 @@ contract WrapAndSupplyTest is BaseTest {
         helper.wrapAndSupplyOnExtensionMarket{value: 1 ether}(address(gateway), address(0), bytes4(0));
     }
 
-    function test_unitWrapAndSupplyOnExtensionMarket_revertsWith_revertWhenUnderlyingMismatch() external {
+    function test_unit_bytes4_revertsWith_WrapAndSupply_AddressNotValid_variant3() external {
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockGateway gateway = new MockGateway(users.alice, 0.1 ether);
 
@@ -83,7 +91,7 @@ contract WrapAndSupplyTest is BaseTest {
         helper.wrapAndSupplyOnExtensionMarket{value: 1 ether}(address(gateway), address(this), bytes4(0));
     }
 
-    function test_unitWrapAndSupplyOnExtensionMarket_revertsWith_revertWhenAmountZeroAfterFee() external {
+    function test_unit_bytes4_revertsWith_WrapAndSupply_AmountNotValid_variant2() external {
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockGateway gateway = new MockGateway(address(wrapped), 1 ether);
 
@@ -91,7 +99,11 @@ contract WrapAndSupplyTest is BaseTest {
         helper.wrapAndSupplyOnExtensionMarket{value: 1 ether}(address(gateway), address(this), bytes4(0));
     }
 
-    function test_unitWrapAndSupplyOnExtensionMarket_success_success() external {
+    ////////////////////////////////////////////////////////////
+    //                         Supply                         //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_supply_success_success_variant2() external {
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockGateway gateway = new MockGateway(address(wrapped), 0.1 ether);
 

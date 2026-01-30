@@ -20,18 +20,18 @@ contract DefaultGasHelperTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       Constructor                        //
+    //                         Owner                          //
     ////////////////////////////////////////////////////////////
 
-    function test_unitConstructor_success_SetsOwner() public view {
+    function test_unit_owner_success_setsOwner() public view {
         assertEq(helper.owner(), owner);
     }
 
     ////////////////////////////////////////////////////////////
-    //                        SetGasFee                         //
+    //                     GasFeeUpdated                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetGasFee_success_UpdatesAndEmits(uint32 chainId, uint256 amount) public {
+    function test_unit_gasFeeUpdated_success_updatesAndEmits(uint32 chainId, uint256 amount) public {
         vm.prank(owner);
         vm.expectEmit(true, false, false, true);
         emit GasFeeUpdated(chainId, amount);
@@ -40,7 +40,11 @@ contract DefaultGasHelperTest is BaseTest {
         assertEq(helper.gasFees(chainId), amount);
     }
 
-    function test_unitSetGasFee_revertsWith_RevertWhenNotOwner() public {
+    ////////////////////////////////////////////////////////////
+    //                       SetGasFee                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_setGasFee_revertsWith_OwnableUnauthorizedAccount() public {
         vm.prank(other);
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, other));
         helper.setGasFee(1, 1);

@@ -41,39 +41,39 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       Constructor                        //
+    //                      Constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitConstructor_revertsWith_revertWhenEndpointZero() external {
+    function test_unit_constructor_revertsWith_LZBridge_EndpointZero() external {
         vm.expectRevert(LZUnifiedBridge.LZBridge_EndpointZero.selector);
         new LZUnifiedBridge(address(roles), address(0));
     }
 
     ////////////////////////////////////////////////////////////
-    //                    SetBridgeContract                     //
+    //                   SetBridgeContract                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetBridgeContract_success_updatesMapping() external {
+    function test_unit_setBridgeContract_success_updatesMapping() external {
         address bridgeContract = users.alice;
         bridge.setBridgeContract(address(oft), bridgeContract);
         assertEq(bridge.bridgeContracts(address(oft)), bridgeContract);
     }
 
     ////////////////////////////////////////////////////////////
-    //                  SetOftExecutorContract                  //
+    //                 SetOftExecutorContract                 //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSetOftExecutorContract_success_updatesMapping() external {
+    function test_unit_setOftExecutorContract_success_updatesMapping() external {
         address newExecutor = users.carol;
         bridge.setOftExecutorContract(address(oft), newExecutor);
         assertEq(bridge.oftExecutors(address(oft)), newExecutor);
     }
 
     ////////////////////////////////////////////////////////////
-    //                         SendMsg                          //
+    //                        Bytes32                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSendMsg_success_success() external {
+    function test_unit_bytes32_success_success() external {
         oft.setQuoteFee(1 ether, 0);
 
         bytes memory message = _message();
@@ -85,7 +85,11 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         bridge.sendMsg{value: 1 ether}(amount, address(market), dstChainId, address(oft), message, extraData);
     }
 
-    function test_unitSendMsg_revertsWith_revertWhenChainNotRegistered() external {
+    ////////////////////////////////////////////////////////////
+    //                        SendMsg                         //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_sendMsg_revertsWith_LZBridge_ChainNotRegistered() external {
         oft.setQuoteFee(0, 0);
         bytes memory message = _message();
         bytes memory extraData = abi.encode(users.bob);
@@ -94,7 +98,7 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         bridge.sendMsg(amount, address(market), 0, address(oft), message, extraData);
     }
 
-    function test_unitSendMsg_revertsWith_revertWhenDestinationMismatch() external {
+    function test_unit_sendMsg_revertsWith_LZBridge_DestinationMismatch() external {
         oft.setQuoteFee(0, 0);
         bytes memory badMessage = abi.encode(users.carol, amount, minAmount, bytes(""));
         bytes memory extraData = abi.encode(users.bob);
@@ -103,7 +107,7 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         bridge.sendMsg(amount, address(market), dstChainId, address(oft), badMessage, extraData);
     }
 
-    function test_unitSendMsg_revertsWith_revertWhenTokenMismatch() external {
+    function test_unit_sendMsg_revertsWith_LZBridge_TokenMismatch() external {
         oft.setQuoteFee(0, 0);
         bytes memory message = _message();
         bytes memory extraData = abi.encode(users.bob);
@@ -112,7 +116,7 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         bridge.sendMsg(amount, address(market), dstChainId, users.alice, message, extraData);
     }
 
-    function test_unitSendMsg_revertsWith_revertWhenExecutorNotSet() external {
+    function test_unit_sendMsg_revertsWith_LZBridge_ExecutorNotSet() external {
         LZUnifiedBridge bridge2 = new LZUnifiedBridge(address(roles), address(this));
         bytes memory message = _message();
         bytes memory extraData = abi.encode(users.bob);
@@ -121,7 +125,11 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         bridge2.sendMsg(amount, address(market), dstChainId, address(oft), message, extraData);
     }
 
-    function test_unitSendMsg_revertsWith_revertWhenNotEnoughFees() external {
+    ////////////////////////////////////////////////////////////
+    //                      SetQuoteFee                       //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_setQuoteFee_revertsWith_LZBridge_NotEnoughFees() external {
         oft.setQuoteFee(2 ether, 0);
         bytes memory message = _message();
         bytes memory extraData = abi.encode(users.bob);
@@ -130,7 +138,11 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         bridge.sendMsg{value: 1 ether}(amount, address(market), dstChainId, address(oft), message, extraData);
     }
 
-    function test_unitSendMsg_revertsWith_revertWhenAmountMismatch() external {
+    ////////////////////////////////////////////////////////////
+    //                        SendMsg                         //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_sendMsg_revertsWith_BaseBridge_AmountMismatch() external {
         oft.setQuoteFee(0, 0);
         bytes memory message = _message();
         bytes memory extraData = abi.encode(users.bob);
@@ -139,7 +151,7 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         bridge.sendMsg(amount + 1, address(market), dstChainId, address(oft), message, extraData);
     }
 
-    function test_unitSendMsg_revertsWith_revertWhenRefunderZero() external {
+    function test_unit_sendMsg_revertsWith_LZBridge_RefunderNotValid() external {
         oft.setQuoteFee(0, 0);
         bytes memory message = _message();
         bytes memory extraData = abi.encode(address(0));
@@ -148,7 +160,7 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         bridge.sendMsg(amount, address(market), dstChainId, address(oft), message, extraData);
     }
 
-    function test_unitSendMsg_revertsWith_revertWhenExecutorHasNoCode() external {
+    function test_unit_sendMsg_revertsWith_LZBridge_ExecutorNoCode() external {
         LZUnifiedBridge bridge2 = new LZUnifiedBridge(address(roles), address(this));
         bridge2.setOftExecutorContract(address(oft), address(1));
         bytes memory message = _message();
@@ -160,35 +172,39 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        LzCompose                         //
+    //                        Bytes32                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitLzCompose_success_success() external {
+    function test_unit_bytes32_success_success_variant2() external {
         bytes memory message = abi.encode(address(market));
         bridge.lzCompose(address(oft), bytes32(0), message, address(0), bytes(""));
     }
 
-    function test_unitLzCompose_revertsWith_revertWhenNotEndpoint() external {
+    ////////////////////////////////////////////////////////////
+    //                       LzCompose                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_lzCompose_revertsWith_LZBridge_OnlyEndpoint() external {
         bytes memory message = abi.encode(address(market));
         vm.prank(users.alice);
         vm.expectRevert(LZUnifiedBridge.LZBridge_OnlyEndpoint.selector);
         bridge.lzCompose(address(oft), bytes32(0), message, address(0), bytes(""));
     }
 
-    function test_unitLzCompose_revertsWith_revertWhenBadFrom() external {
+    function test_unit_lzCompose_revertsWith_LZBridge_BadFrom() external {
         bytes memory message = abi.encode(address(market));
         vm.expectRevert(LZUnifiedBridge.LZBridge_BadFrom.selector);
         bridge.lzCompose(users.carol, bytes32(0), message, address(0), bytes(""));
     }
 
-    function test_unitLzCompose_revertsWith_revertWhenExecutorNotSet() external {
+    function test_unit_lzCompose_revertsWith_LZBridge_ExecutorNotSet_variant2() external {
         LZUnifiedBridge bridge2 = new LZUnifiedBridge(address(roles), address(this));
         bytes memory message = abi.encode(address(market));
         vm.expectRevert(LZUnifiedBridge.LZBridge_ExecutorNotSet.selector);
         bridge2.lzCompose(address(oft), bytes32(0), message, address(0), bytes(""));
     }
 
-    function test_unitLzCompose_revertsWith_bubblesExecutorRevert() external {
+    function test_unit_lzCompose_revertsWith_ExecutorRevert() external {
         LZBridgeRevertingExecutor revertExecutor = new LZBridgeRevertingExecutor();
         bridge.setOftExecutorContract(address(oft), address(revertExecutor));
 
@@ -198,20 +214,20 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                ProcessUncomposedMessages                 //
+    //               ProcessUncomposedMessages                //
     ////////////////////////////////////////////////////////////
 
-    function test_unitProcessUncomposedMessages_success_success() external {
+    function test_unit_processUncomposedMessages_success_success() external {
         bridge.processUncomposedMessages(address(market));
     }
 
-    function test_unitProcessUncomposedMessages_revertsWith_revertWhenExecutorNotSet() external {
+    function test_unit_processUncomposedMessages_revertsWith_LZBridge_ExecutorNotSet_variant3() external {
         LZUnifiedBridge bridge2 = new LZUnifiedBridge(address(roles), address(this));
         vm.expectRevert(LZUnifiedBridge.LZBridge_ExecutorNotSet.selector);
         bridge2.processUncomposedMessages(address(market));
     }
 
-    function test_unitProcessUncomposedMessages_revertsWith_bubblesExecutorRevert() external {
+    function test_unit_processUncomposedMessages_revertsWith_ExecutorRevert_variant2() external {
         LZBridgeRevertingExecutor revertExecutor = new LZBridgeRevertingExecutor();
         bridge.setOftExecutorContract(address(oft), address(revertExecutor));
 
@@ -220,26 +236,26 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                          GetFee                          //
+    //                         GetFee                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGetFee_success_returnsNativeFee() external {
+    function test_unit_getFee_success_returnsNativeFee() external {
         oft.setQuoteFee(0.5 ether, 0);
         uint256 fee = bridge.getFee(dstChainId, _message(), "");
         assertEq(fee, 0.5 ether);
     }
 
-    function test_unitGetFee_revertsWith_revertWhenChainNotRegistered() external {
+    function test_unit_getFee_revertsWith_LZBridge_ChainNotRegistered() external {
         oft.setQuoteFee(0, 0);
         vm.expectRevert(LZUnifiedBridge.LZBridge_ChainNotRegistered.selector);
         bridge.getFee(0, _message(), "");
     }
 
     ////////////////////////////////////////////////////////////
-    //                         SendMsg                          //
+    //                        SendMsg                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSendMsg_revertsWith_bubblesExecutorRevert() external {
+    function test_unit_sendMsg_revertsWith_ExecutorRevert_variant3() external {
         LZBridgeRevertingExecutor revertExecutor = new LZBridgeRevertingExecutor();
         bridge.setOftExecutorContract(address(oft), address(revertExecutor));
         oft.setQuoteFee(0, 0);

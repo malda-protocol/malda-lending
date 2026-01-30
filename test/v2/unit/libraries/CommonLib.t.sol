@@ -45,29 +45,21 @@ contract CommonLibTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //         CheckHostToExtensionRevertsOnZeroAmount          //
+    //                  CheckHostToExtension                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitCheckHostToExtensionRevertsOnZeroAmount_revertsWith() public {
+    function test_unit_checkHostToExtension_revertsWith_AmountNotValid_revertsOnZeroAmount() public {
         harness.setAllowed(1, true);
         vm.expectRevert(CommonLib.AmountNotValid.selector);
         harness.checkHostToExtension(0, 1, 0);
     }
 
-    ////////////////////////////////////////////////////////////
-    //        CheckHostToExtensionRevertsOnInvalidChain         //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitCheckHostToExtensionRevertsOnInvalidChain_revertsWith() public {
+    function test_unit_checkHostToExtension_revertsWith_ChainNotValid_revertsOnInvalidChain() public {
         vm.expectRevert(CommonLib.ChainNotValid.selector);
         harness.checkHostToExtension(1, 1, 0);
     }
 
-    ////////////////////////////////////////////////////////////
-    //     CheckHostToExtensionRevertsOnInsufficientGasFee      //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitCheckHostToExtensionRevertsOnInsufficientGasFee_revertsWith() public {
+    function test_unit_checkHostToExtension_revertsWith_NotEnoughGasFee_revertsOnInsufficientGasFee() public {
         harness.setAllowed(1, true);
         gasHelper.setFee(1, 10);
         harness.setGasHelper(gasHelper);
@@ -76,20 +68,12 @@ contract CommonLibTest is BaseTest {
         harness.checkHostToExtension(1, 1, 9);
     }
 
-    ////////////////////////////////////////////////////////////
-    //       CheckHostToExtensionSucceedsWithNoGasHelper        //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitCheckHostToExtensionSucceedsWithNoGasHelper_success() public {
+    function test_unit_checkHostToExtension_success_succeedsWithNoGasHelper() public {
         harness.setAllowed(1, true);
         harness.checkHostToExtension(1, 1, 0);
     }
 
-    ////////////////////////////////////////////////////////////
-    //        CheckHostToExtensionSucceedsWithGasHelper         //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitCheckHostToExtensionSucceedsWithGasHelper_success() public {
+    function test_unit_checkHostToExtension_success_succeedsWithGasHelper() public {
         harness.setAllowed(1, true);
         gasHelper.setFee(1, 10);
         harness.setGasHelper(gasHelper);
@@ -98,44 +82,36 @@ contract CommonLibTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                 CheckLengthMatch2Reverts                 //
+    //                   CheckLengthMatch2                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitCheckLengthMatch2Reverts_revertsWith() public {
+    function test_unit_checkLengthMatch2_revertsWith_CommonLib_LengthMismatch() public {
         vm.expectRevert(CommonLib.CommonLib_LengthMismatch.selector);
         harness.checkLengthMatch2(1, 2);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                CheckLengthMatch2Succeeds                 //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitCheckLengthMatch2Succeeds_success() public view {
+    function test_unit_checkLengthMatch2_success_succeeds() public view {
         harness.checkLengthMatch2(2, 2);
     }
 
     ////////////////////////////////////////////////////////////
-    //                 CheckLengthMatch3Reverts                 //
+    //                   CheckLengthMatch3                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitCheckLengthMatch3Reverts_revertsWith() public {
+    function test_unit_checkLengthMatch3_revertsWith_CommonLib_LengthMismatch() public {
         vm.expectRevert(CommonLib.CommonLib_LengthMismatch.selector);
         harness.checkLengthMatch3(1, 2, 3);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                CheckLengthMatch3Succeeds                 //
-    ////////////////////////////////////////////////////////////
-
-    function test_unitCheckLengthMatch3Succeeds_success() public view {
+    function test_unit_checkLengthMatch3_success_succeeds() public view {
         harness.checkLengthMatch3(3, 3, 3);
     }
 
     ////////////////////////////////////////////////////////////
-    //                        ComputeSum                        //
+    //                       ComputeSum                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitComputeSum_success() public view {
+    function test_unit_computeSum_success() public view {
         uint256[] memory values = new uint256[](3);
         values[0] = 1;
         values[1] = 2;

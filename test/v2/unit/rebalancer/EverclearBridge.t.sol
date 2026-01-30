@@ -39,33 +39,33 @@ contract EverclearBridgeTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       Constructor                        //
+    //                      Constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitConstructor_revertsWith_RevertWhenRolesZero() public {
+    function test_unit_constructor_revertsWith_BaseBridge_AddressNotValid() public {
         vm.expectRevert(BaseBridge.BaseBridge_AddressNotValid.selector);
         new EverclearBridge(address(0), address(feeAdapter));
     }
 
-    function test_unitConstructor_revertsWith_RevertWhenFeeAdapterZero() public {
+    function test_unit_constructor_revertsWith_Everclear_AddressNotValid() public {
         vm.expectRevert(EverclearBridge.Everclear_AddressNotValid.selector);
         new EverclearBridge(address(roles), address(0));
     }
 
     ////////////////////////////////////////////////////////////
-    //                          GetFee                          //
+    //                         GetFee                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitGetFee_revertsWith_Reverts() public {
+    function test_unit_getFee_revertsWith_Everclear_NotImplemented() public {
         vm.expectRevert(EverclearBridge.Everclear_NotImplemented.selector);
         bridge.getFee(0, "", "");
     }
 
     ////////////////////////////////////////////////////////////
-    //                         SendMsg                          //
+    //                        SendMsg                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSendMsg_revertsWith_RevertWhenCallerNotRebalancer() public {
+    function test_unit_sendMsg_revertsWith_BaseBridge_NotAuthorized() public {
         IntentInput memory input = _defaultInput();
         input.amount = 1;
 
@@ -75,7 +75,7 @@ contract EverclearBridgeTest is BaseTest {
         bridge.sendMsg(input.amount, market, dstChainId, address(token), message, "");
     }
 
-    function test_unitSendMsg_revertsWith_RevertWhenTokenMismatch() public {
+    function test_unit_sendMsg_revertsWith_Everclear_TokenMismatch() public {
         IntentInput memory input = _defaultInput();
         input.amount = 1;
 
@@ -86,7 +86,7 @@ contract EverclearBridgeTest is BaseTest {
         bridge.sendMsg(input.amount, market, dstChainId, users.carol, message, "");
     }
 
-    function test_unitSendMsg_revertsWith_RevertWhenAmountMismatch() public {
+    function test_unit_sendMsg_revertsWith_BaseBridge_AmountMismatch_variant2() public {
         IntentInput memory input = _defaultInput();
         input.amount = 2;
 
@@ -97,7 +97,7 @@ contract EverclearBridgeTest is BaseTest {
         bridge.sendMsg(1, market, dstChainId, address(token), message, "");
     }
 
-    function test_unitSendMsg_revertsWith_RevertWhenAmountIsZero() public {
+    function test_unit_sendMsg_revertsWith_BaseBridge_AmountMismatch() public {
         IntentInput memory input = _defaultInput();
         input.amount = 0;
 
@@ -108,7 +108,7 @@ contract EverclearBridgeTest is BaseTest {
         bridge.sendMsg(0, market, dstChainId, address(token), message, "");
     }
 
-    function test_unitSendMsg_revertsWith_RevertWhenReceiverMismatch() public {
+    function test_unit_sendMsg_revertsWith_BaseBridge_AddressNotValid() public {
         IntentInput memory input = _defaultInput();
         input.receiver = users.carol;
         input.amount = 1;
@@ -120,7 +120,7 @@ contract EverclearBridgeTest is BaseTest {
         bridge.sendMsg(1, market, dstChainId, address(token), message, "");
     }
 
-    function test_unitSendMsg_revertsWith_RevertWhenDestinationsLengthMismatch() public {
+    function test_unit_sendMsg_revertsWith_Everclear_DestinationsLengthMismatch() public {
         IntentInput memory input = _defaultInput();
         input.amount = 1;
 
@@ -131,7 +131,7 @@ contract EverclearBridgeTest is BaseTest {
         bridge.sendMsg(1, market, dstChainId, address(token), message, "");
     }
 
-    function test_unitSendMsg_revertsWith_RevertWhenDestinationMismatch() public {
+    function test_unit_sendMsg_revertsWith_Everclear_DestinationNotValid() public {
         IntentInput memory input = _defaultInput();
         input.amount = 1;
 
@@ -142,7 +142,7 @@ contract EverclearBridgeTest is BaseTest {
         bridge.sendMsg(1, market, dstChainId + 1, address(token), message, "");
     }
 
-    function test_unitSendMsg_revertsWith_RevertWhenMaxFeeExceeded(uint96 amountRaw, uint24 maxFeeRaw) public {
+    function test_unit_sendMsg_revertsWith_Everclear_MaxFeeExceeded(uint96 amountRaw, uint24 maxFeeRaw) public {
         IntentInput memory input = _defaultInput();
         input.amount = bound(amountRaw, 1, 10_000_000);
         input.maxFee = uint24(bound(uint256(maxFeeRaw), input.amount / 10 + 1, type(uint24).max));
@@ -154,7 +154,11 @@ contract EverclearBridgeTest is BaseTest {
         bridge.sendMsg(input.amount, market, dstChainId, address(token), message, "");
     }
 
-    function test_unitSendMsg_success_ReturnsExcess_fuzz(
+    ////////////////////////////////////////////////////////////
+    //                        MsgSent                         //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_msgSent_success_returnsExcess(
         uint96 amountRaw,
         uint96 feeRaw,
         uint96 extraRaw,
@@ -206,7 +210,7 @@ contract EverclearBridgeTest is BaseTest {
         assertEq(keccak256(storedSig), keccak256(input.sig));
     }
 
-    function test_unitSendMsg_success_NoExcess_fuzz(
+    function test_fuzz_msgSent_success_noExcess(
         uint96 amountRaw,
         uint96 feeRaw,
         uint24 maxFeeRaw,

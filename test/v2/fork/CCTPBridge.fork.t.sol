@@ -45,11 +45,13 @@ contract CCTPBridgeForkTest is BaseForkTest {
         IERC20(MAINNET_USDC).approve(address(bridge), type(uint256).max);
     }
 
+    // TODO add revert cases
+
     ////////////////////////////////////////////////////////////
-    //                        SendMsg                          //
+    //                        SendMsg                         //
     ////////////////////////////////////////////////////////////
 
-    function test_forkSendMsg_success_mainnetUsdcBurns() public {
+    function test_fork_sendMsg_success() public {
         uint256 amount = 100e6;
 
         uint256 balBeforeRebalancer = IERC20(MAINNET_USDC).balanceOf(rebalancer);

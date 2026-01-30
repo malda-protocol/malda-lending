@@ -60,10 +60,10 @@ contract BaseOftMessageExecutorTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                    PullFromRebalancer                    //
+    //                   PullFromRebalancer                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unitPullFromRebalancer_success_transfers() external {
+    function test_unit_pullFromRebalancer_success_transfers() external {
         TestToken underlying = new TestToken("U", "U");
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
@@ -75,17 +75,17 @@ contract BaseOftMessageExecutorTest is BaseTest {
         assertEq(underlying.balanceOf(address(harness)), 1e18);
     }
 
-    function test_unitPullFromRebalancer_revertsWith_revertWhenSenderIsRebalancer() external {
+    function test_unit_pullFromRebalancer_revertsWith_Executor_NotRebalancer() external {
         TestToken underlying = new TestToken("U", "U");
         vm.expectRevert(BaseOftMessageExecutor.Executor_NotRebalancer.selector);
         harness.pullFromRebalancer(address(underlying), 1e18, address(this));
     }
 
     ////////////////////////////////////////////////////////////
-    //                   FallbackToUnderlying                   //
+    //                  FallbackToUnderlying                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unitFallbackToUnderlying_success_transfersWhenUnderlyingBridge() external {
+    function test_unit_fallbackToUnderlying_success_transfersWhenUnderlyingBridge() external {
         TestToken underlying = new TestToken("U", "U");
         address market = users.bob;
 
@@ -95,7 +95,7 @@ contract BaseOftMessageExecutorTest is BaseTest {
         assertEq(underlying.balanceOf(market), 2e18);
     }
 
-    function test_unitFallbackToUnderlying_success_returnsWhenNoOftBalance() external {
+    function test_unit_fallbackToUnderlying_success_returnsWhenNoOftBalance() external {
         TestToken underlying = new TestToken("U", "U");
         TestToken oft = new TestToken("OFT", "OFT");
         address market = users.bob;
@@ -104,7 +104,7 @@ contract BaseOftMessageExecutorTest is BaseTest {
         assertEq(underlying.balanceOf(market), 0);
     }
 
-    function test_unitFallbackToUnderlying_success_depositsAndTransfers() external {
+    function test_unit_fallbackToUnderlying_success_depositsAndTransfers() external {
         MockWrapperToken underlying = new MockWrapperToken("U", "U");
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
         address market = users.bob;
@@ -116,26 +116,26 @@ contract BaseOftMessageExecutorTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       VerifyMinted                       //
+    //                      VerifyMinted                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unitVerifyMinted_revertsWith_revertWhenInsufficient() external {
+    function test_unit_verifyMinted_revertsWith_Executor_AmountMismatch() external {
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(0));
         vm.expectRevert(BaseOftMessageExecutor.Executor_AmountMismatch.selector);
         harness.verifyMinted(address(oft), 1);
     }
 
-    function test_unitVerifyMinted_success_ok() external {
+    function test_unit_verifyMinted_success_ok() external {
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(0));
         oft.mint(address(harness), 1);
         harness.verifyMinted(address(oft), 1);
     }
 
     ////////////////////////////////////////////////////////////
-    //                         SendOFT                          //
+    //                        SendOFT                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unitSendOFT_success_callsSend() external {
+    function test_unit_sendOFT_success_callsSend() external {
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(0));
         SendParam memory params = SendParam({
             dstEid: 1,
@@ -153,10 +153,10 @@ contract BaseOftMessageExecutorTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                    ProcessUncomposed                     //
+    //                   ProcessUncomposed                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unitProcessUncomposed_success_transfersUnderlying() external {
+    function test_unit_processUncomposed_success_transfersUnderlying() external {
         TestToken underlying = new TestToken("U", "U");
         address market = users.bob;
 
@@ -167,10 +167,10 @@ contract BaseOftMessageExecutorTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                      ExecuteCompose                      //
+    //                     ExecuteCompose                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unitExecuteCompose_success_transfersUnderlying() external {
+    function test_unit_executeCompose_success_transfersUnderlying_variant2() external {
         TestToken underlying = new TestToken("U", "U");
         address market = users.bob;
 
@@ -190,10 +190,10 @@ contract rsEthOftMessageExecutorTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                       ExecuteSend                        //
+    //                      ExecuteSend                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unitExecuteSend_success_successWithWrapper() external {
+    function test_unit_executeSend_success_successWithWrapper() external {
         MockWrapperToken underlying = new MockWrapperToken("U", "U");
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
         underlying.setAllowed(address(oft), true);
@@ -218,7 +218,7 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         assertEq(oft.balanceOf(address(executor)), 2e18);
     }
 
-    function test_unitExecuteSend_revertsWith_revertWhenInnerTokenNotAllowed() external {
+    function test_unit_executeSend_revertsWith_Executor_DifferentInnerToken_variant2() external {
         MockWrapperToken underlying = new MockWrapperToken("U", "U");
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
 
@@ -242,7 +242,7 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
     }
 
-    function test_unitExecuteSend_revertsWith_revertWhenNoOft() external {
+    function test_unit_executeSend_revertsWith_Executor_NoOft_variant2() external {
         RevertingWrapperToken underlying = new RevertingWrapperToken();
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
 
@@ -266,7 +266,7 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
     }
 
-    function test_unitExecuteSend_revertsWith_revertWhenMintedMismatch() external {
+    function test_unit_executeSend_revertsWith_Executor_AmountMismatch_variant2() external {
         MockWrapperToken underlying = new MockWrapperToken("U", "U");
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
         underlying.setAllowed(address(oft), true);
@@ -292,7 +292,7 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
     }
 
-    function test_unitExecuteSend_success_successWhenBridgeIsUnderlying() external {
+    function test_unit_executeSend_success_successWhenBridgeIsUnderlying() external {
         MockOFTToken underlying = new MockOFTToken("OFT", "OFT", address(0));
 
         address rebalancer = users.alice;
@@ -323,7 +323,7 @@ contract weEthOftMessageExecutorTest is BaseTest {
         executor = new weEthOftMessageExecutor();
     }
 
-    function test_unitExecuteSend_success_success() external {
+    function test_unit_executeSend_success_success() external {
         TestToken underlying = new TestToken("U", "U");
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
 
@@ -346,7 +346,7 @@ contract weEthOftMessageExecutorTest is BaseTest {
         executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
     }
 
-    function test_unitExecuteSend_revertsWith_revertWhenInnerTokenMismatch() external {
+    function test_unit_executeSend_revertsWith_Executor_DifferentInnerToken() external {
         TestToken underlying = new TestToken("U", "U");
         TestToken other = new TestToken("X", "X");
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(other));
@@ -371,7 +371,7 @@ contract weEthOftMessageExecutorTest is BaseTest {
         executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
     }
 
-    function test_unitExecuteSend_revertsWith_revertWhenNoOft() external {
+    function test_unit_executeSend_revertsWith_Executor_NoOft() external {
         TestToken underlying = new TestToken("U", "U");
         RevertingOFTToken bad = new RevertingOFTToken();
 
