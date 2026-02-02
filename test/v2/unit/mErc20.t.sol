@@ -1,16 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
-import {mErc20Upgradable} from "src/mToken/mErc20Upgradable.sol";
-import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
-import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
-import {BaseMTokenTest} from "test/v2/utils/BaseMTokenTest.t.sol";
-import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
+
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import {IOperator} from "src/interfaces/IOperator.sol";
-import {ImTokenOperationTypes, ImToken} from "src/interfaces/ImToken.sol";
+import {ImToken, ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
+import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
+import {mErc20} from "src/mToken/mErc20.sol";
+import {mErc20Immutable} from "src/mToken/mErc20Immutable.sol";
+import {mErc20Upgradable} from "src/mToken/mErc20Upgradable.sol";
+import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
 import {LiquidationHelper} from "src/utils/LiquidationHelper.sol";
 import {WrapAndSupply} from "src/utils/WrapAndSupply.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {mErc20} from "src/mToken/mErc20.sol";
+
+import {BaseMTokenTest} from "test/v2/utils/BaseMTokenTest.t.sol";
 
 contract mErc20UpgradableHarnessV2 is mErc20Upgradable {
     function initializeHarness(
@@ -43,6 +46,8 @@ contract mErc20Test is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_constructor_revertsWith_mErc20Immutable_AdminNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mErc20Immutable.mErc20Immutable_AdminNotValid.selector);
         new mErc20Immutable(
             address(weth),
@@ -61,8 +66,10 @@ contract mErc20Test is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_initializeHarness_revertsWith_mErc20Upgradable_AdminNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20UpgradableHarnessV2 harness = new mErc20UpgradableHarnessV2();
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mErc20Upgradable.mErc20Upgradable_AdminNotValid.selector);
         harness.initializeHarness(
             address(weth),
@@ -76,9 +83,11 @@ contract mErc20Test is BaseMTokenTest {
         );
     }
 
-    function test_unit_initializeHarness_revertsWith_mt_AddressNotValid_variant3() external {
+    function test_unit_initializeHarness_revertsWith_mt_AddressNotValid_whenUnderlyingZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20UpgradableHarnessV2 harness = new mErc20UpgradableHarnessV2();
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_AddressNotValid.selector);
         harness.initializeHarness(
             address(0),
@@ -92,18 +101,22 @@ contract mErc20Test is BaseMTokenTest {
         );
     }
 
-    function test_unit_initializeHarness_revertsWith_mt_AddressNotValid_variant2() external {
+    function test_unit_initializeHarness_revertsWith_mt_AddressNotValid_whenOperatorZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20UpgradableHarnessV2 harness = new mErc20UpgradableHarnessV2();
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_AddressNotValid.selector);
         harness.initializeHarness(
             address(weth), address(0), address(interestModel), 1e18, "Market WETH", "mWeth", 18, payable(address(this))
         );
     }
 
-    function test_unit_initializeHarness_revertsWith_mt_AddressNotValid() external {
+    function test_unit_initializeHarness_revertsWith_mt_AddressNotValid_whenInterestModelZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20UpgradableHarnessV2 harness = new mErc20UpgradableHarnessV2();
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_AddressNotValid.selector);
         harness.initializeHarness(
             address(weth), address(operator), address(0), 1e18, "Market WETH", "mWeth", 18, payable(address(this))
@@ -111,8 +124,10 @@ contract mErc20Test is BaseMTokenTest {
     }
 
     function test_unit_initializeHarness_revertsWith_mt_NameNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20UpgradableHarnessV2 harness = new mErc20UpgradableHarnessV2();
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_NameNotValid.selector);
         harness.initializeHarness(
             address(weth), address(operator), address(interestModel), 1e18, "", "mWeth", 18, payable(address(this))
@@ -120,8 +135,10 @@ contract mErc20Test is BaseMTokenTest {
     }
 
     function test_unit_initializeHarness_revertsWith_mt_SymbolNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20UpgradableHarnessV2 harness = new mErc20UpgradableHarnessV2();
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_SymbolNotValid.selector);
         harness.initializeHarness(
             address(weth),
@@ -136,8 +153,10 @@ contract mErc20Test is BaseMTokenTest {
     }
 
     function test_unit_initializeHarness_revertsWith_mt_DecimalsNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20UpgradableHarnessV2 harness = new mErc20UpgradableHarnessV2();
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_DecimalsNotValid.selector);
         harness.initializeHarness(
             address(weth),
@@ -152,8 +171,10 @@ contract mErc20Test is BaseMTokenTest {
     }
 
     function test_unit_initializeHarness_revertsWith_mt_ExchangeRateNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20UpgradableHarnessV2 harness = new mErc20UpgradableHarnessV2();
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_ExchangeRateNotValid.selector);
         harness.initializeHarness(
             address(weth),
@@ -168,6 +189,7 @@ contract mErc20Test is BaseMTokenTest {
     }
 
     function test_unit_initializeHarness_revertsWith_mt_AlreadyInitialized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20UpgradableHarnessV2 harness = new mErc20UpgradableHarnessV2();
         harness.initializeHarness(
             address(weth),
@@ -180,6 +202,7 @@ contract mErc20Test is BaseMTokenTest {
             payable(address(this))
         );
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_AlreadyInitialized.selector);
         harness.initializeHarness(
             address(weth),
@@ -207,7 +230,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.borrow(amount);
     }
 
-    function test_unit_borrow_revertsWith_Operator_MarketNotListed_variant4(uint256 amount)
+    function test_unit_borrow_revertsWith_Operator_MarketNotListed(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
     {
@@ -231,14 +254,8 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.borrow(amount);
     }
 
-    modifier mErc20_borrow_givenAmountIsGreaterThan0() {
-        // does nothing; only for readability purposes
-        _;
-    }
-
     function test_unit_borrow_revertsWith(uint256 amount)
         external
-        mErc20_borrow_givenAmountIsGreaterThan0
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
@@ -271,7 +288,6 @@ contract mErc20Test is BaseMTokenTest {
 
     function test_unit_borrow_revertsWith_Operator_MarketBorrowCapReached_whenBorrowCapIsReached(uint256 amount)
         external
-        mErc20_borrow_givenAmountIsGreaterThan0
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
@@ -287,7 +303,6 @@ contract mErc20Test is BaseMTokenTest {
 
     function test_unit_borrow_revertsWith_Operator_InsufficientLiquidity_whenBorrowTooMuch(uint256 amount)
         external
-        mErc20_borrow_givenAmountIsGreaterThan0
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
@@ -301,15 +316,8 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.borrow(amount);
     }
 
-    modifier mErc20_borrow_whenStateIsValid() {
-        // does nothing; only for readability purposes
-        _;
-    }
-
     function test_unit_borrow_revertsWith_Operator_InsufficientLiquidity_givenMarketIsNotEntered(uint256 amount)
         external
-        mErc20_borrow_givenAmountIsGreaterThan0
-        mErc20_borrow_whenStateIsValid
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
@@ -344,8 +352,6 @@ contract mErc20Test is BaseMTokenTest {
 
     function test_unit_totalBorrows_success(uint256 amount)
         external
-        mErc20_borrow_givenAmountIsGreaterThan0
-        mErc20_borrow_whenStateIsValid
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
@@ -423,6 +429,7 @@ contract mErc20Test is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_getBorrowerPosition_success_skipsPausedMarket() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.mockCall(
             address(operator),
             abi.encodeWithSelector(
@@ -432,21 +439,25 @@ contract mErc20Test is BaseMTokenTest {
         );
 
         (bool shouldLiquidate, uint256 repayAmount) = helper.getBorrowerPosition(borrower, address(mWeth));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(shouldLiquidate, false);
         assertEq(repayAmount, 0);
     }
 
     function test_unit_getBorrowerPosition_success_skipsZeroDebt() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.mockCall(
             address(mWeth), abi.encodeWithSelector(ImToken.borrowBalanceStored.selector, borrower), abi.encode(0)
         );
 
         (bool shouldLiquidate, uint256 repayAmount) = helper.getBorrowerPosition(borrower, address(mWeth));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(shouldLiquidate, false);
         assertEq(repayAmount, 0);
     }
 
     function test_unit_getBorrowerPosition_success_skipsNoShortfall() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 borrowBalance = 1 ether;
 
         vm.mockCall(
@@ -461,11 +472,13 @@ contract mErc20Test is BaseMTokenTest {
         );
 
         (bool shouldLiquidate, uint256 repayAmount) = helper.getBorrowerPosition(borrower, address(mWeth));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(shouldLiquidate, false);
         assertEq(repayAmount, 0);
     }
 
     function test_unit_getBorrowerPosition_success_liquidatesCorrectly() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 borrowBalance = 1 ether;
         uint256 closeFactor = 50 * 1e16; // 50%
         uint256 shortfall = 1 ether;
@@ -485,6 +498,7 @@ contract mErc20Test is BaseMTokenTest {
         );
 
         (bool shouldLiquidate, uint256 repayAmount) = helper.getBorrowerPosition(borrower, address(mWeth));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(shouldLiquidate, true);
         assertEq(repayAmount, borrowBalance * closeFactor / 1 ether);
     }
@@ -531,7 +545,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.mint(amount, address(this), amount);
     }
 
-    function test_unit_mint_revertsWith_Operator_MarketNotListed_variant3(uint256 amount)
+    function test_unit_mint_revertsWith_Operator_MarketNotListed(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Mint)
     {
@@ -561,6 +575,7 @@ contract mErc20Test is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_checkMembership_success(uint256 amount) external whenMarketIsListed(address(mWeth)) {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         amount = bound(amount, SMALL, LARGE);
 
         _getTokens(weth, address(this), amount);
@@ -570,6 +585,7 @@ contract mErc20Test is BaseMTokenTest {
         uint256 totalSupplyBefore = mWeth.totalSupply();
         uint256 balanceOfBefore = mWeth.balanceOf(address(this));
         bool enteredBefore = operator.checkMembership(address(this), address(mWeth));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertFalse(enteredBefore);
 
         mWeth.mint(amount, address(this), amount - 1000);
@@ -597,7 +613,9 @@ contract mErc20Test is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_mint_revertsWith_mint_GivenAmountIs0() external whenMarketIsListed(address(mWeth)) {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 amount = ZERO_VALUE;
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(); //arithmetic underflow or overflow
         mWeth.mint(amount, address(this), amount);
     }
@@ -607,6 +625,7 @@ contract mErc20Test is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_balanceOf_success() external whenMarketIsListed(address(mWeth)) {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         WrapAndSupply wrapAndSupply = new WrapAndSupply(address(weth));
         vm.label(address(wrapAndSupply), "WrapAndSupply Helper");
 
@@ -619,6 +638,7 @@ contract mErc20Test is BaseMTokenTest {
         uint256 balanceOfAfter = mWeth.balanceOf(address(this));
 
         // it should increse balanceOf account
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertGt(balanceOfAfter, balanceOfBefore);
 
         // it should increase total supply by amount
@@ -732,14 +752,8 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.redeemUnderlying(0);
     }
 
-    modifier mErc20_redeem_givenAmountIsGreaterThan0() {
-        // does nothing; only for readability purposes
-        _;
-    }
-
     function test_unit_redeemUnderlying_revertsWith_mt_RedeemCashNotAvailable_whenTheMarketDoesNotHaveEnoughAssetsForTheRedeemOperation(uint256 amount)
         external
-        mErc20_redeem_givenAmountIsGreaterThan0
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWeth))
     {
@@ -757,9 +771,8 @@ contract mErc20Test is BaseMTokenTest {
     //                         Redeem                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_redeem_success(uint256 amount)
+    function test_unit_redeem_success_redeemTokens(uint256 amount)
         external
-        mErc20_redeem_givenAmountIsGreaterThan0
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWeth))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
@@ -769,9 +782,8 @@ contract mErc20Test is BaseMTokenTest {
         _redeem(amount, false);
     }
 
-    function test_unit_redeem_success_variant2(uint256 amount)
+    function test_unit_redeem_success_redeemUnderlying(uint256 amount)
         external
-        mErc20_redeem_givenAmountIsGreaterThan0
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWeth))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
@@ -812,7 +824,7 @@ contract mErc20Test is BaseMTokenTest {
     //                      RepayBehalf                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_repayBehalf_revertsWith_Operator_Paused_variant2(uint256 amount)
+    function test_unit_repayBehalf_revertsWith_Operator_Paused(uint256 amount)
         external
         whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenMarketIsListed(address(mWeth))
@@ -823,7 +835,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.repayBehalf(address(this), amount);
     }
 
-    function test_unit_repayBehalf_revertsWith_Operator_MarketNotListed_variant2(uint256 amount)
+    function test_unit_repayBehalf_revertsWith_Operator_MarketNotListed(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
     {
@@ -863,16 +875,6 @@ contract mErc20Test is BaseMTokenTest {
         assertEq(totalBorrowsAfter, totalBorrowsBefore);
     }
 
-    modifier mErc20_repayBehalf_givenAmountIsGreaterThan0() {
-        // does nothing; only for readability purposes
-        _;
-    }
-
-    modifier mErc20_repayBehalf_whenStateIsValid() {
-        // does nothing; only for readability purposes
-        _;
-    }
-
     struct mErc20_repayBehalf_RepayStateInternal {
         uint256 balanceUnderlyingBefore;
         uint256 balanceMTokenBefore;
@@ -892,8 +894,6 @@ contract mErc20Test is BaseMTokenTest {
 
     function test_unit_overflow_revertsWith_repayBehalf_WhenRepayTooMuch(uint256 amount)
         external
-        mErc20_repayBehalf_givenAmountIsGreaterThan0
-        mErc20_repayBehalf_whenStateIsValid
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
@@ -952,8 +952,6 @@ contract mErc20Test is BaseMTokenTest {
 
     function test_unit_borrowBalanceStored_success_repayBehalf_WhenRepayLess(uint256 amount)
         external
-        mErc20_repayBehalf_givenAmountIsGreaterThan0
-        mErc20_repayBehalf_whenStateIsValid
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
@@ -1055,14 +1053,6 @@ contract mErc20Test is BaseMTokenTest {
         assertEq(totalBorrowsAfter, totalBorrowsBefore);
     }
 
-    modifier mErc20_repay_givenAmountIsGreaterThan0() {
-        _;
-    }
-
-    modifier mErc20_repay_whenStateIsValid() {
-        _;
-    }
-
     struct mErc20_repay_RepayStateInternal {
         uint256 balanceUnderlyingBefore;
         uint256 balanceMTokenBefore;
@@ -1082,8 +1072,6 @@ contract mErc20Test is BaseMTokenTest {
 
     function test_unit_repay_revertsWith_repay_WhenRepayTooMuch(uint256 amount)
         external
-        mErc20_repay_givenAmountIsGreaterThan0
-        mErc20_repay_whenStateIsValid
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
@@ -1126,8 +1114,6 @@ contract mErc20Test is BaseMTokenTest {
 
     function test_unit_borrowBalanceStored_success_repay_WhenRepayLess(uint256 amount)
         external
-        mErc20_repay_givenAmountIsGreaterThan0
-        mErc20_repay_whenStateIsValid
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
@@ -1168,12 +1154,14 @@ contract mErc20Test is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_iERC20_success() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 amount = 100;
         _getTokens(dai, address(mWeth), amount);
 
         uint256 adminBalanceBefore = dai.balanceOf(address(this));
         mWeth.sweepToken(IERC20(address(dai)), amount);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(dai.balanceOf(address(mWeth)), 0);
         assertEq(dai.balanceOf(address(this)), adminBalanceBefore + amount);
     }
@@ -1183,6 +1171,8 @@ contract mErc20Test is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_sweepToken_revertsWith_mErc20_TokenNotValid_revertsOnUnderlying() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mErc20.mErc20_TokenNotValid.selector);
         mWeth.sweepToken(IERC20(address(weth)), 1);
     }

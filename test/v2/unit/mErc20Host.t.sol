@@ -1,16 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
-import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
-import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
-import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
-import {BaseMTokenTest} from "test/v2/utils/BaseMTokenTest.t.sol";
-import {MockFirewall} from "test/mocks/MockFirewall.sol";
+
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
+import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
-import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
-import {Operator} from "src/Operator/Operator.sol";
-import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
 import {CommonLib} from "src/libraries/CommonLib.sol";
+import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
+import {Operator} from "src/Operator/Operator.sol";
+import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
+import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
+import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
+import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
+
+import {MockFirewall} from "test/mocks/MockFirewall.sol";
+import {BaseMTokenTest} from "test/v2/utils/BaseMTokenTest.t.sol";
 
 contract mErc20HostTest is BaseMTokenTest {
     function setUp() public override {
@@ -48,13 +52,17 @@ contract mErc20HostTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_updateAllowedChain_success() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint32 chainId = uint32(block.chainid);
         mWethHost.updateAllowedChain(chainId, true);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(mWethHost.allowedChains(chainId));
     }
 
     function test_unit_updateAllowedChain_revertsWith_mErc20Host_CallerNotAllowed_revertsWhenNotAdminOrRole() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_CallerNotAllowed.selector);
         mWethHost.updateAllowedChain(uint32(block.chainid), true);
     }
@@ -64,6 +72,7 @@ contract mErc20HostTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_extractForRebalancing_success() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 amount = 1 ether;
         _getTokens(weth, address(mWethHost), amount);
         roles.allowFor(users.alice, roles.REBALANCER(), true);
@@ -72,11 +81,14 @@ contract mErc20HostTest is BaseMTokenTest {
         vm.prank(users.alice);
         mWethHost.extractForRebalancing(amount);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(weth.balanceOf(users.alice), balanceBefore + amount);
     }
 
     function test_unit_extractForRebalancing_revertsWith_mErc20Host_NotRebalancer_revertsWhenNotRebalancer() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_NotRebalancer.selector);
         mWethHost.extractForRebalancing(1);
     }
@@ -86,12 +98,16 @@ contract mErc20HostTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setMigrator_success() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address migrator = users.bob;
         mWethHost.setMigrator(migrator);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(mWethHost.migrator(), migrator);
     }
 
     function test_unit_setMigrator_revertsWith_mErc20Host_AddressNotValid_revertsWhenZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
         mWethHost.setMigrator(address(0));
     }
@@ -101,12 +117,16 @@ contract mErc20HostTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setGasHelper_success() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address helper = users.carol;
         mWethHost.setGasHelper(helper);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(address(mWethHost.gasHelper()), helper);
     }
 
     function test_unit_setGasHelper_revertsWith_mErc20Host_AddressNotValid_revertsWhenZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
         mWethHost.setGasHelper(address(0));
     }
@@ -116,10 +136,12 @@ contract mErc20HostTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_initFirewall_success_setsFirewallAdmin() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockFirewall firewall = new MockFirewall();
 
         mWethHost.initFirewall(address(firewall));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(mWethHost.hypernativeFirewallAdmin(), address(this));
     }
 
@@ -128,11 +150,13 @@ contract mErc20HostTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_payable_success_transfers() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.deal(address(mWethHost), 1 ether);
         uint256 receiverBalanceBefore = users.alice.balance;
 
         mWethHost.withdrawGasFees(payable(users.alice));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(address(mWethHost).balance, 0);
         assertEq(users.alice.balance, receiverBalanceBefore + 1 ether);
     }
@@ -142,6 +166,8 @@ contract mErc20HostTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_withdrawGasFees_revertsWith_mErc20Host_AddressNotValid_revertsWhenReceiverZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
         mWethHost.withdrawGasFees(payable(address(0)));
     }
@@ -151,13 +177,17 @@ contract mErc20HostTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_updateZkVerifier_success() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         ZkVerifier newVerifier = new ZkVerifier(address(this), "0x456", address(verifierMock));
 
         mWethHost.updateZkVerifier(address(newVerifier));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(address(mWethHost.verifier()), address(newVerifier));
     }
 
     function test_unit_updateZkVerifier_revertsWith_mErc20Host_AddressNotValid_revertsWhenZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
         mWethHost.updateZkVerifier(address(0));
     }
@@ -180,25 +210,31 @@ contract mErc20HostTest is BaseMTokenTest {
     //                 MintOrBorrowMigration                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_mintOrBorrowMigration_success_variant2() external {
+    function test_unit_mintOrBorrowMigration_success() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         operator.supportMarket(address(mWethHost));
         mWethHost.setMigrator(address(this));
 
         uint256 amount = 2000 ether;
         mWethHost.mintOrBorrowMigration(true, amount, users.bob, address(this), 0);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertGt(mWethHost.balanceOf(users.bob), 0);
     }
 
     function test_unit_mintOrBorrowMigration_revertsWith_mErc20Host_CallerNotAllowed_revertsWhenNotMigrator() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_CallerNotAllowed.selector);
         mWethHost.mintOrBorrowMigration(true, 1, users.alice, users.alice, 0);
     }
 
     function test_unit_mintOrBorrowMigration_revertsWith_mErc20Host_AmountNotValid_revertsWhenAmountZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mWethHost.setMigrator(address(this));
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
         mWethHost.mintOrBorrowMigration(true, 0, users.bob, address(this), 0);
     }
@@ -208,7 +244,9 @@ contract mErc20HostTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_uint32_success_returnsAccumulators() external view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         (uint256 amountIn, uint256 amountOut) = mWethHost.getProofData(users.alice, uint32(block.chainid));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(amountIn, 0);
         assertEq(amountOut, 0);
     }
@@ -218,6 +256,7 @@ contract mErc20HostTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_liquidateExternal_success_emitsEvent() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         operator.supportMarket(address(mWethHost));
         oracleOperator.setUnderlyingPrice(1e18);
         operator.setCollateralFactor(address(mWethHost), 0.5e18);
@@ -252,6 +291,7 @@ contract mErc20HostTest is BaseMTokenTest {
         address[] memory collateral = new address[](1);
         collateral[0] = address(0);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit ImErc20Host.mErc20Host_LiquidateExternal(
             address(this), address(this), users.bob, address(this), address(mWethHost), chainId, repayAmount
@@ -264,62 +304,74 @@ contract mErc20HostTest is BaseMTokenTest {
     //                      Constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_constructor_revertsWith_mErc20Host_AddressNotValid() external {
+    function test_unit_constructor_revertsWith_mErc20Host_AddressNotValid_whenUnderlyingZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20Host impl = new mErc20Host();
         bytes memory initData = _hostInitData(
             address(0), address(operator), address(interestModel), address(this), address(zkVerifier), address(roles)
         );
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
         new ERC1967Proxy(address(impl), initData);
     }
 
-    function test_unit_constructor_revertsWith_mErc20Host_AddressNotValid_variant2() external {
+    function test_unit_constructor_revertsWith_mErc20Host_AddressNotValid_whenOperatorZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20Host impl = new mErc20Host();
         bytes memory initData = _hostInitData(
             address(weth), address(0), address(interestModel), address(this), address(zkVerifier), address(roles)
         );
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
         new ERC1967Proxy(address(impl), initData);
     }
 
-    function test_unit_constructor_revertsWith_mErc20Host_AddressNotValid_variant3() external {
+    function test_unit_constructor_revertsWith_mErc20Host_AddressNotValid_whenInterestModelZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20Host impl = new mErc20Host();
         bytes memory initData = _hostInitData(
             address(weth), address(operator), address(0), address(this), address(zkVerifier), address(roles)
         );
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
         new ERC1967Proxy(address(impl), initData);
     }
 
-    function test_unit_constructor_revertsWith_mErc20Host_AddressNotValid_variant4() external {
+    function test_unit_constructor_revertsWith_mErc20Host_AddressNotValid_whenZkVerifierZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20Host impl = new mErc20Host();
         bytes memory initData = _hostInitData(
             address(weth), address(operator), address(interestModel), address(this), address(0), address(roles)
         );
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
         new ERC1967Proxy(address(impl), initData);
     }
 
-    function test_unit_constructor_revertsWith_mErc20Host_AddressNotValid_variant5() external {
+    function test_unit_constructor_revertsWith_mErc20Host_AddressNotValid_whenRolesZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20Host impl = new mErc20Host();
         bytes memory initData = _hostInitData(
             address(weth), address(operator), address(interestModel), address(this), address(zkVerifier), address(0)
         );
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
         new ERC1967Proxy(address(impl), initData);
     }
 
-    function test_unit_constructor_revertsWith_mErc20Host_AddressNotValid_variant6() external {
+    function test_unit_constructor_revertsWith_mErc20Host_AddressNotValid_whenAdminZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20Host impl = new mErc20Host();
         bytes memory initData = _hostInitData(
             address(weth), address(operator), address(interestModel), address(0), address(zkVerifier), address(roles)
         );
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
         new ERC1967Proxy(address(impl), initData);
     }
@@ -338,7 +390,7 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.borrow(amount);
     }
 
-    function test_unit_borrow_revertsWith_Operator_MarketNotListed_variant3(uint256 amount)
+    function test_unit_borrow_revertsWith_Operator_MarketNotListed(uint256 amount)
         external
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
     {
@@ -362,14 +414,8 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.borrow(amount);
     }
 
-    modifier mErc20Host_borrow_givenAmountIsGreaterThan0() {
-        // does nothing; only for readability purposes
-        _;
-    }
-
     function test_unit_borrow_revertsWith(uint256 amount)
         external
-        mErc20Host_borrow_givenAmountIsGreaterThan0
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
@@ -385,7 +431,6 @@ contract mErc20HostTest is BaseMTokenTest {
 
     function test_unit_borrow_revertsWith_Operator_MarketBorrowCapReached_whenBorrowCapIsReached(uint256 amount)
         external
-        mErc20Host_borrow_givenAmountIsGreaterThan0
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
@@ -400,7 +445,6 @@ contract mErc20HostTest is BaseMTokenTest {
 
     function test_unit_borrow_revertsWith_Operator_InsufficientLiquidity_whenBorrowTooMuch(uint256 amount)
         external
-        mErc20Host_borrow_givenAmountIsGreaterThan0
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
@@ -414,15 +458,8 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.borrow(amount);
     }
 
-    modifier mErc20Host_borrow_whenStateIsValid() {
-        // does nothing; only for readability purposes
-        _;
-    }
-
     function test_unit_borrow_revertsWith_Operator_InsufficientLiquidity_givenMarketIsNotEntered(uint256 amount)
         external
-        mErc20Host_borrow_givenAmountIsGreaterThan0
-        mErc20Host_borrow_whenStateIsValid
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
@@ -455,10 +492,8 @@ contract mErc20HostTest is BaseMTokenTest {
     //                      TotalBorrows                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_totalBorrows_success_variant2(uint256 amount)
+    function test_unit_totalBorrows_success_afterBorrow(uint256 amount)
         external
-        mErc20Host_borrow_givenAmountIsGreaterThan0
-        mErc20Host_borrow_whenStateIsValid
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
@@ -527,21 +562,9 @@ contract mErc20HostTest is BaseMTokenTest {
         assertGt(totalBorrowsAfter, totalBorrowsBefore);
     }
 
-    modifier whenBorrowOnExtensionIsCalled() {
-        // @dev does nothing; for readability only
-        _;
-    }
-
-    modifier mErc20Host_borrow_givenDecodedLiquidityIsValid() {
-        // @dev does nothing; for readability only
-        _;
-    }
-
-    function test_unit_totalBorrows_success(uint256 amount)
+    function test_unit_totalBorrows_success_afterExtensionCall(uint256 amount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenBorrowOnExtensionIsCalled
-        mErc20Host_borrow_givenDecodedLiquidityIsValid
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {
@@ -590,13 +613,8 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
 
-    modifier givenMarketIsNotPaused() {
-        _;
-    }
-
     function test_unit_liquidateExternal_revertsWith_mErc20Host_JournalNotValid(uint256 amount)
         external
-        givenMarketIsNotPaused
         whenMarketIsListed(address(mWethHost))
     {
         amount = bound(amount, SMALL, LARGE);
@@ -614,7 +632,6 @@ contract mErc20HostTest is BaseMTokenTest {
 
     function test_unit_liquidateExternal_revertsWith_JournalIsNonEmptyButLengthIsNotValid(uint256 amount)
         external
-        givenMarketIsNotPaused
         whenMarketIsListed(address(mWethHost))
     {
         amount = bound(amount, SMALL, LARGE);
@@ -630,10 +647,7 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.liquidateExternal("0x", "0x123", _users, amounts, collaterals, address(this));
     }
 
-    function test_unit_liquidateExternal_revertsWith_mErc20Host_AmountNotValid_whenDecodedAmountIs0()
-        external
-        givenMarketIsNotPaused
-    {
+    function test_unit_liquidateExternal_revertsWith_mErc20Host_AmountNotValid_whenDecodedAmountIs0() external {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 0;
         address[] memory _users = new address[](1);
@@ -649,14 +663,8 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
 
-    modifier whenDecodedAmountIsValid() {
-        _;
-    }
-
     function test_unit_liquidateExternal_revertsWith_liquidate_RevertsWhen_SealVerificationFails(uint256 amount)
         external
-        givenMarketIsNotPaused
-        whenDecodedAmountIsValid
     {
         amount = bound(amount, SMALL, LARGE);
 
@@ -675,11 +683,7 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
 
-    function test_unit_liquidateExternal_revertsWith_mErc20Host_CallerNotAllowed(uint256 amount)
-        external
-        givenMarketIsNotPaused
-        whenDecodedAmountIsValid
-    {
+    function test_unit_liquidateExternal_revertsWith_mErc20Host_CallerNotAllowed(uint256 amount) external {
         amount = bound(amount, SMALL, LARGE);
 
         uint256[] memory amounts = new uint256[](1);
@@ -695,7 +699,8 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
 
-    function test_unit_liquidateExternal_revertsWith_mErc20Host_DstChainNotValid() external givenMarketIsNotPaused {
+    function test_unit_liquidateExternal_revertsWith_mErc20Host_DstChainNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory journal = _encodeJournal(
             address(this), address(mWethHost), 1, 1, uint32(block.chainid), uint32(block.chainid + 1), true
         );
@@ -707,11 +712,13 @@ contract mErc20HostTest is BaseMTokenTest {
         address[] memory collaterals = new address[](1);
         collaterals[0] = address(mWethHost);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_DstChainNotValid.selector);
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
 
-    function test_unit_liquidateExternal_revertsWith_mErc20Host_AddressNotValid() external givenMarketIsNotPaused {
+    function test_unit_liquidateExternal_revertsWith_mErc20Host_AddressNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory journal =
             _encodeJournal(address(this), address(mDaiHost), 1, 1, uint32(block.chainid), uint32(block.chainid), true);
         bytes memory journalData = _wrapJournal(journal);
@@ -722,11 +729,13 @@ contract mErc20HostTest is BaseMTokenTest {
         address[] memory collaterals = new address[](1);
         collaterals[0] = address(mWethHost);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
 
-    function test_unit_liquidateExternal_revertsWith_mErc20Host_ChainNotValid() external givenMarketIsNotPaused {
+    function test_unit_liquidateExternal_revertsWith_mErc20Host_ChainNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory journal =
             _encodeJournal(address(this), address(mWethHost), 1, 1, uint32(block.chainid), uint32(block.chainid), true);
         bytes memory journalData = _wrapJournal(journal);
@@ -739,11 +748,13 @@ contract mErc20HostTest is BaseMTokenTest {
 
         mWethHost.updateAllowedChain(uint32(block.chainid), false);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_ChainNotValid.selector);
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
 
-    function test_unit_liquidateExternal_revertsWith_mErc20Host_L1InclusionRequired() external givenMarketIsNotPaused {
+    function test_unit_liquidateExternal_revertsWith_mErc20Host_L1InclusionRequired() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory journal = _encodeJournal(
             address(this), address(mWethHost), 1, 1, uint32(block.chainid), uint32(block.chainid), false
         );
@@ -755,11 +766,13 @@ contract mErc20HostTest is BaseMTokenTest {
         address[] memory collaterals = new address[](1);
         collaterals[0] = address(mWethHost);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_L1InclusionRequired.selector);
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
 
-    function test_unit_liquidateExternal_revertsWith_mErc20Host_AmountTooBig() external givenMarketIsNotPaused {
+    function test_unit_liquidateExternal_revertsWith_mErc20Host_AmountTooBig() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory journal =
             _encodeJournal(address(this), address(mWethHost), 1, 1, uint32(block.chainid), uint32(block.chainid), true);
         bytes memory journalData = _wrapJournal(journal);
@@ -770,6 +783,7 @@ contract mErc20HostTest is BaseMTokenTest {
         address[] memory collaterals = new address[](1);
         collaterals[0] = address(mWethHost);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AmountTooBig.selector);
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
@@ -792,8 +806,6 @@ contract mErc20HostTest is BaseMTokenTest {
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
-        givenMarketIsNotPaused
-        whenDecodedAmountIsValid
     {
         amount = bound(amount, SMALL, LARGE);
 
@@ -854,7 +866,7 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.mint(amount, address(this), amount - 1000);
     }
 
-    function test_unit_mint_revertsWith_Operator_MarketNotListed_variant2(uint256 amount)
+    function test_unit_mint_revertsWith_Operator_MarketNotListed(uint256 amount)
         external
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Mint)
     {
@@ -883,10 +895,7 @@ contract mErc20HostTest is BaseMTokenTest {
     //                       BalanceOf                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_balanceOf_success_variant2_variant2(uint256 amount)
-        external
-        whenMarketIsListed(address(mWethHost))
-    {
+    function test_unit_balanceOf_success_afterMint(uint256 amount) external whenMarketIsListed(address(mWethHost)) {
         amount = bound(amount, SMALL, LARGE);
 
         _getTokens(weth, address(this), amount);
@@ -918,29 +927,18 @@ contract mErc20HostTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_mint_revertsWith_mint_GivenAmountIs0() external whenMarketIsListed(address(mWethHost)) {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 amount = 0;
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(); //arithmetic underflow or overflow
         mWethHost.mint(amount, address(this), amount);
-    }
-
-    modifier whenMintExternalIsCalled() {
-        // @dev does nothing; for readability only
-        _;
-    }
-
-    modifier mErc20Host_mint_givenDecodedAmountIsValid() {
-        // @dev does nothing; for readability only
-        _;
     }
 
     ////////////////////////////////////////////////////////////
     //                      MintExternal                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_mintExternal_revertsWith_mErc20Host_JournalNotValid_variant4(uint256 amount)
-        external
-        whenMintExternalIsCalled
-    {
+    function test_unit_mintExternal_revertsWith_mErc20Host_JournalNotValid_whenJournalEmpty(uint256 amount) external {
         amount = bound(amount, SMALL, LARGE);
 
         uint256[] memory amounts = new uint256[](1);
@@ -950,22 +948,24 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.mintExternal("", "0x123", amounts, new uint256[](1), address(this));
     }
 
-    function test_unit_mintExternal_revertsWith_mErc20Host_JournalNotValid_variant3(uint256 amount)
+    function test_unit_mintExternal_revertsWith_mTokenProofDecoderLib_InvalidLength_whenJournalCorrupted(uint256 amount)
         external
-        whenMintExternalIsCalled
     {
         amount = bound(amount, SMALL, LARGE);
+
+        bytes[] memory journals = new bytes[](1);
+        journals[0] = hex"1234";
+        bytes memory journalData = abi.encode(journals);
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
-        vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.mintExternal("", "0x123", amounts, new uint256[](1), address(this));
+        vm.expectRevert(mTokenProofDecoderLib.mTokenProofDecoderLib_InvalidLength.selector);
+        mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
     }
 
-    function test_unit_mintExternal_revertsWith_mErc20Host_AmountNotValid_variant2()
+    function test_unit_mintExternal_revertsWith_mErc20Host_AmountNotValid()
         external
-        whenMintExternalIsCalled
         whenMarketIsListed(address(mWethHost))
     {
         uint256[] memory amounts = new uint256[](1);
@@ -977,11 +977,7 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
     }
 
-    function test_unit_mintExternal_revertsWith_mint_RevertsWhen_SealVerificationFails(uint256 amount)
-        external
-        whenMintExternalIsCalled
-        mErc20Host_mint_givenDecodedAmountIsValid
-    {
+    function test_unit_mintExternal_revertsWith_mint_RevertsWhen_SealVerificationFails(uint256 amount) external {
         amount = bound(amount, SMALL, LARGE);
 
         uint256[] memory amounts = new uint256[](1);
@@ -1001,10 +997,8 @@ contract mErc20HostTest is BaseMTokenTest {
     //                       BalanceOf                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_balanceOf_success_mint_WhenSealVerificationWasOk(uint256 amount)
+    function test_unit_balanceOf_success_afterExtensionCall_mint_WhenSealVerificationWasOk(uint256 amount)
         external
-        whenMintExternalIsCalled
-        mErc20Host_mint_givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
     {
         amount = bound(amount, SMALL, LARGE);
@@ -1040,7 +1034,7 @@ contract mErc20HostTest is BaseMTokenTest {
     //                      MintExternal                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_mintExternal_revertsWith_mErc20Host_AmountTooBig()
+    function test_unit_mintExternal_revertsWith_mErc20Host_AmountTooBig_whenCallerAllowedByAdmin()
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
@@ -1063,7 +1057,7 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.mintExternal(journalData, "0x123", mintAmounts, minAmountsOut, users.alice);
     }
 
-    function test_unit_mintExternal_revertsWith_mErc20Host_AmountTooBig_variant2()
+    function test_unit_mintExternal_revertsWith_mErc20Host_AmountTooBig_whenCallerIsProofForwarder()
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
@@ -1088,12 +1082,7 @@ contract mErc20HostTest is BaseMTokenTest {
     //                    SetReserveFactor                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setReserveFactor_success(uint256 amount)
-        external
-        whenMintExternalIsCalled
-        mErc20Host_mint_givenDecodedAmountIsValid
-        whenMarketIsListed(address(mWethHost))
-    {
+    function test_unit_setReserveFactor_success(uint256 amount) external whenMarketIsListed(address(mWethHost)) {
         amount = bound(amount, SMALL, LARGE);
 
         mWethHost.setReserveFactor(1e17);
@@ -1103,10 +1092,8 @@ contract mErc20HostTest is BaseMTokenTest {
     //                      MintExternal                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_mintExternal_revertsWith_Operator_OutflowVolumeReached_whenSealVerificationWasOk_variant2(uint256 amount)
+    function test_unit_mintExternal_revertsWith_Operator_OutflowVolumeReached_whenOutflowLimitTight(uint256 amount)
         external
-        whenMintExternalIsCalled
-        mErc20Host_mint_givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE36)
     {
@@ -1154,8 +1141,6 @@ contract mErc20HostTest is BaseMTokenTest {
 
     function test_unit_balanceOf_success_and_OverflowLimitNotExceeded(uint256 amount)
         external
-        whenMintExternalIsCalled
-        mErc20Host_mint_givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
@@ -1185,8 +1170,6 @@ contract mErc20HostTest is BaseMTokenTest {
 
     function test_unit_mintExternal_revertsWith_Operator_UserBlacklisted_whenSealVerificationWasOk(uint256 amount)
         external
-        whenMintExternalIsCalled
-        mErc20Host_mint_givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
@@ -1205,8 +1188,6 @@ contract mErc20HostTest is BaseMTokenTest {
 
     function test_unit_mintExternal_revertsWith_mErc20Host_AmountNotValid_whenSealVerificationWasOk()
         external
-        whenMintExternalIsCalled
-        mErc20Host_mint_givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
@@ -1232,8 +1213,6 @@ contract mErc20HostTest is BaseMTokenTest {
 
     function test_unit_mintExternal_revertsWith_Operator_OutflowVolumeReached_whenSealVerificationWasOk(uint256 amount)
         external
-        whenMintExternalIsCalled
-        mErc20Host_mint_givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE36)
     {
@@ -1264,8 +1243,6 @@ contract mErc20HostTest is BaseMTokenTest {
 
     function test_unit_mintExternal_revertsWith_Operator_UserNotWhitelisted_whenSealVerificationWasOk(uint256 amount)
         external
-        whenMintExternalIsCalled
-        mErc20Host_mint_givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
     {
         amount = bound(amount, SMALL, LARGE);
@@ -1364,14 +1341,8 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.redeemUnderlying(0);
     }
 
-    modifier mErc20Host_redeem_givenAmountIsGreaterThan0() {
-        // does nothing; only for readability purposes
-        _;
-    }
-
     function test_unit_redeemUnderlying_revertsWith_mt_RedeemCashNotAvailable_whenTheMarketDoesNotHaveEnoughAssetsForTheRedeemOperation(uint256 amount)
         external
-        mErc20Host_redeem_givenAmountIsGreaterThan0
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWethHost))
     {
@@ -1389,9 +1360,8 @@ contract mErc20HostTest is BaseMTokenTest {
     //                         Redeem                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_redeem_success(uint256 amount)
+    function test_unit_redeem_success_redeemTokens(uint256 amount)
         external
-        mErc20Host_redeem_givenAmountIsGreaterThan0
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
@@ -1401,9 +1371,8 @@ contract mErc20HostTest is BaseMTokenTest {
         _redeem(amount, false);
     }
 
-    function test_unit_redeem_success_variant2(uint256 amount)
+    function test_unit_redeem_success_redeemUnderlying(uint256 amount)
         external
-        mErc20Host_redeem_givenAmountIsGreaterThan0
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
@@ -1440,43 +1409,16 @@ contract mErc20HostTest is BaseMTokenTest {
         assertEq(balanceMTokenBefore - amount, balanceMTokenAfter);
     }
 
-    modifier whenRedeemExternalIsCalled() {
-        // @dev does nothing; just for readability
-        _;
-    }
-
-    modifier mErc20Host_redeem_givenDecodedAmountIsValid() {
-        // @dev does nothing; just for readability
-        _;
-    }
-
-    modifier whenWithdrawOnExtensionIsCalled() {
-        // @dev does nothing; just for readability
-        _;
-    }
-
-    modifier mErc20Host_redeem_givenDecodedLiquidityIsValid() {
-        // @dev does nothing; just for readability
-        _;
-    }
-
     ////////////////////////////////////////////////////////////
     //                  PerformExtensionCall                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_performExtensionCall_revertsWith_AmountNotValid_givenDecodedLiquidityIs0()
-        external
-        whenWithdrawOnExtensionIsCalled
-    {
+    function test_unit_performExtensionCall_revertsWith_AmountNotValid_givenDecodedLiquidityIs0() external {
         vm.expectRevert(CommonLib.AmountNotValid.selector);
         mWethHost.performExtensionCall(1, 0, 1);
     }
 
-    function test_unit_performExtensionCall_revertsWith_LiquiditySealVerificationFails(uint256 amount)
-        external
-        whenWithdrawOnExtensionIsCalled
-        mErc20Host_redeem_givenDecodedLiquidityIsValid
-    {
+    function test_unit_performExtensionCall_revertsWith_LiquiditySealVerificationFails(uint256 amount) external {
         amount = bound(amount, SMALL, LARGE);
 
         verifierMock.setStatus(true); // set for failure
@@ -1489,10 +1431,8 @@ contract mErc20HostTest is BaseMTokenTest {
     //                       BalanceOf                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_balanceOf_success_variant3(uint256 amount)
+    function test_unit_balanceOf_success(uint256 amount)
         external
-        whenWithdrawOnExtensionIsCalled
-        mErc20Host_redeem_givenDecodedLiquidityIsValid
         whenMarketIsListed(address(mWethHost))
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
@@ -1576,16 +1516,6 @@ contract mErc20HostTest is BaseMTokenTest {
         assertEq(totalBorrowsAfter, totalBorrowsBefore);
     }
 
-    modifier mErc20Host_repay_givenAmountIsGreaterThan0() {
-        // does nothing; only for readability purposes
-        _;
-    }
-
-    modifier mErc20Host_repay_whenStateIsValid() {
-        // does nothing; only for readability purposes
-        _;
-    }
-
     struct RepayStateInternal {
         uint256 balanceUnderlyingBefore;
         uint256 balanceMTokenBefore;
@@ -1605,8 +1535,6 @@ contract mErc20HostTest is BaseMTokenTest {
 
     function test_unit_overflow_revertsWith(uint256 amount)
         external
-        mErc20Host_repay_givenAmountIsGreaterThan0
-        mErc20Host_repay_whenStateIsValid
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
@@ -1660,8 +1588,6 @@ contract mErc20HostTest is BaseMTokenTest {
 
     function test_unit_borrowBalanceStored_success(uint256 amount)
         external
-        mErc20Host_repay_givenAmountIsGreaterThan0
-        mErc20Host_repay_whenStateIsValid
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWethHost), ImTokenOperationTypes.OperationType.Borrow)
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
@@ -1739,20 +1665,9 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.repayExternal(journalData, "0x123", repayAmounts, address(this));
     }
 
-    modifier whenRepayExternalIsCalled() {
-        // @dev does nothing; for readability only
-        _;
-    }
-
-    modifier mErc20Host_repay_givenDecodedAmountIsValid() {
-        // @dev does nothing; for readability only
-        _;
-    }
-
-    function test_unit_repayExternal_revertsWith_mErc20Host_JournalNotValid_variant2(uint256 amount)
+    function test_unit_repayExternal_revertsWith_mErc20Host_JournalNotValid_whenJournalEmpty(uint256 amount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenRepayExternalIsCalled
     {
         amount = bound(amount, SMALL, LARGE);
 
@@ -1763,26 +1678,26 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.repayExternal("", "0x123", amounts, address(this));
     }
 
-    function test_unit_repayExternal_revertsWith_mErc20Host_JournalNotValid(uint256 amount)
+    function test_unit_repayExternal_revertsWith_mTokenProofDecoderLib_InvalidLength_whenJournalCorrupted(uint256 amount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenRepayExternalIsCalled
     {
         amount = bound(amount, SMALL, LARGE);
+
+        bytes[] memory journals = new bytes[](1);
+        journals[0] = hex"1234";
+        bytes memory journalData = abi.encode(journals);
 
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
-        vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
-        mWethHost.repayExternal("", "0x123", amounts, address(this));
+        vm.expectRevert(mTokenProofDecoderLib.mTokenProofDecoderLib_InvalidLength.selector);
+        mWethHost.repayExternal(journalData, "0x123", amounts, address(this));
     }
 
     function test_unit_repayExternal_revertsWith_mErc20Host_AmountNotValid()
         external
-        whenRepayExternalIsCalled
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenRepayExternalIsCalled
-        mErc20Host_repay_givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {
@@ -1798,8 +1713,6 @@ contract mErc20HostTest is BaseMTokenTest {
     function test_unit_repayExternal_revertsWith_repay_RevertsWhen_SealVerificationFails(uint256 amount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenRepayExternalIsCalled
-        mErc20Host_repay_givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {
@@ -1823,8 +1736,6 @@ contract mErc20HostTest is BaseMTokenTest {
     function test_unit_borrowBalanceStored_success_repay_WhenSealVerificationWasOk(uint256 amount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenRepayExternalIsCalled
-        mErc20Host_repay_givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {
@@ -1871,8 +1782,6 @@ contract mErc20HostTest is BaseMTokenTest {
     function test_unit_borrowBalanceStored_success_andRepayingMax(uint256 amount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
-        whenRepayExternalIsCalled
-        mErc20Host_repay_givenDecodedAmountIsValid
         whenMarketIsListed(address(mWethHost))
         whenMarketEntered(address(mWethHost))
     {

@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
+
 import {IRebalancer} from "src/interfaces/IRebalancer.sol";
 import {Rebalancer} from "src/rebalancer/Rebalancer.sol";
-import {BaseRebalancerTest} from "test/v2/utils/BaseRebalancerTest.t.sol";
+import {BytesLib} from "src/libraries/BytesLib.sol";
+
 import {MockFirewall} from "test/mocks/MockFirewall.sol";
+import {BaseRebalancerTest} from "test/v2/utils/BaseRebalancerTest.t.sol";
 import {
     MockFirewallRegister,
     MockRebalanceMarket,
     RejectEthReceiver
 } from "test/v2/mocks/rebalancer/RebalancerMocks.t.sol";
-import {BytesLib} from "src/libraries/BytesLib.sol";
-import {console} from "forge-std/console.sol";
 
 contract RebalancerTest is BaseRebalancerTest {
     function setUp() public override {
@@ -64,6 +65,7 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setMaxTransferSize_success_withFirewallEnabled() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _enableFirewall();
         _allowGuardian();
 
@@ -86,11 +88,13 @@ contract RebalancerTest is BaseRebalancerTest {
     //                        SaveEth                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_saveEth_revertsWith_Rebalancer_NotAuthorized() external {
+    function test_unit_saveEth_revertsWith_Rebalancer_NotAuthorized_whenFirewallEnabled() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _enableFirewall();
 
         address[] memory tokens = new address[](1);
         tokens[0] = address(weth);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.setAllowedTokens(address(bridgeMock), tokens, true);
 
@@ -122,9 +126,13 @@ contract RebalancerTest is BaseRebalancerTest {
     //               SetWhitelistedBridgeStatus               //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setWhitelistedBridgeStatus_revertsWith_Rebalancer_AddressNotValid_variant2() external {
+    function test_unit_setWhitelistedBridgeStatus_revertsWith_Rebalancer_AddressNotValid_whenFirewallEnabled()
+        external
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _enableFirewall();
         _allowGuardian();
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
         rebalancer.setWhitelistedBridgeStatus(address(0), true);
     }
@@ -133,7 +141,8 @@ contract RebalancerTest is BaseRebalancerTest {
     //                        SaveEth                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_saveEth_revertsWith_Rebalancer_RequestNotValid_variant2() external {
+    function test_unit_saveEth_revertsWith_Rebalancer_RequestNotValid_whenFirewallRejects() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         RejectEthReceiver rejector = new RejectEthReceiver();
         Rebalancer localRebalancer = new Rebalancer(address(roles), address(rejector), address(this), "");
         MockFirewall firewall = new MockFirewall();
@@ -142,6 +151,7 @@ contract RebalancerTest is BaseRebalancerTest {
         roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), true);
         vm.deal(address(localRebalancer), 1 ether);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_RequestNotValid.selector);
         localRebalancer.saveEth();
     }
@@ -151,6 +161,7 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_sendMsg_revertsWith_Rebalancer_NotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _enableFirewall();
         _allowGuardian();
 
@@ -160,6 +171,7 @@ contract RebalancerTest is BaseRebalancerTest {
         IRebalancer.Msg memory message =
             IRebalancer.Msg({dstChainId: dstId, token: address(weth), message: abi.encode(amount), bridgeData: ""});
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
 
@@ -209,6 +221,7 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_saveEth_success_withFirewallEnabled() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         Rebalancer localRebalancer = new Rebalancer(address(roles), users.alice, address(this), "");
         MockFirewall firewall = new MockFirewall();
         vm.store(address(localRebalancer), ADMIN_SLOT, bytes32(uint256(uint160(address(this)))));
@@ -218,6 +231,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         uint256 balanceBefore = users.alice.balance;
         localRebalancer.saveEth();
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(users.alice.balance, balanceBefore + 1 ether);
     }
 
@@ -226,6 +240,7 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_currentTransferSize_success_withFirewallEnabled_hits_window_and_maxsize_branches() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _enableFirewall();
 
         uint32 dstId = 99;
@@ -240,6 +255,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(size, amount);
         assertEq(timestamp, block.timestamp);
 
@@ -261,9 +277,11 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setAllowedTokens_revertsWith_Rebalancer_NotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address[] memory tokens = new address[](1);
         tokens[0] = address(weth);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.setAllowedTokens(address(bridgeMock), tokens, true);
     }
@@ -273,9 +291,11 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setMarketStatus_revertsWith_Rebalancer_NotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address[] memory markets = new address[](1);
         markets[0] = address(market);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.setMarketStatus(markets, true);
     }
@@ -285,6 +305,7 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setAllowedTokens_success_updatesMapping() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
 
         address[] memory tokens = new address[](2);
@@ -293,17 +314,20 @@ contract RebalancerTest is BaseRebalancerTest {
 
         rebalancer.setAllowedTokens(address(bridgeMock), tokens, true);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(rebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth)));
         assertTrue(rebalancer.allowedTokensPerBridge(address(bridgeMock), address(usdc)));
     }
 
     function test_unit_setAllowedTokens_success_removesMapping() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
 
         address[] memory tokens = new address[](1);
         tokens[0] = address(weth);
 
         rebalancer.setAllowedTokens(address(bridgeMock), tokens, true);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(rebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth)));
 
         rebalancer.setAllowedTokens(address(bridgeMock), tokens, false);
@@ -315,6 +339,7 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setMarketStatus_success_updatesMapping() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
 
         address[] memory markets = new address[](2);
@@ -323,6 +348,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         rebalancer.setMarketStatus(markets, true);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(rebalancer.whitelistedMarkets(address(market)));
         assertTrue(rebalancer.whitelistedMarkets(address(mWethHost)));
     }
@@ -332,6 +358,7 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setAllowList_success_updatesMapping() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
 
         address[] memory markets = new address[](1);
@@ -339,13 +366,16 @@ contract RebalancerTest is BaseRebalancerTest {
 
         rebalancer.setAllowList(markets, true);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(rebalancer.allowedList(address(market)));
     }
 
     function test_unit_setAllowList_revertsWith_Rebalancer_NotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address[] memory markets = new address[](1);
         markets[0] = address(market);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.setAllowList(markets, true);
     }
@@ -355,12 +385,16 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setWhitelistedBridgeStatus_revertsWith_Rebalancer_NotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
     }
 
     function test_unit_setWhitelistedBridgeStatus_revertsWith_Rebalancer_AddressNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
         rebalancer.setWhitelistedBridgeStatus(address(0), true);
     }
@@ -370,13 +404,17 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setWhitelistedDestination_success_updatesMapping() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
 
         rebalancer.setWhitelistedDestination(OPTIMISM_CHAIN_ID, true);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(rebalancer.isDestinationWhitelisted(10));
     }
 
     function test_unit_setWhitelistedDestination_revertsWith_Rebalancer_NotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.setWhitelistedDestination(OPTIMISM_CHAIN_ID, true);
     }
@@ -386,13 +424,17 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setMinTransferSize_success_updatesMapping() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
 
         rebalancer.setMinTransferSize(5, address(weth), 123);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(rebalancer.minTransferSizes(5, address(weth)), 123);
     }
 
     function test_unit_setMinTransferSize_revertsWith_Rebalancer_NotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.setMinTransferSize(5, address(weth), 123);
     }
@@ -402,13 +444,17 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setMaxTransferSize_success_updatesMapping() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
 
         rebalancer.setMaxTransferSize(6, address(weth), 456);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(rebalancer.maxTransferSizes(6, address(weth)), 456);
     }
 
     function test_unit_setMaxTransferSize_revertsWith_Rebalancer_NotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.setMaxTransferSize(6, address(weth), 456);
     }
@@ -418,17 +464,23 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setAdmin_success_updatesAdmin() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         rebalancer.setAdmin(users.alice);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(rebalancer.admin(), users.alice);
     }
 
     function test_unit_setAdmin_revertsWith_Rebalancer_NotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.setAdmin(users.bob);
     }
 
     function test_unit_setAdmin_revertsWith_Rebalancer_AddressNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
         rebalancer.setAdmin(address(0));
     }
@@ -438,17 +490,23 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setSaveAddress_success_updatesSaveAddress() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         rebalancer.setSaveAddress(users.alice);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(rebalancer.saveAddress(), users.alice);
     }
 
     function test_unit_setSaveAddress_revertsWith_Rebalancer_NotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.setSaveAddress(users.bob);
     }
 
     function test_unit_setSaveAddress_revertsWith_Rebalancer_AddressNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
         rebalancer.setSaveAddress(address(0));
     }
@@ -458,23 +516,29 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_saveTokens_revertsWith_Rebalancer_NotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.saveTokens(address(weth), address(market));
     }
 
     function test_unit_saveTokens_revertsWith_Rebalancer_RequestNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockRebalanceMarket otherMarket = new MockRebalanceMarket(address(usdc));
         _getTokens(weth, address(rebalancer), 1e18);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_RequestNotValid.selector);
         rebalancer.saveTokens(address(weth), address(otherMarket));
     }
 
     function test_unit_saveTokens_success_transfersToMarket() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _getTokens(weth, address(rebalancer), 2e18);
 
         rebalancer.saveTokens(address(weth), address(market));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(weth.balanceOf(address(market)), 2e18);
     }
 
@@ -483,6 +547,7 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_saveEth_success_transfersToSaveAddress() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         Rebalancer localRebalancer = new Rebalancer(address(roles), users.alice, address(this), "");
 
         _allowGuardian();
@@ -490,21 +555,26 @@ contract RebalancerTest is BaseRebalancerTest {
 
         uint256 aliceBalanceBefore = users.alice.balance;
         localRebalancer.saveEth();
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(users.alice.balance, aliceBalanceBefore + 1 ether);
     }
 
-    function test_unit_saveEth_revertsWith_Rebalancer_NotAuthorized_variant2() external {
+    function test_unit_saveEth_revertsWith_Rebalancer_NotAuthorized_whenCallerNotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.saveEth();
     }
 
-    function test_unit_saveEth_revertsWith_Rebalancer_RequestNotValid_variant2_variant2() external {
+    function test_unit_saveEth_revertsWith_Rebalancer_RequestNotValid_whenReceiverRejects() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         RejectEthReceiver rejector = new RejectEthReceiver();
         Rebalancer localRebalancer = new Rebalancer(address(roles), address(rejector), address(this), "");
 
         roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), true);
         vm.deal(address(localRebalancer), 1 ether);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_RequestNotValid.selector);
         localRebalancer.saveEth();
     }
@@ -514,6 +584,8 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_constructor_revertsWith_Rebalancer_AddressNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
         new Rebalancer(address(0), address(this), address(this), "");
 
@@ -529,6 +601,7 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_rebalancer_success_initData_initializesLists() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address[] memory markets = new address[](2);
         markets[0] = address(market);
         markets[1] = address(mWethHost);
@@ -553,6 +626,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         Rebalancer localRebalancer = new Rebalancer(address(roles), address(this), address(this), abi.encode(initInfo));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(localRebalancer.whitelistedMarkets(address(market)));
         assertTrue(localRebalancer.allowedList(address(market)));
         assertTrue(localRebalancer.whitelistedMarkets(address(mWethHost)));
@@ -571,9 +645,11 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_initFirewall_success_setsAdminAndFirewall() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockFirewall firewall = new MockFirewall();
 
         rebalancer.initFirewall(address(firewall));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(rebalancer.hypernativeFirewallAdmin(), address(this));
 
         _allowGuardian();
@@ -584,12 +660,15 @@ contract RebalancerTest is BaseRebalancerTest {
     }
 
     function test_unit_initFirewall_revertsWith_Rebalancer_NotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // Verify admin is address(this), not users.bob
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(rebalancer.admin(), address(this));
 
         MockFirewall firewall = new MockFirewall();
 
         vm.prank(users.bob);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.initFirewall(address(firewall));
     }
@@ -599,6 +678,7 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_firewallRegister_success_callsFirewall() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.store(address(rebalancer), ADMIN_SLOT, bytes32(uint256(uint160(address(this)))));
 
         MockFirewallRegister firewall = new MockFirewallRegister();
@@ -606,6 +686,7 @@ contract RebalancerTest is BaseRebalancerTest {
         rebalancer.setIsStrictMode(true);
 
         rebalancer.firewallRegister(users.alice);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(firewall.lastAccount(), users.alice);
         assertTrue(firewall.lastStrict());
     }
@@ -615,6 +696,7 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_sendMsg_revertsWith_Rebalancer_DestinationNotWhitelisted() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
         roles.allowFor(address(this), roles.REBALANCER_EOA(), true);
@@ -622,11 +704,13 @@ contract RebalancerTest is BaseRebalancerTest {
         IRebalancer.Msg memory message =
             IRebalancer.Msg({dstChainId: TEST_CHAIN_ID, token: address(weth), message: "", bridgeData: ""});
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_DestinationNotWhitelisted.selector);
         rebalancer.sendMsg(address(bridgeMock), address(market), 1e18, message);
     }
 
     function test_unit_sendMsg_revertsWith_Rebalancer_UnderlyingNotAllowedForBridge() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
 
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
@@ -636,21 +720,25 @@ contract RebalancerTest is BaseRebalancerTest {
         IRebalancer.Msg memory message =
             IRebalancer.Msg({dstChainId: MAINNET_CHAIN_ID, token: address(weth), message: "", bridgeData: ""});
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_UnderlyingNotAllowedForBridge.selector);
         rebalancer.sendMsg(address(bridgeMock), address(market), 1e18, message);
     }
 
-    function test_unit_sendMsg_revertsWith_Rebalancer_TransferSizeMinNotMet_variant2() external {
+    function test_unit_sendMsg_revertsWith_Rebalancer_TransferSizeMinNotMet_whenAmountBelowMin() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _setupSendMsg(2, 5e18, 0);
 
         IRebalancer.Msg memory message =
             IRebalancer.Msg({dstChainId: ALT_CHAIN_ID, token: address(weth), message: "", bridgeData: ""});
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_TransferSizeMinNotMet.selector);
         rebalancer.sendMsg(address(bridgeMock), address(market), 1e18, message);
     }
 
-    function test_unit_sendMsg_revertsWith_Rebalancer_TransferSizeMinNotMet() external {
+    function test_unit_sendMsg_revertsWith_Rebalancer_TransferSizeMinNotMet_whenMessageAmountBelowMin() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint32 dstId = 12;
         uint256 amount = 1e18;
 
@@ -661,11 +749,13 @@ contract RebalancerTest is BaseRebalancerTest {
 
         _getTokens(weth, address(market), amount);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_TransferSizeMinNotMet.selector);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
     }
 
     function test_unit_sendMsg_revertsWith_Rebalancer_MarketNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
 
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
@@ -683,6 +773,7 @@ contract RebalancerTest is BaseRebalancerTest {
         });
 
         _getTokens(weth, address(market), 1e18);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_MarketNotValid.selector);
         rebalancer.sendMsg(address(bridgeMock), address(market), 1e18, message);
     }
@@ -692,6 +783,7 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_currentTransferSize_success_updatesTransferInfoAndLogs() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint32 dstId = 4;
         uint256 amount = 2e18;
 
@@ -705,6 +797,7 @@ contract RebalancerTest is BaseRebalancerTest {
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
 
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(size, amount);
         assertEq(timestamp, block.timestamp);
 
@@ -720,6 +813,7 @@ contract RebalancerTest is BaseRebalancerTest {
     }
 
     function test_unit_currentTransferSize_success_accumulatesWithinWindow() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint32 dstId = 6;
         uint256 amount = 1e18;
 
@@ -734,11 +828,13 @@ contract RebalancerTest is BaseRebalancerTest {
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
 
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(size, amount * 2);
         assertEq(timestamp, block.timestamp);
     }
 
     function test_unit_currentTransferSize_success_succeedsWhenMaxTransferSizeZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint32 dstId = 11;
         uint256 amount = 1e18;
 
@@ -752,11 +848,13 @@ contract RebalancerTest is BaseRebalancerTest {
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
 
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(size, amount);
         assertEq(timestamp, block.timestamp);
     }
 
     function test_unit_currentTransferSize_success_resetsWindowAfterDeadline() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint32 dstId = 7;
         uint256 amount = 1e18;
 
@@ -774,6 +872,7 @@ contract RebalancerTest is BaseRebalancerTest {
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
 
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(size, amount);
         assertEq(timestamp, block.timestamp);
     }
@@ -783,6 +882,7 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_sendMsg_revertsWith_Rebalancer_TransferSizeExcedeed() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint32 dstId = 8;
         uint256 amount = 4e18;
 
@@ -794,6 +894,7 @@ contract RebalancerTest is BaseRebalancerTest {
         _getTokens(weth, address(market), amount * 2);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_TransferSizeExcedeed.selector);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
     }
@@ -808,16 +909,14 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_extractFeeParams_success() external pure {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory msge =
             hex"0000000000000000000000000000000000000000000000000000000000000140000000000000000000000000b819a871d20913839c37f316dc914b0570bfc0ee000000000000000000000000176211869ca2b568f2a7d4ee941e073a821ee1ff000000000000000000000000833589fcd6edb6e08f4c7c32d4f71b54bda0291300000000000000000000000000000000000000000000000000000000004908e000000000000000000000000000000000000000000000000000000000000f42400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000018000000000000000000000000000000000000000000000000000000000000001a00000000000000000000000000000000000000000000000000000000000000220000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000021050000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000342600000000000000000000000000000000000000000000000000000000068d57c3800000000000000000000000000000000000000000000000000000000000000600000000000000000000000000000000000000000000000000000000000000041640266288fc38585602e100c62f4bdad09957a74b0cd68a70860adcbc2119d02117b14da483dbc26ba437f2da24a22d87a4f8bad9d8183513bbf59af8535ff0a1c00000000000000000000000000000000000000000000000000000000000000"; // your full calldata without selector
 
         // all of these are unused
         abi.decode(msge, (uint32[], bytes32, address, bytes32, uint256, uint256, uint256, bytes));
 
-        (uint256 fee, uint256 deadline,) = _extractFeeParams(msge);
-
-        console.log("Fee:", fee);
-        console.log("Deadline:", deadline);
+        _extractFeeParams(msge);
     }
 
     function _extractFeeParams(bytes memory msge)
@@ -864,7 +963,9 @@ contract RebalancerTest is BaseRebalancerTest {
     }
 
     function test_unit_setWhitelistedBridgeStatus_success() external givenSenderHasRoleGUARDIAN_BRIDGE {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // it should whitelist a bridge
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit IRebalancer.BridgeWhitelistedStatusUpdated(address(bridgeMock), true);
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
@@ -874,10 +975,12 @@ contract RebalancerTest is BaseRebalancerTest {
     //                  IsBridgeWhitelisted                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_isBridgeWhitelisted_success_variant2() external givenSenderHasRoleGUARDIAN_BRIDGE {
+    function test_unit_isBridgeWhitelisted_success_whenUnwhitelisted() external givenSenderHasRoleGUARDIAN_BRIDGE {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // it should return true
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
         bool isWhitelisted = rebalancer.isBridgeWhitelisted(address(bridgeMock));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(isWhitelisted);
     }
 
@@ -886,11 +989,13 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setMarketStatus_success() external givenSenderHasRoleGUARDIAN_BRIDGE {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address[] memory markets = new address[](1);
         markets[0] = address(mWethHost);
 
         rebalancer.setMarketStatus(markets, true);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(rebalancer.isMarketWhitelisted(address(mWethHost)));
     }
 
@@ -899,9 +1004,11 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_isBridgeWhitelisted_success() external givenSenderHasRoleGUARDIAN_BRIDGE {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // it should remove bridge from whitelist mapping
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
         bool isWhitelisted = rebalancer.isBridgeWhitelisted(address(bridgeMock));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(isWhitelisted);
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), false);
         isWhitelisted = rebalancer.isBridgeWhitelisted(address(bridgeMock));

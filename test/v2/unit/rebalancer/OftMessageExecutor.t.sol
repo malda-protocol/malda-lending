@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
-import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 import {BaseOftMessageExecutor} from "src/rebalancer/bridges/helpers/BaseOftMessageExecutor.sol";
 import {rsEthOftMessageExecutor} from "src/rebalancer/bridges/helpers/rsEthOftMessageExecutor.sol";
 import {weEthOftMessageExecutor} from "src/rebalancer/bridges/helpers/weEthOftMessageExecutor.sol";
 
-import {SendParam, MessagingFee} from "src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol";
+import {MessagingFee, SendParam} from "src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol";
 import {MessagingReceipt} from "src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol";
 import {
     MockOFTToken,
@@ -15,6 +14,7 @@ import {
     RevertingWrapperToken,
     TestToken
 } from "test/v2/mocks/rebalancer/OftMessageExecutorMocks.t.sol";
+import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 contract BaseOftExecutorHarness is BaseOftMessageExecutor {
     function executeSend(address, address, SendParam calldata, MessagingFee calldata, address, address)
@@ -59,11 +59,24 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness = new BaseOftExecutorHarness();
     }
 
+    function _sendParam(uint256 amount) internal view returns (SendParam memory) {
+        return SendParam({
+            dstEid: 1,
+            to: bytes32(uint256(uint160(users.carol))),
+            amountLD: amount,
+            minAmountLD: amount,
+            extraOptions: bytes(""),
+            composeMsg: bytes(""),
+            oftCmd: bytes("")
+        });
+    }
+
     ////////////////////////////////////////////////////////////
-    //                   PullFromRebalancer                   //
+    //                   pullFromRebalancer                   //
     ////////////////////////////////////////////////////////////
 
     function test_unit_pullFromRebalancer_success_transfers() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
@@ -71,112 +84,144 @@ contract BaseOftMessageExecutorTest is BaseTest {
         vm.prank(rebalancer);
         underlying.approve(address(harness), 1e18);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.pullFromRebalancer(address(underlying), 1e18, rebalancer);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(underlying.balanceOf(address(harness)), 1e18);
     }
 
     function test_unit_pullFromRebalancer_revertsWith_Executor_NotRebalancer() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BaseOftMessageExecutor.Executor_NotRebalancer.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.pullFromRebalancer(address(underlying), 1e18, address(this));
     }
 
     ////////////////////////////////////////////////////////////
-    //                  FallbackToUnderlying                  //
+    //                  fallbackToUnderlying                  //
     ////////////////////////////////////////////////////////////
 
     function test_unit_fallbackToUnderlying_success_transfersWhenUnderlyingBridge() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
         address market = users.bob;
 
         underlying.mint(address(harness), 2e18);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.fallbackToUnderlying(market, address(underlying), address(underlying));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(underlying.balanceOf(market), 2e18);
     }
 
     function test_unit_fallbackToUnderlying_success_returnsWhenNoOftBalance() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
         TestToken oft = new TestToken("OFT", "OFT");
         address market = users.bob;
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.fallbackToUnderlying(market, address(underlying), address(oft));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(underlying.balanceOf(market), 0);
     }
 
     function test_unit_fallbackToUnderlying_success_depositsAndTransfers() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockWrapperToken underlying = new MockWrapperToken("U", "U");
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
         address market = users.bob;
 
         oft.mint(address(harness), 3e18);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.fallbackToUnderlying(market, address(underlying), address(oft));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(underlying.balanceOf(market), 3e18);
     }
 
     ////////////////////////////////////////////////////////////
-    //                      VerifyMinted                      //
+    //                      verifyMinted                      //
     ////////////////////////////////////////////////////////////
 
     function test_unit_verifyMinted_revertsWith_Executor_AmountMismatch() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(0));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BaseOftMessageExecutor.Executor_AmountMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.verifyMinted(address(oft), 1);
     }
 
     function test_unit_verifyMinted_success_ok() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(0));
         oft.mint(address(harness), 1);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.verifyMinted(address(oft), 1);
     }
 
     ////////////////////////////////////////////////////////////
-    //                        SendOFT                         //
+    //                         sendOFT                        //
     ////////////////////////////////////////////////////////////
 
     function test_unit_sendOFT_success_callsSend() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(0));
-        SendParam memory params = SendParam({
-            dstEid: 1,
-            to: bytes32(uint256(uint160(users.carol))),
-            amountLD: 1,
-            minAmountLD: 1,
-            extraOptions: bytes(""),
-            composeMsg: bytes(""),
-            oftCmd: bytes("")
-        });
+        SendParam memory params = _sendParam(1);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.sendOFT(address(oft), params, fees, users.bob);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(oft.lastRefund(), users.bob);
     }
 
     ////////////////////////////////////////////////////////////
-    //                   ProcessUncomposed                    //
+    //                    processUncomposed                   //
     ////////////////////////////////////////////////////////////
 
     function test_unit_processUncomposed_success_transfersUnderlying() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
         address market = users.bob;
 
         underlying.mint(address(harness), 1e18);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.processUncomposed(market, address(underlying), address(underlying));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(underlying.balanceOf(market), 1e18);
     }
 
     ////////////////////////////////////////////////////////////
-    //                     ExecuteCompose                     //
+    //                     executeCompose                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_executeCompose_success_transfersUnderlying_variant2() external {
+    function test_unit_executeCompose_success_transfersUnderlying() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
         address market = users.bob;
 
         underlying.mint(address(harness), 1e18);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.executeCompose(market, address(underlying), address(underlying));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(underlying.balanceOf(market), 1e18);
     }
 }
@@ -189,11 +234,24 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         executor = new rsEthOftMessageExecutor();
     }
 
+    function _sendParam(uint256 amount) internal view returns (SendParam memory) {
+        return SendParam({
+            dstEid: 1,
+            to: bytes32(uint256(uint160(users.carol))),
+            amountLD: amount,
+            minAmountLD: amount,
+            extraOptions: bytes(""),
+            composeMsg: bytes(""),
+            oftCmd: bytes("")
+        });
+    }
+
     ////////////////////////////////////////////////////////////
-    //                      ExecuteSend                       //
+    //                      executeSend                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_executeSend_success_successWithWrapper() external {
+    function test_unit_executeSend_success_withWrapper() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockWrapperToken underlying = new MockWrapperToken("U", "U");
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
         underlying.setAllowed(address(oft), true);
@@ -203,22 +261,18 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         vm.prank(rebalancer);
         underlying.approve(address(executor), 2e18);
 
-        SendParam memory params = SendParam({
-            dstEid: 1,
-            to: bytes32(uint256(uint160(users.carol))),
-            amountLD: 2e18,
-            minAmountLD: 2e18,
-            extraOptions: bytes(""),
-            composeMsg: bytes(""),
-            oftCmd: bytes("")
-        });
+        SendParam memory params = _sendParam(2e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(oft.balanceOf(address(executor)), 2e18);
     }
 
-    function test_unit_executeSend_revertsWith_Executor_DifferentInnerToken_variant2() external {
+    function test_unit_executeSend_revertsWith_Executor_DifferentInnerToken() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockWrapperToken underlying = new MockWrapperToken("U", "U");
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
 
@@ -227,22 +281,18 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         vm.prank(rebalancer);
         underlying.approve(address(executor), 1e18);
 
-        SendParam memory params = SendParam({
-            dstEid: 1,
-            to: bytes32(uint256(uint160(users.carol))),
-            amountLD: 1e18,
-            minAmountLD: 1e18,
-            extraOptions: bytes(""),
-            composeMsg: bytes(""),
-            oftCmd: bytes("")
-        });
+        SendParam memory params = _sendParam(1e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(rsEthOftMessageExecutor.Executor_DifferentInnerToken.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
     }
 
-    function test_unit_executeSend_revertsWith_Executor_NoOft_variant2() external {
+    function test_unit_executeSend_revertsWith_Executor_NoOft() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         RevertingWrapperToken underlying = new RevertingWrapperToken();
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
 
@@ -251,22 +301,18 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         vm.prank(rebalancer);
         underlying.approve(address(executor), 1e18);
 
-        SendParam memory params = SendParam({
-            dstEid: 1,
-            to: bytes32(uint256(uint160(users.carol))),
-            amountLD: 1e18,
-            minAmountLD: 1e18,
-            extraOptions: bytes(""),
-            composeMsg: bytes(""),
-            oftCmd: bytes("")
-        });
+        SendParam memory params = _sendParam(1e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BaseOftMessageExecutor.Executor_NoOft.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
     }
 
-    function test_unit_executeSend_revertsWith_Executor_AmountMismatch_variant2() external {
+    function test_unit_executeSend_revertsWith_Executor_AmountMismatch() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockWrapperToken underlying = new MockWrapperToken("U", "U");
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
         underlying.setAllowed(address(oft), true);
@@ -277,22 +323,18 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         vm.prank(rebalancer);
         underlying.approve(address(executor), 1e18);
 
-        SendParam memory params = SendParam({
-            dstEid: 1,
-            to: bytes32(uint256(uint160(users.carol))),
-            amountLD: 1e18,
-            minAmountLD: 1e18,
-            extraOptions: bytes(""),
-            composeMsg: bytes(""),
-            oftCmd: bytes("")
-        });
+        SendParam memory params = _sendParam(1e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BaseOftMessageExecutor.Executor_AmountMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
     }
 
-    function test_unit_executeSend_success_successWhenBridgeIsUnderlying() external {
+    function test_unit_executeSend_success_whenBridgeIsUnderlying() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockOFTToken underlying = new MockOFTToken("OFT", "OFT", address(0));
 
         address rebalancer = users.alice;
@@ -300,17 +342,10 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         vm.prank(rebalancer);
         underlying.approve(address(executor), 1e18);
 
-        SendParam memory params = SendParam({
-            dstEid: 1,
-            to: bytes32(uint256(uint160(users.carol))),
-            amountLD: 1e18,
-            minAmountLD: 1e18,
-            extraOptions: bytes(""),
-            composeMsg: bytes(""),
-            oftCmd: bytes("")
-        });
+        SendParam memory params = _sendParam(1e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         executor.executeSend(address(underlying), address(underlying), params, fees, rebalancer, users.bob);
     }
 }
@@ -323,7 +358,20 @@ contract weEthOftMessageExecutorTest is BaseTest {
         executor = new weEthOftMessageExecutor();
     }
 
-    function test_unit_executeSend_success_success() external {
+    function _sendParam(uint256 amount) internal view returns (SendParam memory) {
+        return SendParam({
+            dstEid: 1,
+            to: bytes32(uint256(uint160(users.carol))),
+            amountLD: amount,
+            minAmountLD: amount,
+            extraOptions: bytes(""),
+            composeMsg: bytes(""),
+            oftCmd: bytes("")
+        });
+    }
+
+    function test_unit_executeSend_success() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
 
@@ -332,21 +380,15 @@ contract weEthOftMessageExecutorTest is BaseTest {
         vm.prank(rebalancer);
         underlying.approve(address(executor), 1e18);
 
-        SendParam memory params = SendParam({
-            dstEid: 1,
-            to: bytes32(uint256(uint160(users.carol))),
-            amountLD: 1e18,
-            minAmountLD: 1e18,
-            extraOptions: bytes(""),
-            composeMsg: bytes(""),
-            oftCmd: bytes("")
-        });
+        SendParam memory params = _sendParam(1e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
     }
 
     function test_unit_executeSend_revertsWith_Executor_DifferentInnerToken() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
         TestToken other = new TestToken("X", "X");
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(other));
@@ -356,22 +398,18 @@ contract weEthOftMessageExecutorTest is BaseTest {
         vm.prank(rebalancer);
         underlying.approve(address(executor), 1e18);
 
-        SendParam memory params = SendParam({
-            dstEid: 1,
-            to: bytes32(uint256(uint160(users.carol))),
-            amountLD: 1e18,
-            minAmountLD: 1e18,
-            extraOptions: bytes(""),
-            composeMsg: bytes(""),
-            oftCmd: bytes("")
-        });
+        SendParam memory params = _sendParam(1e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(weEthOftMessageExecutor.Executor_DifferentInnerToken.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
     }
 
     function test_unit_executeSend_revertsWith_Executor_NoOft() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
         RevertingOFTToken bad = new RevertingOFTToken();
 
@@ -380,18 +418,13 @@ contract weEthOftMessageExecutorTest is BaseTest {
         vm.prank(rebalancer);
         underlying.approve(address(executor), 1e18);
 
-        SendParam memory params = SendParam({
-            dstEid: 1,
-            to: bytes32(uint256(uint160(users.carol))),
-            amountLD: 1e18,
-            minAmountLD: 1e18,
-            extraOptions: bytes(""),
-            composeMsg: bytes(""),
-            oftCmd: bytes("")
-        });
+        SendParam memory params = _sendParam(1e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BaseOftMessageExecutor.Executor_NoOft.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         executor.executeSend(address(underlying), address(bad), params, fees, rebalancer, users.bob);
     }
 }

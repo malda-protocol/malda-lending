@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
-import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
+
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
 import {Blacklister} from "src/blacklister/Blacklister.sol";
 import {IBlacklister} from "src/interfaces/IBlacklister.sol";
+
 import {MockRoles} from "test/mocks/MockRoles.sol";
+import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 contract BlacklisterTest is BaseTest {
     Blacklister internal blacklister;
@@ -18,6 +21,7 @@ contract BlacklisterTest is BaseTest {
         owner = users.admin;
         guardian = users.guardian;
         user = users.alice;
+
         roles = new MockRoles();
         Blacklister blacklisterImp = new Blacklister();
         bytes memory blacklisterInitData =
@@ -28,132 +32,184 @@ contract BlacklisterTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                      Constructor                       //
+    //                      constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_constructor_revertsWith_Blacklister_InvalidRoles() public {
+    function test_unit_constructor_revertsWith_Blacklister_InvalidRoles() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         Blacklister blacklisterImp = new Blacklister();
         bytes memory initData = abi.encodeWithSelector(Blacklister.initialize.selector, address(owner), address(0));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IBlacklister.Blacklister_InvalidRoles.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         new ERC1967Proxy(address(blacklisterImp), initData);
     }
 
     ////////////////////////////////////////////////////////////
-    //                       Blacklist                        //
+    //                        blacklist                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_blacklist_success() public {
+    function test_unit_blacklist_success_emits() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true);
+        emit IBlacklister.Blacklisted(user);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(owner);
         blacklister.blacklist(user);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(blacklister.isBlacklisted(user));
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true);
+        emit IBlacklister.Unblacklisted(user);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(owner);
         blacklister.unblacklist(user);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertFalse(blacklister.isBlacklisted(user));
     }
 
-    function test_unit_blacklist_revertsWith_Blacklister_AlreadyBlacklisted() public {
+    function test_unit_blacklist_revertsWith_Blacklister_AlreadyBlacklisted() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.startPrank(owner);
         blacklister.blacklist(user);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IBlacklister.Blacklister_AlreadyBlacklisted.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         blacklister.blacklist(user);
         vm.stopPrank();
     }
 
-    function test_unit_blacklist_revertsWith_Blacklister_NotAllowed() public {
-        vm.prank(user);
+    function test_unit_blacklist_revertsWith_Blacklister_NotAllowed() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IBlacklister.Blacklister_NotAllowed.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(user);
         blacklister.blacklist(user);
     }
 
-    function test_unit_blacklist_success_whenCalledByGuardian() public {
+    function test_unit_blacklist_success_whenCalledByGuardian() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         roles.setAllowed(guardian, true);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true);
+        emit IBlacklister.Blacklisted(user);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
         blacklister.blacklist(user);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(blacklister.isBlacklisted(user));
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true);
+        emit IBlacklister.Unblacklisted(user);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
         blacklister.unblacklist(user);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertFalse(blacklister.isBlacklisted(user));
     }
 
     ////////////////////////////////////////////////////////////
-    //                      Unblacklist                       //
+    //                       unblacklist                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_unblacklist_revertsWith_Blacklister_NotBlacklisted() public {
+    function test_unit_unblacklist_revertsWith_Blacklister_NotBlacklisted() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(IBlacklister.Blacklister_NotBlacklisted.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(owner);
-        vm.expectRevert(IBlacklister.Blacklister_NotBlacklisted.selector);
         blacklister.unblacklist(user);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                GetBlacklistedAddresses                 //
-    ////////////////////////////////////////////////////////////
-
-    function test_unit_getBlacklistedAddresses_success_variant1() public {
+    function test_unit_unblacklist_revertsWith_Blacklister_NotBlacklisted_withIndex() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address user2 = users.bob;
         vm.startPrank(owner);
         blacklister.blacklist(user);
         blacklister.blacklist(user2);
-        blacklister.unblacklist(user);
-        address[] memory list = blacklister.getBlacklistedAddresses();
-        assertEq(list.length, 1);
-        assertEq(list[0], user2);
-        vm.stopPrank();
-    }
 
-    function test_unit_getBlacklistedAddresses_success_variant2() public {
-        address user2 = users.bob;
-        vm.startPrank(owner);
-        blacklister.blacklist(user);
-        blacklister.blacklist(user2);
-        blacklister.unblacklist(user2);
-        address[] memory list = blacklister.getBlacklistedAddresses();
-        assertEq(list.length, 1);
-        assertEq(list[0], user);
-        vm.stopPrank();
-    }
-
-    function test_unit_getBlacklistedAddresses_success_variant3() public {
-        vm.startPrank(owner);
-        blacklister.blacklist(user);
-        address[] memory list = blacklister.getBlacklistedAddresses();
-        assertEq(list.length, 1);
-        assertEq(list[0], user);
-        vm.stopPrank();
-    }
-
-    function test_unit_getBlacklistedAddresses_success_variant4() public {
-        address user2 = users.bob;
-        vm.startPrank(owner);
-        blacklister.blacklist(user);
-        blacklister.blacklist(user2);
-        blacklister.unblacklist(user, 0);
-        address[] memory list = blacklister.getBlacklistedAddresses();
-        assertEq(list.length, 1);
-        assertEq(list[0], user2);
-        vm.stopPrank();
-    }
-
-    ////////////////////////////////////////////////////////////
-    //                      Unblacklist                       //
-    ////////////////////////////////////////////////////////////
-
-    function test_unit_unblacklist_revertsWith_Blacklister_NotBlacklisted_byIndex() public {
-        address user2 = users.bob;
-        vm.startPrank(owner);
-        blacklister.blacklist(user);
-        blacklister.blacklist(user2);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IBlacklister.Blacklister_NotBlacklisted.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         blacklister.unblacklist(user, 1);
         vm.stopPrank();
     }
 
-    function test_unit_unblacklist_revertsWith_Blacklister_NotBlacklisted_withoutIndex() public {
-        vm.prank(owner);
+    function test_unit_unblacklist_revertsWith_Blacklister_NotBlacklisted_withIndexWithoutEntry() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IBlacklister.Blacklister_NotBlacklisted.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
         blacklister.unblacklist(user, 0);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                getBlacklistedAddresses                 //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_getBlacklistedAddresses_success_returnsRemaining() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address user2 = users.bob;
+        vm.startPrank(owner);
+        blacklister.blacklist(user);
+        blacklister.blacklist(user2);
+        blacklister.unblacklist(user);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        address[] memory list = blacklister.getBlacklistedAddresses();
+        vm.stopPrank();
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(list.length, 1);
+        assertEq(list[0], user2);
+    }
+
+    function test_unit_getBlacklistedAddresses_success_handlesIndexRemoval() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address user2 = users.bob;
+        vm.startPrank(owner);
+        blacklister.blacklist(user);
+        blacklister.blacklist(user2);
+        blacklister.unblacklist(user, 0);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        address[] memory list = blacklister.getBlacklistedAddresses();
+        vm.stopPrank();
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(list.length, 1);
+        assertEq(list[0], user2);
+    }
+
+    function test_unit_getBlacklistedAddresses_success_singleEntry() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.startPrank(owner);
+        blacklister.blacklist(user);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        address[] memory list = blacklister.getBlacklistedAddresses();
+        vm.stopPrank();
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(list.length, 1);
+        assertEq(list[0], user);
     }
 }

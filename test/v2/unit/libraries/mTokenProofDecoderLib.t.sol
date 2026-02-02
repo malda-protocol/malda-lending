@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
-import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
+
 import {mTokenProofDecoderLib} from "src/libraries/mTokenProofDecoderLib.sol";
+
+import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 contract mTokenProofDecoderLibHarness {
     function encode(
@@ -36,22 +38,57 @@ contract mTokenProofDecoderLibHarness {
 }
 
 contract mTokenProofDecoderLibTest is BaseTest {
+    struct Expected {
+        address sender;
+        address market;
+        uint256 accAmountIn;
+        uint256 accAmountOut;
+        uint32 chainId;
+        uint32 dstChainId;
+        bool l1Inclusion;
+    }
+
     mTokenProofDecoderLibHarness internal harness;
 
     function setUp() public override {
         super.setUp();
+
         harness = new mTokenProofDecoderLibHarness();
     }
 
     ////////////////////////////////////////////////////////////
-    //                         Encode                         //
+    //                         encode                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_encode_success() public view {
-        bytes memory encoded = harness.encode(users.alice, users.bob, 123, 456, 10, 20, true);
+    function test_fuzz_encode_success(
+        address sender,
+        address market,
+        uint256 accAmountIn,
+        uint256 accAmountOut,
+        uint32 chainId,
+        uint32 dstChainId,
+        bool l1Inclusion
+    ) public view {
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bytes memory encoded =
+            harness.encode(sender, market, accAmountIn, accAmountOut, chainId, dstChainId, l1Inclusion);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(encoded.length, mTokenProofDecoderLib.ENTRY_SIZE);
+        Expected memory expected = Expected({
+            sender: sender,
+            market: market,
+            accAmountIn: accAmountIn,
+            accAmountOut: accAmountOut,
+            chainId: chainId,
+            dstChainId: dstChainId,
+            l1Inclusion: l1Inclusion
+        });
 
+        _assertDecoded(encoded, expected);
+    }
+
+    function _assertDecoded(bytes memory encoded, Expected memory expected) internal view {
         (
             address decodedSender,
             address decodedMarket,
@@ -62,25 +99,50 @@ contract mTokenProofDecoderLibTest is BaseTest {
             bool decodedL1
         ) = harness.decode(encoded);
 
-        assertEq(decodedSender, users.alice);
-        assertEq(decodedMarket, users.bob);
-        assertEq(decodedAccIn, 123);
-        assertEq(decodedAccOut, 456);
-        assertEq(decodedChainId, 10);
-        assertEq(decodedDstChainId, 20);
-        assertEq(decodedL1, true);
+        assertEq(decodedSender, expected.sender);
+        assertEq(decodedMarket, expected.market);
+        assertEq(decodedAccIn, expected.accAmountIn);
+        assertEq(decodedAccOut, expected.accAmountOut);
+        assertEq(decodedChainId, expected.chainId);
+        assertEq(decodedDstChainId, expected.dstChainId);
+        assertEq(decodedL1, expected.l1Inclusion);
     }
 
     ////////////////////////////////////////////////////////////
-    //                         Decode                         //
+    //                         decode                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_decode_revertsWith_mTokenProofDecoderLib_InvalidInclusion_revertsOnInvalidInclusion() public {
-        bytes memory encoded = harness.encode(users.alice, users.bob, 1, 2, 1, 2, false);
+    function test_unit_decode_revertsWith_mTokenProofDecoderLib_InvalidLength() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bytes memory encoded = new bytes(mTokenProofDecoderLib.ENTRY_SIZE - 1);
 
-        encoded[encoded.length - 1] = bytes1(uint8(2));
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(mTokenProofDecoderLib.mTokenProofDecoderLib_InvalidLength.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.decode(encoded);
+    }
+
+    function test_fuzz_decode_revertsWith_mTokenProofDecoderLib_InvalidInclusion(
+        address sender,
+        address market,
+        uint256 accAmountIn,
+        uint256 accAmountOut,
+        uint32 chainId,
+        uint32 dstChainId,
+        uint8 inclusionValue
+    ) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(inclusionValue > 1);
+
+        bytes memory encoded = harness.encode(sender, market, accAmountIn, accAmountOut, chainId, dstChainId, false);
+
+        encoded[encoded.length - 1] = bytes1(inclusionValue);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenProofDecoderLib.mTokenProofDecoderLib_InvalidInclusion.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.decode(encoded);
     }
 }

@@ -1,52 +1,58 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
-import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
-import {DefaultGasHelper} from "src/oracles/gas/DefaultGasHelper.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract DefaultGasHelperTest is BaseTest {
-    event GasFeeUpdated(uint32 indexed dstChainId, uint256 amount);
+import {DefaultGasHelper} from "src/oracles/gas/DefaultGasHelper.sol";
 
+import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
+
+contract DefaultGasHelperTest is BaseTest {
     DefaultGasHelper internal helper;
     address internal owner;
-    address internal other;
+    address internal nonOwner;
 
     function setUp() public override {
         super.setUp();
         owner = users.admin;
-        other = users.bob;
+        nonOwner = users.bob;
         helper = new DefaultGasHelper(owner);
     }
 
     ////////////////////////////////////////////////////////////
-    //                         Owner                          //
+    //                        constructor                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_owner_success_setsOwner() public view {
+    function test_unit_constructor_success_setsOwner() external view {
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(helper.owner(), owner);
     }
 
     ////////////////////////////////////////////////////////////
-    //                     GasFeeUpdated                      //
+    //                        setGasFee                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_gasFeeUpdated_success_updatesAndEmits(uint32 chainId, uint256 amount) public {
+    function test_fuzz_setGasFee_success_updatesMappingAndEmits(uint32 chainId, uint256 amount) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.prank(owner);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, false, false, true);
-        emit GasFeeUpdated(chainId, amount);
+        emit DefaultGasHelper.GasFeeUpdated(chainId, amount);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         helper.setGasFee(chainId, amount);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(helper.gasFees(chainId), amount);
     }
 
-    ////////////////////////////////////////////////////////////
-    //                       SetGasFee                        //
-    ////////////////////////////////////////////////////////////
+    function test_unit_setGasFee_revertsWith_OwnableUnauthorizedAccount() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, nonOwner));
 
-    function test_unit_setGasFee_revertsWith_OwnableUnauthorizedAccount() public {
-        vm.prank(other);
-        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, other));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(nonOwner);
         helper.setGasFee(1, 1);
     }
 }

@@ -1,20 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
-import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
-import {EverclearBridgeV2} from "src/rebalancer/bridges/EverclearBridgeV2.sol";
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
+import {EverclearBridgeV2} from "src/rebalancer/bridges/EverclearBridgeV2.sol";
 import {IFeeAdapterV2} from "src/interfaces/external/everclear/IFeeAdapterV2.sol";
 import {Roles} from "src/Roles.sol";
 
 import {ERC20Mock} from "test/mocks/ERC20Mock.sol";
 import {EverclearFeeAdapterV2Mock} from "test/mocks/EverclearFeeAdapterMock.sol";
+import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 contract EverclearBridgeV2Test is BaseTest {
-    event MsgSent(uint256 indexed dstChainId, address indexed market, uint256 amountLD, bytes32 id);
-    event RebalancingReturnedToMarket(address indexed market, uint256 toReturn, uint256 extracted);
-    event EverclearFeeAdapterUpdated(address indexed oldAdapter, address indexed newAdapter);
-
     Roles internal roles;
     ERC20Mock internal token;
     EverclearFeeAdapterV2Mock internal feeAdapter;
@@ -26,6 +22,7 @@ contract EverclearBridgeV2Test is BaseTest {
 
     function setUp() public override {
         super.setUp();
+
         roles = new Roles(address(this));
         feeAdapter = new EverclearFeeAdapterV2Mock();
         bridge = new EverclearBridgeV2(address(roles), address(feeAdapter));
@@ -40,63 +37,80 @@ contract EverclearBridgeV2Test is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                      Constructor                       //
+    //                      constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_constructor_revertsWith_BaseBridge_AddressNotValid() public {
+    function test_unit_constructor_revertsWith_BaseBridge_AddressNotValid() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BaseBridge.BaseBridge_AddressNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         new EverclearBridgeV2(address(0), address(feeAdapter));
     }
 
-    function test_unit_constructor_revertsWith_Everclear_AddressNotValid() public {
+    function test_unit_constructor_revertsWith_Everclear_AddressNotValid() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(EverclearBridgeV2.Everclear_AddressNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         new EverclearBridgeV2(address(roles), address(0));
     }
 
     ////////////////////////////////////////////////////////////
-    //                 SetEverclearFeeAdapter                 //
+    //                 setEverclearFeeAdapter                 //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setEverclearFeeAdapter_revertsWith_BaseBridge_NotAuthorized() public {
+    function test_unit_setEverclearFeeAdapter_revertsWith_BaseBridge_NotAuthorized() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.setEverclearFeeAdapter(users.carol);
     }
 
-    function test_unit_setEverclearFeeAdapter_revertsWith_Everclear_AddressNotValid() public {
-        vm.prank(guardian);
+    function test_unit_setEverclearFeeAdapter_revertsWith_Everclear_AddressNotValid() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(EverclearBridgeV2.Everclear_AddressNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(guardian);
         bridge.setEverclearFeeAdapter(address(0));
     }
 
-    ////////////////////////////////////////////////////////////
-    //               EverclearFeeAdapterUpdated               //
-    ////////////////////////////////////////////////////////////
-
-    function test_unit_everclearFeeAdapterUpdated_success_updates() public {
+    function test_unit_setEverclearFeeAdapter_success_updatesAndEmits() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         EverclearFeeAdapterV2Mock newAdapter = new EverclearFeeAdapterV2Mock();
 
-        vm.prank(guardian);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true);
-        emit EverclearFeeAdapterUpdated(address(feeAdapter), address(newAdapter));
+        emit EverclearBridgeV2.EverclearFeeAdapterUpdated(address(feeAdapter), address(newAdapter));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(guardian);
         bridge.setEverclearFeeAdapter(address(newAdapter));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(address(bridge.everclearFeeAdapter()), address(newAdapter));
     }
 
     ////////////////////////////////////////////////////////////
-    //                         GetFee                         //
+    //                          getFee                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_getFee_revertsWith_Everclear_NotImplemented() public {
+    function test_unit_getFee_revertsWith_Everclear_NotImplemented() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(EverclearBridgeV2.Everclear_NotImplemented.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.getFee(0, "", "");
     }
 
     ////////////////////////////////////////////////////////////
-    //                        SendMsg                         //
+    //                          sendMsg                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_sendMsg_revertsWith_BaseBridge_NotAuthorized() public {
+    function test_unit_sendMsg_revertsWith_BaseBridge_NotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         IntentInput memory input = _defaultInput();
         input.amount = 1;
         input.amountOutMin = 1;
@@ -104,11 +118,15 @@ contract EverclearBridgeV2Test is BaseTest {
 
         (bytes memory message, uint32 dstChainId) = _buildMessage(1, input);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.sendMsg(input.amount, market, dstChainId, address(token), message, "");
     }
 
-    function test_unit_sendMsg_revertsWith_Everclear_TokenMismatch() public {
+    function test_unit_sendMsg_revertsWith_Everclear_TokenMismatch() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         IntentInput memory input = _defaultInput();
         input.amount = 1;
         input.amountOutMin = 1;
@@ -116,12 +134,16 @@ contract EverclearBridgeV2Test is BaseTest {
 
         (bytes memory message, uint32 dstChainId) = _buildMessage(1, input);
 
-        vm.prank(rebalancer);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(EverclearBridgeV2.Everclear_TokenMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(rebalancer);
         bridge.sendMsg(input.amount, market, dstChainId, users.carol, message, "");
     }
 
-    function test_unit_sendMsg_revertsWith_BaseBridge_AmountMismatch_variant2() public {
+    function test_unit_sendMsg_revertsWith_BaseBridge_AmountMismatch_whenExtractedLessThanAmount() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         IntentInput memory input = _defaultInput();
         input.amount = 2;
         input.amountOutMin = 2;
@@ -129,12 +151,16 @@ contract EverclearBridgeV2Test is BaseTest {
 
         (bytes memory message, uint32 dstChainId) = _buildMessage(1, input);
 
-        vm.prank(rebalancer);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BaseBridge.BaseBridge_AmountMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(rebalancer);
         bridge.sendMsg(1, market, dstChainId, address(token), message, "");
     }
 
-    function test_unit_sendMsg_revertsWith_BaseBridge_AmountMismatch() public {
+    function test_unit_sendMsg_revertsWith_BaseBridge_AmountMismatch_whenAmountZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         IntentInput memory input = _defaultInput();
         input.amount = 0;
         input.amountOutMin = 0;
@@ -142,12 +168,16 @@ contract EverclearBridgeV2Test is BaseTest {
 
         (bytes memory message, uint32 dstChainId) = _buildMessage(1, input);
 
-        vm.prank(rebalancer);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BaseBridge.BaseBridge_AmountMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(rebalancer);
         bridge.sendMsg(0, market, dstChainId, address(token), message, "");
     }
 
-    function test_unit_sendMsg_revertsWith_BaseBridge_AddressNotValid() public {
+    function test_unit_sendMsg_revertsWith_BaseBridge_AddressNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         IntentInput memory input = _defaultInput();
         input.receiver = users.carol;
         input.amount = 1;
@@ -156,12 +186,16 @@ contract EverclearBridgeV2Test is BaseTest {
 
         (bytes memory message, uint32 dstChainId) = _buildMessage(1, input);
 
-        vm.prank(rebalancer);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BaseBridge.BaseBridge_AddressNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(rebalancer);
         bridge.sendMsg(1, market, dstChainId, address(token), message, "");
     }
 
-    function test_unit_sendMsg_revertsWith_Everclear_DestinationsLengthMismatch() public {
+    function test_unit_sendMsg_revertsWith_Everclear_DestinationsLengthMismatch() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         IntentInput memory input = _defaultInput();
         input.amount = 1;
         input.amountOutMin = 1;
@@ -169,12 +203,16 @@ contract EverclearBridgeV2Test is BaseTest {
 
         (bytes memory message, uint32 dstChainId) = _buildMessage(2, input);
 
-        vm.prank(rebalancer);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(EverclearBridgeV2.Everclear_DestinationsLengthMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(rebalancer);
         bridge.sendMsg(1, market, dstChainId, address(token), message, "");
     }
 
-    function test_unit_sendMsg_revertsWith_Everclear_DestinationNotValid() public {
+    function test_unit_sendMsg_revertsWith_Everclear_DestinationNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         IntentInput memory input = _defaultInput();
         input.amount = 1;
         input.amountOutMin = 1;
@@ -182,14 +220,18 @@ contract EverclearBridgeV2Test is BaseTest {
 
         (bytes memory message, uint32 dstChainId) = _buildMessage(1, input);
 
-        vm.prank(rebalancer);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(EverclearBridgeV2.Everclear_DestinationNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(rebalancer);
         bridge.sendMsg(1, market, dstChainId + 1, address(token), message, "");
     }
 
-    function test_unit_sendMsg_revertsWith_Everclear_MaxSlippageExceeded(uint96 amountRaw, uint256 amountOutMinRaw)
-        public
+    function test_fuzz_sendMsg_revertsWith_Everclear_MaxSlippageExceeded(uint96 amountRaw, uint256 amountOutMinRaw)
+        external
     {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         IntentInput memory input = _defaultInput();
         input.amount = bound(amountRaw, 10, 1e18);
         input.amountOutMin = bound(amountOutMinRaw, 0, input.amount * 9 / 10 - 1);
@@ -197,13 +239,16 @@ contract EverclearBridgeV2Test is BaseTest {
 
         (bytes memory message, uint32 dstChainId) = _buildMessage(1, input);
 
-        vm.prank(rebalancer);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(EverclearBridgeV2.Everclear_MaxSlippageExceeded.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(rebalancer);
         bridge.sendMsg(input.amount, market, dstChainId, address(token), message, "");
     }
 
     ////////////////////////////////////////////////////////////
-    //                        MsgSent                         //
+    //                         MsgSent                        //
     ////////////////////////////////////////////////////////////
 
     function test_fuzz_msgSent_success_returnsExcess(
@@ -211,10 +256,11 @@ contract EverclearBridgeV2Test is BaseTest {
         uint96 feeRaw,
         uint96 extraRaw,
         uint48 ttl,
-        bytes memory data,
-        bytes memory sig,
+        bytes calldata data,
+        bytes calldata sig,
         uint256 deadline
-    ) public {
+    ) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(data.length <= 64);
         vm.assume(sig.length <= 64);
 
@@ -234,14 +280,17 @@ contract EverclearBridgeV2Test is BaseTest {
         vm.startPrank(rebalancer);
         token.approve(address(bridge), extractedAmount);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true);
-        emit RebalancingReturnedToMarket(market, extra, extractedAmount);
+        emit EverclearBridgeV2.RebalancingReturnedToMarket(market, extra, extractedAmount);
         vm.expectEmit(true, true, false, true);
-        emit MsgSent(dstChainId, market, input.amount, feeAdapter.nextId());
+        emit EverclearBridgeV2.MsgSent(dstChainId, market, input.amount, feeAdapter.nextId());
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.sendMsg(extractedAmount, market, dstChainId, address(token), message, "");
         vm.stopPrank();
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(token.balanceOf(market), extra);
         assertEq(token.balanceOf(address(bridge)), input.amount + input.feeParams.fee);
         assertEq(token.allowance(address(bridge), address(feeAdapter)), input.amount + input.feeParams.fee);
@@ -260,10 +309,11 @@ contract EverclearBridgeV2Test is BaseTest {
         uint96 amountRaw,
         uint96 feeRaw,
         uint48 ttl,
-        bytes memory data,
-        bytes memory sig,
+        bytes calldata data,
+        bytes calldata sig,
         uint256 deadline
-    ) public {
+    ) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(data.length <= 64);
         vm.assume(sig.length <= 64);
 
@@ -282,12 +332,15 @@ contract EverclearBridgeV2Test is BaseTest {
         vm.startPrank(rebalancer);
         token.approve(address(bridge), extractedAmount);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true);
-        emit MsgSent(dstChainId, market, input.amount, feeAdapter.nextId());
+        emit EverclearBridgeV2.MsgSent(dstChainId, market, input.amount, feeAdapter.nextId());
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.sendMsg(extractedAmount, market, dstChainId, address(token), message, "");
         vm.stopPrank();
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(token.balanceOf(market), 0);
         assertEq(token.balanceOf(address(bridge)), input.amount + input.feeParams.fee);
         assertEq(token.allowance(address(bridge), address(feeAdapter)), input.amount + input.feeParams.fee);

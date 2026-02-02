@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
-import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
+
 import {CommonLib} from "src/libraries/CommonLib.sol";
 import {IGasFeesHelper} from "src/interfaces/IGasFeesHelper.sol";
+
 import {GasFeesHelperMock} from "test/v2/mocks/libraries/CommonLibMocks.t.sol";
+import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 contract CommonLibHarness {
     mapping(uint32 chainId => bool allowed) internal allowedChains;
@@ -40,82 +42,146 @@ contract CommonLibTest is BaseTest {
 
     function setUp() public override {
         super.setUp();
+
         harness = new CommonLibHarness();
         gasHelper = new GasFeesHelperMock();
     }
 
     ////////////////////////////////////////////////////////////
-    //                  CheckHostToExtension                  //
+    //                  checkHostToExtension                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_checkHostToExtension_revertsWith_AmountNotValid_revertsOnZeroAmount() public {
-        harness.setAllowed(1, true);
+    function test_fuzz_checkHostToExtension_revertsWith_AmountNotValid(uint32 dstChainId, uint256 msgValue) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        harness.setAllowed(dstChainId, true);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(CommonLib.AmountNotValid.selector);
-        harness.checkHostToExtension(0, 1, 0);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.checkHostToExtension(0, dstChainId, msgValue);
     }
 
-    function test_unit_checkHostToExtension_revertsWith_ChainNotValid_revertsOnInvalidChain() public {
+    function test_fuzz_checkHostToExtension_revertsWith_ChainNotValid(uint32 dstChainId, uint256 amount) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        amount = bound(amount, 1, type(uint256).max);
+        harness.setAllowed(dstChainId, false);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(CommonLib.ChainNotValid.selector);
-        harness.checkHostToExtension(1, 1, 0);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.checkHostToExtension(amount, dstChainId, 0);
     }
 
-    function test_unit_checkHostToExtension_revertsWith_NotEnoughGasFee_revertsOnInsufficientGasFee() public {
-        harness.setAllowed(1, true);
-        gasHelper.setFee(1, 10);
+    function test_fuzz_checkHostToExtension_revertsWith_NotEnoughGasFee(uint32 dstChainId, uint256 amount, uint256 fee)
+        public
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        amount = bound(amount, 1, type(uint256).max);
+        fee = bound(fee, 1, type(uint256).max);
+
+        harness.setAllowed(dstChainId, true);
+        gasHelper.setFee(dstChainId, fee);
         harness.setGasHelper(gasHelper);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(CommonLib.NotEnoughGasFee.selector);
-        harness.checkHostToExtension(1, 1, 9);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.checkHostToExtension(amount, dstChainId, fee - 1);
     }
 
-    function test_unit_checkHostToExtension_success_succeedsWithNoGasHelper() public {
-        harness.setAllowed(1, true);
-        harness.checkHostToExtension(1, 1, 0);
+    function test_fuzz_checkHostToExtension_success_whenNoGasHelper(uint32 dstChainId, uint256 amount, uint256 msgValue)
+        public
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        amount = bound(amount, 1, type(uint256).max);
+        harness.setAllowed(dstChainId, true);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.checkHostToExtension(amount, dstChainId, msgValue);
     }
 
-    function test_unit_checkHostToExtension_success_succeedsWithGasHelper() public {
-        harness.setAllowed(1, true);
-        gasHelper.setFee(1, 10);
+    function test_fuzz_checkHostToExtension_success_whenGasHelperConfigured(
+        uint32 dstChainId,
+        uint256 amount,
+        uint256 fee,
+        uint256 msgValue
+    ) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        amount = bound(amount, 1, type(uint256).max);
+        fee = bound(fee, 0, type(uint256).max);
+        msgValue = bound(msgValue, fee, type(uint256).max);
+
+        harness.setAllowed(dstChainId, true);
+        gasHelper.setFee(dstChainId, fee);
         harness.setGasHelper(gasHelper);
 
-        harness.checkHostToExtension(1, 1, 10);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.checkHostToExtension(amount, dstChainId, msgValue);
     }
 
     ////////////////////////////////////////////////////////////
-    //                   CheckLengthMatch2                    //
+    //                   checkLengthMatch2                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_checkLengthMatch2_revertsWith_CommonLib_LengthMismatch() public {
+    function test_fuzz_checkLengthMatch2_revertsWith_CommonLib_LengthMismatch(uint256 l1, uint256 l2) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(l1 != l2);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(CommonLib.CommonLib_LengthMismatch.selector);
-        harness.checkLengthMatch2(1, 2);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.checkLengthMatch2(l1, l2);
     }
 
-    function test_unit_checkLengthMatch2_success_succeeds() public view {
-        harness.checkLengthMatch2(2, 2);
+    function test_fuzz_checkLengthMatch2_success(uint256 length) public view {
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.checkLengthMatch2(length, length);
     }
 
     ////////////////////////////////////////////////////////////
-    //                   CheckLengthMatch3                    //
+    //                   checkLengthMatch3                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_checkLengthMatch3_revertsWith_CommonLib_LengthMismatch() public {
+    function test_fuzz_checkLengthMatch3_revertsWith_CommonLib_LengthMismatch(uint256 l1, uint256 l2, uint256 l3)
+        public
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(l1 != l2 || l2 != l3);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(CommonLib.CommonLib_LengthMismatch.selector);
-        harness.checkLengthMatch3(1, 2, 3);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.checkLengthMatch3(l1, l2, l3);
     }
 
-    function test_unit_checkLengthMatch3_success_succeeds() public view {
-        harness.checkLengthMatch3(3, 3, 3);
+    function test_fuzz_checkLengthMatch3_success(uint256 length) public view {
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.checkLengthMatch3(length, length, length);
     }
 
     ////////////////////////////////////////////////////////////
-    //                       ComputeSum                       //
+    //                       computeSum                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_computeSum_success() public view {
-        uint256[] memory values = new uint256[](3);
-        values[0] = 1;
-        values[1] = 2;
-        values[2] = 3;
-        assertEq(harness.computeSum(values), 6);
+    function test_fuzz_computeSum_success(uint256[] memory values) public view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 expected;
+        for (uint256 i; i < values.length; ++i) {
+            if (type(uint256).max - expected < values[i]) {
+                vm.assume(false);
+            }
+            expected += values[i];
+        }
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 sum = harness.computeSum(values);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(sum, expected);
     }
 }

@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
-import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 import {WrapAndSupply} from "src/utils/WrapAndSupply.sol";
+
 import {MockGateway, MockHostMarket, MockWrappedNative} from "test/v2/mocks/WrapAndSupplyMocks.t.sol";
+import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 contract WrapAndSupplyTest is BaseTest {
     MockWrappedNative internal wrapped;
@@ -18,6 +19,8 @@ contract WrapAndSupplyTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_constructor_revertsWith_WrapAndSupply_AddressNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(WrapAndSupply.WrapAndSupply_AddressNotValid.selector);
         new WrapAndSupply(address(0));
     }
@@ -26,18 +29,22 @@ contract WrapAndSupplyTest is BaseTest {
     //                     MockHostMarket                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_mockHostMarket_revertsWith_WrapAndSupply_AddressNotValid_variant2() external {
+    function test_unit_mockHostMarket_revertsWith_WrapAndSupply_AddressNotValid_whenReceiverZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockHostMarket market = new MockHostMarket(address(wrapped));
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(WrapAndSupply.WrapAndSupply_AddressNotValid.selector);
         helper.wrapAndSupplyOnHostMarket{value: 1 ether}(address(market), address(0), 1);
     }
 
-    function test_unit_mockHostMarket_revertsWith_WrapAndSupply_AddressNotValid_variant2_variant2() external {
+    function test_unit_mockHostMarket_revertsWith_WrapAndSupply_AddressNotValid_whenWrappedMismatch() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockHostMarket market = new MockHostMarket(users.alice);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(WrapAndSupply.WrapAndSupply_AddressNotValid.selector);
         helper.wrapAndSupplyOnHostMarket{value: 1 ether}(address(market), address(this), 1);
     }
@@ -47,9 +54,11 @@ contract WrapAndSupplyTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_wrapAndSupplyOnHostMarket_revertsWith_WrapAndSupply_AmountNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockHostMarket market = new MockHostMarket(address(wrapped));
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(WrapAndSupply.WrapAndSupply_AmountNotValid.selector);
         helper.wrapAndSupplyOnHostMarket(address(market), address(this), 1);
     }
@@ -59,11 +68,13 @@ contract WrapAndSupplyTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_mockHostMarket_success_success() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockHostMarket market = new MockHostMarket(address(wrapped));
 
         helper.wrapAndSupplyOnHostMarket{value: 2 ether}(address(market), address(this), 123);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(market.lastMintAmount(), 2 ether);
         assertEq(market.lastReceiver(), address(this));
         assertEq(market.lastMinAmount(), 123);
@@ -75,26 +86,32 @@ contract WrapAndSupplyTest is BaseTest {
     //                         Bytes4                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_bytes4_revertsWith_WrapAndSupply_AddressNotValid_variant2_variant2_variant2() external {
+    function test_unit_bytes4_revertsWith_WrapAndSupply_AddressNotValid_whenReceiverZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockGateway gateway = new MockGateway(address(wrapped), 0.1 ether);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(WrapAndSupply.WrapAndSupply_AddressNotValid.selector);
         helper.wrapAndSupplyOnExtensionMarket{value: 1 ether}(address(gateway), address(0), bytes4(0));
     }
 
-    function test_unit_bytes4_revertsWith_WrapAndSupply_AddressNotValid_variant3() external {
+    function test_unit_bytes4_revertsWith_WrapAndSupply_AddressNotValid_whenWrappedMismatch() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockGateway gateway = new MockGateway(users.alice, 0.1 ether);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(WrapAndSupply.WrapAndSupply_AddressNotValid.selector);
         helper.wrapAndSupplyOnExtensionMarket{value: 1 ether}(address(gateway), address(this), bytes4(0));
     }
 
-    function test_unit_bytes4_revertsWith_WrapAndSupply_AmountNotValid_variant2() external {
+    function test_unit_bytes4_revertsWith_WrapAndSupply_AmountNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockGateway gateway = new MockGateway(address(wrapped), 1 ether);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(WrapAndSupply.WrapAndSupply_AmountNotValid.selector);
         helper.wrapAndSupplyOnExtensionMarket{value: 1 ether}(address(gateway), address(this), bytes4(0));
     }
@@ -103,13 +120,15 @@ contract WrapAndSupplyTest is BaseTest {
     //                         Supply                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_supply_success_success_variant2() external {
+    function test_unit_supply_success_success() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockGateway gateway = new MockGateway(address(wrapped), 0.1 ether);
 
         bytes4 selector = bytes4(keccak256("supply(uint256)"));
         helper.wrapAndSupplyOnExtensionMarket{value: 1 ether}(address(gateway), address(this), selector);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(gateway.lastAmount(), 0.9 ether);
         assertEq(gateway.lastReceiver(), address(this));
         assertEq(gateway.lastSelector(), selector);

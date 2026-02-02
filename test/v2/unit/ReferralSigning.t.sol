@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
-import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
-import {ReferralSigning} from "src/referral/ReferralSigning.sol";
+
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+
+import {ReferralSigning} from "src/referral/ReferralSigning.sol";
+
 import {DummyReferrer} from "test/v2/mocks/ReferralSigningMocks.t.sol";
+import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 contract ReferralSigningTest is BaseTest {
     ReferralSigning internal referral;
@@ -15,13 +18,18 @@ contract ReferralSigningTest is BaseTest {
 
     function setUp() public override {
         super.setUp();
+
         (referrer, referrerKey) = makeAddrAndKey("referrer");
         (referred, referredKey) = makeAddrAndKey("referred");
 
         referral = new ReferralSigning();
     }
 
-    function sign(uint256 privKey, address user, address referrerAddr, uint256 nonce)
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _signReferral(uint256 privKey, address user, address referrerAddr, uint256 nonce)
         internal
         pure
         returns (bytes memory)
@@ -33,16 +41,23 @@ contract ReferralSigningTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                     ClaimReferral                      //
+    //                     claimReferral                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_claimReferral_success_works() public {
+    function test_unit_claimReferral_success() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 nonce = referral.nonces(referred);
-        bytes memory sig = sign(referredKey, referred, referrer, nonce);
+        bytes memory sig = _signReferral(referredKey, referred, referrer, nonce);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true, address(referral));
+        emit ReferralSigning.ReferralClaimed(referred, referrer);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(referred);
         referral.claimReferral(sig, referrer);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(referral.referralsForUserRegistry(referred), referrer);
         assertTrue(referral.referredByRegistry(referrer, referred));
         assertTrue(referral.isUserReferred(referred));
@@ -51,43 +66,70 @@ contract ReferralSigningTest is BaseTest {
     }
 
     function test_unit_claimReferral_revertsWith_ReferralSigning_SameUser() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 nonce = referral.nonces(referrer);
-        bytes memory sig = sign(referrerKey, referrer, referrer, nonce);
+        bytes memory sig = _signReferral(referrerKey, referrer, referrer, nonce);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true, address(referral));
+        emit ReferralSigning.ReferralRejected(referrer, referrer, "Self-referral not allowed");
+        vm.expectRevert(ReferralSigning.ReferralSigning_SameUser.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(referrer);
-        vm.expectRevert(abi.encodeWithSelector(ReferralSigning.ReferralSigning_SameUser.selector));
         referral.claimReferral(sig, referrer);
     }
 
     function test_unit_claimReferral_revertsWith_ReferralSigning_UserAlreadyReferred() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 nonce = referral.nonces(referred);
-        bytes memory sig = sign(referredKey, referred, referrer, nonce);
+        bytes memory sig = _signReferral(referredKey, referred, referrer, nonce);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true, address(referral));
+        emit ReferralSigning.ReferralClaimed(referred, referrer);
 
         vm.prank(referred);
         referral.claimReferral(sig, referrer);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true, address(referral));
+        emit ReferralSigning.ReferralRejected(referred, referred, "Already referred");
+        vm.expectRevert(ReferralSigning.ReferralSigning_UserAlreadyReferred.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(referred);
-        vm.expectRevert(abi.encodeWithSelector(ReferralSigning.ReferralSigning_UserAlreadyReferred.selector));
         referral.claimReferral(sig, referrer);
     }
 
     function test_unit_claimReferral_revertsWith_ReferralSigning_InvalidSignature() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 nonce = referral.nonces(referred);
-        // Signed by referrer instead of referred
-        bytes memory sig = sign(referrerKey, referred, referrer, nonce);
+        bytes memory sig = _signReferral(referrerKey, referred, referrer, nonce);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true, address(referral));
+        emit ReferralSigning.ReferralRejected(referred, referrer, "Invalid signature");
+        vm.expectRevert(ReferralSigning.ReferralSigning_InvalidSignature.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(referred);
-        vm.expectRevert(abi.encodeWithSelector(ReferralSigning.ReferralSigning_InvalidSignature.selector));
         referral.claimReferral(sig, referrer);
     }
 
     function test_unit_claimReferral_revertsWith_ReferralSigning_ContractReferrerNotAllowed() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address contractReferrer = address(new DummyReferrer());
         uint256 nonce = referral.nonces(referred);
-        bytes memory sig = sign(referredKey, referred, contractReferrer, nonce);
+        bytes memory sig = _signReferral(referredKey, referred, contractReferrer, nonce);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true, address(referral));
+        emit ReferralSigning.ReferralRejected(referred, contractReferrer, "Contract referrers not allowed");
+        vm.expectRevert(ReferralSigning.ReferralSigning_ContractReferrerNotAllowed.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(referred);
-        vm.expectRevert(abi.encodeWithSelector(ReferralSigning.ReferralSigning_ContractReferrerNotAllowed.selector));
         referral.claimReferral(sig, contractReferrer);
     }
 }
