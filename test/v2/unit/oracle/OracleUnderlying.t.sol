@@ -114,7 +114,6 @@ contract OracleUnderlyingTest is Operator, BaseTest {
         uint256 maxAmount = type(uint256).max / maxPrice;
         uint256 amount = bound(rawAmount, 1, maxAmount);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 btcValue = _convertMarketAmountToUSDValue(amount, address(mBtc));
         uint256 ethValue = _convertMarketAmountToUSDValue(amount, address(mEth));
         uint256 usdcValue = _convertMarketAmountToUSDValue(amount, address(mUsdc));

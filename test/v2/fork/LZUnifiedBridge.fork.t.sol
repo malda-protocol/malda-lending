@@ -54,6 +54,7 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
     ////////////////////////////////////////////////////////////
 
     function test_fork_sendMsg_success_lineaToBaseWeEth() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.skip(true);
         _selectLineaFork();
 
@@ -70,14 +71,14 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
         deal(WEETH_LINEA, address(this), amount);
         IERC20(WEETH_LINEA).approve(address(bridge), amount);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         bytes memory message = abi.encode(address(market), amount, amount, bytes(""));
 
         uint256 balBefore = IERC20(WEETH_LINEA).balanceOf(address(this));
-
         bridge.sendMsg{value: 1 ether}(amount, address(market), baseLzId, WEETH_LINEA, message, bytes(""));
-
         uint256 balAfter = IERC20(WEETH_LINEA).balanceOf(address(this));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(balAfter, balBefore - amount);
     }
 
@@ -85,6 +86,7 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
     /// @dev Run with: forge test --mt test_BaseToLinea_weETH_SendFrom --evm-version cancun -vvvv
 
     function test_fork_sendMsg_success_baseToLineaWeEth() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.skip(true);
 
         address impl = 0xde8A2C33655ACA88f258988ED74D1511876343D1;
@@ -103,6 +105,7 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
         deal(WEETH_BASE, address(this), amount);
         IERC20(WEETH_BASE).approve(address(bridge), amount);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         bytes memory message = abi.encode(address(market), amount, amount, bytes(""));
 
         uint256 balBefore = IERC20(WEETH_BASE).balanceOf(address(this));
@@ -111,12 +114,14 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
 
         uint256 balAfter = IERC20(WEETH_BASE).balanceOf(address(this));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(balAfter, balBefore - amount);
     }
 
     /// @notice weETH Ethereum -> Linea send flow (fork test)
 
     function test_fork_sendMsg_success_ethToLineaWeEth() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.skip(true);
         _selectEthFork();
 
@@ -134,14 +139,14 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
         deal(WEETH_ETH, address(this), amount);
         IERC20(WEETH_ETH).approve(address(bridge), amount);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         bytes memory message = abi.encode(address(market), amount, amount, bytes(""));
 
         uint256 balBefore = IERC20(WEETH_ETH).balanceOf(address(this));
-
         bridge.sendMsg{value: 1 ether}(amount, address(market), lineaLzId, WEETH_ETH, message, bytes(""));
-
         uint256 balAfter = IERC20(WEETH_ETH).balanceOf(address(this));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(balAfter, balBefore - amount);
     }
 }

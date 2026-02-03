@@ -75,17 +75,18 @@ contract mTokenProofDecoderLibTest is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(encoded.length, mTokenProofDecoderLib.ENTRY_SIZE);
-        Expected memory expected = Expected({
-            sender: sender,
-            market: market,
-            accAmountIn: accAmountIn,
-            accAmountOut: accAmountOut,
-            chainId: chainId,
-            dstChainId: dstChainId,
-            l1Inclusion: l1Inclusion
-        });
-
-        _assertDecoded(encoded, expected);
+        _assertDecoded(
+            encoded,
+            Expected({
+                sender: sender,
+                market: market,
+                accAmountIn: accAmountIn,
+                accAmountOut: accAmountOut,
+                chainId: chainId,
+                dstChainId: dstChainId,
+                l1Inclusion: l1Inclusion
+            })
+        );
     }
 
     function _assertDecoded(bytes memory encoded, Expected memory expected) internal view {

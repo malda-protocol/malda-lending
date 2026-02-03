@@ -39,8 +39,10 @@ contract LiquidationTest is BaseMTokenTest {
     //                       BalanceOf                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_balanceOf_success_simulation_WhenCollateralFactorDropped() public {
+    function test_fuzz_balanceOf_success_simulation_WhenCollateralFactorDropped(uint256 repayAmount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        repayAmount = bound(repayAmount, 1 ether, 900 ether);
+
         _getTokens(weth, borrower, 1000 ether);
         vm.startPrank(borrower);
         weth.approve(address(mWeth), type(uint256).max);
@@ -72,9 +74,10 @@ contract LiquidationTest is BaseMTokenTest {
 
         // perform liquidation
         vm.prank(liquidator);
-        mDaiHost.liquidate(borrower, 500 ether, address(mWeth));
+        mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
 
         uint256 borrowerCollatAfter = mWeth.balanceOf(borrower);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 liquidatorCollatAfter = mWeth.balanceOf(liquidator);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
@@ -82,8 +85,10 @@ contract LiquidationTest is BaseMTokenTest {
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
 
-    function test_unit_balanceOf_success_simulation_PriceDropHalf() public {
+    function test_fuzz_balanceOf_success_simulation_PriceDropHalf(uint256 repayAmount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        repayAmount = bound(repayAmount, 1 ether, 900 ether);
+
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
         newOracle.setUnderlyingPrice(address(mWeth), 1e18);
@@ -114,9 +119,10 @@ contract LiquidationTest is BaseMTokenTest {
 
         // perform liquidation
         vm.prank(liquidator);
-        mDaiHost.liquidate(borrower, 500 ether, address(mWeth));
+        mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
 
         uint256 borrowerCollatAfter = mWeth.balanceOf(borrower);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 liquidatorCollatAfter = mWeth.balanceOf(liquidator);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
@@ -124,8 +130,10 @@ contract LiquidationTest is BaseMTokenTest {
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
 
-    function test_unit_balanceOf_success_simulation_PriceDropHalf_AndLog() public {
+    function test_fuzz_balanceOf_success_simulation_PriceDropHalf_AndLog(uint256 repayAmount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        repayAmount = bound(repayAmount, 1 ether, 900 ether);
+
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
         newOracle.setUnderlyingPrice(address(mWeth), 1e18);
@@ -154,14 +162,15 @@ contract LiquidationTest is BaseMTokenTest {
         uint256 borrowerCollatBefore = mWeth.balanceOf(borrower);
         uint256 liquidatorCollatBefore = mWeth.balanceOf(liquidator);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         // perform liquidation
         vm.prank(liquidator);
-        mDaiHost.liquidate(borrower, 500 ether, address(mWeth));
+        mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 borrowerCollatAfter = mWeth.balanceOf(borrower);
         uint256 liquidatorCollatAfter = mWeth.balanceOf(liquidator);
 
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertLt(borrowerCollatAfter, borrowerCollatBefore, "should decrease");
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
@@ -187,6 +196,7 @@ contract LiquidationTest is BaseMTokenTest {
         dai.approve(address(mDaiHost), type(uint256).max);
         mDaiHost.mint(5000 ether, address(this), 5000 ether - 1000);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(borrower);
         mDaiHost.borrow(1000 ether);
 

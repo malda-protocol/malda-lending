@@ -55,9 +55,12 @@ contract ChainlinkOracleTest is BaseTest {
         oracle.getPrice(address(token));
     }
 
-    function test_unit_getPrice_success_scalesFeedDecimals() external {
+    function test_fuzz_getPrice_success_scalesFeedDecimals(uint8 feedDecimals, uint64 rawPrice) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        MockAggregatorV3 feed = new MockAggregatorV3(8, 2_000e8);
+        vm.assume(feedDecimals <= 18);
+        vm.assume(rawPrice > 0);
+
+        MockAggregatorV3 feed = new MockAggregatorV3(feedDecimals, int256(uint256(rawPrice)));
         ChainlinkOracle oracle = _deployOracle("MOCK", feed, 1e18);
         MockMToken token = new MockMToken("MOCK", address(0));
 
@@ -65,7 +68,8 @@ contract ChainlinkOracleTest is BaseTest {
         uint256 price = oracle.getPrice(address(token));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(price, 2_000e18);
+        uint256 expected = uint256(rawPrice) * 10 ** (18 - feedDecimals);
+        assertEq(price, expected);
     }
 
     function test_fuzz_getPrice_success_scales(uint8 feedDecimals, uint64 rawPrice) external {
@@ -89,18 +93,27 @@ contract ChainlinkOracleTest is BaseTest {
     //                   getUnderlyingPrice                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_getUnderlyingPrice_success_scalesBaseUnits() external {
+    function test_fuzz_getUnderlyingPrice_success_scalesBaseUnits(
+        uint8 feedDecimals,
+        uint8 underlyingDecimals,
+        uint64 rawPrice
+    ) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        MockAggregatorV3 feed = new MockAggregatorV3(8, 3_500e8);
+        vm.assume(feedDecimals <= 18);
+        vm.assume(underlyingDecimals <= 18);
+        vm.assume(rawPrice > 0);
+
+        MockAggregatorV3 feed = new MockAggregatorV3(feedDecimals, int256(uint256(rawPrice)));
         MockSymbolToken underlying = new MockSymbolToken("MOCK");
         MockMToken token = new MockMToken("mMOCK", address(underlying));
-        ChainlinkOracle oracle = _deployOracle("MOCK", feed, 1e6);
+        ChainlinkOracle oracle = _deployOracle("MOCK", feed, 10 ** underlyingDecimals);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 price = oracle.getUnderlyingPrice(address(token));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(price, (3_500e8 * 10 ** 28) / 1e6);
+        uint256 expected = (uint256(rawPrice) * (10 ** (36 - feedDecimals))) / (10 ** underlyingDecimals);
+        assertEq(price, expected);
     }
 
     function test_fuzz_getUnderlyingPrice_success_scales(uint8 feedDecimals, uint8 underlyingDecimals, uint64 rawPrice)

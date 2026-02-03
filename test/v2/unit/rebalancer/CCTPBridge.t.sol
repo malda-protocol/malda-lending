@@ -72,34 +72,37 @@ contract CCTPBridgeTest is BaseTest {
 
     function test_unit_setDomainMapping_success_emitsAndStores() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        chainId = uint32(bound(chainId, 1, type(uint32).max));
+
         vm.expectEmit(true, true, false, true);
-        emit CCTPBridge.DomainMappingUpdated(999, 888);
+        emit CCTPBridge.DomainMappingUpdated(chainId, domain);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        bridge.setDomainMapping(999, 888);
+        bridge.setDomainMapping(chainId, domain);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(bridge.chainIdToDomain(999), 888);
-        assertTrue(bridge.domainSet(999));
+        assertEq(bridge.chainIdToDomain(chainId), domain);
+        assertTrue(bridge.domainSet(chainId));
     }
 
     ////////////////////////////////////////////////////////////
     //                     setAcceptedToken                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setAcceptedToken_success_emitsAndStores() external {
+    function test_fuzz_setAcceptedToken_success_emitsAndStores(bool allowed) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         ERC20Mock other = new ERC20Mock("Other", "O", 18, address(this), address(0), 0);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, false, false, true);
-        emit CCTPBridge.TokenAccepted(address(other), true);
+        emit CCTPBridge.TokenAccepted(address(other), allowed);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        bridge.setAcceptedToken(address(other), true);
+        bridge.setAcceptedToken(address(other), allowed);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(bridge.acceptedTokens(address(other)));
+        assertEq(bridge.acceptedTokens(address(other)), allowed);
     }
 
     ////////////////////////////////////////////////////////////

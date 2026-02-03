@@ -185,12 +185,14 @@ contract AcrossBridgeTest is BaseTest {
         bridge.sendMsg(100, address(market), MAINNET_CHAIN_ID, address(token), message, "");
     }
 
-    function test_unit_sendMsg_success_transfersAndDeposits() external {
+    function test_fuzz_sendMsg_success_transfersAndDeposits(uint256 inputAmount, uint256 outputAmount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bridge.setWhitelistedRelayer(MAINNET_CHAIN_ID, users.bob, true);
 
-        uint256 inputAmount = 100;
-        uint256 outputAmount = 95;
+        inputAmount = bound(inputAmount, 1, 1e18);
+        uint256 maxSlippage = (inputAmount * 1e4) / 1e5;
+        uint256 minOutput = inputAmount - maxSlippage;
+        outputAmount = bound(outputAmount, minOutput, inputAmount);
         bytes memory message = _encodeMessage(inputAmount, outputAmount, users.bob);
 
         token.mint(address(this), inputAmount);

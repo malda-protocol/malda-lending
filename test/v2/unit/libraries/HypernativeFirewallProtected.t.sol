@@ -57,6 +57,11 @@ contract HypernativeFirewallProtectedTest is BaseTest {
         caller = new FirewallCaller();
     }
 
+    modifier whenFirewallInitialized() {
+        harness.initFirewall(address(firewall), address(this));
+        _;
+    }
+
     ////////////////////////////////////////////////////////////
     //                      initFirewall                      //
     ////////////////////////////////////////////////////////////
@@ -89,14 +94,12 @@ contract HypernativeFirewallProtectedTest is BaseTest {
     //             onlyFirewallApprovedAllowEOA               //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_onlyFirewallApprovedAllowEOA_success_forEOA(address eoa) public {
+    function test_fuzz_onlyFirewallApprovedAllowEOA_success_forEOA(address eoa) public whenFirewallInitialized {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(eoa.code.length == 0);
 
-        harness.initFirewall(address(firewall), address(this));
-
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(eoa, eoa);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.callOnlyFirewallApprovedAllowEOA();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
@@ -104,13 +107,12 @@ contract HypernativeFirewallProtectedTest is BaseTest {
         assertEq(harness.callCount(), 1);
     }
 
-    function test_unit_onlyFirewallApprovedAllowEOA_success_forContractCaller() public {
+    function test_unit_onlyFirewallApprovedAllowEOA_success_forContractCaller() public whenFirewallInitialized {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        harness.initFirewall(address(firewall), address(this));
         firewall.setExpectedForbiddenContext(address(caller), address(caller));
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.bob, users.bob);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         caller.callApprovedAllowEOA(harness);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
@@ -122,22 +124,19 @@ contract HypernativeFirewallProtectedTest is BaseTest {
     //                 callOnlyFirewallAdmin                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_callOnlyFirewallAdmin_revertsWith_HypernativeFirewallProtected_NotAdmin() public {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        harness.initFirewall(address(firewall), address(this));
-
+    function test_unit_callOnlyFirewallAdmin_revertsWith_HypernativeFirewallProtected_NotAdmin()
+        public
+        whenFirewallInitialized
+    {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(HypernativeFirewallProtected.HypernativeFirewallProtected_NotAdmin.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.callOnlyFirewallAdmin();
     }
 
-    function test_unit_callOnlyFirewallAdmin_success() public {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        harness.initFirewall(address(firewall), address(this));
-
+    function test_unit_callOnlyFirewallAdmin_success() public whenFirewallInitialized {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.callOnlyFirewallAdmin();
 
@@ -149,10 +148,8 @@ contract HypernativeFirewallProtectedTest is BaseTest {
     //                       setFirewall                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setFirewall_success() public {
+    function test_unit_setFirewall_success() public whenFirewallInitialized {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        harness.initFirewall(address(firewall), address(this));
-
         MockFirewall firewall2 = new MockFirewall();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -165,7 +162,6 @@ contract HypernativeFirewallProtectedTest is BaseTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(harness.getFirewallAddress(), address(firewall2));
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.setIsStrictMode(true);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
@@ -176,10 +172,10 @@ contract HypernativeFirewallProtectedTest is BaseTest {
     //                  changeFirewallAdmin                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_changeFirewallAdmin_revertsWith_HypernativeFirewallProtected_NotValid() public {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        harness.initFirewall(address(firewall), address(this));
-
+    function test_unit_changeFirewallAdmin_revertsWith_HypernativeFirewallProtected_NotValid()
+        public
+        whenFirewallInitialized
+    {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(HypernativeFirewallProtected.HypernativeFirewallProtected_NotValid.selector);
 
@@ -187,9 +183,8 @@ contract HypernativeFirewallProtectedTest is BaseTest {
         harness.changeFirewallAdmin(address(0));
     }
 
-    function test_unit_changeFirewallAdmin_success() public {
+    function test_unit_changeFirewallAdmin_success() public whenFirewallInitialized {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        harness.initFirewall(address(firewall), address(this));
         address newAdmin = users.carol;
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -202,7 +197,6 @@ contract HypernativeFirewallProtectedTest is BaseTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(harness.getAdminAddress(), newAdmin);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(newAdmin);
         harness.setIsStrictMode(true);
 
@@ -214,9 +208,8 @@ contract HypernativeFirewallProtectedTest is BaseTest {
     //                    firewallRegister                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_firewallRegister_success() public {
+    function test_unit_firewallRegister_success() public whenFirewallInitialized {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        harness.initFirewall(address(firewall), address(this));
         harness.setIsStrictMode(true);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~

@@ -264,28 +264,29 @@ contract OperatorTest is BaseUnitTest {
     //                 enterMarketsWithSender                 //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_enterMarketsWithSender_success() public {
+    function test_fuzz_enterMarketsWithSender_success(address account) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
         _listMarket(market);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true, address(operator));
-        emit OperatorStorage.MarketEntered(address(market), users.alice);
+        emit OperatorStorage.MarketEntered(address(market), account);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        operator.enterMarketsWithSender(users.alice);
+        operator.enterMarketsWithSender(account);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(operator.checkMembership(users.alice, address(market)));
+        assertTrue(operator.checkMembership(account, address(market)));
     }
 
     function test_unit_enterMarketsWithSender_revertsWith_Operator_MarketNotListed() public {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.enterMarketsWithSender(users.alice);
     }
 
@@ -302,22 +303,23 @@ contract OperatorTest is BaseUnitTest {
         operator.enterMarketsWithSender(users.alice);
     }
 
-    function test_unit_enterMarketsWithSender_success_whenWhitelisted() public {
+    function test_fuzz_enterMarketsWithSender_success_whenWhitelisted(address account) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
         _listMarket(market);
         _setWhitelistStatus(operator, true);
-        _setWhitelistedUser(operator, users.alice, true);
+        _setWhitelistedUser(operator, account, true);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true, address(operator));
-        emit OperatorStorage.MarketEntered(address(market), users.alice);
+        emit OperatorStorage.MarketEntered(address(market), account);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        operator.enterMarketsWithSender(users.alice);
+        operator.enterMarketsWithSender(account);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(operator.checkMembership(users.alice, address(market)));
+        assertTrue(operator.checkMembership(account, address(market)));
     }
 
     ////////////////////////////////////////////////////////////
@@ -349,14 +351,15 @@ contract OperatorTest is BaseUnitTest {
     //                    checkMembership                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_checkMembership_success() public {
+    function test_fuzz_checkMembership_success(address account) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        _supportMarketAndJoin(market, users.alice);
+        vm.assume(account != address(0));
+        _supportMarketAndJoin(market, account);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertFalse(operator.whitelistEnabled());
-        assertFalse(operator.userWhitelisted(users.alice));
-        assertTrue(operator.checkMembership(users.alice, address(market)));
+        assertFalse(operator.userWhitelisted(account));
+        assertTrue(operator.checkMembership(account, address(market)));
     }
 
     ////////////////////////////////////////////////////////////
@@ -419,18 +422,23 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenMint(address(market), users.alice, users.bob);
     }
 
-    function test_unit_beforeMTokenMint_success_whenWhitelisted() public {
+    function test_fuzz_beforeMTokenMint_success_whenWhitelisted(address sender, address receiver) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(sender != address(0));
+        vm.assume(receiver != address(0));
+
         _listMarket(market);
         _setWhitelistStatus(operator, true);
-        _setWhitelistedUser(operator, users.alice, true);
+        _setWhitelistedUser(operator, sender, true);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenMint(address(market), users.alice, users.bob);
     }
 
-    function test_unit_beforeMTokenMint_success() public {
+    function test_fuzz_beforeMTokenMint_success(address sender, address receiver) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(sender != address(0));
+        vm.assume(receiver != address(0));
         _listMarket(market);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
@@ -462,17 +470,18 @@ contract OperatorTest is BaseUnitTest {
     //                    firewallRegister                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_firewallRegister_success() public {
+    function test_fuzz_firewallRegister_success(address account) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
         MockFirewall firewall = new MockFirewall();
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.initFirewall(address(firewall));
-        operator.firewallRegister(users.alice);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        operator.firewallRegister(account);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(firewall.registerCount(), 1);
-        assertEq(firewall.lastRegistered(), users.alice);
+        assertEq(firewall.lastRegistered(), account);
         assertFalse(firewall.lastStrictMode());
     }
 
@@ -480,10 +489,11 @@ contract OperatorTest is BaseUnitTest {
     //                     setBlacklister                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setBlacklister_success() public {
+    function test_fuzz_setBlacklister_success(address admin) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(admin != address(0));
         Blacklister blacklisterImp = new Blacklister();
-        bytes memory initData = abi.encodeWithSelector(Blacklister.initialize.selector, address(this), address(roles));
+        bytes memory initData = abi.encodeWithSelector(Blacklister.initialize.selector, admin, address(roles));
         ERC1967Proxy proxy = new ERC1967Proxy(address(blacklisterImp), initData);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -551,32 +561,40 @@ contract OperatorTest is BaseUnitTest {
     //                   setWhitelistStatus                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setWhitelistStatus_success() public {
+    function test_fuzz_setWhitelistStatus_success(bool firstStatus, bool secondStatus) public {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(false, false, false, true, address(operator));
-        emit OperatorStorage.WhitelistEnabled();
+        if (firstStatus) {
+            emit OperatorStorage.WhitelistEnabled();
+        } else {
+            emit OperatorStorage.WhitelistDisabled();
+        }
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.setWhitelistStatus(true);
+        operator.setWhitelistStatus(firstStatus);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(false, false, false, true, address(operator));
-        emit OperatorStorage.WhitelistDisabled();
+        if (secondStatus) {
+            emit OperatorStorage.WhitelistEnabled();
+        } else {
+            emit OperatorStorage.WhitelistDisabled();
+        }
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.setWhitelistStatus(false);
+        operator.setWhitelistStatus(secondStatus);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertFalse(operator.whitelistEnabled());
+        assertEq(operator.whitelistEnabled(), secondStatus);
     }
 
     ////////////////////////////////////////////////////////////
     //                    setRolesOperator                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setRolesOperator_success() public {
+    function test_fuzz_setRolesOperator_success(address admin) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        Roles newRoles = new Roles(address(this));
+        vm.assume(admin != address(0));
+        Roles newRoles = new Roles(admin);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true, address(operator));
@@ -633,7 +651,6 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_InvalidInput.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setCloseFactor(CLOSE_FACTOR_MIN - 1);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -683,17 +700,18 @@ contract OperatorTest is BaseUnitTest {
     //                        markets                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_markets_success() public {
+    function test_fuzz_markets_success(uint256 factor) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        factor = bound(factor, 1, COLLATERAL_FACTOR_MAX);
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        _setCollateralFactor(market, 0.5e18);
+        _setCollateralFactor(market, factor);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         (, uint256 collateralFactor) = operator.markets(address(market));
-        assertEq(collateralFactor, 0.5e18);
+        assertEq(collateralFactor, factor);
     }
 
     ////////////////////////////////////////////////////////////
@@ -756,14 +774,15 @@ contract OperatorTest is BaseUnitTest {
     //                   resetOutflowVolume                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_resetOutflowVolume_success() public {
+    function test_fuzz_resetOutflowVolume_success(uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        amount = bound(amount, 1, 1e11);
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         _setOutflowTimeLimitInUSD(10);
 
         vm.prank(address(market));
-        operator.checkOutflowVolumeLimit(1e10);
+        operator.checkOutflowVolumeLimit(amount);
 
         vm.warp(block.timestamp + 1 hours);
 
@@ -787,26 +806,28 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(1);
     }
 
-    function test_unit_checkOutflowVolumeLimit_success() public {
+    function test_fuzz_checkOutflowVolumeLimit_success(uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        amount = bound(amount, 1, 1e18);
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        operator.checkOutflowVolumeLimit(1e10);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        operator.checkOutflowVolumeLimit(amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(operator.cumulativeOutflowVolume(), 0);
     }
 
-    function test_unit_checkOutflowVolumeLimit_success_whenWindowElapsed() public {
+    function test_fuzz_checkOutflowVolumeLimit_success_whenWindowElapsed(uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        amount = bound(amount, 1e10, 1e11);
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         _setOutflowTimeLimitInUSD(10);
@@ -814,30 +835,31 @@ contract OperatorTest is BaseUnitTest {
 
         vm.warp(block.timestamp + 2);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        operator.checkOutflowVolumeLimit(1e10);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        operator.checkOutflowVolumeLimit(amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(operator.lastOutflowResetTimestamp(), block.timestamp);
-        assertEq(operator.cumulativeOutflowVolume(), 1);
+        assertEq(operator.cumulativeOutflowVolume(), amount / 1e10);
     }
 
-    function test_unit_checkOutflowVolumeLimit_success_whenWindowNotElapsed() public {
+    function test_fuzz_checkOutflowVolumeLimit_success_whenWindowNotElapsed(uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        amount = bound(amount, 1e10, 1e11);
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         _setOutflowTimeLimitInUSD(10);
 
         uint256 lastReset = operator.lastOutflowResetTimestamp();
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        operator.checkOutflowVolumeLimit(1e10);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        operator.checkOutflowVolumeLimit(amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(operator.lastOutflowResetTimestamp(), lastReset);
-        assertEq(operator.cumulativeOutflowVolume(), 1);
+        assertEq(operator.cumulativeOutflowVolume(), amount / 1e10);
     }
 
     function test_unit_checkOutflowVolumeLimit_revertsWith_Operator_OutflowVolumeReached() public {
@@ -849,8 +871,8 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(2e10);
     }
 
@@ -862,8 +884,8 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OracleUnderlyingFetchError.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(1);
     }
 
@@ -871,43 +893,45 @@ contract OperatorTest is BaseUnitTest {
     //                  setMarketBorrowCaps                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setMarketBorrowCaps_success_whenGuardian() public {
+    function test_fuzz_setMarketBorrowCaps_success_whenGuardian(uint256 cap) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        cap = bound(cap, 0, 1e30);
         _allowRole(guardian, roles.GUARDIAN_BORROW_CAP(), true);
 
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
         markets[0] = address(market);
-        caps[0] = 100;
+        caps[0] = cap;
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, false, false, true, address(operator));
-        emit OperatorStorage.NewBorrowCap(address(market), 100);
+        emit OperatorStorage.NewBorrowCap(address(market), cap);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setMarketBorrowCaps(markets, caps);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.borrowCaps(address(market)), 100);
+        assertEq(operator.borrowCaps(address(market)), cap);
     }
 
-    function test_unit_setMarketBorrowCaps_success_whenAdmin() public {
+    function test_fuzz_setMarketBorrowCaps_success_whenAdmin(uint256 cap) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        cap = bound(cap, 0, 1e30);
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
         markets[0] = address(market);
-        caps[0] = 55;
+        caps[0] = cap;
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, false, false, true, address(operator));
-        emit OperatorStorage.NewBorrowCap(address(market), 55);
+        emit OperatorStorage.NewBorrowCap(address(market), cap);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setMarketBorrowCaps(markets, caps);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.borrowCaps(address(market)), 55);
+        assertEq(operator.borrowCaps(address(market)), cap);
     }
 
     function test_unit_setMarketBorrowCaps_revertsWith_Operator_OnlyAdminOrRole() public {
@@ -920,8 +944,8 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OnlyAdminOrRole.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setMarketBorrowCaps(markets, caps);
     }
 
@@ -954,43 +978,45 @@ contract OperatorTest is BaseUnitTest {
     //                  setMarketSupplyCaps                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setMarketSupplyCaps_success_whenGuardian() public {
+    function test_fuzz_setMarketSupplyCaps_success_whenGuardian(uint256 cap) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        cap = bound(cap, 0, 1e30);
         _allowRole(guardian, roles.GUARDIAN_SUPPLY_CAP(), true);
 
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
         markets[0] = address(market);
-        caps[0] = 100;
+        caps[0] = cap;
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, false, false, true, address(operator));
-        emit OperatorStorage.NewSupplyCap(address(market), 100);
+        emit OperatorStorage.NewSupplyCap(address(market), cap);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setMarketSupplyCaps(markets, caps);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.supplyCaps(address(market)), 100);
+        assertEq(operator.supplyCaps(address(market)), cap);
     }
 
-    function test_unit_setMarketSupplyCaps_success_whenAdmin() public {
+    function test_fuzz_setMarketSupplyCaps_success_whenAdmin(uint256 cap) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        cap = bound(cap, 0, 1e30);
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
         markets[0] = address(market);
-        caps[0] = 77;
+        caps[0] = cap;
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, false, false, true, address(operator));
-        emit OperatorStorage.NewSupplyCap(address(market), 77);
+        emit OperatorStorage.NewSupplyCap(address(market), cap);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setMarketSupplyCaps(markets, caps);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.supplyCaps(address(market)), 77);
+        assertEq(operator.supplyCaps(address(market)), cap);
     }
 
     function test_unit_setMarketSupplyCaps_revertsWith_Operator_OnlyAdminOrRole() public {
@@ -1003,8 +1029,8 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OnlyAdminOrRole.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setMarketSupplyCaps(markets, caps);
     }
 
@@ -1054,8 +1080,8 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OnlyAdminOrRole.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, true);
     }
 
@@ -1064,52 +1090,50 @@ contract OperatorTest is BaseUnitTest {
         _allowRole(guardian, roles.GUARDIAN_PAUSE(), true);
         _setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         _setPausedAs(guardian, address(market), ImTokenOperationTypes.OperationType.Mint, true);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OnlyAdmin.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
     }
 
-    function test_unit_setPaused_success() public {
+    function test_fuzz_setPaused_success(bool paused) public {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true, address(operator));
-        emit OperatorStorage.ActionPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
+        emit OperatorStorage.ActionPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, paused);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
+        operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, paused);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Borrow));
+        assertEq(operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Borrow), paused);
     }
 
-    function test_unit_setPaused_success_withFirewall() public {
+    function test_fuzz_setPaused_success_withFirewall(bool firstState, bool secondState) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _enableFirewall();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true, address(operator));
-        emit OperatorStorage.ActionPaused(address(market), ImTokenOperationTypes.OperationType.Mint, true);
+        emit OperatorStorage.ActionPaused(address(market), ImTokenOperationTypes.OperationType.Mint, firstState);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, true);
+        operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, firstState);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint));
+        assertEq(operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint), firstState);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true, address(operator));
-        emit OperatorStorage.ActionPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
+        emit OperatorStorage.ActionPaused(address(market), ImTokenOperationTypes.OperationType.Mint, secondState);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
+        operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, secondState);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertFalse(operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint));
+        assertEq(operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint), secondState);
     }
 
     function test_unit_setPaused_revertsWith_Operator_OnlyAdmin() public {
@@ -1117,17 +1141,15 @@ contract OperatorTest is BaseUnitTest {
         _allowRole(guardian, roles.GUARDIAN_PAUSE(), true);
         _setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         _setPausedAs(guardian, address(market), ImTokenOperationTypes.OperationType.Mint, true);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OnlyAdmin.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         _setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
@@ -1141,17 +1163,15 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OnlyAdminOrRole.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         _setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OnlyAdmin.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, false);
     }
 
@@ -1168,13 +1188,11 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_InvalidRolesOperator.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         freshOperator.initialize(address(0), address(blacklister), address(this));
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_InvalidBlacklistOperator.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         freshOperator.initialize(address(roles), address(0), address(this));
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -1196,8 +1214,8 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.enterMarkets(markets);
     }
 
@@ -1205,12 +1223,13 @@ contract OperatorTest is BaseUnitTest {
     //                      getAssetsIn                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_getAssetsIn_success() public {
+    function test_fuzz_getAssetsIn_success(address account) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        _supportMarketAndJoin(market, users.alice);
+        vm.assume(account != address(0));
+        _supportMarketAndJoin(market, account);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        address[] memory assets = operator.getAssetsIn(users.alice);
+        address[] memory assets = operator.getAssetsIn(account);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(assets.length, 1);
@@ -1221,34 +1240,45 @@ contract OperatorTest is BaseUnitTest {
     //                     getAllMarkets                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_getAllMarkets_success() public {
+    function test_fuzz_getAllMarkets_success(bool reverseOrder) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        _listMarket(market);
-        _listMarket(market2);
+        if (reverseOrder) {
+            _listMarket(market2);
+            _listMarket(market);
+        } else {
+            _listMarket(market);
+            _listMarket(market2);
+        }
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         address[] memory markets = operator.getAllMarkets();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(markets.length, 2);
-        assertEq(markets[0], address(market));
-        assertEq(markets[1], address(market2));
+        if (reverseOrder) {
+            assertEq(markets[0], address(market2));
+            assertEq(markets[1], address(market));
+        } else {
+            assertEq(markets[0], address(market));
+            assertEq(markets[1], address(market2));
+        }
     }
 
     ////////////////////////////////////////////////////////////
     //                       exitMarket                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_exitMarket_success_whenNotMember() public {
+    function test_fuzz_exitMarket_success_whenNotMember(address account) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
         _listMarket(market);
 
+        vm.prank(account);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.alice);
         operator.exitMarket(address(market));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertFalse(operator.checkMembership(users.alice, address(market)));
+        assertFalse(operator.checkMembership(account, address(market)));
     }
 
     function test_unit_exitMarket_revertsWith_Operator_Deactivate_MarketBalanceOwed() public {
@@ -1263,8 +1293,8 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Deactivate_MarketBalanceOwed.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.exitMarket(address(market));
     }
 
@@ -1281,8 +1311,8 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Deactivate_MarketBalanceOwed.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.exitMarket(address(market));
     }
 
@@ -1300,8 +1330,8 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_AssetNotFound.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.exitMarket(address(market));
     }
 
@@ -1326,75 +1356,78 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_AssetNotFound.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.exitMarket(address(market));
     }
 
-    function test_unit_exitMarket_success_whenNoBorrowOwed() public {
+    function test_fuzz_exitMarket_success_whenNoBorrowOwed(address account) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         _setCollateralFactor(market, 0.5e18);
-        market.setSnapshot(users.alice, 10, 0, 1e18);
+        market.setSnapshot(account, 10, 0, 1e18);
 
-        _supportMarketAndJoin(market, users.alice);
+        _supportMarketAndJoin(market, account);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true, address(operator));
-        emit OperatorStorage.MarketExited(address(market), users.alice);
+        emit OperatorStorage.MarketExited(address(market), account);
 
+        vm.prank(account);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.alice);
         operator.exitMarket(address(market));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertFalse(operator.checkMembership(users.alice, address(market)));
-        assertEq(operator.getAssetsIn(users.alice).length, 0);
+        assertFalse(operator.checkMembership(account, address(market)));
+        assertEq(operator.getAssetsIn(account).length, 0);
     }
 
-    function test_unit_exitMarket_success_whenFirewallEnabled() public {
+    function test_fuzz_exitMarket_success_whenFirewallEnabled(address account) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
         _enableFirewall();
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         _setCollateralFactor(market, 0.5e18);
-        market.setSnapshot(users.alice, 10, 0, 1e18);
+        market.setSnapshot(account, 10, 0, 1e18);
 
-        _supportMarketAndJoin(market, users.alice);
+        _supportMarketAndJoin(market, account);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true, address(operator));
-        emit OperatorStorage.MarketExited(address(market), users.alice);
+        emit OperatorStorage.MarketExited(address(market), account);
 
+        vm.prank(account);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.alice);
         operator.exitMarket(address(market));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.getAssetsIn(users.alice).length, 0);
+        assertEq(operator.getAssetsIn(account).length, 0);
     }
 
-    function test_unit_exitMarket_success_whenMultipleMarkets() public {
+    function test_fuzz_exitMarket_success_whenMultipleMarkets(address account) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        _supportMarketAndJoin(users.alice, market, market2);
+        vm.assume(account != address(0));
+        _supportMarketAndJoin(account, market, market2);
         oracleOperator.setUnderlyingPrice(1e18);
         _setCollateralFactor(market, 0);
         _setCollateralFactor(market2, 0);
-        market.setSnapshot(users.alice, 10, 0, 1e18);
-        market2.setSnapshot(users.alice, 10, 0, 1e18);
+        market.setSnapshot(account, 10, 0, 1e18);
+        market2.setSnapshot(account, 10, 0, 1e18);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true, address(operator));
-        emit OperatorStorage.MarketExited(address(market), users.alice);
+        emit OperatorStorage.MarketExited(address(market), account);
 
+        vm.prank(account);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.alice);
         operator.exitMarket(address(market));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertFalse(operator.checkMembership(users.alice, address(market)));
-        address[] memory assets = operator.getAssetsIn(users.alice);
+        assertFalse(operator.checkMembership(account, address(market)));
+        address[] memory assets = operator.getAssetsIn(account);
         assertEq(assets.length, 1);
         assertEq(assets[0], address(market2));
     }
@@ -1419,8 +1452,8 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_AssetNotFound.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.exitMarket(address(market));
     }
 
@@ -1448,17 +1481,22 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenTransfer(address(market), users.alice, users.bob, 1);
     }
 
-    function test_unit_beforeMTokenTransfer_success() public {
+    function test_fuzz_beforeMTokenTransfer_success(address sender, address receiver, uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(sender != address(0));
+        vm.assume(receiver != address(0));
+        amount = bound(amount, 1, 1e18);
+
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         _setCollateralFactor(market, 0.5e18);
-        market.setSnapshot(users.alice, 10, 0, 1e18);
+        uint256 tokenBalance = amount + 1;
+        market.setSnapshot(sender, tokenBalance, 0, 1e18);
 
-        _supportMarketAndJoin(market, users.alice);
+        _supportMarketAndJoin(market, sender);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.beforeMTokenTransfer(address(market), users.alice, users.bob, 10);
+        operator.beforeMTokenTransfer(address(market), sender, receiver, amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(market.accrueInterestCalled());
@@ -1478,7 +1516,6 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenTransfer(address(market), users.alice, users.bob, 1);
 
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
@@ -1487,7 +1524,6 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
 
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
@@ -1496,7 +1532,6 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenMint(address(market), users.alice, users.bob);
 
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
@@ -1505,7 +1540,6 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenRepay(address(market), users.alice);
 
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
@@ -1514,7 +1548,6 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenLiquidate(address(market), address(market2), users.alice, 1);
 
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
@@ -1523,7 +1556,6 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenSeize(address(market), address(market2), users.alice);
 
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
@@ -1540,26 +1572,31 @@ contract OperatorTest is BaseUnitTest {
     //                   beforeMTokenRepay                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_beforeMTokenRepay_success_whenBorrowFlowPrepared() public {
+    function test_fuzz_beforeMTokenRepay_success_whenBorrowFlowPrepared(address account, uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
+        amount = bound(amount, 1, 1e18);
+
+        address receiver = account == users.alice ? users.bob : users.alice;
+
         _enableFirewall();
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         _setCollateralFactor(market, 0.5e18);
-        market.setSnapshot(users.alice, 10, 0, 1e18);
+        uint256 tokenBalance = amount * 2 + 1;
+        market.setSnapshot(account, tokenBalance, 0, 1e18);
 
-        _setBorrowCaps(market, 100);
+        _setBorrowCaps(market, amount * 2 + 1);
 
-        operator.beforeMTokenTransfer(address(market), users.alice, users.bob, 1);
+        operator.beforeMTokenTransfer(address(market), account, receiver, amount);
 
-        market.setTotals(1, 0, 0);
+        market.setTotals(amount, 0, 0);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        operator.beforeMTokenBorrow(address(market), users.alice, 1);
+        operator.beforeMTokenBorrow(address(market), account, amount);
 
-        operator.beforeMTokenMint(address(market), users.alice, users.bob);
-        operator.beforeMTokenRepay(address(market), users.alice);
+        operator.beforeMTokenMint(address(market), account, receiver);
+        operator.beforeMTokenRepay(address(market), account);
     }
 
     function test_unit_beforeMTokenRepay_revertsWith_Operator_Paused() public {
@@ -1594,22 +1631,22 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenRepay(address(market), users.alice);
     }
 
-    function test_unit_beforeMTokenRepay_success_whenWhitelisted() public {
+    function test_fuzz_beforeMTokenRepay_success_whenWhitelisted(address account) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
         _listMarket(market);
         _setWhitelistStatus(operator, true);
-        _setWhitelistedUser(operator, users.alice, true);
+        _setWhitelistedUser(operator, account, true);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.beforeMTokenRepay(address(market), users.alice);
+        operator.beforeMTokenRepay(address(market), account);
     }
 
-    function test_unit_beforeMTokenRepay_success_whenMarketListed() public {
+    function test_fuzz_beforeMTokenRepay_success_whenMarketListed(address account) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
         _listMarket(market);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.beforeMTokenRepay(address(market), users.alice);
+        operator.beforeMTokenRepay(address(market), account);
     }
 
     ////////////////////////////////////////////////////////////
@@ -1656,27 +1693,30 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
-    function test_unit_beforeMTokenBorrow_success_whenWhitelistEnabled() public {
+    function test_fuzz_beforeMTokenBorrow_success_whenWhitelistEnabled(address account, uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
+        amount = bound(amount, 1, 1e18);
+
         _listMarket(market);
         _setWhitelistStatus(operator, true);
-        _setWhitelistedUser(operator, users.alice, true);
+        _setWhitelistedUser(operator, account, true);
         oracleOperator.setUnderlyingPrice(1e18);
         _setCollateralFactor(market, 0.5e18);
-        market.setSnapshot(users.alice, 2, 0, 1e18);
+        uint256 tokenBalance = amount * 2 + 1;
+        market.setSnapshot(account, tokenBalance, 0, 1e18);
 
-        _setBorrowCaps(market, 10);
+        _setBorrowCaps(market, amount + 2);
 
         market.setTotals(1, 0, 0);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        operator.beforeMTokenBorrow(address(market), users.alice, 1);
+        operator.beforeMTokenBorrow(address(market), account, amount);
     }
 
     function test_unit_beforeMTokenBorrow_revertsWith_Operator_EmptyPrice() public {
@@ -1686,8 +1726,8 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_EmptyPrice.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
@@ -1702,24 +1742,27 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketBorrowCapReached.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
-    function test_unit_beforeMTokenBorrow_success_whenBorrowCapZero() public {
+    function test_fuzz_beforeMTokenBorrow_success_whenBorrowCapZero(address account, uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
+        amount = bound(amount, 1, 1e18);
+
         _listMarket(market);
         _setWhitelistStatus(operator, true);
-        _setWhitelistedUser(operator, users.alice, true);
+        _setWhitelistedUser(operator, account, true);
         oracleOperator.setUnderlyingPrice(1e18);
         _setCollateralFactor(market, 0.5e18);
-        market.setSnapshot(users.alice, 2, 0, 1e18);
+        uint256 tokenBalance = amount * 2 + 1;
+        market.setSnapshot(account, tokenBalance, 0, 1e18);
         market.setTotals(1, 0, 0);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        operator.beforeMTokenBorrow(address(market), users.alice, 1);
+        operator.beforeMTokenBorrow(address(market), account, amount);
     }
 
     function test_unit_beforeMTokenBorrow_revertsWith_Operator_MarketBorrowSizeNotMet() public {
@@ -1731,8 +1774,8 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketBorrowSizeNotMet.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 50);
     }
 
@@ -1746,21 +1789,30 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_InsufficientLiquidity.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
-    function test_unit_beforeMTokenBorrow_success_whenAlreadyMemberAndCallerNotToken() public {
+    function test_fuzz_beforeMTokenBorrow_success_whenAlreadyMemberAndCallerNotToken(
+        address account,
+        address caller,
+        uint256 amount
+    ) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        oracleOperator.setUnderlyingPrice(1e18);
-        _supportMarketAndJoin(market, users.alice);
-        _setCollateralFactor(market, 0.5e18);
-        market.setSnapshot(users.alice, 10, 0, 1e18);
+        vm.assume(account != address(0));
+        vm.assume(caller != address(0));
+        vm.assume(caller != address(market));
+        amount = bound(amount, 1, 50);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.bob);
-        operator.beforeMTokenBorrow(address(market), users.alice, 1);
+        oracleOperator.setUnderlyingPrice(1e18);
+        _supportMarketAndJoin(market, account);
+        _setCollateralFactor(market, 0.5e18);
+        uint256 tokenBalance = amount * 2 + 1;
+        market.setSnapshot(account, tokenBalance, 0, 1e18);
+
+        vm.prank(caller);
+        operator.beforeMTokenBorrow(address(market), account, amount);
     }
 
     ////////////////////////////////////////////////////////////
@@ -1781,14 +1833,15 @@ contract OperatorTest is BaseUnitTest {
         operator.afterMTokenMint(address(market));
     }
 
-    function test_unit_afterMTokenMint_success() public {
+    function test_fuzz_afterMTokenMint_success(uint256 cap, uint256 totalSupply) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        cap = bound(cap, 1, 1e30);
+        totalSupply = bound(totalSupply, 0, cap);
         _listMarket(market);
-        _setSupplyCaps(market, 100);
-        market.setTotals(0, 10, 0);
+        _setSupplyCaps(market, cap);
+        market.setTotals(0, totalSupply, 0);
         market.setExchangeRateStored(1e18);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.afterMTokenMint(address(market));
     }
 
@@ -1796,12 +1849,13 @@ contract OperatorTest is BaseUnitTest {
     //                   beforeMTokenRedeem                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_beforeMTokenRedeem_success_whenNotInMarket() public {
+    function test_fuzz_beforeMTokenRedeem_success_whenNotInMarket(address account, uint256 redeemTokens) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
+        redeemTokens = bound(redeemTokens, 1, 1e18);
         _listMarket(market);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.beforeMTokenRedeem(address(market), users.alice, 1);
+        operator.beforeMTokenRedeem(address(market), account, redeemTokens);
     }
 
     function test_unit_beforeMTokenRedeem_revertsWith_Operator_UserNotWhitelisted() public {
@@ -1832,17 +1886,19 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenRedeem(address(market), users.alice, 1);
     }
 
-    function test_unit_beforeMTokenRedeem_success_whenInMarket() public {
+    function test_fuzz_beforeMTokenRedeem_success_whenInMarket(address account, uint256 redeemTokens) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
+        redeemTokens = bound(redeemTokens, 1, 1e18);
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         _setCollateralFactor(market, 0.5e18);
-        market.setSnapshot(users.alice, 10, 0, 1e18);
+        uint256 tokenBalance = redeemTokens + 1;
+        market.setSnapshot(account, tokenBalance, 0, 1e18);
 
-        _supportMarketAndJoin(market, users.alice);
+        _supportMarketAndJoin(market, account);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.beforeMTokenRedeem(address(market), users.alice, 1);
+        operator.beforeMTokenRedeem(address(market), account, redeemTokens);
     }
 
     ////////////////////////////////////////////////////////////
@@ -1863,7 +1919,6 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenLiquidate(address(market), address(market2), users.alice, 50);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenLiquidate(address(market), address(market2), users.alice, 100);
     }
 
@@ -1877,7 +1932,6 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenLiquidate(address(unlistedBorrowed), address(market), users.alice, 1);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -1979,39 +2033,43 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenLiquidate(address(market), address(market), users.alice, 60);
     }
 
-    function test_unit_beforeMTokenLiquidate_success() public {
+    function test_fuzz_beforeMTokenLiquidate_success(address account, uint256 repayAmount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        oracleOperator.setUnderlyingPrice(1e18);
-        _supportMarketAndJoin(market, users.alice);
-        _setCollateralFactor(market, 0);
-        market.setSnapshot(users.alice, 0, 100, 1e18);
+        vm.assume(account != address(0));
+        repayAmount = bound(repayAmount, 1, 50);
 
-        market.setBorrowBalanceStored(users.alice, 100);
+        oracleOperator.setUnderlyingPrice(1e18);
+        _supportMarketAndJoin(market, account);
+        _setCollateralFactor(market, 0);
+        market.setSnapshot(account, 0, 100, 1e18);
+
+        market.setBorrowBalanceStored(account, 100);
         _setCloseFactor(0.5e18);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.beforeMTokenLiquidate(address(market), address(market), users.alice, 50);
+        operator.beforeMTokenLiquidate(address(market), address(market), account, repayAmount);
     }
 
     ////////////////////////////////////////////////////////////
     //                   beforeRebalancing                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_beforeRebalancing_success() public {
+    function test_fuzz_beforeRebalancing_success(address account, uint256 repayAmount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
+        repayAmount = bound(repayAmount, 1, 50);
+
         _enableFirewall();
         _listMarket(market2);
         oracleOperator.setUnderlyingPrice(1e18);
-        _supportMarketAndJoin(market, users.alice);
+        _supportMarketAndJoin(market, account);
         _setCollateralFactor(market, 0);
-        market.setSnapshot(users.alice, 0, 100, 1e18);
+        market.setSnapshot(account, 0, 100, 1e18);
 
-        market.setBorrowBalanceStored(users.alice, 100);
+        market.setBorrowBalanceStored(account, 100);
         _setCloseFactor(0.5e18);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.beforeMTokenLiquidate(address(market), address(market2), users.alice, 50);
-        operator.beforeMTokenSeize(address(market), address(market2), users.alice);
+        operator.beforeMTokenLiquidate(address(market), address(market2), account, repayAmount);
+        operator.beforeMTokenSeize(address(market), address(market2), account);
         operator.beforeRebalancing(address(market));
     }
 
@@ -2086,7 +2144,6 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenSeize(address(market), address(unlistedMarket), users.alice);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -2096,30 +2153,33 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenSeize(address(unlistedMarket), address(market), users.alice);
     }
 
-    function test_unit_beforeMTokenSeize_success() public {
+    function test_fuzz_beforeMTokenSeize_success(address account) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
         _listMarket(market);
         _listMarket(market2);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.beforeMTokenSeize(address(market), address(market2), users.alice);
+        operator.beforeMTokenSeize(address(market), address(market2), account);
     }
 
     ////////////////////////////////////////////////////////////
     //            getHypotheticalAccountLiquidity             //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_getHypotheticalAccountLiquidity_success() public {
+    function test_fuzz_getHypotheticalAccountLiquidity_success(address account, uint256 supplyTokens) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(account != address(0));
+        supplyTokens = bound(supplyTokens, 1, 1e24);
+
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         _setCollateralFactor(market, 0);
-        market.setSnapshot(users.alice, 10, 0, 1e18);
+        market.setSnapshot(account, supplyTokens, 0, 1e18);
 
-        _supportMarketAndJoin(market, users.alice);
+        _supportMarketAndJoin(market, account);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        (uint256 liquidity, uint256 shortfall) = operator.getHypotheticalAccountLiquidity(users.alice, address(0), 0, 0);
+        (uint256 liquidity, uint256 shortfall) = operator.getHypotheticalAccountLiquidity(account, address(0), 0, 0);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(liquidity, 0);
@@ -2147,42 +2207,46 @@ contract OperatorTest is BaseUnitTest {
     //                getUSDValueForAllMarkets                //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_getUSDValueForAllMarkets_success() public {
+    function test_fuzz_getUSDValueForAllMarkets_success(uint256 totalUnderlying) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        totalUnderlying = bound(totalUnderlying, 1, 1e12);
         _listMarket(market);
         _listMarket(market2);
         oracleOperator.setUnderlyingPrice(1e18);
-        market.setTotals(0, 0, 5e10);
+        market.setTotals(0, 0, totalUnderlying);
 
         _setPaused(address(market2), ImTokenOperationTypes.OperationType.Borrow, true);
         market2.setReserveFactorMantissa(1e18);
-        market2.setTotals(0, 0, 5e10);
+        market2.setTotals(0, 0, totalUnderlying);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 total = operator.getUSDValueForAllMarkets();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(total, 5);
+        assertEq(total, totalUnderlying / 1e10);
     }
 
     ////////////////////////////////////////////////////////////
     //                      isDeprecated                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_isDeprecated_success() public {
+    function test_fuzz_isDeprecated_success(bool pauseBorrow, uint256 reserveFactor) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        reserveFactor = bound(reserveFactor, 0, 1e18);
         _listMarket(market);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(operator.isMarketListed(address(market)));
         assertFalse(operator.isDeprecated(address(market)));
 
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        _setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
-        market.setReserveFactorMantissa(1e18);
+        if (pauseBorrow) {
+            _setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
+        }
+        market.setReserveFactorMantissa(reserveFactor);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(operator.isDeprecated(address(market)));
+        bool expected = pauseBorrow && reserveFactor == 1e18;
+        assertEq(operator.isDeprecated(address(market)), expected);
     }
 
     ////////////////////////////////////////////////////////////
@@ -2201,9 +2265,14 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeRebalancing(address(market));
     }
 
-    function test_unit_beforeRebalancing_success_whenListed() public {
+    function test_fuzz_beforeRebalancing_success_whenListed(bool useSecondMarket) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        _listMarket(market);
+        address target = useSecondMarket ? address(market2) : address(market);
+        if (useSecondMarket) {
+            _listMarket(market2);
+        } else {
+            _listMarket(market);
+        }
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeRebalancing(address(market));

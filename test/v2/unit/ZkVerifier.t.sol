@@ -35,14 +35,12 @@ contract ZkVerifierTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_constructor_revertsWith_ZkVerifier_InputNotValid_whenVerifierZero() public {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ZkVerifier.ZkVerifier_InputNotValid.selector);
         new ZkVerifier(owner, imageId, address(0));
     }
 
     function test_unit_constructor_revertsWith_ZkVerifier_InputNotValid_whenImageIdZero() public {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ZkVerifier.ZkVerifier_InputNotValid.selector);
         new ZkVerifier(owner, bytes32(0), address(verifierMock));
@@ -57,6 +55,7 @@ contract ZkVerifierTest is BaseTest {
         vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ZkVerifier.ZkVerifier_InputNotValid.selector);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         zkVerifier.setVerifier(address(0));
     }
 
@@ -68,6 +67,7 @@ contract ZkVerifierTest is BaseTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit ZkVerifier.VerifierSet(address(verifierMock), address(newVerifier));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         zkVerifier.setVerifier(address(newVerifier));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
@@ -83,6 +83,7 @@ contract ZkVerifierTest is BaseTest {
         vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ZkVerifier.ZkVerifier_ImageNotValid.selector);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         zkVerifier.setImageId(bytes32(0));
     }
 
@@ -94,6 +95,7 @@ contract ZkVerifierTest is BaseTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit ZkVerifier.ImageSet(newImageId);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         zkVerifier.setImageId(newImageId);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
@@ -107,12 +109,15 @@ contract ZkVerifierTest is BaseTest {
     function test_unit_verifyInput_revertsWith_ZkVerifier_VerifierNotSet(bytes memory journalEntry, bytes memory seal)
         public
     {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(journalEntry.length <= 1024);
         vm.assume(seal.length <= 1024);
 
         zkVerifier.setVerifierUnsafe(address(0));
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ZkVerifier.ZkVerifier_VerifierNotSet.selector);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         zkVerifier.verifyInput(journalEntry, seal);
     }
 
@@ -126,6 +131,7 @@ contract ZkVerifierTest is BaseTest {
             address(verifierMock),
             abi.encodeWithSelector(IRiscZeroVerifier.verify.selector, seal, imageId, sha256(journalEntry))
         );
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         zkVerifier.verifyInput(journalEntry, seal);
     }
 }

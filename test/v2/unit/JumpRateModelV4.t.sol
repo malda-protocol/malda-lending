@@ -25,7 +25,6 @@ contract JumpRateModelV4Test is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_getters_success() public view {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(model.blocksPerYear(), 1000);
         assertEq(model.baseRatePerBlock(), 1e16);
@@ -40,14 +39,12 @@ contract JumpRateModelV4Test is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_constructor_revertsWith_JumpRateModelV4_ZeroValueNotAllowed_whenNameEmpty() public {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
         new JumpRateModelV4(1000, 1, 1, 1, 1, owner, "");
     }
 
     function test_unit_constructor_revertsWith_JumpRateModelV4_ZeroValueNotAllowed_whenBlocksPerYearZero() public {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
         new JumpRateModelV4(0, 1, 1, 1, 1, owner, "MODEL");
@@ -62,6 +59,7 @@ contract JumpRateModelV4Test is BaseTest {
         vm.prank(other);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, other));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateJumpRateModelDirect(1, 1, 1, 1);
     }
 
@@ -72,6 +70,7 @@ contract JumpRateModelV4Test is BaseTest {
         vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateJumpRateModelDirect(1, 0, 1, 1);
     }
 
@@ -82,6 +81,7 @@ contract JumpRateModelV4Test is BaseTest {
         vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateJumpRateModelDirect(1, 1, 0, 1);
     }
 
@@ -90,6 +90,7 @@ contract JumpRateModelV4Test is BaseTest {
         vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateJumpRateModelDirect(1, 1, 1, 0);
     }
 
@@ -104,6 +105,7 @@ contract JumpRateModelV4Test is BaseTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(false, false, false, true);
         emit IInterestRateModel.NewInterestParams(base, multiplier, jump, kink);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateJumpRateModelDirect(base, multiplier, jump, kink);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
@@ -132,6 +134,7 @@ contract JumpRateModelV4Test is BaseTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(false, false, false, true);
         emit IInterestRateModel.NewInterestParams(expectedBase, expectedMultiplier, expectedJump, kink);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateJumpRateModel(baseRatePerYear, multiplierPerYear, jumpMultiplierPerYear, kink);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
@@ -146,6 +149,7 @@ contract JumpRateModelV4Test is BaseTest {
         vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateJumpRateModel(0, 1, 1, 1);
     }
 
@@ -154,6 +158,7 @@ contract JumpRateModelV4Test is BaseTest {
         vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateJumpRateModel(1, 0, 1, 1);
     }
 
@@ -164,6 +169,7 @@ contract JumpRateModelV4Test is BaseTest {
         vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateJumpRateModel(1, 1, 0, 1);
     }
 
@@ -172,6 +178,7 @@ contract JumpRateModelV4Test is BaseTest {
         vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateJumpRateModel(1, 1, 1, 0);
     }
 
@@ -180,6 +187,7 @@ contract JumpRateModelV4Test is BaseTest {
         vm.prank(other);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, other));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateJumpRateModel(1, 1, 1, 1);
     }
 
@@ -195,6 +203,7 @@ contract JumpRateModelV4Test is BaseTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(false, false, false, true);
         emit IInterestRateModel.BlocksPerYearUpdated(newBlocksPerYear);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateBlocksPerYear(newBlocksPerYear);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
@@ -206,6 +215,7 @@ contract JumpRateModelV4Test is BaseTest {
         vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateBlocksPerYear(0);
     }
 
@@ -214,6 +224,7 @@ contract JumpRateModelV4Test is BaseTest {
         vm.prank(other);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, other));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateBlocksPerYear(1);
     }
 
@@ -222,7 +233,6 @@ contract JumpRateModelV4Test is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_isInterestRateModel_success() public view {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(model.isInterestRateModel());
     }
@@ -231,15 +241,27 @@ contract JumpRateModelV4Test is BaseTest {
     //                    UtilizationRate                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_utilizationRate_success_zeroBorrows() public view {
+    function test_fuzz_utilizationRate_success_zeroBorrows(uint256 cash, uint256 reserves) public view {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        cash = bound(cash, 0, 1e18);
+        reserves = bound(reserves, 0, cash);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(model.utilizationRate(100, 0, 0), 0);
+        assertEq(model.utilizationRate(cash, 0, reserves), 0);
     }
 
-    function test_unit_utilizationRate_success_cappedAtOne() public view {
+    function test_fuzz_utilizationRate_success_cappedAtOne(uint256 cash, uint256 borrows, uint256 reserves)
+        public
+        view
+    {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        uint256 util = model.utilizationRate(10, 90, 50);
+        cash = bound(cash, 1, 1e18);
+        borrows = bound(borrows, 2, 1e18);
+        uint256 maxReserves = cash + borrows - 1;
+        reserves = bound(reserves, cash + 1, maxReserves);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 util = model.utilizationRate(cash, borrows, reserves);
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(util, 1e18);
     }
@@ -248,33 +270,51 @@ contract JumpRateModelV4Test is BaseTest {
     //                     GetBorrowRate                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_getBorrowRate_success_belowKink() public view {
+    function test_fuzz_getBorrowRate_success_belowKink(uint256 cash, uint256 borrows, uint256 reserves) public view {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        uint256 util = model.utilizationRate(100, 100, 0);
-        uint256 expected = util * model.multiplierPerBlock() / 1e18 + model.baseRatePerBlock();
-        uint256 rate = model.getBorrowRate(100, 100, 0);
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rate, expected);
-    }
-
-    function test_unit_getBorrowRate_success_aboveKink() public view {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        uint256 util = model.utilizationRate(1, 9, 0);
-        uint256 normalRate = model.kink() * model.multiplierPerBlock() / 1e18 + model.baseRatePerBlock();
-        uint256 expected = (util - model.kink()) * model.jumpMultiplierPerBlock() / 1e18 + normalRate;
-        uint256 rate = model.getBorrowRate(1, 9, 0);
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rate, expected);
-    }
-
-    function test_unit_getBorrowRate_success() public view {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        uint256 cash = 100;
-        uint256 borrows = 100;
-        uint256 reserves = 0;
-        uint256 reserveFactor = 2e17;
+        cash = bound(cash, 1, 1e18);
+        borrows = bound(borrows, 1, 1e18);
+        reserves = bound(reserves, 0, cash + borrows - 1);
 
         uint256 util = model.utilizationRate(cash, borrows, reserves);
+        vm.assume(util <= model.kink());
+
+        uint256 expected = util * model.multiplierPerBlock() / 1e18 + model.baseRatePerBlock();
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 rate = model.getBorrowRate(cash, borrows, reserves);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(rate, expected);
+    }
+
+    function test_fuzz_getBorrowRate_success_aboveKink(uint256 cash, uint256 borrows, uint256 reserves) public view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        cash = bound(cash, 1, 1e18);
+        borrows = bound(borrows, 1, 1e18);
+        reserves = bound(reserves, 0, cash + borrows - 1);
+
+        uint256 util = model.utilizationRate(cash, borrows, reserves);
+        vm.assume(util > model.kink());
+
+        uint256 normalRate = model.kink() * model.multiplierPerBlock() / 1e18 + model.baseRatePerBlock();
+        uint256 expected = (util - model.kink()) * model.jumpMultiplierPerBlock() / 1e18 + normalRate;
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 rate = model.getBorrowRate(cash, borrows, reserves);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(rate, expected);
+    }
+
+    function test_fuzz_getBorrowRate_success(uint256 cash, uint256 borrows, uint256 reserves, uint256 reserveFactor)
+        public
+        view
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        cash = bound(cash, 1, 1e18);
+        borrows = bound(borrows, 1, 1e18);
+        reserves = bound(reserves, 0, cash + borrows - 1);
+        reserveFactor = bound(reserveFactor, 0, 1e18);
+
+        uint256 util = model.utilizationRate(cash, borrows, reserves);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 borrowRate = model.getBorrowRate(cash, borrows, reserves);
         uint256 expected = util * borrowRate * (1e18 - reserveFactor) / 1e36;
 

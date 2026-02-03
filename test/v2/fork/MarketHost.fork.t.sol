@@ -40,12 +40,15 @@ contract MarketHostForkTest is BaseForkTest {
     ////////////////////////////////////////////////////////////
 
     function test_fork_setInterestRateModel_revertsWith_mt_BorrowRateTooHigh() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 crtBorrowRateMaxMantissa = mTokenStorage(address(market18Decimals)).borrowRateMaxMantissa();
         console2.log("Current borrowRateMaxMantissa: ", crtBorrowRateMaxMantissa);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(crtBorrowRateMaxMantissa, 5000000000000); //5e12
 
         vm.startPrank(ownerOnChain);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_BorrowRateTooHigh.selector);
         mTokenConfiguration(address(market18Decimals)).setInterestRateModel(address(newInterestModel));
         vm.stopPrank();
@@ -59,6 +62,7 @@ contract MarketHostForkTest is BaseForkTest {
     }
 
     function test_fork_setInterestRateModel_success_setNewInterestModel() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 crtBorrowRate = mToken(address(market18Decimals)).borrowRatePerBlock();
 
         vm.startPrank(ownerOnChain);
@@ -85,9 +89,11 @@ contract MarketHostForkTest is BaseForkTest {
         uint256 supplyAmount = 1e18;
         deal(address(asset18Decimals), address(this), supplyAmount);
         asset18Decimals.approve(address(market18Decimals), supplyAmount);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         market18Decimals.mint(supplyAmount, address(this), 0);
 
         uint256 balanceOfMarket18Decimals = IERC20(address(market18Decimals)).balanceOf(address(this));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertGt(balanceOfMarket18Decimals, 0, "mint didn't work");
 
         uint256 borrowRateAfterMint = mToken(address(market18Decimals)).borrowRatePerBlock();
@@ -123,6 +129,7 @@ contract MarketHostForkTest is BaseForkTest {
     ////////////////////////////////////////////////////////////
 
     function test_fork_borrow_success_safeZonePoc() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         console2.log("=== SAFE ZONE PROOF OF CONCEPT ===");
         console2.log("Demonstrates that with larger liquidity and multiple suppliers,");
         console2.log("utilization naturally stays below 100%, even under heavy borrow demand");
@@ -203,6 +210,7 @@ contract MarketHostForkTest is BaseForkTest {
         uint256 cash = mToken(address(market18Decimals)).getCash();
         uint256 totalBorrows = mToken(address(market18Decimals)).totalBorrows();
         uint256 totalReserves = mToken(address(market18Decimals)).totalReserves();
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 utilization = newInterestModel.utilizationRate(cash, totalBorrows, totalReserves);
 
         console2.log("Cash available:        ", cash);
@@ -215,6 +223,7 @@ contract MarketHostForkTest is BaseForkTest {
         // =============================================================
         // Because total liquidity (15e18) >> total borrows (6e18),
         // utilization should be comfortably below 1e18 (≈ 40%)
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertLe(utilization, 1e18, "Utilization exceeded 100% in Safe Zone!");
         assertLt(utilization, 5e17, "Expected utilization < 50% in Safe Zone test.");
 
@@ -243,6 +252,7 @@ contract MarketHostForkTest is BaseForkTest {
         // =============================================================
         // 0. Setup & context
         // =============================================================
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         console2.log("=== UTILIZATION OVERFLOW FIX PROOF OF CONCEPT ===");
         console2.log("Borrow rate overflow caused when utilization > 100%%");
         console2.log("Test validates that the new interest model (with cap at 1e18) prevents the issue");
@@ -278,6 +288,7 @@ contract MarketHostForkTest is BaseForkTest {
         market18Decimals.mint(supplyAmount, address(this), 0);
 
         uint256 balanceOfMarket18Decimals = IERC20(address(market18Decimals)).balanceOf(address(this));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertGt(balanceOfMarket18Decimals, 0, "mint didn't work");
 
         uint256 borrowRateAfterMint = mToken(address(market18Decimals)).borrowRatePerBlock();
@@ -312,6 +323,7 @@ contract MarketHostForkTest is BaseForkTest {
 
         // remove liquidity to simulate redemptions
         uint256 redeemAmount = 9e17;
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(bytes("Operator_InsufficientLiquidity()"));
         market18Decimals.redeemUnderlying(redeemAmount);
 
@@ -321,6 +333,7 @@ contract MarketHostForkTest is BaseForkTest {
         deal(address(asset18Decimals), overBorrower, 10e18);
         asset18Decimals.approve(address(market18Decimals), 10e18);
         vm.expectRevert(); // capped model must prevent this borrow
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         market18Decimals.borrow(10e18);
         vm.stopPrank();
 
@@ -392,6 +405,7 @@ contract MarketHostForkTest is BaseForkTest {
         // =============================================================
         // 0. Setup
         // =============================================================
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.startPrank(ownerOnChain);
         // interest model is kept to compute utilization (no cap)
         mTokenConfiguration(address(market18Decimals)).setBorrowRateMaxMantissa(1e18);
@@ -419,9 +433,11 @@ contract MarketHostForkTest is BaseForkTest {
         uint256 supplyAmount = 0.00125e18;
         deal(address(asset18Decimals), address(this), supplyAmount);
         asset18Decimals.approve(address(market18Decimals), supplyAmount);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         market18Decimals.mint(supplyAmount, address(this), 0);
 
         uint256 balanceOfMarket18Decimals = IERC20(address(market18Decimals)).balanceOf(address(this));
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertGt(balanceOfMarket18Decimals, 0, "mint didn't work");
 
         uint256 borrowRateAfterMint = mToken(address(market18Decimals)).borrowRatePerBlock();
@@ -454,6 +470,7 @@ contract MarketHostForkTest is BaseForkTest {
     }
 
     function test_fork_utilizationRate_success_compareOldVsNewModel() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         console2.log("=== OLD VS NEW INTEREST MODEL COMPARISON ===");
         console2.log("Demonstrates identical liquidity setup producing overflow in old model");
         console2.log("while the new model keeps utilization and borrowRate capped at 1e18");
@@ -504,6 +521,7 @@ contract MarketHostForkTest is BaseForkTest {
         // old (uncapped) model
         uint256 utilOld = JumpRateModelV4(oldModel).utilizationRate(cash, totalBorrows, totalReserves);
         // new (capped) model
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 utilNew = newInterestModel.utilizationRate(cash, totalBorrows, totalReserves);
 
         console2.log("Cash:                 ", cash);
@@ -514,6 +532,7 @@ contract MarketHostForkTest is BaseForkTest {
         // =============================================================
         // 2. Assertions
         // =============================================================
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertGt(utilOld, 1e18);
         assertLe(utilNew, 1e18);
 
@@ -547,6 +566,7 @@ contract MarketHostForkTest is BaseForkTest {
     ////////////////////////////////////////////////////////////
 
     function test_fork_borrow_success_liquidityThresholdAndMitigationPoc() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         console2.log("=== UTILIZATION OVERFLOW & UNDERCOLLATERALIZATION POC ===");
         console2.log("Goal: Map the risk of first-borrower undercollateralization vs liquidity level");
         console2.log("      and prove that the capped utilization model + initial mintBurn fix it");
@@ -681,6 +701,7 @@ contract MarketHostForkTest is BaseForkTest {
     ////////////////////////////////////////////////////////////
 
     function test_fork_utilizationRate_success_lifecycleUtilizationPoc() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         console2.log("=== LIFECYCLE UTILIZATION STABILITY POC ===");
         console2.log(
             "Goal: observe utilization evolution across mint/borrow/repay/redeem cycles - basically what happened with our tests"

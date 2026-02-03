@@ -138,7 +138,7 @@ contract CommonLibTest is BaseTest {
     }
 
     function test_fuzz_checkLengthMatch2_success(uint256 length) public view {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         harness.checkLengthMatch2(length, length);
     }
 
@@ -160,7 +160,7 @@ contract CommonLibTest is BaseTest {
     }
 
     function test_fuzz_checkLengthMatch3_success(uint256 length) public view {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         harness.checkLengthMatch3(length, length, length);
     }
 

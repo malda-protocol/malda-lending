@@ -50,6 +50,7 @@ contract FirewallForkTest is BaseForkTest {
     ////////////////////////////////////////////////////////////
 
     function test_fork_supplyOnHost_success() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 amount = 1e17;
 
         deal(baseChainUnderlying, address(this), amount);
@@ -61,9 +62,11 @@ contract FirewallForkTest is BaseForkTest {
         extensionMarket.supplyOnHost(amount, address(this), bytes4(""));
 
         uint256 balanceWethAfter = IERC20(baseChainUnderlying).balanceOf(address(this));
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 accAmountInAfter = extensionMarket.accAmountIn(address(this));
 
         // it should decrease the caller underlying balance
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(balanceWethAfter + amount, balanceWethBefore);
 
         // it should increase accAmount
@@ -71,6 +74,7 @@ contract FirewallForkTest is BaseForkTest {
     }
 
     function test_fork_supplyOnHost_revertsWith_AccountNotRegistered() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.skip(true);
 
         uint256 amount = 1e17;
@@ -90,7 +94,9 @@ contract FirewallForkTest is BaseForkTest {
         uint256 accAmountInBefore = extensionMarket.accAmountIn(address(this));
 
         IERC20(baseChainUnderlying).approve(address(extensionMarket), amount);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert("Account not registered");
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         extensionMarket.supplyOnHost(amount, address(this), bytes4(""));
 
         extensionMarket.firewallRegister(address(this));
@@ -98,13 +104,12 @@ contract FirewallForkTest is BaseForkTest {
         vm.warp(block.timestamp + 10 minutes);
         extensionMarket.supplyOnHost(amount, address(this), bytes4(""));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceWethAfter = IERC20(baseChainUnderlying).balanceOf(address(this));
         uint256 accAmountInAfter = extensionMarket.accAmountIn(address(this));
 
-        // it should decrease the caller underlying balance
-        assertEq(balanceWethAfter + amount, balanceWethBefore);
+        assertEq(balanceWethAfter + amount, balanceWethBefore, "should decrease the caller underlying balance");
 
-        // it should increase accAmount
-        assertGt(accAmountInAfter, accAmountInBefore);
+        assertGt(accAmountInAfter, accAmountInBefore, "should increase accAmount");
     }
 }

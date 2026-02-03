@@ -61,65 +61,81 @@ contract MixedPriceOracleV3Test is BaseTest {
     //                      constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_constructor_revertsWith_MixedPriceOracle_AddressNotValid() external {
+    function test_fuzz_constructor_revertsWith_MixedPriceOracle_AddressNotValid(
+        uint8 underlyingDecimals,
+        uint256 staleness
+    ) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(underlyingDecimals <= 18);
+        staleness = bound(staleness, 1, 30 days);
+
         string[] memory symbols = new string[](1);
         symbols[0] = SYMBOL;
 
         IDefaultAdapter.PriceConfig[] memory configs = new IDefaultAdapter.PriceConfig[](1);
-        configs[0] = _config(address(0), 18);
+        configs[0] = _config(address(0), underlyingDecimals);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(MixedPriceOracleV3.MixedPriceOracle_AddressNotValid.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        new MixedPriceOracleV3(symbols, configs, address(0), 1 days);
+        new MixedPriceOracleV3(symbols, configs, address(0), staleness);
     }
 
     ////////////////////////////////////////////////////////////
     //                      setStaleness                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setStaleness_success_updatesMappingAndEmits() external {
+    function test_fuzz_setStaleness_success_updatesMappingAndEmits(uint256 newStaleness) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockV3Feed feed = new MockV3Feed(8, 1e8);
         MixedPriceOracleV3 oracle = _deployOracle(address(feed), SYMBOL, 18);
+        newStaleness = bound(newStaleness, 1, 30 days);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(false, false, false, true);
-        emit MixedPriceOracleV3.StalenessUpdated(SYMBOL, 1234);
+        emit MixedPriceOracleV3.StalenessUpdated(SYMBOL, newStaleness);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        oracle.setStaleness(SYMBOL, 1234);
+        oracle.setStaleness(SYMBOL, newStaleness);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(oracle.stalenessPerSymbol(SYMBOL), 1234);
+        assertEq(oracle.stalenessPerSymbol(SYMBOL), newStaleness);
     }
 
-    function test_unit_setStaleness_revertsWith_MixedPriceOracle_Unauthorized() external {
+    function test_fuzz_setStaleness_revertsWith_MixedPriceOracle_Unauthorized(uint256 newStaleness) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockV3Feed feed = new MockV3Feed(8, 1e8);
         MixedPriceOracleV3 oracle = _deployOracle(address(feed), SYMBOL, 18);
+        newStaleness = bound(newStaleness, 1, 30 days);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(MixedPriceOracleV3.MixedPriceOracle_Unauthorized.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.bob);
-        oracle.setStaleness(SYMBOL, 1234);
+        oracle.setStaleness(SYMBOL, newStaleness);
     }
 
     ////////////////////////////////////////////////////////////
     //                        setConfig                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setConfig_success_updatesMappingAndEmits() external {
+    function test_fuzz_setConfig_success_updatesMappingAndEmits(
+        uint8 feedDecimals,
+        uint8 underlyingDecimals,
+        uint64 rawPrice
+    ) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        MockV3Feed feed = new MockV3Feed(8, 1e8);
+        vm.assume(feedDecimals <= 18);
+        vm.assume(underlyingDecimals <= 18);
+        vm.assume(rawPrice > 0);
+
+        MockV3Feed feed = new MockV3Feed(feedDecimals, int256(uint256(rawPrice)));
         MixedPriceOracleV3 oracle = _deployOracle(address(feed), SYMBOL, 18);
 
-        MockV3Feed newFeed = new MockV3Feed(8, 2e8);
-        IDefaultAdapter.PriceConfig memory config = _config(address(newFeed), 6);
+        MockV3Feed newFeed = new MockV3Feed(feedDecimals, int256(uint256(rawPrice)));
+        IDefaultAdapter.PriceConfig memory config = _config(address(newFeed), underlyingDecimals);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(false, false, false, true);
@@ -132,15 +148,16 @@ contract MixedPriceOracleV3Test is BaseTest {
         (address storedFeed, string memory toSymbol, uint256 decimals) = oracle.configs(SYMBOL);
         assertEq(storedFeed, address(newFeed));
         assertEq(toSymbol, "USD");
-        assertEq(decimals, 6);
+        assertEq(decimals, underlyingDecimals);
     }
 
-    function test_unit_setConfig_revertsWith_MixedPriceOracle_InvalidConfig() external {
+    function test_fuzz_setConfig_revertsWith_MixedPriceOracle_InvalidConfig(uint8 underlyingDecimals) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(underlyingDecimals <= 18);
         MockV3Feed feed = new MockV3Feed(8, 1e8);
         MixedPriceOracleV3 oracle = _deployOracle(address(feed), SYMBOL, 18);
 
-        IDefaultAdapter.PriceConfig memory config = _config(address(0), 18);
+        IDefaultAdapter.PriceConfig memory config = _config(address(0), underlyingDecimals);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(MixedPriceOracleV3.MixedPriceOracle_InvalidConfig.selector);
@@ -153,9 +170,10 @@ contract MixedPriceOracleV3Test is BaseTest {
     //                         getPrice                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_getPrice_revertsWith_MixedPriceOracle_InvalidConfig() external {
+    function test_fuzz_getPrice_revertsWith_MixedPriceOracle_InvalidConfig(uint8 underlyingDecimals) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        IDefaultAdapter.PriceConfig memory config = _config(address(0), 18);
+        vm.assume(underlyingDecimals <= 18);
+        IDefaultAdapter.PriceConfig memory config = _config(address(0), underlyingDecimals);
         MixedPriceOracleV3 oracle = _deployOracleWithConfig(SYMBOL, config);
         MockV3MToken token = new MockV3MToken(SYMBOL, address(0));
 
@@ -166,9 +184,10 @@ contract MixedPriceOracleV3Test is BaseTest {
         oracle.getPrice(address(token));
     }
 
-    function test_unit_getPrice_revertsWith_MixedPriceOracle_InvalidPrice() external {
+    function test_fuzz_getPrice_revertsWith_MixedPriceOracle_InvalidPrice(uint8 feedDecimals) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        MockV3Feed feed = new MockV3Feed(8, 0);
+        vm.assume(feedDecimals <= 18);
+        MockV3Feed feed = new MockV3Feed(feedDecimals, 0);
         MixedPriceOracleV3 oracle = _deployOracle(address(feed), SYMBOL, 18);
         MockV3MToken token = new MockV3MToken(SYMBOL, address(0));
 
@@ -179,15 +198,21 @@ contract MixedPriceOracleV3Test is BaseTest {
         oracle.getPrice(address(token));
     }
 
-    function test_unit_getPrice_revertsWith_MixedPriceOracle_StalePrice() external {
+    function test_fuzz_getPrice_revertsWith_MixedPriceOracle_StalePrice(uint256 staleness, uint256 staleDelta)
+        external
+    {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        staleness = bound(staleness, 1, 30 days);
+        staleDelta = bound(staleDelta, staleness + 1, staleness + 30 days);
+
         MockV3Feed feed = new MockV3Feed(8, 1e8);
         MixedPriceOracleV3 oracle = _deployOracle(address(feed), SYMBOL, 18);
         MockV3MToken token = new MockV3MToken(SYMBOL, address(0));
 
-        vm.warp(100);
-        oracle.setStaleness(SYMBOL, 1);
-        feed.setUpdatedAt(block.timestamp - 2);
+        uint256 nowTs = staleDelta + 1;
+        vm.warp(nowTs);
+        oracle.setStaleness(SYMBOL, staleness);
+        feed.setUpdatedAt(nowTs - staleDelta);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(MixedPriceOracleV3.MixedPriceOracle_StalePrice.selector);
@@ -196,9 +221,12 @@ contract MixedPriceOracleV3Test is BaseTest {
         oracle.getPrice(address(token));
     }
 
-    function test_unit_getPrice_success_returnsScaledPrice() external {
+    function test_fuzz_getPrice_success_returnsScaledPrice(uint8 feedDecimals, uint64 rawPrice) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        MockV3Feed feed = new MockV3Feed(8, 2_500e8);
+        vm.assume(feedDecimals <= 18);
+        vm.assume(rawPrice > 0);
+
+        MockV3Feed feed = new MockV3Feed(feedDecimals, int256(uint256(rawPrice)));
         MixedPriceOracleV3 oracle = _deployOracle(address(feed), SYMBOL, 18);
         MockV3MToken token = new MockV3MToken(SYMBOL, address(0));
 
@@ -206,7 +234,8 @@ contract MixedPriceOracleV3Test is BaseTest {
         uint256 price = oracle.getPrice(address(token));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(price, 2_500e18);
+        uint256 expected = uint256(rawPrice) * 10 ** (18 - feedDecimals);
+        assertEq(price, expected);
     }
 
     function test_fuzz_getPrice_success_scales(uint8 feedDecimals, uint64 rawPrice) external {

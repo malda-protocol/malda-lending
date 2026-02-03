@@ -39,6 +39,7 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
     ////////////////////////////////////////////////////////////
 
     function test_fork_decodeMessage_success() public pure {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory data = new bytes(TEST_MESSAGE.length - 4);
         for (uint256 i = 4; i < TEST_MESSAGE.length; i++) {
             data[i - 4] = TEST_MESSAGE[i];
@@ -53,6 +54,7 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
             uint256 amountOutMin,
             uint48 ttl,
             bytes memory extraData
+            // ~~~~~~~~~~ Call ~~~~~~~~~~
         ) = abi.decode(data, (uint32[], bytes32, address, bytes32, uint256, uint256, uint48, bytes));
 
         console.log("Destinations length:", destinations.length);
@@ -65,6 +67,7 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         console.log("TTL:", ttl);
         console.log("Extra data length:", extraData.length);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(destinations.length, 1);
         assertEq(destinations[0], 8453);
         assertEq(inputAsset, USDC);
@@ -73,6 +76,7 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
     }
 
     function test_fork_decodeMessage_success_variant2() public pure {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory data = new bytes(TEST_MESSAGE.length - 4);
         for (uint256 i = 4; i < TEST_MESSAGE.length; i++) {
             data[i - 4] = TEST_MESSAGE[i];
@@ -98,6 +102,7 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         console.log("Fee:", fee);
         console.log("Deadline:", deadline);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(fee, 210000);
         assertEq(deadline, 1764805302);
     }
@@ -110,6 +115,7 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
 
     function test_fork_callNewIntent_success() public {
         // Decode the message into intent parameters
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         (
             uint32[] memory destinations,
             bytes32 receiver,
@@ -148,6 +154,7 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
     // TODO add revert cases and unskip
 
     function test_fork_sendMsg_success() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.skip(true);
         console.log("\n=== Test: sendMsg Success ===");
 
@@ -172,6 +179,7 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         vm.startPrank(REBALANCER);
         IERC20(USDC).approve(address(bridge), EXTRACTED_AMOUNT);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.sendMsg(EXTRACTED_AMOUNT, MARKET, DST_CHAIN_ID, USDC, TEST_MESSAGE, "");
         vm.stopPrank();
 
@@ -193,6 +201,7 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         console.log("  Fee Adapter received:", feeAdapterBalanceAfter - feeAdapterBalanceBefore);
 
         // Assertions
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(
             rebalancerBalanceBefore - rebalancerBalanceAfter,
             EXTRACTED_AMOUNT,

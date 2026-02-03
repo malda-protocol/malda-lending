@@ -52,6 +52,7 @@ contract CCTPBridgeForkTest is BaseForkTest {
     ////////////////////////////////////////////////////////////
 
     function test_fork_sendMsg_success() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 amount = 100e6;
 
         uint256 balBeforeRebalancer = IERC20(MAINNET_USDC).balanceOf(rebalancer);
@@ -63,11 +64,13 @@ contract CCTPBridgeForkTest is BaseForkTest {
         bridge.setDomainMapping(uint32(block.chainid), ETH_DOMAIN);
         bridge.setDomainMapping(BASE_CHAIN_ID, BASE_DOMAIN);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.sendMsg(amount, fakeMarket, BASE_CHAIN_ID, MAINNET_USDC, "", "");
 
         uint256 balAfterRebalancer = IERC20(MAINNET_USDC).balanceOf(rebalancer);
         uint256 balAfterBridge = IERC20(MAINNET_USDC).balanceOf(address(bridge));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(balBeforeRebalancer - balAfterRebalancer, amount, "rebalancer delta");
         assertEq(balAfterBridge, balBeforeBridge, "bridge should not hold USDC after burn");
     }

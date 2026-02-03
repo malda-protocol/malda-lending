@@ -86,6 +86,7 @@ contract MigrationForkTest is BaseForkTest {
     ////////////////////////////////////////////////////////////
 
     function test_fork_getAllPositions_success() external pure {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         return;
         // TODO @Cosmin leave for now
         // vm.prank(USER_V1);
@@ -101,7 +102,9 @@ contract MigrationForkTest is BaseForkTest {
     ////////////////////////////////////////////////////////////
 
     function test_fork_getAllCollateralMarkets_success() external view {
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         address[] memory positions = migrator.getAllCollateralMarkets(USER_V1);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(positions.length, 2);
         assertEq(positions[1], WETH_MARKET_V1);
     }
@@ -113,6 +116,7 @@ contract MigrationForkTest is BaseForkTest {
     ////////////////////////////////////////////////////////////
 
     function test_fork_migrateAllPositions_revertsWith() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address _prevOwner = MALDA_WETH_MARKET_OWNER;
         MALDA_WETH_MARKET_OWNER = address(this);
         vm.startPrank(MALDA_WETH_MARKET_OWNER);
@@ -151,13 +155,16 @@ contract MigrationForkTest is BaseForkTest {
         deal(WETH, MALDA_WETH_MARKET, 1 ether);
         vm.startPrank(USER_V1);
         IERC20(WETH_MARKET_V1).approve(address(migrator), type(uint256).max);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(); //TODO: remove
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         migrator.migrateAllPositions();
         IERC20(MALDA_WETH_MARKET).approve(address(migrator), 0);
         vm.stopPrank();
 
         uint256 collateralAmount = ImToken(MALDA_WETH_MARKET).balanceOfUnderlying(address(this));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertApproxEqAbs(mendiV1Collateral, collateralAmount, 0.1e18);
     }
 }

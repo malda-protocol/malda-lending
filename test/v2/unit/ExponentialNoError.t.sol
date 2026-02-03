@@ -104,7 +104,6 @@ contract ExponentialNoErrorTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_fuzz_callLessThanOrEqualExp_success(uint256 left, uint256 right) external view {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(harness.callLessThanOrEqualExp(left, right), left <= right);
     }
@@ -114,7 +113,6 @@ contract ExponentialNoErrorTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_fuzz_callGreaterThanExp_success(uint256 left, uint256 right) external view {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(harness.callGreaterThanExp(left, right), left > right);
     }
@@ -124,7 +122,6 @@ contract ExponentialNoErrorTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_fuzz_callIsZeroExp_success(uint256 value) external view {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(harness.callIsZeroExp(value), value == 0);
     }
@@ -134,7 +131,6 @@ contract ExponentialNoErrorTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_fuzz_callSafe224_success(uint224 value) external view {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(harness.callSafe224(uint256(value), "SAFE224"), value);
     }
@@ -144,6 +140,7 @@ contract ExponentialNoErrorTest is BaseTest {
         value = bound(value, uint256(type(uint224).max) + 1, type(uint256).max);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert("SAFE224");
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.callSafe224(value, "SAFE224");
     }
 
@@ -152,7 +149,6 @@ contract ExponentialNoErrorTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_fuzz_callSafe32_success(uint32 value) external view {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(harness.callSafe32(uint256(value), "SAFE32"), value);
     }
@@ -162,6 +158,7 @@ contract ExponentialNoErrorTest is BaseTest {
         value = bound(value, uint256(type(uint32).max) + 1, type(uint256).max);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert("SAFE32");
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.callSafe32(value, "SAFE32");
     }
 
@@ -318,9 +315,9 @@ contract ExponentialNoErrorTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_fuzz_callDivUpUint_revertsWith_DIV_BY_ZERO_DIV_revertsWhenDivisorZero(uint256 value) external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert("DIV_BY_ZERO");
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.callDivUpUint(value, 0);
     }
 

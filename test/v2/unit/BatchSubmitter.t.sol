@@ -97,14 +97,12 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_constructor_revertsWith_BatchSubmitter_AddressNotValid_whenRolesZero() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BatchSubmitter.BatchSubmitter_AddressNotValid.selector);
         new BatchSubmitter(address(0), address(1), address(this));
     }
 
     function test_unit_constructor_revertsWith_BatchSubmitter_AddressNotValid_whenVerifierZero() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BatchSubmitter.BatchSubmitter_AddressNotValid.selector);
         new BatchSubmitter(address(1), address(0), address(this));
@@ -115,9 +113,9 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_updateZkVerifier_revertsWith_BatchSubmitter_AddressNotValid() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BatchSubmitter.BatchSubmitter_AddressNotValid.selector);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.updateZkVerifier(address(0));
     }
 
@@ -126,9 +124,10 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         ZkVerifier newVerifier = new ZkVerifier(address(this), "0x456", address(verifierMock));
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectEmit(true, true, true, true);
+        vm.expectEmit(true, true, true, true, address(batchSubmitter));
         emit BatchSubmitter.ZkVerifierUpdated(address(zkVerifier), address(newVerifier));
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.updateZkVerifier(address(newVerifier));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(address(batchSubmitter.verifier()), address(newVerifier));
@@ -139,8 +138,11 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_batchProcess_revertsWith_BatchSubmitter_CallerNotAllowed() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory encodedJournals = abi.encode(journals);
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BatchSubmitter.BatchSubmitter_CallerNotAllowed.selector);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
                 receivers,
@@ -162,6 +164,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         external
         givenSenderHasProofForwarderRole
     {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BatchSubmitter.BatchSubmitter_JournalNotValid.selector);
 
         receivers = new address[](1);
@@ -170,6 +173,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         initHashes = new bytes32[](1);
         initHashes[0] = bytes32(0);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
                 receivers,
@@ -191,6 +195,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         external
         givenSenderHasProofForwarderRole
     {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes4[] memory invalidSelectors = new bytes4[](1);
         invalidSelectors[0] = bytes4(0x12345678);
 
@@ -210,7 +215,9 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         initHashes = new bytes32[](1);
         initHashes[0] = keccak256(journals[0]);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BatchSubmitter.BatchSubmitter_InvalidSelector.selector);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
                 receivers,
@@ -238,6 +245,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(stdError.indexOOBError);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
                 receivers,
@@ -264,6 +272,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(stdError.indexOOBError);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
                 receivers,
@@ -290,6 +299,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(stdError.indexOOBError);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
                 receivers,
@@ -307,8 +317,12 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         );
     }
 
-    function test_unit_batchProcess_success_marketIsNotListed_failed() external givenSenderHasProofForwarderRole {
+    function test_fuzz_batchProcess_success_marketIsNotListed_failed(uint256 amount)
+        external
+        givenSenderHasProofForwarderRole
+    {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        amount = bound(amount, SMALL, LARGE);
         mErc20Host mErc20HostImpl = new mErc20Host();
         bytes memory initData = abi.encodeWithSelector(
             mErc20Host.initialize.selector,
@@ -337,7 +351,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         receivers[0] = address(this);
 
         amounts = new uint256[](1);
-        amounts[0] = 1 ether;
+        amounts[0] = amount;
 
         address[] memory senders = new address[](1);
         senders[0] = address(this);
@@ -351,10 +365,11 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
 
         bytes memory reason = abi.encodeWithSelector(OperatorStorage.Operator_MarketNotListed.selector);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectEmit(true, true, true, true);
+        vm.expectEmit(true, true, true, true, address(batchSubmitter));
         emit BatchSubmitter.BatchProcessFailed(
             initHashes[0], receivers[0], mTokens[0], amounts[0], amounts[0], selectors[0], reason
         );
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
                 receivers,
@@ -377,8 +392,21 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         givenSenderHasProofForwarderRole
         whenMarketIsListed(address(mWethHost))
     {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory encodedJournals = abi.encode(journals);
+        _getTokens(weth, address(mWethExtension), amounts[0]);
+        _getTokens(usdc, address(mUsdcExtension), amounts[1]);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(false, false, false, true, address(batchSubmitter));
+        emit BatchSubmitter.BatchProcessSuccess(
+            initHashes[0], receivers[0], mTokens[0], amounts[0], amounts[0], selectors[0]
+        );
+        vm.expectEmit(false, false, false, true, address(batchSubmitter));
+        emit BatchSubmitter.BatchProcessSuccess(
+            initHashes[1], receivers[1], mTokens[1], amounts[1], amounts[1], selectors[1]
+        );
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
                 receivers,
@@ -401,12 +429,24 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         givenSenderHasProofForwarderRole
         whenMarketIsListed(address(mWethHost))
     {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         selectors = new bytes4[](2);
         selectors[0] = MINT_SELECTOR;
         selectors[1] = MINT_SELECTOR;
 
         bytes memory encodedJournals = _setHostBatch();
+        uint256[] memory minAmountsOut = new uint256[](2);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(false, false, false, true, address(batchSubmitter));
+        emit BatchSubmitter.BatchProcessSuccess(
+            initHashes[0], receivers[0], mTokens[0], amounts[0], minAmountsOut[0], MINT_SELECTOR
+        );
+        vm.expectEmit(false, false, false, true, address(batchSubmitter));
+        emit BatchSubmitter.BatchProcessSuccess(
+            initHashes[1], receivers[1], mTokens[1], amounts[1], minAmountsOut[1], MINT_SELECTOR
+        );
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
                 receivers,
@@ -414,7 +454,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
                 "",
                 mTokens,
                 amounts,
-                amounts,
+                minAmountsOut,
                 selectors,
                 initHashes,
                 0,
@@ -429,20 +469,44 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         givenSenderHasProofForwarderRole
         whenMarketIsListed(address(mWethHost))
     {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         selectors = new bytes4[](2);
         selectors[0] = REPAY_SELECTOR;
         selectors[1] = REPAY_SELECTOR;
 
         bytes memory encodedJournals = _setHostBatch();
 
-        _getTokens(weth, address(this), amounts[0]);
-        weth.approve(address(mWethHost), amounts[0]);
-        mWethHost.mint(amounts[0], address(this), 0);
+        oracleOperator.setUnderlyingPrice(DEFAULT_ORACLE_PRICE);
+        operator.setCollateralFactor(address(mWethHost), DEFAULT_COLLATERAL_FACTOR);
+        operator.setCollateralFactor(address(mUsdcHost), DEFAULT_COLLATERAL_FACTOR);
 
-        _getTokens(usdc, address(this), amounts[1]);
-        usdc.approve(address(mUsdcHost), amounts[1]);
-        mUsdcHost.mint(amounts[1], address(this), 0);
+        address[] memory markets = new address[](2);
+        markets[0] = address(mWethHost);
+        markets[1] = address(mUsdcHost);
+        operator.enterMarkets(markets);
 
+        uint256 supplyWethAmount = amounts[0] + amounts[0];
+        _getTokens(weth, address(this), supplyWethAmount);
+        weth.approve(address(mWethHost), supplyWethAmount);
+        mWethHost.mint(supplyWethAmount, address(this), 0);
+        mWethHost.borrow(amounts[0]);
+
+        uint256 supplyUsdcAmount = amounts[1] + amounts[1];
+        _getTokens(usdc, address(this), supplyUsdcAmount);
+        usdc.approve(address(mUsdcHost), supplyUsdcAmount);
+        mUsdcHost.mint(supplyUsdcAmount, address(this), 0);
+        mUsdcHost.borrow(amounts[1]);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(false, false, false, true, address(batchSubmitter));
+        emit BatchSubmitter.BatchProcessSuccess(
+            initHashes[0], receivers[0], mTokens[0], amounts[0], amounts[0], selectors[0]
+        );
+        vm.expectEmit(false, false, false, true, address(batchSubmitter));
+        emit BatchSubmitter.BatchProcessSuccess(
+            initHashes[1], receivers[1], mTokens[1], amounts[1], amounts[1], selectors[1]
+        );
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
                 receivers,
@@ -460,11 +524,12 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         );
     }
 
-    function test_unit_batchProcess_success_liquidateHost()
+    function test_unit_batchProcess_success_liquidateHost_whenLiquidateFails()
         external
         givenSenderHasProofForwarderRole
         whenMarketIsListed(address(mWethHost))
     {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         selectors = new bytes4[](2);
         selectors[0] = LIQUIDATE_SELECTOR;
         selectors[1] = LIQUIDATE_SELECTOR;
@@ -487,6 +552,16 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         collateral[0] = address(mWethHost);
         collateral[1] = address(mUsdcHost);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(false, false, false, true, address(batchSubmitter));
+        emit BatchSubmitter.BatchProcessSuccess(
+            initHashes[0], receivers[0], mTokens[0], amounts[0], amounts[0], MINT_SELECTOR
+        );
+        vm.expectEmit(false, false, false, true, address(batchSubmitter));
+        emit BatchSubmitter.BatchProcessSuccess(
+            initHashes[1], receivers[1], mTokens[1], amounts[1], amounts[1], MINT_SELECTOR
+        );
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
                 receivers,
