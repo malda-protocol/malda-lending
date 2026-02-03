@@ -67,7 +67,7 @@ contract FirewallForkTest is BaseForkTest {
 
         // it should decrease the caller underlying balance
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(balanceWethAfter + amount, balanceWethBefore);
+        assertEq(balanceWethAfter + amount, balanceWethBefore, "assertEq failed: values do not match");
 
         // it should increase accAmount
         assertGt(accAmountInAfter, accAmountInBefore);

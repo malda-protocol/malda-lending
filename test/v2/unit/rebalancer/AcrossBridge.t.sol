@@ -33,14 +33,6 @@ contract AcrossBridgeTest is BaseTest {
         roles.allowFor(address(this), roles.REBALANCER(), true);
     }
 
-    function _encodeMessage(uint256 inputAmount, uint256 outputAmount, address relayer)
-        internal
-        view
-        returns (bytes memory)
-    {
-        return abi.encode(address(token), inputAmount, outputAmount, relayer, uint32(100), uint32(200));
-    }
-
     ////////////////////////////////////////////////////////////
     //                      constructor                       //
     ////////////////////////////////////////////////////////////
@@ -84,7 +76,7 @@ contract AcrossBridgeTest is BaseTest {
         bridge.setWhitelistedRelayer(MAINNET_CHAIN_ID, address(0), true);
     }
 
-    function test_unit_setWhitelistedRelayer_success_updatesMappingAndEmits() external {
+    function test_unit_setWhitelistedRelayer_success() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit AccrossBridge.WhitelistedRelayerStatusUpdated(address(this), MAINNET_CHAIN_ID, users.bob, true);
@@ -130,7 +122,7 @@ contract AcrossBridgeTest is BaseTest {
         bridge.handleV3AcrossMessage(address(token), 1, address(0), abi.encode(address(otherMarket)));
     }
 
-    function test_unit_handleV3AcrossMessage_success_transfersToMarketAndEmits() external {
+    function test_unit_handleV3AcrossMessage_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         rebalancer.setWhitelisted(address(market), true);
         token.mint(address(bridge), 5e18);
@@ -144,7 +136,7 @@ contract AcrossBridgeTest is BaseTest {
         bridge.handleV3AcrossMessage(address(token), 5e18, address(0), abi.encode(address(market)));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(address(market)), 5e18);
+        assertEq(token.balanceOf(address(market)), 5e18, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -185,7 +177,7 @@ contract AcrossBridgeTest is BaseTest {
         bridge.sendMsg(100, address(market), MAINNET_CHAIN_ID, address(token), message, "");
     }
 
-    function test_fuzz_sendMsg_success_transfersAndDeposits(uint256 inputAmount, uint256 outputAmount) external {
+    function test_fuzz_sendMsg_success(uint256 inputAmount, uint256 outputAmount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bridge.setWhitelistedRelayer(MAINNET_CHAIN_ID, users.bob, true);
 
@@ -202,18 +194,22 @@ contract AcrossBridgeTest is BaseTest {
         bridge.sendMsg(inputAmount, address(market), MAINNET_CHAIN_ID, address(token), message, "");
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(spokePool.lastDepositor(), address(this));
-        assertEq(spokePool.lastRecipient(), address(bridge));
-        assertEq(spokePool.lastInputToken(), address(token));
-        assertEq(spokePool.lastOutputToken(), address(token));
-        assertEq(spokePool.lastInputAmount(), inputAmount);
-        assertEq(spokePool.lastOutputAmount(), outputAmount);
-        assertEq(spokePool.lastDestinationChainId(), MAINNET_CHAIN_ID);
-        assertEq(spokePool.lastExclusiveRelayer(), users.bob);
-        assertEq(spokePool.lastFillDeadline(), 100);
-        assertEq(spokePool.lastExclusivityDeadline(), 200);
-        assertEq(spokePool.lastMessageLength(), 32);
-        assertEq(spokePool.lastMessageWord(), bytes32(uint256(uint160(address(market)))));
+        assertEq(spokePool.lastDepositor(), address(this), "assertEq failed: values do not match");
+        assertEq(spokePool.lastRecipient(), address(bridge), "assertEq failed: values do not match");
+        assertEq(spokePool.lastInputToken(), address(token), "assertEq failed: values do not match");
+        assertEq(spokePool.lastOutputToken(), address(token), "assertEq failed: values do not match");
+        assertEq(spokePool.lastInputAmount(), inputAmount, "assertEq failed: values do not match");
+        assertEq(spokePool.lastOutputAmount(), outputAmount, "assertEq failed: values do not match");
+        assertEq(spokePool.lastDestinationChainId(), MAINNET_CHAIN_ID, "assertEq failed: values do not match");
+        assertEq(spokePool.lastExclusiveRelayer(), users.bob, "assertEq failed: values do not match");
+        assertEq(spokePool.lastFillDeadline(), 100, "assertEq failed: values do not match");
+        assertEq(spokePool.lastExclusivityDeadline(), 200, "assertEq failed: values do not match");
+        assertEq(spokePool.lastMessageLength(), 32, "assertEq failed: values do not match");
+        assertEq(
+            spokePool.lastMessageWord(),
+            bytes32(uint256(uint160(address(market)))),
+            "assertEq failed: values do not match"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -226,5 +222,17 @@ contract AcrossBridgeTest is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.getFee(MAINNET_CHAIN_ID, "", "");
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _encodeMessage(uint256 inputAmount, uint256 outputAmount, address relayer)
+        internal
+        view
+        returns (bytes memory)
+    {
+        return abi.encode(address(token), inputAmount, outputAmount, relayer, uint32(100), uint32(200));
     }
 }

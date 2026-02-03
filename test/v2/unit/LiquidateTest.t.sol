@@ -59,10 +59,12 @@ contract LiquidationTest is BaseMTokenTest {
         dai.approve(address(mDaiHost), type(uint256).max);
         mDaiHost.mint(5000 ether, address(this), 5000 ether - 1000);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(borrower);
         mDaiHost.borrow(1000 ether);
 
         _getTokens(dai, liquidator, 2000 ether);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         dai.approve(address(mDaiHost), type(uint256).max);
 
@@ -73,14 +75,15 @@ contract LiquidationTest is BaseMTokenTest {
         uint256 liquidatorCollatBefore = mWeth.balanceOf(liquidator);
 
         // perform liquidation
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
 
         uint256 borrowerCollatAfter = mWeth.balanceOf(borrower);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 liquidatorCollatAfter = mWeth.balanceOf(liquidator);
 
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertLt(borrowerCollatAfter, borrowerCollatBefore, "should decrease");
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
@@ -104,10 +107,12 @@ contract LiquidationTest is BaseMTokenTest {
         dai.approve(address(mDaiHost), type(uint256).max);
         mDaiHost.mint(5000 ether, address(this), 5000 ether - 1000);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(borrower);
         mDaiHost.borrow(1000 ether);
 
         _getTokens(dai, liquidator, 2000 ether);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         dai.approve(address(mDaiHost), type(uint256).max);
 
@@ -118,14 +123,15 @@ contract LiquidationTest is BaseMTokenTest {
         uint256 liquidatorCollatBefore = mWeth.balanceOf(liquidator);
 
         // perform liquidation
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
 
         uint256 borrowerCollatAfter = mWeth.balanceOf(borrower);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 liquidatorCollatAfter = mWeth.balanceOf(liquidator);
 
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertLt(borrowerCollatAfter, borrowerCollatBefore, "should decrease");
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
@@ -149,10 +155,12 @@ contract LiquidationTest is BaseMTokenTest {
         dai.approve(address(mDaiHost), type(uint256).max);
         mDaiHost.mint(5000 ether, address(this), 5000 ether - 1000);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(borrower);
         mDaiHost.borrow(1000 ether);
 
         _getTokens(dai, liquidator, 2000 ether);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         dai.approve(address(mDaiHost), type(uint256).max);
 
@@ -164,6 +172,7 @@ contract LiquidationTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         // perform liquidation
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
 
@@ -179,7 +188,7 @@ contract LiquidationTest is BaseMTokenTest {
     //                   SetUnderlyingPrice                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setUnderlyingPrice_success_simulation_PriceDropNormal_AndLog() public {
+    function test_unit_setUnderlyingPrice_success() public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
@@ -201,6 +210,7 @@ contract LiquidationTest is BaseMTokenTest {
         mDaiHost.borrow(1000 ether);
 
         _getTokens(dai, liquidator, 2000 ether);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         dai.approve(address(mDaiHost), type(uint256).max);
 

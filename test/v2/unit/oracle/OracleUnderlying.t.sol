@@ -71,6 +71,48 @@ contract OracleUnderlyingTest is Operator, BaseTest {
         oracleOperator = address(mixedPriceOracle);
     }
 
+    ////////////////////////////////////////////////////////////
+    //                   getUnderlyingPrice                   //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_getUnderlyingPrice_success() external {
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 btcPrice = mixedPriceOracle.getUnderlyingPrice(address(mBtc));
+        uint256 ethPrice = mixedPriceOracle.getUnderlyingPrice(address(mEth));
+        uint256 usdcPrice = mixedPriceOracle.getUnderlyingPrice(address(mUsdc));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(btcPrice, 10 ** (36 - BITCOIN_DECIMALS) * USD_PER_BITCOIN, "assertEq failed: values do not match");
+        assertEq(ethPrice, 10 ** (36 - ETH_DECIMALS) * USD_PER_ETH, "assertEq failed: values do not match");
+        assertEq(usdcPrice, 10 ** (36 - USDC_DECIMALS) * USD_PER_USDC, "assertEq failed: values do not match");
+    }
+
+    function test_fuzz_convertMarketAmountToUSDValue_success(uint256 rawAmount) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 maxPrice = 10 ** (36 - BITCOIN_DECIMALS) * USD_PER_BITCOIN;
+        uint256 maxAmount = type(uint256).max / maxPrice;
+        uint256 amount = bound(rawAmount, 1, maxAmount);
+
+        uint256 btcValue = _convertMarketAmountToUSDValue(amount, address(mBtc));
+        uint256 ethValue = _convertMarketAmountToUSDValue(amount, address(mEth));
+        uint256 usdcValue = _convertMarketAmountToUSDValue(amount, address(mUsdc));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            btcValue,
+            _expectedUsdValue(amount, USD_PER_BITCOIN, BITCOIN_DECIMALS),
+            "assertEq failed: values do not match"
+        );
+        assertEq(ethValue, _expectedUsdValue(amount, USD_PER_ETH, ETH_DECIMALS), "assertEq failed: values do not match");
+        assertEq(
+            usdcValue, _expectedUsdValue(amount, USD_PER_USDC, USDC_DECIMALS), "assertEq failed: values do not match"
+        );
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
     function _newUsdOracle(uint256 usdPerToken) internal returns (MockChainlinkOracle) {
         uint256 price = 10 ** FEED_DECIMALS * usdPerToken;
         return new MockChainlinkOracle(price, FEED_DECIMALS);
@@ -90,37 +132,5 @@ contract OracleUnderlyingTest is Operator, BaseTest {
         }
 
         return (amount * usdPerToken) / (10 ** (decimals - 8));
-    }
-
-    ////////////////////////////////////////////////////////////
-    //                   getUnderlyingPrice                   //
-    ////////////////////////////////////////////////////////////
-
-    function test_unit_getUnderlyingPrice_success_returnsExpectedPrices() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        uint256 btcPrice = mixedPriceOracle.getUnderlyingPrice(address(mBtc));
-        uint256 ethPrice = mixedPriceOracle.getUnderlyingPrice(address(mEth));
-        uint256 usdcPrice = mixedPriceOracle.getUnderlyingPrice(address(mUsdc));
-
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(btcPrice, 10 ** (36 - BITCOIN_DECIMALS) * USD_PER_BITCOIN);
-        assertEq(ethPrice, 10 ** (36 - ETH_DECIMALS) * USD_PER_ETH);
-        assertEq(usdcPrice, 10 ** (36 - USDC_DECIMALS) * USD_PER_USDC);
-    }
-
-    function test_fuzz_convertMarketAmountToUSDValue_success(uint256 rawAmount) external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        uint256 maxPrice = 10 ** (36 - BITCOIN_DECIMALS) * USD_PER_BITCOIN;
-        uint256 maxAmount = type(uint256).max / maxPrice;
-        uint256 amount = bound(rawAmount, 1, maxAmount);
-
-        uint256 btcValue = _convertMarketAmountToUSDValue(amount, address(mBtc));
-        uint256 ethValue = _convertMarketAmountToUSDValue(amount, address(mEth));
-        uint256 usdcValue = _convertMarketAmountToUSDValue(amount, address(mUsdc));
-
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(btcValue, _expectedUsdValue(amount, USD_PER_BITCOIN, BITCOIN_DECIMALS));
-        assertEq(ethValue, _expectedUsdValue(amount, USD_PER_ETH, ETH_DECIMALS));
-        assertEq(usdcValue, _expectedUsdValue(amount, USD_PER_USDC, USDC_DECIMALS));
     }
 }

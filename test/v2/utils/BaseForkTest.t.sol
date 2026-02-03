@@ -16,6 +16,10 @@ abstract contract BaseForkTest is BaseTest {
         baseFork = vm.createSelectFork(vm.envString("BASE_RPC_URL"));
     }
 
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
     function _selectLineaFork() internal {
         vm.selectFork(lineaFork);
     }

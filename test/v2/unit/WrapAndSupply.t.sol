@@ -67,7 +67,7 @@ contract WrapAndSupplyTest is BaseTest {
     //                     MockHostMarket                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_wrapAndSupplyOnHostMarket_success_mintsToMarket() external {
+    function test_unit_wrapAndSupplyOnHostMarket_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockHostMarket market = new MockHostMarket(address(wrapped));
@@ -75,11 +75,11 @@ contract WrapAndSupplyTest is BaseTest {
         helper.wrapAndSupplyOnHostMarket{value: 2 ether}(address(market), address(this), 123);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(market.lastMintAmount(), 2 ether);
-        assertEq(market.lastReceiver(), address(this));
-        assertEq(market.lastMinAmount(), 123);
-        assertEq(wrapped.balanceOf(address(helper)), 2 ether);
-        assertEq(wrapped.allowance(address(helper), address(market)), 2 ether);
+        assertEq(market.lastMintAmount(), 2 ether, "assertEq failed: values do not match");
+        assertEq(market.lastReceiver(), address(this), "assertEq failed: values do not match");
+        assertEq(market.lastMinAmount(), 123, "assertEq failed: values do not match");
+        assertEq(wrapped.balanceOf(address(helper)), 2 ether, "assertEq failed: values do not match");
+        assertEq(wrapped.allowance(address(helper), address(market)), 2 ether, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -124,7 +124,7 @@ contract WrapAndSupplyTest is BaseTest {
     //                         Supply                         //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_supply_success_success(uint256 amount, uint256 gasFee) external {
+    function test_fuzz_supply_success(uint256 amount, uint256 gasFee) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         amount = bound(amount, 1, 10 ether);
         gasFee = bound(gasFee, 0, amount - 1);
@@ -138,11 +138,13 @@ contract WrapAndSupplyTest is BaseTest {
         uint256 expectedAmount = amount - gasFee;
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(gateway.lastAmount(), expectedAmount);
-        assertEq(gateway.lastReceiver(), address(this));
-        assertEq(gateway.lastSelector(), selector);
-        assertEq(gateway.lastValue(), gasFee);
-        assertEq(wrapped.balanceOf(address(helper)), expectedAmount);
-        assertEq(wrapped.allowance(address(helper), address(gateway)), expectedAmount);
+        assertEq(gateway.lastAmount(), expectedAmount, "assertEq failed: values do not match");
+        assertEq(gateway.lastReceiver(), address(this), "assertEq failed: values do not match");
+        assertEq(gateway.lastSelector(), selector, "assertEq failed: values do not match");
+        assertEq(gateway.lastValue(), gasFee, "assertEq failed: values do not match");
+        assertEq(wrapped.balanceOf(address(helper)), expectedAmount, "assertEq failed: values do not match");
+        assertEq(
+            wrapped.allowance(address(helper), address(gateway)), expectedAmount, "assertEq failed: values do not match"
+        );
     }
 }

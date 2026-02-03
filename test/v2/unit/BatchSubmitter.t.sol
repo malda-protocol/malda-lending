@@ -73,25 +73,6 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         _;
     }
 
-    function _setHostBatch() internal returns (bytes memory encodedJournals) {
-        address[] memory hostMarkets = new address[](2);
-        hostMarkets[0] = address(mWethHost);
-        hostMarkets[1] = address(mUsdcHost);
-        mTokens = hostMarkets;
-
-        address[] memory senders = new address[](2);
-        senders[0] = address(this);
-        senders[1] = address(this);
-
-        encodedJournals =
-            _createBatchJournals(senders, hostMarkets, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
-        journals = abi.decode(encodedJournals, (bytes[]));
-
-        initHashes = new bytes32[](2);
-        initHashes[0] = keccak256(journals[0]);
-        initHashes[1] = keccak256(journals[1]);
-    }
-
     ////////////////////////////////////////////////////////////
     //                      Constructor                       //
     ////////////////////////////////////////////////////////////
@@ -119,7 +100,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         batchSubmitter.updateZkVerifier(address(0));
     }
 
-    function test_unit_updateZkVerifier_success_updates() external {
+    function test_unit_updateZkVerifier_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         ZkVerifier newVerifier = new ZkVerifier(address(this), "0x456", address(verifierMock));
 
@@ -129,8 +110,9 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.updateZkVerifier(address(newVerifier));
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(batchSubmitter.verifier()), address(newVerifier));
+        assertEq(address(batchSubmitter.verifier()), address(newVerifier), "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -577,5 +559,28 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
                 collateral
             )
         );
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _setHostBatch() internal returns (bytes memory encodedJournals) {
+        address[] memory hostMarkets = new address[](2);
+        hostMarkets[0] = address(mWethHost);
+        hostMarkets[1] = address(mUsdcHost);
+        mTokens = hostMarkets;
+
+        address[] memory senders = new address[](2);
+        senders[0] = address(this);
+        senders[1] = address(this);
+
+        encodedJournals =
+            _createBatchJournals(senders, hostMarkets, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
+        journals = abi.decode(encodedJournals, (bytes[]));
+
+        initHashes = new bytes32[](2);
+        initHashes[0] = keccak256(journals[0]);
+        initHashes[1] = keccak256(journals[1]);
     }
 }

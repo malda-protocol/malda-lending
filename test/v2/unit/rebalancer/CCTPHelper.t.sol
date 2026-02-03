@@ -58,6 +58,7 @@ contract CCTPHelperTest is BaseTest {
         token.mint(user, 1_000_000);
         helper.setAcceptedToken(address(token), true);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(user);
         token.approve(address(helper), type(uint256).max);
     }
@@ -66,9 +67,13 @@ contract CCTPHelperTest is BaseTest {
     //                  exposedCreateAndBurn                  //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_exposedCreateAndBurn_success_emitsAndReturns(uint256 amount, bytes calldata payload) external {
+    function test_fuzz_exposedCreateAndBurn_success(uint256 amount, bytes calldata payload) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(payload.length <= 64);
+        uint256 payloadLength = bound(payload.length, 0, 64);
+        bytes memory boundedPayload = new bytes(payloadLength);
+        for (uint256 i; i < payloadLength; ++i) {
+            boundedPayload[i] = payload[i];
+        }
         amount = bound(amount, 1, token.balanceOf(user));
 
         bytes32 receiver = bytes32(uint256(uint160(users.carol)));
@@ -79,33 +84,33 @@ contract CCTPHelperTest is BaseTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
-        emit CCTPHelper.BurnInitiated(address(token), amount, DST, receiver, 0, payload);
+        emit CCTPHelper.BurnInitiated(address(token), amount, DST, receiver, 0, boundedPayload);
 
         vm.expectEmit(true, true, true, false);
-        emit CCTPHelper.MessageCreated(expectedToken, amount, SRC, DST, 0, expectedFrom, receiver, payload, "");
+        emit CCTPHelper.MessageCreated(expectedToken, amount, SRC, DST, 0, expectedFrom, receiver, boundedPayload, "");
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (CCTPHelper.CCTPMessage memory msgData, bytes memory encoded) =
-            helper.exposedCreateAndBurn(address(token), amount, DST, receiver, payload, SRC);
+            helper.exposedCreateAndBurn(address(token), amount, DST, receiver, boundedPayload, SRC);
 
         vm.stopPrank();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(msgData.amount, amount);
-        assertEq(msgData.srcChain, SRC);
-        assertEq(msgData.dstChain, DST);
-        assertEq(msgData.nonce, 0);
-        assertEq(msgData.from, expectedFrom);
-        assertEq(msgData.receiver, receiver);
-        assertEq(keccak256(msgData.payload), keccak256(payload));
+        assertEq(msgData.amount, amount, "assertEq failed: values do not match");
+        assertEq(msgData.srcChain, SRC, "assertEq failed: values do not match");
+        assertEq(msgData.dstChain, DST, "assertEq failed: values do not match");
+        assertEq(msgData.nonce, 0, "assertEq failed: values do not match");
+        assertEq(msgData.from, expectedFrom, "assertEq failed: values do not match");
+        assertEq(msgData.receiver, receiver, "assertEq failed: values do not match");
+        assertEq(keccak256(msgData.payload), keccak256(boundedPayload), "assertEq failed: values do not match");
         assertGe(encoded.length, 147);
 
-        assertEq(messenger.lastCaller(), address(helper));
-        assertEq(messenger.lastToken(), address(token));
-        assertEq(messenger.lastAmount(), amount);
-        assertEq(messenger.lastDst(), DST);
-        assertEq(messenger.lastReceiver(), receiver);
-        assertEq(keccak256(messenger.lastPayload()), keccak256(payload));
+        assertEq(messenger.lastCaller(), address(helper), "assertEq failed: values do not match");
+        assertEq(messenger.lastToken(), address(token), "assertEq failed: values do not match");
+        assertEq(messenger.lastAmount(), amount, "assertEq failed: values do not match");
+        assertEq(messenger.lastDst(), DST, "assertEq failed: values do not match");
+        assertEq(messenger.lastReceiver(), receiver, "assertEq failed: values do not match");
+        assertEq(keccak256(messenger.lastPayload()), keccak256(boundedPayload), "assertEq failed: values do not match");
     }
 
     function test_unit_exposedCreateAndBurn_revertsWith_CCTPHelper_AmountZero() external {
@@ -145,7 +150,7 @@ contract CCTPHelperTest is BaseTest {
     //                exposedHandleDestinationMsg             //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_exposedHandleDestinationMsg_success_emitsAndReturns() external {
+    function test_unit_exposedHandleDestinationMsg_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory fakeHook = abi.encodePacked(
             uint8(1),
@@ -169,10 +174,10 @@ contract CCTPHelperTest is BaseTest {
         CCTPHelper.CCTPMessage memory msgData = helper.exposedHandleDestinationMsg(fakeCCTPMessage, "att");
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(msgData.amount, 100);
-        assertEq(msgData.srcChain, SRC);
-        assertEq(msgData.dstChain, DST);
-        assertEq(msgData.nonce, 777);
+        assertEq(msgData.amount, 100, "assertEq failed: values do not match");
+        assertEq(msgData.srcChain, SRC, "assertEq failed: values do not match");
+        assertEq(msgData.dstChain, DST, "assertEq failed: values do not match");
+        assertEq(msgData.nonce, 777, "assertEq failed: values do not match");
     }
 
     function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_ReceiveFailed() external {

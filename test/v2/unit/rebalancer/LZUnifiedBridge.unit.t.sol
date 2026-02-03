@@ -38,14 +38,6 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         bridge.setOftExecutorContract(address(oft), address(executor));
     }
 
-    function _message() internal view returns (bytes memory) {
-        return abi.encode(address(market), amount, minAmount, bytes("extra"));
-    }
-
-    function _extraData(address refunder) internal pure returns (bytes memory) {
-        return abi.encode(refunder);
-    }
-
     ////////////////////////////////////////////////////////////
     //                      constructor                       //
     ////////////////////////////////////////////////////////////
@@ -62,7 +54,7 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
     //                    setBridgeContract                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setBridgeContract_success_updatesMappingAndEmits() external {
+    function test_unit_setBridgeContract_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address bridgeContract = users.alice;
 
@@ -74,14 +66,14 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         bridge.setBridgeContract(address(oft), bridgeContract);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(bridge.bridgeContracts(address(oft)), bridgeContract);
+        assertEq(bridge.bridgeContracts(address(oft)), bridgeContract, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
     //                 setOftExecutorContract                 //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setOftExecutorContract_success_updatesMappingAndEmits() external {
+    function test_unit_setOftExecutorContract_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address newExecutor = users.carol;
 
@@ -93,14 +85,14 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         bridge.setOftExecutorContract(address(oft), newExecutor);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(bridge.oftExecutors(address(oft)), newExecutor);
+        assertEq(bridge.oftExecutors(address(oft)), newExecutor, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
     //                         sendMsg                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_sendMsg_success_emitsMsgSent() external {
+    function test_unit_sendMsg_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         oft.setQuoteFee(1 ether, 0);
         bytes memory message = _message();
@@ -239,7 +231,7 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
     //                        lzCompose                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_lzCompose_success_executes() external {
+    function test_unit_lzCompose_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory message = abi.encode(address(market));
 
@@ -299,7 +291,7 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
     //               processUncomposedMessages                //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_processUncomposedMessages_success_executes() external {
+    function test_unit_processUncomposedMessages_success() external {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.processUncomposedMessages(address(market));
     }
@@ -331,7 +323,7 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
     //                          getFee                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_getFee_success_returnsNativeFee() external {
+    function test_unit_getFee_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         oft.setQuoteFee(0.5 ether, 0);
 
@@ -339,7 +331,7 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         uint256 fee = bridge.getFee(dstChainId, _message(), "");
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(fee, 0.5 ether);
+        assertEq(fee, 0.5 ether, "assertEq failed: values do not match");
     }
 
     function test_unit_getFee_revertsWith_LZBridge_ChainNotRegistered() external {
@@ -351,5 +343,17 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.getFee(0, _message(), "");
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _message() internal view returns (bytes memory) {
+        return abi.encode(address(market), amount, minAmount, bytes("extra"));
+    }
+
+    function _extraData(address refunder) internal pure returns (bytes memory) {
+        return abi.encode(refunder);
     }
 }

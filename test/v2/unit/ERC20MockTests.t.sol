@@ -26,14 +26,14 @@ contract ERC20MockTest is BaseTest {
     //                      constructor                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_constructor_success_setsMetadata() external view {
+    function test_unit_constructor_success() external view {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.name(), "TestToken");
-        assertEq(token.symbol(), "TTK");
-        assertEq(token.decimals(), decimals);
-        assertEq(token.admin(), admin);
-        assertEq(token.pohVerify(), pohVerify);
-        assertEq(token.mintLimit(), mintLimit);
+        assertEq(token.name(), "TestToken", "token name does not match expected");
+        assertEq(token.symbol(), "TTK", "token symbol does not match expected");
+        assertEq(token.decimals(), decimals, "assertEq failed: values do not match");
+        assertEq(token.admin(), admin, "assertEq failed: values do not match");
+        assertEq(token.pohVerify(), pohVerify, "assertEq failed: values do not match");
+        assertEq(token.mintLimit(), mintLimit, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@ contract ERC20MockTest is BaseTest {
         token.setOnlyVerify(true);
     }
 
-    function test_unit_setOnlyVerify_success_admin() external {
+    function test_unit_setOnlyVerify_success() external {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(admin);
         token.setOnlyVerify(true);
@@ -62,7 +62,7 @@ contract ERC20MockTest is BaseTest {
     //                          mint                          //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_mint_success_whenNotOnlyVerified(uint256 amount) external {
+    function test_fuzz_mint_success(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         amount = bound(amount, 1, mintLimit - 1);
 
@@ -75,12 +75,12 @@ contract ERC20MockTest is BaseTest {
         token.mint(user, amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(user), amount);
-        assertEq(token.minted(user), amount);
+        assertEq(token.balanceOf(user), amount, "assertEq failed: values do not match");
+        assertEq(token.minted(user), amount, "assertEq failed: values do not match");
     }
 
     function test_unit_mint_revertsWith_ERC20Mock_OnlyVerified() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(admin);
         token.setOnlyVerify(true);
 
@@ -93,7 +93,7 @@ contract ERC20MockTest is BaseTest {
     }
 
     function test_unit_mint_revertsWith_ERC20Mock_AlreadyMinted() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(user);
         token.mint(user, mintLimit - 1);
 
@@ -110,7 +110,7 @@ contract ERC20MockTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_burn_success() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(user);
         token.mint(user, 500);
 
@@ -123,12 +123,12 @@ contract ERC20MockTest is BaseTest {
         token.burn(300);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(user), 200);
-        assertEq(token.minted(user), 500);
+        assertEq(token.balanceOf(user), 200, "assertEq failed: values do not match");
+        assertEq(token.minted(user), 500, "assertEq failed: values do not match");
     }
 
     function test_unit_burn_revertsWith_ERC20Mock_TooMuch() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(user);
         token.mint(user, 500);
 
@@ -141,7 +141,7 @@ contract ERC20MockTest is BaseTest {
     }
 
     function test_unit_burn_success_admin() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(user);
         token.mint(user, 500);
 
@@ -154,12 +154,12 @@ contract ERC20MockTest is BaseTest {
         token.burn(user, 300);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(user), 200);
-        assertEq(token.minted(user), 500);
+        assertEq(token.balanceOf(user), 200, "assertEq failed: values do not match");
+        assertEq(token.minted(user), 500, "assertEq failed: values do not match");
     }
 
     function test_unit_burn_revertsWith_ERC20Mock_NotAuthorized() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(user);
         token.mint(user, 500);
 

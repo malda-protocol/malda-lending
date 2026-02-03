@@ -19,26 +19,6 @@ contract ChainlinkOracleHarness is ChainlinkOracle {
 
 contract ChainlinkOracleTest is BaseTest {
     ////////////////////////////////////////////////////////////
-    //                        Helpers                         //
-    ////////////////////////////////////////////////////////////
-
-    function _deployOracle(string memory symbol, IAggregatorV3 feed, uint256 baseUnit)
-        internal
-        returns (ChainlinkOracle)
-    {
-        string[] memory symbols = new string[](1);
-        symbols[0] = symbol;
-
-        IAggregatorV3[] memory feeds = new IAggregatorV3[](1);
-        feeds[0] = feed;
-
-        uint256[] memory baseUnits = new uint256[](1);
-        baseUnits[0] = baseUnit;
-
-        return new ChainlinkOracle(symbols, feeds, baseUnits);
-    }
-
-    ////////////////////////////////////////////////////////////
     //                         getPrice                       //
     ////////////////////////////////////////////////////////////
 
@@ -57,8 +37,8 @@ contract ChainlinkOracleTest is BaseTest {
 
     function test_fuzz_getPrice_success_scalesFeedDecimals(uint8 feedDecimals, uint64 rawPrice) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(feedDecimals <= 18);
-        vm.assume(rawPrice > 0);
+        feedDecimals = uint8(bound(feedDecimals, 0, 18));
+        rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
 
         MockAggregatorV3 feed = new MockAggregatorV3(feedDecimals, int256(uint256(rawPrice)));
         ChainlinkOracle oracle = _deployOracle("MOCK", feed, 1e18);
@@ -69,13 +49,13 @@ contract ChainlinkOracleTest is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 expected = uint256(rawPrice) * 10 ** (18 - feedDecimals);
-        assertEq(price, expected);
+        assertEq(price, expected, "assertEq failed: values do not match");
     }
 
     function test_fuzz_getPrice_success_scales(uint8 feedDecimals, uint64 rawPrice) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(feedDecimals <= 18);
-        vm.assume(rawPrice > 0);
+        feedDecimals = uint8(bound(feedDecimals, 0, 18));
+        rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
 
         MockAggregatorV3 feed = new MockAggregatorV3(feedDecimals, int256(uint256(rawPrice)));
         ChainlinkOracle oracle = _deployOracle("MOCK", feed, 1e18);
@@ -86,7 +66,7 @@ contract ChainlinkOracleTest is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 expected = uint256(rawPrice) * 10 ** (18 - feedDecimals);
-        assertEq(price, expected);
+        assertEq(price, expected, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -99,9 +79,9 @@ contract ChainlinkOracleTest is BaseTest {
         uint64 rawPrice
     ) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(feedDecimals <= 18);
-        vm.assume(underlyingDecimals <= 18);
-        vm.assume(rawPrice > 0);
+        feedDecimals = uint8(bound(feedDecimals, 0, 18));
+        underlyingDecimals = uint8(bound(underlyingDecimals, 0, 18));
+        rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
 
         MockAggregatorV3 feed = new MockAggregatorV3(feedDecimals, int256(uint256(rawPrice)));
         MockSymbolToken underlying = new MockSymbolToken("MOCK");
@@ -113,16 +93,16 @@ contract ChainlinkOracleTest is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 expected = (uint256(rawPrice) * (10 ** (36 - feedDecimals))) / (10 ** underlyingDecimals);
-        assertEq(price, expected);
+        assertEq(price, expected, "assertEq failed: values do not match");
     }
 
     function test_fuzz_getUnderlyingPrice_success_scales(uint8 feedDecimals, uint8 underlyingDecimals, uint64 rawPrice)
         external
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(feedDecimals <= 18);
-        vm.assume(underlyingDecimals <= 18);
-        vm.assume(rawPrice > 0);
+        feedDecimals = uint8(bound(feedDecimals, 0, 18));
+        underlyingDecimals = uint8(bound(underlyingDecimals, 0, 18));
+        rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
 
         MockAggregatorV3 feed = new MockAggregatorV3(feedDecimals, int256(uint256(rawPrice)));
         MockSymbolToken underlying = new MockSymbolToken("MOCK");
@@ -134,7 +114,7 @@ contract ChainlinkOracleTest is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 expected = (uint256(rawPrice) * (10 ** (36 - feedDecimals))) / (10 ** underlyingDecimals);
-        assertEq(price, expected);
+        assertEq(price, expected, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -154,5 +134,25 @@ contract ChainlinkOracleTest is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         oracle.exposed_getLatestPrice("MISSING");
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _deployOracle(string memory symbol, IAggregatorV3 feed, uint256 baseUnit)
+        internal
+        returns (ChainlinkOracle)
+    {
+        string[] memory symbols = new string[](1);
+        symbols[0] = symbol;
+
+        IAggregatorV3[] memory feeds = new IAggregatorV3[](1);
+        feeds[0] = feed;
+
+        uint256[] memory baseUnits = new uint256[](1);
+        baseUnits[0] = baseUnit;
+
+        return new ChainlinkOracle(symbols, feeds, baseUnits);
     }
 }

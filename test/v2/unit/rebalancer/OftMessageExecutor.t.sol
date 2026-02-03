@@ -59,28 +59,17 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness = new BaseOftExecutorHarness();
     }
 
-    function _sendParam(uint256 amount) internal view returns (SendParam memory) {
-        return SendParam({
-            dstEid: 1,
-            to: bytes32(uint256(uint160(users.carol))),
-            amountLD: amount,
-            minAmountLD: amount,
-            extraOptions: bytes(""),
-            composeMsg: bytes(""),
-            oftCmd: bytes("")
-        });
-    }
-
     ////////////////////////////////////////////////////////////
     //                   pullFromRebalancer                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_pullFromRebalancer_success_transfers() external {
+    function test_unit_pullFromRebalancer_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(rebalancer);
         underlying.approve(address(harness), 1e18);
 
@@ -88,7 +77,7 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness.pullFromRebalancer(address(underlying), 1e18, rebalancer);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(underlying.balanceOf(address(harness)), 1e18);
+        assertEq(underlying.balanceOf(address(harness)), 1e18, "assertEq failed: values do not match");
     }
 
     function test_unit_pullFromRebalancer_revertsWith_Executor_NotRebalancer() external {
@@ -117,7 +106,7 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness.fallbackToUnderlying(market, address(underlying), address(underlying));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(underlying.balanceOf(market), 2e18);
+        assertEq(underlying.balanceOf(market), 2e18, "assertEq failed: values do not match");
     }
 
     function test_unit_fallbackToUnderlying_success_returnsWhenNoOftBalance() external {
@@ -130,7 +119,7 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness.fallbackToUnderlying(market, address(underlying), address(oft));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(underlying.balanceOf(market), 0);
+        assertEq(underlying.balanceOf(market), 0, "assertEq failed: values do not match");
     }
 
     function test_unit_fallbackToUnderlying_success_depositsAndTransfers() external {
@@ -145,7 +134,7 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness.fallbackToUnderlying(market, address(underlying), address(oft));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(underlying.balanceOf(market), 3e18);
+        assertEq(underlying.balanceOf(market), 3e18, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -163,7 +152,7 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness.verifyMinted(address(oft), 1);
     }
 
-    function test_unit_verifyMinted_success_ok() external {
+    function test_unit_verifyMinted_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(0));
         oft.mint(address(harness), 1);
@@ -176,7 +165,7 @@ contract BaseOftMessageExecutorTest is BaseTest {
     //                         sendOFT                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_sendOFT_success_callsSend() external {
+    function test_unit_sendOFT_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(0));
         SendParam memory params = _sendParam(1);
@@ -186,14 +175,14 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness.sendOFT(address(oft), params, fees, users.bob);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(oft.lastRefund(), users.bob);
+        assertEq(oft.lastRefund(), users.bob, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
     //                    processUncomposed                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_processUncomposed_success_transfersUnderlying() external {
+    function test_unit_processUncomposed_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
         address market = users.bob;
@@ -204,14 +193,14 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness.processUncomposed(market, address(underlying), address(underlying));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(underlying.balanceOf(market), 1e18);
+        assertEq(underlying.balanceOf(market), 1e18, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
     //                     executeCompose                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_executeCompose_success_transfersUnderlying() external {
+    function test_unit_executeCompose_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
         address market = users.bob;
@@ -222,17 +211,12 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness.executeCompose(market, address(underlying), address(underlying));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(underlying.balanceOf(market), 1e18);
+        assertEq(underlying.balanceOf(market), 1e18, "assertEq failed: values do not match");
     }
-}
 
-contract rsEthOftMessageExecutorTest is BaseTest {
-    rsEthOftMessageExecutor internal executor;
-
-    function setUp() public override {
-        super.setUp();
-        executor = new rsEthOftMessageExecutor();
-    }
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
 
     function _sendParam(uint256 amount) internal view returns (SendParam memory) {
         return SendParam({
@@ -244,6 +228,15 @@ contract rsEthOftMessageExecutorTest is BaseTest {
             composeMsg: bytes(""),
             oftCmd: bytes("")
         });
+    }
+}
+
+contract rsEthOftMessageExecutorTest is BaseTest {
+    rsEthOftMessageExecutor internal executor;
+
+    function setUp() public override {
+        super.setUp();
+        executor = new rsEthOftMessageExecutor();
     }
 
     ////////////////////////////////////////////////////////////
@@ -258,6 +251,7 @@ contract rsEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 2e18);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(rebalancer);
         underlying.approve(address(executor), 2e18);
 
@@ -268,7 +262,7 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(oft.balanceOf(address(executor)), 2e18);
+        assertEq(oft.balanceOf(address(executor)), 2e18, "assertEq failed: values do not match");
     }
 
     function test_unit_executeSend_revertsWith_Executor_DifferentInnerToken() external {
@@ -278,6 +272,7 @@ contract rsEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(rebalancer);
         underlying.approve(address(executor), 1e18);
 
@@ -298,6 +293,7 @@ contract rsEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(rebalancer);
         underlying.approve(address(executor), 1e18);
 
@@ -320,6 +316,7 @@ contract rsEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(rebalancer);
         underlying.approve(address(executor), 1e18);
 
@@ -339,6 +336,7 @@ contract rsEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(rebalancer);
         underlying.approve(address(executor), 1e18);
 
@@ -348,15 +346,10 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         executor.executeSend(address(underlying), address(underlying), params, fees, rebalancer, users.bob);
     }
-}
 
-contract weEthOftMessageExecutorTest is BaseTest {
-    weEthOftMessageExecutor internal executor;
-
-    function setUp() public override {
-        super.setUp();
-        executor = new weEthOftMessageExecutor();
-    }
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
 
     function _sendParam(uint256 amount) internal view returns (SendParam memory) {
         return SendParam({
@@ -369,6 +362,15 @@ contract weEthOftMessageExecutorTest is BaseTest {
             oftCmd: bytes("")
         });
     }
+}
+
+contract weEthOftMessageExecutorTest is BaseTest {
+    weEthOftMessageExecutor internal executor;
+
+    function setUp() public override {
+        super.setUp();
+        executor = new weEthOftMessageExecutor();
+    }
 
     function test_unit_executeSend_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
@@ -377,6 +379,7 @@ contract weEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(rebalancer);
         underlying.approve(address(executor), 1e18);
 
@@ -395,6 +398,7 @@ contract weEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(rebalancer);
         underlying.approve(address(executor), 1e18);
 
@@ -415,6 +419,7 @@ contract weEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(rebalancer);
         underlying.approve(address(executor), 1e18);
 
@@ -426,5 +431,21 @@ contract weEthOftMessageExecutorTest is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         executor.executeSend(address(underlying), address(bad), params, fees, rebalancer, users.bob);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _sendParam(uint256 amount) internal view returns (SendParam memory) {
+        return SendParam({
+            dstEid: 1,
+            to: bytes32(uint256(uint160(users.carol))),
+            amountLD: amount,
+            minAmountLD: amount,
+            extraOptions: bytes(""),
+            composeMsg: bytes(""),
+            oftCmd: bytes("")
+        });
     }
 }

@@ -35,22 +35,6 @@ contract MixedPriceOracleV4Test is BaseTest {
         vm.warp(100 days);
     }
 
-    function _config(
-        address api3Feed,
-        address chainlinkFeed,
-        string memory api3ToSymbol,
-        string memory chainlinkToSymbol,
-        uint256 underlyingDecimals
-    ) internal pure returns (MixedPriceOracleV4.PriceConfig memory) {
-        return MixedPriceOracleV4.PriceConfig({
-            api3Feed: api3Feed,
-            chainlinkFeed: chainlinkFeed,
-            api3ToSymbol: api3ToSymbol,
-            chainlinkToSymbol: chainlinkToSymbol,
-            underlyingDecimals: underlyingDecimals
-        });
-    }
-
     ////////////////////////////////////////////////////////////
     //                      constructor                       //
     ////////////////////////////////////////////////////////////
@@ -60,7 +44,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         uint256 staleness
     ) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(underlyingDecimals <= 18);
+        underlyingDecimals = uint8(bound(underlyingDecimals, 0, 18));
         staleness = bound(staleness, 1, 30 days);
 
         string[] memory symbols = new string[](1);
@@ -79,7 +63,7 @@ contract MixedPriceOracleV4Test is BaseTest {
     //                      setStaleness                      //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_setStaleness_success_updatesMappingAndEmits(uint256 newStaleness) external {
+    function test_fuzz_setStaleness_success(uint256 newStaleness) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         newStaleness = bound(newStaleness, 1, 30 days);
 
@@ -91,7 +75,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         oracle.setStaleness(SYMBOL, newStaleness);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(oracle.stalenessPerSymbol(SYMBOL), newStaleness);
+        assertEq(oracle.stalenessPerSymbol(SYMBOL), newStaleness, "assertEq failed: values do not match");
     }
 
     function test_fuzz_setStaleness_revertsWith_MixedPriceOracle_Unauthorized(uint256 newStaleness) external {
@@ -117,11 +101,9 @@ contract MixedPriceOracleV4Test is BaseTest {
     //                        setConfig                       //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_setConfig_success_updatesMappingAndEmits(uint8 newUnderlyingDecimals, bool useEthSymbol)
-        external
-    {
+    function test_fuzz_setConfig_success(uint8 newUnderlyingDecimals, bool useEthSymbol) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(newUnderlyingDecimals <= 18);
+        newUnderlyingDecimals = uint8(bound(newUnderlyingDecimals, 0, 18));
         string memory toSymbol = useEthSymbol ? "ETH" : "USD";
         MixedPriceOracleV4.PriceConfig memory config =
             _config(address(api3), address(chainlink), toSymbol, toSymbol, newUnderlyingDecimals);
@@ -141,16 +123,16 @@ contract MixedPriceOracleV4Test is BaseTest {
             string memory chainlinkToSymbol,
             uint256 storedUnderlyingDecimals
         ) = oracle.configs(SYMBOL);
-        assertEq(api3Feed, address(api3));
-        assertEq(chainlinkFeed, address(chainlink));
-        assertEq(api3ToSymbol, toSymbol);
-        assertEq(chainlinkToSymbol, toSymbol);
-        assertEq(storedUnderlyingDecimals, newUnderlyingDecimals);
+        assertEq(api3Feed, address(api3), "assertEq failed: values do not match");
+        assertEq(chainlinkFeed, address(chainlink), "assertEq failed: values do not match");
+        assertEq(api3ToSymbol, toSymbol, "assertEq failed: values do not match");
+        assertEq(chainlinkToSymbol, toSymbol, "assertEq failed: values do not match");
+        assertEq(storedUnderlyingDecimals, newUnderlyingDecimals, "assertEq failed: values do not match");
     }
 
     function test_fuzz_setConfig_revertsWith_MixedPriceOracle_InvalidConfig(uint8 underlyingDecimals) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(underlyingDecimals <= 18);
+        underlyingDecimals = uint8(bound(underlyingDecimals, 0, 18));
         MixedPriceOracleV4.PriceConfig memory config =
             _config(address(0), address(chainlink), "USD", "USD", underlyingDecimals);
 
@@ -167,7 +149,7 @@ contract MixedPriceOracleV4Test is BaseTest {
 
     function test_fuzz_setMaxPriceDelta_success_updatesAndEmits(uint256 newVal) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(newVal <= oracle.PRICE_DELTA_EXP());
+        newVal = bound(newVal, 0, oracle.PRICE_DELTA_EXP());
         uint256 oldVal = oracle.maxPriceDelta();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -178,7 +160,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         oracle.setMaxPriceDelta(newVal);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(oracle.maxPriceDelta(), newVal);
+        assertEq(oracle.maxPriceDelta(), newVal, "assertEq failed: values do not match");
     }
 
     function test_fuzz_setMaxPriceDelta_revertsWith_MixedPriceOracle_DeltaTooHigh(uint256 delta) external {
@@ -198,7 +180,7 @@ contract MixedPriceOracleV4Test is BaseTest {
 
     function test_fuzz_setSymbolMaxPriceDelta_success_updatesAndEmits(uint256 newVal) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(newVal <= oracle.PRICE_DELTA_EXP());
+        newVal = bound(newVal, 0, oracle.PRICE_DELTA_EXP());
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(false, false, false, true);
@@ -208,7 +190,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         oracle.setSymbolMaxPriceDelta(newVal, SYMBOL);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(oracle.deltaPerSymbol(SYMBOL), newVal);
+        assertEq(oracle.deltaPerSymbol(SYMBOL), newVal, "assertEq failed: values do not match");
     }
 
     function test_fuzz_setSymbolMaxPriceDelta_revertsWith_MixedPriceOracle_DeltaTooHigh(uint256 delta) external {
@@ -240,7 +222,7 @@ contract MixedPriceOracleV4Test is BaseTest {
 
     function test_fuzz_getPrice_success_usesApi3WhenChainlinkMissing(uint64 rawPrice) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(rawPrice > 0);
+        rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
         MixedPriceOracleV4.PriceConfig memory config = _config(address(api3), address(0), "USD", "USD", 18);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -256,7 +238,7 @@ contract MixedPriceOracleV4Test is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 expected = uint256(rawPrice) * 10 ** (18 - api3.decimals());
-        assertEq(price, expected);
+        assertEq(price, expected, "assertEq failed: values do not match");
     }
 
     function test_fuzz_getPrice_revertsWith_MixedPriceOracle_ApiV3StalePrice_whenChainlinkMissing(uint256 staleDelta)
@@ -281,8 +263,8 @@ contract MixedPriceOracleV4Test is BaseTest {
 
     function test_fuzz_getPrice_success_usesChainlinkWhenApi3Stale(uint64 api3Raw, uint64 chainlinkRaw) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(api3Raw > 0);
-        vm.assume(chainlinkRaw > 0);
+        api3Raw = uint64(bound(api3Raw, 1, type(uint64).max));
+        chainlinkRaw = uint64(bound(chainlinkRaw, 1, type(uint64).max));
 
         api3.setPrice(int256(uint256(api3Raw)));
         chainlink.setPrice(int256(uint256(chainlinkRaw)));
@@ -294,7 +276,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 expected = uint256(chainlinkRaw) * 10 ** (18 - chainlink.decimals());
-        assertEq(price, expected);
+        assertEq(price, expected, "assertEq failed: values do not match");
     }
 
     function test_fuzz_getPrice_revertsWith_MixedPriceOracle_ChainlinkStalePrice_whenApi3StaleAndChainlinkStale(uint256 staleDelta)
@@ -316,8 +298,12 @@ contract MixedPriceOracleV4Test is BaseTest {
         external
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(deltaSymbol > 0);
-        vm.assume(deltaSymbol < oracle.PRICE_DELTA_EXP());
+        uint256 maxDelta = oracle.PRICE_DELTA_EXP();
+        uint256 upper = maxDelta > 1 ? maxDelta - 1 : 1;
+        if (upper > type(uint16).max) {
+            upper = type(uint16).max;
+        }
+        deltaSymbol = uint16(bound(deltaSymbol, 1, upper));
         chainlinkRaw = uint64(bound(chainlinkRaw, oracle.PRICE_DELTA_EXP(), 1e12));
 
         uint256 newDelta = deltaSymbol;
@@ -338,16 +324,15 @@ contract MixedPriceOracleV4Test is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 expected = uint256(chainlinkRaw) * 10 ** (18 - chainlink.decimals());
-        assertEq(price, expected);
+        assertEq(price, expected, "assertEq failed: values do not match");
     }
 
     function test_fuzz_getPrice_success_usesApi3WhenDeltaWithinThreshold(uint64 chainlinkRaw, uint16 deltaSymbol)
         external
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(deltaSymbol > 0);
-        vm.assume(deltaSymbol <= oracle.PRICE_DELTA_EXP());
-        vm.assume(chainlinkRaw > 0);
+        deltaSymbol = uint16(bound(deltaSymbol, 1, oracle.PRICE_DELTA_EXP()));
+        chainlinkRaw = uint64(bound(chainlinkRaw, 1, type(uint64).max));
 
         uint256 newDelta = deltaSymbol;
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -367,19 +352,17 @@ contract MixedPriceOracleV4Test is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 expected = api3Raw * 10 ** (18 - api3.decimals());
-        assertEq(price, expected);
+        assertEq(price, expected, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
     //                   getUnderlyingPrice                   //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_getUnderlyingPrice_success_scalesUnderlyingDecimals(uint8 underlyingDecimals, uint64 rawPrice)
-        external
-    {
+    function test_fuzz_getUnderlyingPrice_success(uint8 underlyingDecimals, uint64 rawPrice) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(underlyingDecimals <= 18);
-        vm.assume(rawPrice > 0);
+        underlyingDecimals = uint8(bound(underlyingDecimals, 0, 18));
+        rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
 
         MixedPriceOracleV4.PriceConfig memory config =
             _config(address(api3), address(chainlink), "USD", "USD", underlyingDecimals);
@@ -400,7 +383,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 priceUsd = uint256(rawPrice) * 10 ** (18 - api3.decimals());
         uint256 expected = priceUsd * 10 ** (18 - underlyingDecimals);
-        assertEq(price, expected);
+        assertEq(price, expected, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -409,8 +392,8 @@ contract MixedPriceOracleV4Test is BaseTest {
 
     function test_fuzz_getPrice_success_handlesChainedSymbols(uint64 ethRaw, uint64 weEthRaw) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(ethRaw > 0);
-        vm.assume(weEthRaw > 0);
+        ethRaw = uint64(bound(ethRaw, 1, type(uint64).max));
+        weEthRaw = uint64(bound(weEthRaw, 1, type(uint64).max));
 
         MockAdapter api3Eth = new MockAdapter();
         MockAdapter chainlinkEth = new MockAdapter();
@@ -447,7 +430,7 @@ contract MixedPriceOracleV4Test is BaseTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 weEthInEth = uint256(weEthRaw) * 10 ** (18 - api3WeEth.decimals());
         uint256 expected = (weEthInEth * ethUsd) / 1e18;
-        assertEq(price, expected);
+        assertEq(price, expected, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -456,7 +439,7 @@ contract MixedPriceOracleV4Test is BaseTest {
 
     function test_fuzz_setMaxPriceDelta_success(uint256 delta) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(delta <= oracle.PRICE_DELTA_EXP());
+        delta = bound(delta, 0, oracle.PRICE_DELTA_EXP());
         uint256 oldVal = oracle.maxPriceDelta();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -467,12 +450,12 @@ contract MixedPriceOracleV4Test is BaseTest {
         oracle.setMaxPriceDelta(delta);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(oracle.maxPriceDelta(), delta);
+        assertEq(oracle.maxPriceDelta(), delta, "assertEq failed: values do not match");
     }
 
     function test_fuzz_setSymbolMaxPriceDelta_success(uint256 delta) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(delta <= oracle.PRICE_DELTA_EXP());
+        delta = bound(delta, 0, oracle.PRICE_DELTA_EXP());
         uint256 oldVal = oracle.deltaPerSymbol(SYMBOL);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -483,6 +466,26 @@ contract MixedPriceOracleV4Test is BaseTest {
         oracle.setSymbolMaxPriceDelta(delta, SYMBOL);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(oracle.deltaPerSymbol(SYMBOL), delta);
+        assertEq(oracle.deltaPerSymbol(SYMBOL), delta, "assertEq failed: values do not match");
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _config(
+        address api3Feed,
+        address chainlinkFeed,
+        string memory api3ToSymbol,
+        string memory chainlinkToSymbol,
+        uint256 underlyingDecimals
+    ) internal pure returns (MixedPriceOracleV4.PriceConfig memory) {
+        return MixedPriceOracleV4.PriceConfig({
+            api3Feed: api3Feed,
+            chainlinkFeed: chainlinkFeed,
+            api3ToSymbol: api3ToSymbol,
+            chainlinkToSymbol: chainlinkToSymbol,
+            underlyingDecimals: underlyingDecimals
+        });
     }
 }

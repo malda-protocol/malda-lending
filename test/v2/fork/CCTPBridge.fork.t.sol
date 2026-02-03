@@ -3,7 +3,9 @@ pragma solidity 0.8.28;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 import {CCTPBridge} from "src/rebalancer/bridges/CCTPBridge.sol";
+import {CCTPHelper} from "src/rebalancer/bridges/cctp/CCTPHelper.sol";
 import {BaseForkTest} from "test/v2/utils/BaseForkTest.t.sol";
 import {MockRoles} from "test/v2/mocks/rebalancer/CCTPBridgeRolesMocks.t.sol";
 
@@ -45,8 +47,6 @@ contract CCTPBridgeForkTest is BaseForkTest {
         IERC20(MAINNET_USDC).approve(address(bridge), type(uint256).max);
     }
 
-    // TODO add revert cases
-
     ////////////////////////////////////////////////////////////
     //                        SendMsg                         //
     ////////////////////////////////////////////////////////////
@@ -67,11 +67,51 @@ contract CCTPBridgeForkTest is BaseForkTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.sendMsg(amount, fakeMarket, BASE_CHAIN_ID, MAINNET_USDC, "", "");
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balAfterRebalancer = IERC20(MAINNET_USDC).balanceOf(rebalancer);
         uint256 balAfterBridge = IERC20(MAINNET_USDC).balanceOf(address(bridge));
 
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(balBeforeRebalancer - balAfterRebalancer, amount, "rebalancer delta");
         assertEq(balAfterBridge, balBeforeBridge, "bridge should not hold USDC after burn");
+    }
+
+    function test_fork_sendMsg_revertsWith_BaseBridge_NotAuthorized() public {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
+        bridge.sendMsg(100e6, users.bob, BASE_CHAIN_ID, MAINNET_USDC, "", "");
+    }
+
+    function test_fork_sendMsg_revertsWith_BaseBridge_AmountMismatch_whenAmountZero() public {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_AmountMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(0, users.bob, BASE_CHAIN_ID, MAINNET_USDC, "", "");
+    }
+
+    function test_fork_sendMsg_revertsWith_CCTPBridge_DomainNotSet_whenDstNotSet() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 amount = 100e6;
+        uint32 unsetChainId = 999;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(CCTPBridge.CCTPBridge_DomainNotSet.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(amount, users.bob, unsetChainId, MAINNET_USDC, "", "");
+    }
+
+    function test_fork_sendMsg_revertsWith_CCTPHelper_TokenNotAccepted() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bridge.setAcceptedToken(MAINNET_USDC, false);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(CCTPHelper.CCTPHelper_TokenNotAccepted.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(100e6, users.bob, BASE_CHAIN_ID, MAINNET_USDC, "", "");
     }
 }

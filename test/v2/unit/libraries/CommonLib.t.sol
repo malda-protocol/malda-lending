@@ -172,9 +172,7 @@ contract CommonLibTest is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 expected;
         for (uint256 i; i < values.length; ++i) {
-            if (type(uint256).max - expected < values[i]) {
-                vm.assume(false);
-            }
+            if (type(uint256).max - expected < values[i]) vm.assume(false); // reject the case where the sum would overflow
             expected += values[i];
         }
 
@@ -182,6 +180,6 @@ contract CommonLibTest is BaseTest {
         uint256 sum = harness.computeSum(values);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(sum, expected);
+        assertEq(sum, expected, "sum is not equal to expected");
     }
 }

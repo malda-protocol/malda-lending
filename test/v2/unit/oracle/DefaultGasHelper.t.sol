@@ -23,28 +23,26 @@ contract DefaultGasHelperTest is BaseTest {
     //                        constructor                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_constructor_success_setsOwner() external view {
+    function test_unit_constructor_success() external view {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(helper.owner(), owner);
+        assertEq(helper.owner(), owner, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
     //                        setGasFee                       //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_setGasFee_success_updatesMappingAndEmits(uint32 chainId, uint256 amount) external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.prank(owner);
-
+    function test_fuzz_setGasFee_success(uint32 chainId, uint256 amount) external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, false, false, true);
         emit DefaultGasHelper.GasFeeUpdated(chainId, amount);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
         helper.setGasFee(chainId, amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(helper.gasFees(chainId), amount);
+        assertEq(helper.gasFees(chainId), amount, "assertEq failed: values do not match");
     }
 
     function test_unit_setGasFee_revertsWith_OwnableUnauthorizedAccount() external {

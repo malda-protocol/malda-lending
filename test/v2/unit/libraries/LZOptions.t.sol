@@ -20,7 +20,7 @@ contract LZOptionsTest is BaseTest {
 
     function test_unit_newOptions_success() external {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(options_, abi.encodePacked(uint16(3)));
+        assertEq(options_, abi.encodePacked(uint16(3)), "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -38,7 +38,7 @@ contract LZOptionsTest is BaseTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bytes memory expected = abi.encodePacked(options_, uint8(1), size, uint8(1), data);
 
-        assertEq(updated, expected);
+        assertEq(updated, expected, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -56,7 +56,7 @@ contract LZOptionsTest is BaseTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bytes memory expected = abi.encodePacked(options_, uint8(1), size, uint8(3), data);
 
-        assertEq(updated, expected);
+        assertEq(updated, expected, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -74,6 +74,6 @@ contract LZOptionsTest is BaseTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bytes memory expected = abi.encodePacked(options_, uint8(1), size, uint8(4), data);
 
-        assertEq(updated, expected);
+        assertEq(updated, expected, "assertEq failed: values do not match");
     }
 }

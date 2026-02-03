@@ -26,21 +26,6 @@ contract ReferralSigningTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        Helpers                         //
-    ////////////////////////////////////////////////////////////
-
-    function _signReferral(uint256 privKey, address user, address referrerAddr, uint256 nonce)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        bytes32 messageHash = keccak256(abi.encodePacked(user, referrerAddr, nonce));
-        bytes32 ethSigned = MessageHashUtils.toEthSignedMessageHash(messageHash);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privKey, ethSigned);
-        return abi.encodePacked(r, s, v);
-    }
-
-    ////////////////////////////////////////////////////////////
     //                     claimReferral                      //
     ////////////////////////////////////////////////////////////
 
@@ -58,11 +43,11 @@ contract ReferralSigningTest is BaseTest {
         referral.claimReferral(sig, referrer);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(referral.referralsForUserRegistry(referred), referrer);
+        assertEq(referral.referralsForUserRegistry(referred), referrer, "assertEq failed: values do not match");
         assertTrue(referral.referredByRegistry(referrer, referred));
         assertTrue(referral.isUserReferred(referred));
-        assertEq(referral.totalReferred(referrer), 1);
-        assertEq(referral.nonces(referred), nonce + 1);
+        assertEq(referral.totalReferred(referrer), 1, "assertEq failed: values do not match");
+        assertEq(referral.nonces(referred), nonce + 1, "assertEq failed: values do not match");
     }
 
     function test_unit_claimReferral_revertsWith_ReferralSigning_SameUser() public {
@@ -89,6 +74,7 @@ contract ReferralSigningTest is BaseTest {
         vm.expectEmit(true, true, false, true, address(referral));
         emit ReferralSigning.ReferralClaimed(referred, referrer);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(referred);
         referral.claimReferral(sig, referrer);
 
@@ -131,5 +117,20 @@ contract ReferralSigningTest is BaseTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(referred);
         referral.claimReferral(sig, contractReferrer);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _signReferral(uint256 privKey, address user, address referrerAddr, uint256 nonce)
+        internal
+        pure
+        returns (bytes memory)
+    {
+        bytes32 messageHash = keccak256(abi.encodePacked(user, referrerAddr, nonce));
+        bytes32 ethSigned = MessageHashUtils.toEthSignedMessageHash(messageHash);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privKey, ethSigned);
+        return abi.encodePacked(r, s, v);
     }
 }

@@ -178,8 +178,8 @@ contract BlacklisterTest is BaseTest {
         vm.stopPrank();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(list.length, 1);
-        assertEq(list[0], user2);
+        assertEq(list.length, 1, "assertEq failed: values do not match");
+        assertEq(list[0], user2, "assertEq failed: values do not match");
     }
 
     function test_unit_getBlacklistedAddresses_success_handlesIndexRemoval() external {
@@ -195,8 +195,8 @@ contract BlacklisterTest is BaseTest {
         vm.stopPrank();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(list.length, 1);
-        assertEq(list[0], user2);
+        assertEq(list.length, 1, "assertEq failed: values do not match");
+        assertEq(list[0], user2, "assertEq failed: values do not match");
     }
 
     function test_unit_getBlacklistedAddresses_success_singleEntry() external {
@@ -209,7 +209,7 @@ contract BlacklisterTest is BaseTest {
         vm.stopPrank();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(list.length, 1);
-        assertEq(list[0], user);
+        assertEq(list.length, 1, "assertEq failed: values do not match");
+        assertEq(list[0], user, "assertEq failed: values do not match");
     }
 }

@@ -104,6 +104,33 @@ abstract contract BaseMTokenTest is BaseUnitTest {
         roles.allowFor(address(batchSubmitter), roles.PROOF_BATCH_FORWARDER(), true);
     }
 
+    modifier whenPaused(address mToken, ImTokenOperationTypes.OperationType pauseType) {
+        operator.setPaused(mToken, pauseType, true);
+        _;
+    }
+
+    modifier whenNotPaused(address mToken, ImTokenOperationTypes.OperationType pauseType) {
+        operator.setPaused(mToken, pauseType, false);
+        _;
+    }
+
+    modifier whenMarketIsListed(address mToken) {
+        operator.supportMarket(mToken);
+        _;
+    }
+
+    modifier whenMarketEntered(address mToken) {
+        address[] memory mTokens = new address[](1);
+        mTokens[0] = mToken;
+        operator.enterMarkets(mTokens);
+        operator.setCollateralFactor(mToken, DEFAULT_COLLATERAL_FACTOR);
+        _;
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
     function _createAccumulatedAmountJournal(address sender, address market, uint256 accAmount)
         internal
         view
@@ -127,29 +154,6 @@ abstract contract BaseMTokenTest is BaseUnitTest {
     function _repayPrerequisites(address mToken, uint256 supplyAmount, uint256 borrowAmount) internal {
         _borrowPrerequisites(mToken, supplyAmount);
         mErc20Immutable(mToken).borrow(borrowAmount);
-    }
-
-    modifier whenPaused(address mToken, ImTokenOperationTypes.OperationType pauseType) {
-        operator.setPaused(mToken, pauseType, true);
-        _;
-    }
-
-    modifier whenNotPaused(address mToken, ImTokenOperationTypes.OperationType pauseType) {
-        operator.setPaused(mToken, pauseType, false);
-        _;
-    }
-
-    modifier whenMarketIsListed(address mToken) {
-        operator.supportMarket(mToken);
-        _;
-    }
-
-    modifier whenMarketEntered(address mToken) {
-        address[] memory mTokens = new address[](1);
-        mTokens[0] = mToken;
-        operator.enterMarkets(mTokens);
-        operator.setCollateralFactor(mToken, DEFAULT_COLLATERAL_FACTOR);
-        _;
     }
 
     function _whenBorrowCapIsReached(address mToken, uint256 amount) internal {

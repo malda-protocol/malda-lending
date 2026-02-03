@@ -29,22 +29,6 @@ contract mTokenGatewayTest is BaseMTokenTest {
         otherUser = users.carol;
     }
 
-    function _gatewayInitData(
-        address underlying,
-        address rolesAddress,
-        address blacklisterAddress,
-        address verifierAddress
-    ) internal view returns (bytes memory) {
-        return abi.encodeWithSelector(
-            mTokenGateway.initialize.selector,
-            payable(address(this)),
-            underlying,
-            rolesAddress,
-            blacklisterAddress,
-            verifierAddress
-        );
-    }
-
     ////////////////////////////////////////////////////////////
     //                    FirewallRegister                    //
     ////////////////////////////////////////////////////////////
@@ -58,8 +42,8 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.firewallRegister(users.alice);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(firewall.registerCount(), 1);
-        assertEq(firewall.lastRegistered(), users.alice);
+        assertEq(firewall.registerCount(), 1, "assertEq failed: values do not match");
+        assertEq(firewall.lastRegistered(), users.alice, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -70,7 +54,9 @@ contract mTokenGatewayTest is BaseMTokenTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.setBlacklister(address(blacklister));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(mWethExtension.blacklistOperator()), address(blacklister));
+        assertEq(
+            address(mWethExtension.blacklistOperator()), address(blacklister), "assertEq failed: values do not match"
+        );
     }
 
     function test_unit_setBlacklister_revertsWith_mTokenGateway_AddressNotValid_revertsWhenZero() external {
@@ -121,7 +107,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
     }
 
     function test_unit_setPaused_revertsWith_mTokenGateway_CallerNotAllowed_revertsWhenNonOwner() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_CallerNotAllowed.selector);
@@ -134,6 +120,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.setPaused(ImTokenOperationTypes.OperationType.AmountIn, true);
         roles.allowFor(users.bob, roles.GUARDIAN_PAUSE(), true);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.bob);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_CallerNotAllowed.selector);
@@ -152,12 +139,13 @@ contract mTokenGatewayTest is BaseMTokenTest {
         roles.allowFor(users.alice, roles.REBALANCER(), true);
 
         uint256 balanceBefore = weth.balanceOf(users.alice);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.extractForRebalancing(amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(weth.balanceOf(users.alice), balanceBefore + amount);
+        assertEq(weth.balanceOf(users.alice), balanceBefore + amount, "assertEq failed: values do not match");
     }
 
     function test_unit_extractForRebalancing_revertsWith_mTokenGateway_Paused_revertsWhenPaused() external {
@@ -177,7 +165,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
     function test_unit_extractForRebalancing_revertsWith_mTokenGateway_NotRebalancer_revertsWhenNotRebalancer()
         external
     {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_NotRebalancer.selector);
@@ -198,8 +186,8 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.withdrawGasFees(payable(users.alice));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(mWethExtension).balance, 0);
-        assertEq(users.alice.balance, receiverBalanceBefore + 1 ether);
+        assertEq(address(mWethExtension).balance, 0, "assertEq failed: values do not match");
+        assertEq(users.alice.balance, receiverBalanceBefore + 1 ether, "assertEq failed: values do not match");
     }
 
     function test_unit_payable_success_bySequencer() external {
@@ -208,13 +196,14 @@ contract mTokenGatewayTest is BaseMTokenTest {
         roles.allowFor(users.bob, roles.SEQUENCER(), true);
 
         uint256 receiverBalanceBefore = users.bob.balance;
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.bob);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.withdrawGasFees(payable(users.bob));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(mWethExtension).balance, 0);
-        assertEq(users.bob.balance, receiverBalanceBefore + 1 ether);
+        assertEq(address(mWethExtension).balance, 0, "assertEq failed: values do not match");
+        assertEq(users.bob.balance, receiverBalanceBefore + 1 ether, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -222,7 +211,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_withdrawGasFees_revertsWith_mTokenGateway_CallerNotAllowed_revertsWhenUnauthorized() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_CallerNotAllowed.selector);
@@ -252,7 +241,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.updateZkVerifier(address(newVerifier));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(mWethExtension.verifier()), address(newVerifier));
+        assertEq(address(mWethExtension.verifier()), address(newVerifier), "assertEq failed: values do not match");
     }
 
     function test_unit_updateZkVerifier_revertsWith_mTokenGateway_AddressNotValid_revertsWhenZero() external {
@@ -266,12 +255,12 @@ contract mTokenGatewayTest is BaseMTokenTest {
     //                      GetProofData                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_getProofData_success_returnsAccumulators() external view {
+    function test_unit_getProofData_success() external view {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (uint256 amountIn, uint256 amountOut) = mWethExtension.getProofData(users.alice, 0);
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(amountIn, 0);
-        assertEq(amountOut, 0);
+        assertEq(amountIn, 0, "assertEq failed: values do not match");
+        assertEq(amountOut, 0, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -392,12 +381,12 @@ contract mTokenGatewayTest is BaseMTokenTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.liquidate(borrower, amount, address(mWethHost), address(this));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 accAmountInAfter = mWethExtension.accAmountIn(address(this));
 
         // it should decrease the caller underlying balance
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(balanceWethAfter + amount, balanceWethBefore);
+        assertEq(balanceWethAfter + amount, balanceWethBefore, "assertEq failed: values do not match");
 
         // it should increase accAmount
         assertGt(accAmountInAfter, accAmountInBefore);
@@ -474,12 +463,12 @@ contract mTokenGatewayTest is BaseMTokenTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.liquidate(borrower, amount, address(mWethHost), address(this));
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 accAmountInAfter = mWethExtension.accAmountIn(address(this));
 
         // it should decrease the caller underlying balance
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(balanceWethAfter + amount, balanceWethBefore);
+        assertEq(balanceWethAfter + amount, balanceWethBefore, "assertEq failed: values do not match");
 
         // it should increase accAmount
         assertGt(accAmountInAfter, accAmountInBefore);
@@ -506,7 +495,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         // Verify accAmountIn increased for the receiver
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWethExtension.accAmountIn(payoutReceiver), amount);
+        assertEq(mWethExtension.accAmountIn(payoutReceiver), amount, "assertEq failed: values do not match");
     }
 
     function test_fuzz_liquidate_success_withGasFee(uint256 amount, uint256 gasFee) external {
@@ -529,7 +518,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         // Verify the gas fee was received
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(mWethExtension).balance, gasFee);
+        assertEq(address(mWethExtension).balance, gasFee, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -641,22 +630,6 @@ contract mTokenGatewayTest is BaseMTokenTest {
         vm.expectRevert(ImTokenGateway.mTokenGateway_CallerNotAllowed.selector);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
-    }
-
-    function _encodeJournal(
-        address sender,
-        address market,
-        uint256 accAmountIn,
-        uint256 accAmountOut,
-        uint32 chainId,
-        uint32 dstChainId,
-        bool l1Inclusion
-    ) internal pure returns (bytes memory) {
-        return abi.encodePacked(sender, market, accAmountIn, accAmountOut, chainId, dstChainId, l1Inclusion);
-    }
-
-    function _wrapJournals(bytes[] memory journals) internal pure returns (bytes memory) {
-        return abi.encode(journals);
     }
 
     function test_unit_outHere_revertsWith_mTokenGateway_JournalNotValid() external givenMarketIsNotPaused {
@@ -807,14 +780,14 @@ contract mTokenGatewayTest is BaseMTokenTest {
         amounts[0] = amount;
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceUserAfter = weth.balanceOf(address(this));
 
         // it should increase accAmountOut
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWethExtension.accAmountOut(address(this)), amount);
+        assertEq(mWethExtension.accAmountOut(address(this)), amount, "assertEq failed: values do not match");
 
         // it should transfer underlying to user
-        assertEq(balanceUserBefore + amount, balanceUserAfter);
+        assertEq(balanceUserBefore + amount, balanceUserAfter, "it should transfer underlying to user");
     }
 
     function test_unit_balanceOf_success_whenCallerIsAllowed(uint256 amount) external givenMarketIsNotPaused {
@@ -835,14 +808,14 @@ contract mTokenGatewayTest is BaseMTokenTest {
         amounts[0] = amount;
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceUserAfter = weth.balanceOf(address(this));
 
         // it should increase accAmountOut
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWethExtension.accAmountOut(address(this)), amount);
+        assertEq(mWethExtension.accAmountOut(address(this)), amount, "assertEq failed: values do not match");
 
         // it should transfer underlying to user
-        assertEq(balanceUserBefore + amount, balanceUserAfter);
+        assertEq(balanceUserBefore + amount, balanceUserAfter, "it should transfer underlying to user");
     }
 
     ////////////////////////////////////////////////////////////
@@ -906,7 +879,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         // it should decrease the caller underlying balance
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(balanceWethAfter + amount, balanceWethBefore);
+        assertEq(balanceWethAfter + amount, balanceWethBefore, "assertEq failed: values do not match");
 
         // it should increase accAmount
         assertGt(accAmountInAfter, accAmountInBefore);
@@ -972,12 +945,12 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.setWhitelistedUser(address(this), true);
         mWethExtension.supplyOnHost(amount, address(this), LINEA_MINT_SELECTOR);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 accAmountInAfter = mWethExtension.accAmountIn(address(this));
 
         // it should decrease the caller underlying balance
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(balanceWethAfter + amount, balanceWethBefore);
+        assertEq(balanceWethAfter + amount, balanceWethBefore, "assertEq failed: values do not match");
 
         // it should increase accAmount
         assertGt(accAmountInAfter, accAmountInBefore);
@@ -1002,5 +975,41 @@ contract mTokenGatewayTest is BaseMTokenTest {
         // it should increase accAmount
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertGt(accAmountInAfter, accAmountInBefore);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _gatewayInitData(
+        address underlying,
+        address rolesAddress,
+        address blacklisterAddress,
+        address verifierAddress
+    ) internal view returns (bytes memory) {
+        return abi.encodeWithSelector(
+            mTokenGateway.initialize.selector,
+            payable(address(this)),
+            underlying,
+            rolesAddress,
+            blacklisterAddress,
+            verifierAddress
+        );
+    }
+
+    function _encodeJournal(
+        address sender,
+        address market,
+        uint256 accAmountIn,
+        uint256 accAmountOut,
+        uint32 chainId,
+        uint32 dstChainId,
+        bool l1Inclusion
+    ) internal pure returns (bytes memory) {
+        return abi.encodePacked(sender, market, accAmountIn, accAmountOut, chainId, dstChainId, l1Inclusion);
+    }
+
+    function _wrapJournals(bytes[] memory journals) internal pure returns (bytes memory) {
+        return abi.encode(journals);
     }
 }

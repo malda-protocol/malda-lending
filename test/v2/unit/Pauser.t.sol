@@ -10,90 +10,14 @@ import {BasePauserTest} from "test/v2/utils/BasePauserTest.t.sol";
 
 contract PauserTest is BasePauserTest {
     ////////////////////////////////////////////////////////////
-    //                        Helpers                         //
-    ////////////////////////////////////////////////////////////
-
-    function _allowRole(address target, bytes32 role, bool allowed) internal {
-        vm.expectEmit(true, true, false, true, address(roles));
-        emit Roles.Allowed(target, role, allowed);
-
-        roles.allowFor(target, role, allowed);
-    }
-
-    function _addPausableMarket(address market, IPauser.PausableType pausableType) internal {
-        vm.expectEmit(true, true, false, true, address(pauser));
-        emit IPauser.MarketAdded(market, pausableType);
-
-        pauser.addPausableMarket(market, pausableType);
-    }
-
-    function _grantPauseManager(address caller) internal {
-        _allowRole(caller, roles.PAUSE_MANAGER(), true);
-        _allowRole(address(pauser), roles.GUARDIAN_PAUSE(), true);
-    }
-
-    function _setRegistered(address market, bool value) internal {
-        bytes32 slot = keccak256(abi.encode(market, uint256(2)));
-        vm.store(address(pauser), slot, bytes32(uint256(value ? 1 : 0)));
-    }
-
-    function _expectMarketPausedForAllOperations(address market) internal {
-        ImTokenOperationTypes.OperationType[12] memory ops = [
-            ImTokenOperationTypes.OperationType.AmountIn,
-            ImTokenOperationTypes.OperationType.AmountOut,
-            ImTokenOperationTypes.OperationType.AmountInHere,
-            ImTokenOperationTypes.OperationType.AmountOutHere,
-            ImTokenOperationTypes.OperationType.Mint,
-            ImTokenOperationTypes.OperationType.Borrow,
-            ImTokenOperationTypes.OperationType.Transfer,
-            ImTokenOperationTypes.OperationType.Seize,
-            ImTokenOperationTypes.OperationType.Repay,
-            ImTokenOperationTypes.OperationType.Redeem,
-            ImTokenOperationTypes.OperationType.Liquidate,
-            ImTokenOperationTypes.OperationType.Rebalancing
-        ];
-
-        for (uint256 i; i < ops.length; ++i) {
-            vm.expectEmit(true, true, false, true, address(pauser));
-            emit IPauser.MarketPausedFor(market, ops[i]);
-        }
-
-        vm.expectEmit(true, false, false, true, address(pauser));
-        emit IPauser.MarketPaused(market);
-    }
-
-    function _assertMarketPausedForAllOperations(address market, bool isHost) internal {
-        ImTokenOperationTypes.OperationType[12] memory ops = [
-            ImTokenOperationTypes.OperationType.AmountIn,
-            ImTokenOperationTypes.OperationType.AmountOut,
-            ImTokenOperationTypes.OperationType.AmountInHere,
-            ImTokenOperationTypes.OperationType.AmountOutHere,
-            ImTokenOperationTypes.OperationType.Mint,
-            ImTokenOperationTypes.OperationType.Borrow,
-            ImTokenOperationTypes.OperationType.Transfer,
-            ImTokenOperationTypes.OperationType.Seize,
-            ImTokenOperationTypes.OperationType.Repay,
-            ImTokenOperationTypes.OperationType.Redeem,
-            ImTokenOperationTypes.OperationType.Liquidate,
-            ImTokenOperationTypes.OperationType.Rebalancing
-        ];
-
-        for (uint256 i; i < ops.length; ++i) {
-            if (isHost) {
-                assertTrue(operator.isPaused(market, ops[i]));
-            } else {
-                assertTrue(mWethExtension.isPaused(ops[i]));
-            }
-        }
-    }
-
-    ////////////////////////////////////////////////////////////
     //                      constructor                       //
     ////////////////////////////////////////////////////////////
 
     function test_fuzz_constructor_revertsWith_Pauser_AddressNotValid(bool zeroRoles, bool zeroOperator) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(zeroRoles || zeroOperator);
+        if (!zeroRoles && !zeroOperator) {
+            zeroRoles = true;
+        }
         address rolesAddress = zeroRoles ? address(0) : address(roles);
         address operatorAddress = zeroOperator ? address(0) : address(operator);
 
@@ -133,7 +57,7 @@ contract PauserTest is BasePauserTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertTrue(pauser.registeredContracts(market));
-        assertEq(uint256(pauser.contractTypes(market)), uint256(pausableType));
+        assertEq(uint256(pauser.contractTypes(market)), uint256(pausableType), "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -282,7 +206,11 @@ contract PauserTest is BasePauserTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertFalse(pauser.registeredContracts(address(mWethHost)));
-        assertEq(uint256(pauser.contractTypes(address(mWethHost))), uint256(IPauser.PausableType.NonPausable));
+        assertEq(
+            uint256(pauser.contractTypes(address(mWethHost))),
+            uint256(IPauser.PausableType.NonPausable),
+            "assertEq failed: values do not match"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -303,16 +231,98 @@ contract PauserTest is BasePauserTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertFalse(pauser.registeredContracts(address(mWethHost)));
-        assertEq(uint256(pauser.contractTypes(address(mWethHost))), uint256(IPauser.PausableType.NonPausable));
+        assertEq(
+            uint256(pauser.contractTypes(address(mWethHost))),
+            uint256(IPauser.PausableType.NonPausable),
+            "assertEq failed: values do not match"
+        );
 
         (address market, IPauser.PausableType marketType) = pauser.pausableContracts(0);
-        assertEq(market, address(mWethExtension));
-        assertEq(uint256(marketType), uint256(IPauser.PausableType.Extension));
+        assertEq(market, address(mWethExtension), "assertEq failed: values do not match");
+        assertEq(uint256(marketType), uint256(IPauser.PausableType.Extension), "assertEq failed: values do not match");
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         pauser.pausableContracts(1);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _allowRole(address target, bytes32 role, bool allowed) internal {
+        vm.expectEmit(true, true, false, true, address(roles));
+        emit Roles.Allowed(target, role, allowed);
+
+        roles.allowFor(target, role, allowed);
+    }
+
+    function _addPausableMarket(address market, IPauser.PausableType pausableType) internal {
+        vm.expectEmit(true, true, false, true, address(pauser));
+        emit IPauser.MarketAdded(market, pausableType);
+
+        pauser.addPausableMarket(market, pausableType);
+    }
+
+    function _grantPauseManager(address caller) internal {
+        _allowRole(caller, roles.PAUSE_MANAGER(), true);
+        _allowRole(address(pauser), roles.GUARDIAN_PAUSE(), true);
+    }
+
+    function _setRegistered(address market, bool value) internal {
+        bytes32 slot = keccak256(abi.encode(market, uint256(2)));
+        vm.store(address(pauser), slot, bytes32(uint256(value ? 1 : 0)));
+    }
+
+    function _expectMarketPausedForAllOperations(address market) internal {
+        ImTokenOperationTypes.OperationType[12] memory ops = [
+            ImTokenOperationTypes.OperationType.AmountIn,
+            ImTokenOperationTypes.OperationType.AmountOut,
+            ImTokenOperationTypes.OperationType.AmountInHere,
+            ImTokenOperationTypes.OperationType.AmountOutHere,
+            ImTokenOperationTypes.OperationType.Mint,
+            ImTokenOperationTypes.OperationType.Borrow,
+            ImTokenOperationTypes.OperationType.Transfer,
+            ImTokenOperationTypes.OperationType.Seize,
+            ImTokenOperationTypes.OperationType.Repay,
+            ImTokenOperationTypes.OperationType.Redeem,
+            ImTokenOperationTypes.OperationType.Liquidate,
+            ImTokenOperationTypes.OperationType.Rebalancing
+        ];
+
+        for (uint256 i; i < ops.length; ++i) {
+            vm.expectEmit(true, true, false, true, address(pauser));
+            emit IPauser.MarketPausedFor(market, ops[i]);
+        }
+
+        vm.expectEmit(true, false, false, true, address(pauser));
+        emit IPauser.MarketPaused(market);
+    }
+
+    function _assertMarketPausedForAllOperations(address market, bool isHost) internal {
+        ImTokenOperationTypes.OperationType[12] memory ops = [
+            ImTokenOperationTypes.OperationType.AmountIn,
+            ImTokenOperationTypes.OperationType.AmountOut,
+            ImTokenOperationTypes.OperationType.AmountInHere,
+            ImTokenOperationTypes.OperationType.AmountOutHere,
+            ImTokenOperationTypes.OperationType.Mint,
+            ImTokenOperationTypes.OperationType.Borrow,
+            ImTokenOperationTypes.OperationType.Transfer,
+            ImTokenOperationTypes.OperationType.Seize,
+            ImTokenOperationTypes.OperationType.Repay,
+            ImTokenOperationTypes.OperationType.Redeem,
+            ImTokenOperationTypes.OperationType.Liquidate,
+            ImTokenOperationTypes.OperationType.Rebalancing
+        ];
+
+        for (uint256 i; i < ops.length; ++i) {
+            if (isHost) {
+                assertTrue(operator.isPaused(market, ops[i]));
+            } else {
+                assertTrue(mWethExtension.isPaused(ops[i]));
+            }
+        }
     }
 }

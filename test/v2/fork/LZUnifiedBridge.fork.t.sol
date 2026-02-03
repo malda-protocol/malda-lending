@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {console} from "forge-std/console.sol";
-
+import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 import {LZUnifiedBridge} from "src/rebalancer/bridges/LZUnifiedBridge.sol";
-import {weEthOftMessageExecutor} from "src/rebalancer/bridges/helpers/weEthOftMessageExecutor.sol";
 import {MockRoles} from "test/mocks/MockRoles.sol";
+import {
+    LZBridgeMockExecutor,
+    LZBridgeMockOFT,
+    LZBridgeRevertingExecutor
+} from "test/v2/mocks/rebalancer/LZUnifiedBridgeMocks.t.sol";
 import {MockMarket} from "test/v2/mocks/rebalancer/AcrossBridgeMocks.t.sol";
 import {BaseForkTest} from "test/v2/utils/BaseForkTest.t.sol";
 
@@ -18,8 +20,10 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
     LZUnifiedBridge public bridge;
     /// @notice Mock roles contract used by the bridge
     MockRoles public mockRoles;
-    /// @notice OFT executor used for weETH flows
-    weEthOftMessageExecutor public executor;
+    /// @notice Mock OFT used for send fee quotes
+    LZBridgeMockOFT public oft;
+    /// @notice Mock executor used for send flows
+    LZBridgeMockExecutor public executor;
 
     // weETH addresses
     address public constant WEETH_LINEA = 0x1Bf74C010E6320bab11e2e5A532b5AC15e0b8aA6;
@@ -47,39 +51,28 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
 
     /// @notice weETH Linea -> Base send flow (fork test)
 
-    // TODO add revert cases
-
     ////////////////////////////////////////////////////////////
     //                        SendMsg                         //
     ////////////////////////////////////////////////////////////
 
     function test_fork_sendMsg_success_lineaToBaseWeEth() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.skip(true);
         _selectLineaFork();
 
-        mockRoles = new MockRoles();
-        bridge = new LZUnifiedBridge(address(mockRoles), address(this));
-        MockMarket market = new MockMarket(WEETH_LINEA);
-        executor = new weEthOftMessageExecutor();
-
-        mockRoles.setAllowed(address(this), true);
-        bridge.setOftExecutorContract(WEETH_LINEA, address(executor));
-
-        uint256 amount = 0.001e18; // 0.001 weETH
-
-        deal(WEETH_LINEA, address(this), amount);
-        IERC20(WEETH_LINEA).approve(address(bridge), amount);
+        MockMarket market = _deployBridge(WEETH_LINEA);
+        oft.setQuoteFee(0.1 ether, 0);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        bytes memory message = abi.encode(address(market), amount, amount, bytes(""));
+        uint256 amount = 0.001e18;
+        bytes memory message = _message(address(market), amount, amount);
+        bytes memory extraData = _extraData(address(this));
 
-        uint256 balBefore = IERC20(WEETH_LINEA).balanceOf(address(this));
-        bridge.sendMsg{value: 1 ether}(amount, address(market), baseLzId, WEETH_LINEA, message, bytes(""));
-        uint256 balAfter = IERC20(WEETH_LINEA).balanceOf(address(this));
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true);
+        emit LZUnifiedBridge.MsgSent(baseLzId, address(market), amount, amount, bytes32("guid"));
 
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(balAfter, balBefore - amount);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg{value: 0.1 ether}(amount, address(market), baseLzId, WEETH_LINEA, message, extraData);
     }
 
     /// @notice weETH Base -> Linea send flow (requires Cancun)
@@ -87,66 +80,219 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
 
     function test_fork_sendMsg_success_baseToLineaWeEth() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.skip(true);
+        _selectBaseFork();
 
-        address impl = 0xde8A2C33655ACA88f258988ED74D1511876343D1;
-        console.log("impl code length:", impl.code.length);
-
-        mockRoles = new MockRoles();
-        bridge = new LZUnifiedBridge(address(mockRoles), address(this));
-        MockMarket market = new MockMarket(WEETH_BASE);
-        executor = new weEthOftMessageExecutor();
-
-        mockRoles.setAllowed(address(this), true);
-        bridge.setOftExecutorContract(WEETH_BASE, address(executor));
-
-        uint256 amount = 0.001e18; // 0.001 weETH
-
-        deal(WEETH_BASE, address(this), amount);
-        IERC20(WEETH_BASE).approve(address(bridge), amount);
+        MockMarket market = _deployBridge(WEETH_BASE);
+        oft.setQuoteFee(0.1 ether, 0);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        bytes memory message = abi.encode(address(market), amount, amount, bytes(""));
+        uint256 amount = 0.001e18;
+        bytes memory message = _message(address(market), amount, amount);
+        bytes memory extraData = _extraData(address(this));
 
-        uint256 balBefore = IERC20(WEETH_BASE).balanceOf(address(this));
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true);
+        emit LZUnifiedBridge.MsgSent(lineaLzId, address(market), amount, amount, bytes32("guid"));
 
-        bridge.sendMsg{value: 1 ether}(amount, address(market), lineaLzId, WEETH_BASE, message, bytes(""));
-
-        uint256 balAfter = IERC20(WEETH_BASE).balanceOf(address(this));
-
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(balAfter, balBefore - amount);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg{value: 0.1 ether}(amount, address(market), lineaLzId, WEETH_BASE, message, extraData);
     }
 
     /// @notice weETH Ethereum -> Linea send flow (fork test)
 
     function test_fork_sendMsg_success_ethToLineaWeEth() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.skip(true);
         _selectEthFork();
 
-        mockRoles = new MockRoles();
-        bridge = new LZUnifiedBridge(address(mockRoles), address(this));
-        MockMarket market = new MockMarket(WEETH_ETH);
-        executor = new weEthOftMessageExecutor();
-
-        mockRoles.setAllowed(address(this), true);
-        bridge.setBridgeContract(WEETH_ETH, WEETH_ADAPTER_ETH);
-        bridge.setOftExecutorContract(WEETH_ETH, address(executor));
-
-        uint256 amount = 0.001e18; // 0.001 weETH
-
-        deal(WEETH_ETH, address(this), amount);
-        IERC20(WEETH_ETH).approve(address(bridge), amount);
+        MockMarket market = _deployBridge(WEETH_ETH);
+        oft.setQuoteFee(0.1 ether, 0);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        bytes memory message = abi.encode(address(market), amount, amount, bytes(""));
+        uint256 amount = 0.001e18;
+        bytes memory message = _message(address(market), amount, amount);
+        bytes memory extraData = _extraData(address(this));
 
-        uint256 balBefore = IERC20(WEETH_ETH).balanceOf(address(this));
-        bridge.sendMsg{value: 1 ether}(amount, address(market), lineaLzId, WEETH_ETH, message, bytes(""));
-        uint256 balAfter = IERC20(WEETH_ETH).balanceOf(address(this));
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true);
+        emit LZUnifiedBridge.MsgSent(lineaLzId, address(market), amount, amount, bytes32("guid"));
 
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(balAfter, balBefore - amount);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg{value: 0.1 ether}(amount, address(market), lineaLzId, WEETH_ETH, message, extraData);
+    }
+
+    function test_fork_sendMsg_revertsWith_BaseBridge_NotAuthorized() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _selectLineaFork();
+        mockRoles = new MockRoles();
+        bridge = new LZUnifiedBridge(address(mockRoles), address(this));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(1, address(0), baseLzId, WEETH_LINEA, _message(address(0), 1, 1), _extraData(address(this)));
+    }
+
+    function test_fork_sendMsg_revertsWith_LZBridge_ChainNotRegistered() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _selectLineaFork();
+        MockMarket market = _deployBridge(WEETH_LINEA);
+        oft.setQuoteFee(0, 0);
+        bytes memory message = _message(address(market), 1, 1);
+        bytes memory extraData = _extraData(address(this));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(LZUnifiedBridge.LZBridge_ChainNotRegistered.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(1, address(market), 0, WEETH_LINEA, message, extraData);
+    }
+
+    function test_fork_sendMsg_revertsWith_LZBridge_DestinationMismatch() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _selectLineaFork();
+        MockMarket market = _deployBridge(WEETH_LINEA);
+        oft.setQuoteFee(0, 0);
+        bytes memory message = _message(users.alice, 1, 1);
+        bytes memory extraData = _extraData(address(this));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(LZUnifiedBridge.LZBridge_DestinationMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(1, address(market), baseLzId, WEETH_LINEA, message, extraData);
+    }
+
+    function test_fork_sendMsg_revertsWith_LZBridge_TokenMismatch() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _selectLineaFork();
+        MockMarket market = _deployBridge(WEETH_LINEA);
+        oft.setQuoteFee(0, 0);
+        bytes memory message = _message(address(market), 1, 1);
+        bytes memory extraData = _extraData(address(this));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(LZUnifiedBridge.LZBridge_TokenMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(1, address(market), baseLzId, WEETH_BASE, message, extraData);
+    }
+
+    function test_fork_sendMsg_revertsWith_LZBridge_ExecutorNotSet() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _selectLineaFork();
+        MockMarket market = _deployBridge(WEETH_LINEA);
+        bridge.setOftExecutorContract(WEETH_LINEA, address(0));
+        oft.setQuoteFee(0, 0);
+        bytes memory message = _message(address(market), 1, 1);
+        bytes memory extraData = _extraData(address(this));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(LZUnifiedBridge.LZBridge_ExecutorNotSet.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(1, address(market), baseLzId, WEETH_LINEA, message, extraData);
+    }
+
+    function test_fork_sendMsg_revertsWith_LZBridge_NotEnoughFees() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _selectLineaFork();
+        MockMarket market = _deployBridge(WEETH_LINEA);
+        oft.setQuoteFee(1 ether, 0);
+        bytes memory message = _message(address(market), 1, 1);
+        bytes memory extraData = _extraData(address(this));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(LZUnifiedBridge.LZBridge_NotEnoughFees.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg{value: 0.1 ether}(1, address(market), baseLzId, WEETH_LINEA, message, extraData);
+    }
+
+    function test_fork_sendMsg_revertsWith_BaseBridge_AmountMismatch() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _selectLineaFork();
+        MockMarket market = _deployBridge(WEETH_LINEA);
+        oft.setQuoteFee(0, 0);
+        bytes memory message = _message(address(market), 1, 1);
+        bytes memory extraData = _extraData(address(this));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_AmountMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(2, address(market), baseLzId, WEETH_LINEA, message, extraData);
+    }
+
+    function test_fork_sendMsg_revertsWith_LZBridge_RefunderNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _selectLineaFork();
+        MockMarket market = _deployBridge(WEETH_LINEA);
+        oft.setQuoteFee(0, 0);
+        bytes memory message = _message(address(market), 1, 1);
+        bytes memory extraData = _extraData(address(0));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(LZUnifiedBridge.LZBridge_RefunderNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(1, address(market), baseLzId, WEETH_LINEA, message, extraData);
+    }
+
+    function test_fork_sendMsg_revertsWith_LZBridge_ExecutorNoCode() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _selectLineaFork();
+        MockMarket market = _deployBridge(WEETH_LINEA);
+        bridge.setOftExecutorContract(WEETH_LINEA, address(1));
+        oft.setQuoteFee(0, 0);
+        bytes memory message = _message(address(market), 1, 1);
+        bytes memory extraData = _extraData(address(this));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(LZUnifiedBridge.LZBridge_ExecutorNoCode.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(1, address(market), baseLzId, WEETH_LINEA, message, extraData);
+    }
+
+    function test_fork_sendMsg_revertsWith_ExecutorRevert() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _selectLineaFork();
+        MockMarket market = _deployBridge(WEETH_LINEA);
+        bridge.setOftExecutorContract(WEETH_LINEA, address(new LZBridgeRevertingExecutor()));
+        oft.setQuoteFee(0, 0);
+        bytes memory message = _message(address(market), 1, 1);
+        bytes memory extraData = _extraData(address(this));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(LZBridgeRevertingExecutor.ExecutorRevert.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(1, address(market), baseLzId, WEETH_LINEA, message, extraData);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _deployBridge(address underlying) internal returns (MockMarket market) {
+        mockRoles = new MockRoles();
+        mockRoles.setAllowed(address(this), true);
+
+        bridge = new LZUnifiedBridge(address(mockRoles), address(this));
+        market = new MockMarket(underlying);
+        oft = new LZBridgeMockOFT(underlying);
+        executor = new LZBridgeMockExecutor();
+
+        bridge.setBridgeContract(underlying, address(oft));
+        bridge.setOftExecutorContract(underlying, address(executor));
+    }
+
+    function _message(address market, uint256 amount, uint256 minAmount) internal pure returns (bytes memory) {
+        return abi.encode(market, amount, minAmount, bytes(""));
+    }
+
+    function _extraData(address refunder) internal pure returns (bytes memory) {
+        return abi.encode(refunder);
     }
 }

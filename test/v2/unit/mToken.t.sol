@@ -36,7 +36,7 @@ contract mTokenTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setOperator_revertsWith_mt_OnlyAdmin() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -45,7 +45,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.setOperator(address(operator));
     }
 
-    function test_unit_setOperator_success_updates() external {
+    function test_unit_setOperator_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address newOperator = users.bob;
 
@@ -56,7 +56,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.setOperator(newOperator);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWeth.operator(), newOperator);
+        assertEq(mWeth.operator(), newOperator, "assertEq failed: values do not match");
     }
 
     function test_unit_setOperator_revertsWith_mt_OperatorNotValid() external {
@@ -70,7 +70,7 @@ contract mTokenTest is BaseMTokenTest {
     //                    SetRolesOperator                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setRolesOperator_success_updates() external {
+    function test_unit_setRolesOperator_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         Roles newRoles = new Roles(address(this));
 
@@ -81,7 +81,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.setRolesOperator(address(newRoles));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(mWeth.rolesOperator()), address(newRoles));
+        assertEq(address(mWeth.rolesOperator()), address(newRoles), "assertEq failed: values do not match");
     }
 
     function test_unit_setRolesOperator_revertsWith_mt_AddressNotValid() external {
@@ -99,6 +99,7 @@ contract mTokenTest is BaseMTokenTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         GoodInterestRateModel newModel = new GoodInterestRateModel();
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_OnlyAdmin.selector);
@@ -106,7 +107,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.setInterestRateModel(address(newModel));
     }
 
-    function test_unit_setInterestRateModel_success_updates() external {
+    function test_unit_setInterestRateModel_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         GoodInterestRateModel newModel = new GoodInterestRateModel();
 
@@ -117,7 +118,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.setInterestRateModel(address(newModel));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWeth.interestRateModel(), address(newModel));
+        assertEq(mWeth.interestRateModel(), address(newModel), "assertEq failed: values do not match");
     }
 
     function test_unit_setInterestRateModel_revertsWith_mt_MarketMethodNotValid() external {
@@ -145,7 +146,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.setBorrowRateMaxMantissa(newMax);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWeth.borrowRateMaxMantissa(), newMax);
+        assertEq(mWeth.borrowRateMaxMantissa(), newMax, "assertEq failed: values do not match");
     }
 
     function test_unit_setBorrowRateMaxMantissa_success_withSupply(uint256 mintAmount, uint256 newMax) external {
@@ -166,7 +167,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.setBorrowRateMaxMantissa(newMax);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWeth.borrowRateMaxMantissa(), newMax);
+        assertEq(mWeth.borrowRateMaxMantissa(), newMax, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -195,7 +196,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.accrueInterest();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWeth.borrowRateMaxMantissa(), 1e18);
+        assertEq(mWeth.borrowRateMaxMantissa(), 1e18, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -210,7 +211,7 @@ contract mTokenTest is BaseMTokenTest {
     }
 
     function test_unit_setPendingAdmin_revertsWith_mt_OnlyAdmin() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_OnlyAdmin.selector);
@@ -222,7 +223,7 @@ contract mTokenTest is BaseMTokenTest {
     //                        Payable                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setPendingAdmin_success_andAcceptAdmin() external {
+    function test_unit_setPendingAdmin_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address newAdmin = users.bob;
 
@@ -231,8 +232,9 @@ contract mTokenTest is BaseMTokenTest {
         emit mTokenStorage.NewPendingAdmin(newAdmin);
         mWeth.setPendingAdmin(payable(newAdmin));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWeth.pendingAdmin(), newAdmin);
+        assertEq(mWeth.pendingAdmin(), newAdmin, "assertEq failed: values do not match");
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(newAdmin);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
@@ -240,8 +242,8 @@ contract mTokenTest is BaseMTokenTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWeth.acceptAdmin();
 
-        assertEq(mWeth.admin(), newAdmin);
-        assertEq(mWeth.pendingAdmin(), address(0));
+        assertEq(mWeth.admin(), newAdmin, "assertEq failed: values do not match");
+        assertEq(mWeth.pendingAdmin(), address(0), "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -270,7 +272,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.approve(users.bob, amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWeth.allowance(address(this), users.bob), amount);
+        assertEq(mWeth.allowance(address(this), users.bob), amount, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -295,7 +297,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.transfer(address(this), 1);
     }
 
-    function test_fuzz_transfer_success_updatesBalances(uint256 mintAmount, uint256 transferAmount)
+    function test_fuzz_transfer_success(uint256 mintAmount, uint256 transferAmount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
@@ -317,8 +319,10 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.transfer(users.bob, transferAmount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWeth.balanceOf(address(this)), senderBalanceBefore - transferAmount);
-        assertEq(mWeth.balanceOf(users.bob), transferAmount);
+        assertEq(
+            mWeth.balanceOf(address(this)), senderBalanceBefore - transferAmount, "assertEq failed: values do not match"
+        );
+        assertEq(mWeth.balanceOf(users.bob), transferAmount, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -343,6 +347,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.approve(users.bob, transferAmount);
         vm.stopPrank();
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.bob);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
@@ -351,9 +356,11 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.transferFrom(users.alice, users.carol, transferAmount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWeth.allowance(users.alice, users.bob), 0);
-        assertEq(mWeth.balanceOf(users.alice), senderBalanceBefore - transferAmount);
-        assertEq(mWeth.balanceOf(users.carol), transferAmount);
+        assertEq(mWeth.allowance(users.alice, users.bob), 0, "assertEq failed: values do not match");
+        assertEq(
+            mWeth.balanceOf(users.alice), senderBalanceBefore - transferAmount, "assertEq failed: values do not match"
+        );
+        assertEq(mWeth.balanceOf(users.carol), transferAmount, "assertEq failed: values do not match");
     }
 
     function test_fuzz_transferFrom_success_byOwner_SkipsAllowance(uint256 mintAmount, uint256 transferAmount)
@@ -380,9 +387,11 @@ contract mTokenTest is BaseMTokenTest {
         vm.stopPrank();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWeth.allowance(users.alice, users.alice), 0);
-        assertEq(mWeth.balanceOf(users.alice), senderBalanceBefore - transferAmount);
-        assertEq(mWeth.balanceOf(users.bob), transferAmount);
+        assertEq(mWeth.allowance(users.alice, users.alice), 0, "assertEq failed: values do not match");
+        assertEq(
+            mWeth.balanceOf(users.alice), senderBalanceBefore - transferAmount, "assertEq failed: values do not match"
+        );
+        assertEq(mWeth.balanceOf(users.bob), transferAmount, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -410,15 +419,15 @@ contract mTokenTest is BaseMTokenTest {
         uint256 borrowBalanceCurrent = mWeth.borrowBalanceCurrent(address(this));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(totalBorrowsCurrent, mWeth.totalBorrows());
-        assertEq(borrowBalanceCurrent, mWeth.borrowBalanceStored(address(this)));
+        assertEq(totalBorrowsCurrent, mWeth.totalBorrows(), "assertEq failed: values do not match");
+        assertEq(borrowBalanceCurrent, mWeth.borrowBalanceStored(address(this)), "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
     //                 MintOrBorrowMigration                  //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_mintOrBorrowMigration_success_fromMigrator(uint256 supplyAmount, uint256 borrowAmount)
+    function test_fuzz_mintOrBorrowMigration_success(uint256 supplyAmount, uint256 borrowAmount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWethHost))
@@ -443,15 +452,17 @@ contract mTokenTest is BaseMTokenTest {
         mWethHost.mintOrBorrowMigration(false, borrowAmount, users.bob, address(this), 0);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(weth.balanceOf(users.bob), receiverBalanceBefore + borrowAmount);
-        assertEq(mWethHost.borrowBalanceStored(address(this)), borrowAmount);
+        assertEq(
+            weth.balanceOf(users.bob), receiverBalanceBefore + borrowAmount, "assertEq failed: values do not match"
+        );
+        assertEq(mWethHost.borrowBalanceStored(address(this)), borrowAmount, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
     //                  BalanceOfUnderlying                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_balanceOfUnderlying_success_andExchangeRateCurrent(uint256 mintAmount)
+    function test_unit_balanceOfUnderlying_success(uint256 mintAmount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
@@ -469,7 +480,7 @@ contract mTokenTest is BaseMTokenTest {
         uint256 balanceUnderlying = mWeth.balanceOfUnderlying(address(this));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(balanceUnderlying, (tokenBalance * exchangeRate) / 1e18);
+        assertEq(balanceUnderlying, (tokenBalance * exchangeRate) / 1e18, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -488,7 +499,7 @@ contract mTokenTest is BaseMTokenTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 cash = mWeth.getCash();
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(cash, mWeth.totalUnderlying());
+        assertEq(cash, mWeth.totalUnderlying(), "assertEq failed: values do not match");
 
         uint256 borrows = mWeth.totalBorrows();
         uint256 reserves = mWeth.totalReserves();
@@ -498,8 +509,8 @@ contract mTokenTest is BaseMTokenTest {
         uint256 expectedSupplyRate = IInterestRateModel(mWeth.interestRateModel())
             .getSupplyRate(cash, borrows, reserves, mWeth.reserveFactorMantissa());
 
-        assertEq(mWeth.borrowRatePerBlock(), expectedBorrowRate);
-        assertEq(mWeth.supplyRatePerBlock(), expectedSupplyRate);
+        assertEq(mWeth.borrowRatePerBlock(), expectedBorrowRate, "assertEq failed: values do not match");
+        assertEq(mWeth.supplyRatePerBlock(), expectedSupplyRate, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -525,8 +536,8 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.reduceReserves(reduceAmount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWeth.totalReserves(), totalReservesBefore - reduceAmount);
-        assertEq(mWeth.totalUnderlying(), totalUnderlyingBefore - reduceAmount);
+        assertEq(mWeth.totalReserves(), totalReservesBefore - reduceAmount, "assertEq failed: values do not match");
+        assertEq(mWeth.totalUnderlying(), totalUnderlyingBefore - reduceAmount, "assertEq failed: values do not match");
     }
 
     function test_fuzz_reduceReserves_success_asGuardian(uint256 amount) external {
@@ -542,6 +553,7 @@ contract mTokenTest is BaseMTokenTest {
 
         uint256 reduceAmount = amount / 2;
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
@@ -550,7 +562,7 @@ contract mTokenTest is BaseMTokenTest {
         mWethHost.reduceReserves(reduceAmount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWethHost.totalReserves(), amount - reduceAmount);
+        assertEq(mWethHost.totalReserves(), amount - reduceAmount, "assertEq failed: values do not match");
     }
 
     function test_fuzz_reduceReserves_revertsWith_mt_OnlyAdminOrRole(uint256 amount) external {
@@ -562,6 +574,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.addReserves(amount);
         mWeth.setRolesOperator(address(roles));
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_OnlyAdminOrRole.selector);
@@ -585,7 +598,7 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.mint(amount, address(this), amount);
     }
 
-    function test_unit_mint_success_whenTotalSupplyNonZero() external whenMarketIsListed(address(mWeth)) {
+    function test_unit_mint_success() external whenMarketIsListed(address(mWeth)) {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 amount = SMALL;
         _getTokens(weth, address(this), amount * 2);
@@ -602,7 +615,7 @@ contract mTokenTest is BaseMTokenTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWeth.mint(amount, address(this), 0);
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWeth.totalSupply(), totalSupplyBefore + amount);
+        assertEq(mWeth.totalSupply(), totalSupplyBefore + amount, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -663,6 +676,7 @@ contract mTokenTest is BaseMTokenTest {
         operator.supportMarket(address(mWeth));
         operator.supportMarket(address(mDaiHost));
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(mDaiHost));
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_InvalidInput.selector);
@@ -675,7 +689,7 @@ contract mTokenTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_liquidate_revertsWith_mt_InvalidInput_whenLiquidatorIsBorrower() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_InvalidInput.selector);
@@ -746,6 +760,7 @@ contract mTokenTest is BaseMTokenTest {
 
         oracleOperator.setUnderlyingPrice(0);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_PriceFetchFailed.selector);
@@ -775,12 +790,17 @@ contract mTokenTest is BaseMTokenTest {
         );
         vm.mockCall(address(mWeth), abi.encodeWithSelector(mWeth.balanceOf.selector, borrower), abi.encode(uint256(0)));
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_LiquidateSeizeTooMuch.selector);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
     }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
 
     function _expectAccrueInterest() internal {
         uint256 cashPrior = mWeth.getCash();
@@ -819,6 +839,7 @@ contract mTokenTest is BaseMTokenTest {
         dai.approve(address(mDaiHost), cashAmount);
         mDaiHost.mint(cashAmount, address(this), 0);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(account);
         mDaiHost.borrow(borrowAmount);
     }

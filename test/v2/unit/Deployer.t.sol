@@ -32,29 +32,29 @@ contract DeployerTest is BaseTest {
         new Deployer(address(0));
     }
 
-    function test_unit_constructor_success_setsAdmin() external {
+    function test_unit_constructor_success() external {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         Deployer newDeployer = new Deployer(admin);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(newDeployer.admin(), admin);
-        assertEq(newDeployer.pendingAdmin(), address(0));
+        assertEq(newDeployer.admin(), admin, "assertEq failed: values do not match");
+        assertEq(newDeployer.pendingAdmin(), address(0), "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
     //                         admin                          //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_admin_success_returnsAdmin() external view {
+    function test_unit_admin_success() external view {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(deployer.admin(), admin);
+        assertEq(deployer.admin(), admin, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
     //                    setPendingAdmin                     //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_setPendingAdmin_success_emits(address newAdmin) external {
+    function test_fuzz_setPendingAdmin_success(address newAdmin) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(newAdmin != address(0));
         vm.assume(newAdmin != admin);
@@ -68,7 +68,7 @@ contract DeployerTest is BaseTest {
         deployer.setPendingAdmin(newAdmin);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(deployer.pendingAdmin(), newAdmin);
+        assertEq(deployer.pendingAdmin(), newAdmin, "assertEq failed: values do not match");
     }
 
     function test_unit_setPendingAdmin_revertsWith_NotAuthorized() external {
@@ -93,7 +93,7 @@ contract DeployerTest is BaseTest {
         deployer.setNewAdmin(address(0));
     }
 
-    function test_fuzz_setNewAdmin_success_updates(address newAdmin) external {
+    function test_fuzz_setNewAdmin_success(address newAdmin) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(newAdmin != address(0));
         vm.assume(newAdmin != admin);
@@ -107,19 +107,20 @@ contract DeployerTest is BaseTest {
         deployer.setNewAdmin(newAdmin);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(deployer.admin(), newAdmin);
+        assertEq(deployer.admin(), newAdmin, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
     //                       acceptAdmin                      //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_acceptAdmin_success_transfersAdmin(address newAdmin) external {
+    function test_fuzz_acceptAdmin_success(address newAdmin) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(newAdmin != address(0));
         vm.assume(newAdmin != admin);
         vm.assume(newAdmin != other);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(admin);
         deployer.setPendingAdmin(newAdmin);
 
@@ -132,8 +133,8 @@ contract DeployerTest is BaseTest {
         deployer.acceptAdmin();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(deployer.admin(), newAdmin);
-        assertEq(deployer.pendingAdmin(), address(0));
+        assertEq(deployer.admin(), newAdmin, "assertEq failed: values do not match");
+        assertEq(deployer.pendingAdmin(), address(0), "assertEq failed: values do not match");
     }
 
     function test_fuzz_acceptAdmin_revertsWith_NotAuthorized(address newAdmin) external {
@@ -142,6 +143,7 @@ contract DeployerTest is BaseTest {
         vm.assume(newAdmin != admin);
         vm.assume(newAdmin != other);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(admin);
         deployer.setPendingAdmin(newAdmin);
 
@@ -158,9 +160,11 @@ contract DeployerTest is BaseTest {
         vm.assume(newAdmin != address(0));
         vm.assume(newAdmin != admin);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(admin);
         deployer.setPendingAdmin(newAdmin);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(newAdmin);
         deployer.acceptAdmin();
 
@@ -196,8 +200,8 @@ contract DeployerTest is BaseTest {
         deployer.saveEth();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(deployer).balance, 0);
-        assertEq(admin.balance, adminBalanceBefore + amount);
+        assertEq(address(deployer).balance, 0, "assertEq failed: values do not match");
+        assertEq(admin.balance, adminBalanceBefore + amount, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -219,10 +223,10 @@ contract DeployerTest is BaseTest {
         address deployed = deployer.create{value: value}(salt, code);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(deployed, expected);
+        assertEq(deployed, expected, "assertEq failed: values do not match");
         assertGt(deployed.code.length, 0);
-        assertEq(DeployableMock(payable(deployed)).value(), storedValue);
-        assertEq(deployed.balance, value);
+        assertEq(DeployableMock(payable(deployed)).value(), storedValue, "assertEq failed: values do not match");
+        assertEq(deployed.balance, value, "assertEq failed: values do not match");
     }
 
     function test_fuzz_create_revertsWith_NotAuthorized(bytes32 salt) external {

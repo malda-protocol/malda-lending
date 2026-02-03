@@ -77,7 +77,7 @@ contract EverclearBridgeV2Test is BaseTest {
         bridge.setEverclearFeeAdapter(address(0));
     }
 
-    function test_unit_setEverclearFeeAdapter_success_updatesAndEmits() external {
+    function test_unit_setEverclearFeeAdapter_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         EverclearFeeAdapterV2Mock newAdapter = new EverclearFeeAdapterV2Mock();
 
@@ -90,7 +90,7 @@ contract EverclearBridgeV2Test is BaseTest {
         bridge.setEverclearFeeAdapter(address(newAdapter));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(bridge.everclearFeeAdapter()), address(newAdapter));
+        assertEq(address(bridge.everclearFeeAdapter()), address(newAdapter), "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -261,15 +261,24 @@ contract EverclearBridgeV2Test is BaseTest {
         uint256 deadline
     ) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(data.length <= 64);
-        vm.assume(sig.length <= 64);
+        uint256 dataLength = bound(data.length, 0, 64);
+        bytes memory boundedData = new bytes(dataLength);
+        for (uint256 i; i < dataLength; ++i) {
+            boundedData[i] = data[i];
+        }
+
+        uint256 sigLength = bound(sig.length, 0, 64);
+        bytes memory boundedSig = new bytes(sigLength);
+        for (uint256 i; i < sigLength; ++i) {
+            boundedSig[i] = sig[i];
+        }
 
         IntentInput memory input = _defaultInput();
         input.amount = bound(amountRaw, 1, 1e18);
         input.amountOutMin = input.amount;
         input.ttl = ttl;
-        input.data = data;
-        input.feeParams = IFeeAdapterV2.FeeParams(bound(feeRaw, 0, input.amount / 2), deadline, sig);
+        input.data = boundedData;
+        input.feeParams = IFeeAdapterV2.FeeParams(bound(feeRaw, 0, input.amount / 2), deadline, boundedSig);
         uint256 extra = bound(extraRaw, 1, 1e18);
 
         (bytes memory message, uint32 dstChainId) = _buildMessage(1, input);
@@ -291,18 +300,24 @@ contract EverclearBridgeV2Test is BaseTest {
         vm.stopPrank();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(market), extra);
-        assertEq(token.balanceOf(address(bridge)), input.amount + input.feeParams.fee);
-        assertEq(token.allowance(address(bridge), address(feeAdapter)), input.amount + input.feeParams.fee);
-        assertEq(feeAdapter.callCount(), 1);
-        assertEq(feeAdapter.lastDestinations(0), dstChainId);
-        assertEq(feeAdapter.lastAmount(), input.amount);
-        assertEq(feeAdapter.lastAmountOutMin(), input.amountOutMin);
+        assertEq(token.balanceOf(market), extra, "assertEq failed: values do not match");
+        assertEq(
+            token.balanceOf(address(bridge)), input.amount + input.feeParams.fee, "assertEq failed: values do not match"
+        );
+        assertEq(
+            token.allowance(address(bridge), address(feeAdapter)),
+            input.amount + input.feeParams.fee,
+            "assertEq failed: values do not match"
+        );
+        assertEq(feeAdapter.callCount(), 1, "assertEq failed: values do not match");
+        assertEq(feeAdapter.lastDestinations(0), dstChainId, "assertEq failed: values do not match");
+        assertEq(feeAdapter.lastAmount(), input.amount, "assertEq failed: values do not match");
+        assertEq(feeAdapter.lastAmountOutMin(), input.amountOutMin, "assertEq failed: values do not match");
 
         (uint256 storedFee, uint256 storedDeadline, bytes memory storedSig) = feeAdapter.lastFeeParams();
-        assertEq(storedFee, input.feeParams.fee);
-        assertEq(storedDeadline, input.feeParams.deadline);
-        assertEq(keccak256(storedSig), keccak256(input.feeParams.sig));
+        assertEq(storedFee, input.feeParams.fee, "assertEq failed: values do not match");
+        assertEq(storedDeadline, input.feeParams.deadline, "assertEq failed: values do not match");
+        assertEq(keccak256(storedSig), keccak256(input.feeParams.sig), "assertEq failed: values do not match");
     }
 
     function test_fuzz_msgSent_success_noExcess(
@@ -314,15 +329,24 @@ contract EverclearBridgeV2Test is BaseTest {
         uint256 deadline
     ) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(data.length <= 64);
-        vm.assume(sig.length <= 64);
+        uint256 dataLength = bound(data.length, 0, 64);
+        bytes memory boundedData = new bytes(dataLength);
+        for (uint256 i; i < dataLength; ++i) {
+            boundedData[i] = data[i];
+        }
+
+        uint256 sigLength = bound(sig.length, 0, 64);
+        bytes memory boundedSig = new bytes(sigLength);
+        for (uint256 i; i < sigLength; ++i) {
+            boundedSig[i] = sig[i];
+        }
 
         IntentInput memory input = _defaultInput();
         input.amount = bound(amountRaw, 1, 1e18);
         input.amountOutMin = input.amount * 9 / 10;
         input.ttl = ttl;
-        input.data = data;
-        input.feeParams = IFeeAdapterV2.FeeParams(bound(feeRaw, 0, input.amount / 2), deadline, sig);
+        input.data = boundedData;
+        input.feeParams = IFeeAdapterV2.FeeParams(bound(feeRaw, 0, input.amount / 2), deadline, boundedSig);
 
         (bytes memory message, uint32 dstChainId) = _buildMessage(1, input);
 
@@ -341,11 +365,17 @@ contract EverclearBridgeV2Test is BaseTest {
         vm.stopPrank();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(market), 0);
-        assertEq(token.balanceOf(address(bridge)), input.amount + input.feeParams.fee);
-        assertEq(token.allowance(address(bridge), address(feeAdapter)), input.amount + input.feeParams.fee);
-        assertEq(feeAdapter.callCount(), 1);
-        assertEq(feeAdapter.lastDestinations(0), dstChainId);
+        assertEq(token.balanceOf(market), 0, "assertEq failed: values do not match");
+        assertEq(
+            token.balanceOf(address(bridge)), input.amount + input.feeParams.fee, "assertEq failed: values do not match"
+        );
+        assertEq(
+            token.allowance(address(bridge), address(feeAdapter)),
+            input.amount + input.feeParams.fee,
+            "assertEq failed: values do not match"
+        );
+        assertEq(feeAdapter.callCount(), 1, "assertEq failed: values do not match");
+        assertEq(feeAdapter.lastDestinations(0), dstChainId, "assertEq failed: values do not match");
     }
 
     struct IntentInput {
@@ -359,6 +389,10 @@ contract EverclearBridgeV2Test is BaseTest {
         bytes data;
         IFeeAdapterV2.FeeParams feeParams;
     }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
 
     function _defaultInput() internal view returns (IntentInput memory input) {
         input.dstChainId = 123;

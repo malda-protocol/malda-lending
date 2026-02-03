@@ -14,6 +14,10 @@ abstract contract BaseTest is Helpers {
         _fundUsers();
     }
 
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
     function _initUsers() internal {
         users = Users({
             admin: makeAddr("Admin"),

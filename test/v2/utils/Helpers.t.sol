@@ -7,6 +7,10 @@ import {ERC20Mock} from "test/mocks/ERC20Mock.sol";
 import {Constants} from "test/v2/utils/Constants.t.sol";
 
 abstract contract Helpers is Test, Constants {
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
     function _resetContext(address executor) internal {
         vm.stopPrank();
         vm.startPrank(executor);

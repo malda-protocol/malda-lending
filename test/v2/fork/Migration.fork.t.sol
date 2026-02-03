@@ -85,10 +85,10 @@ contract MigrationForkTest is BaseForkTest {
     //                    GetAllPositions                     //
     ////////////////////////////////////////////////////////////
 
-    function test_fork_getAllPositions_success() external pure {
+    function test_fork_getAllPositions_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        return;
-        // TODO @Cosmin leave for now
+        vm.skip(true);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         // vm.prank(USER_V1);
         // Migrator.Position[] memory positions = migrator.getAllPositions(USER_V1);
 
@@ -105,8 +105,8 @@ contract MigrationForkTest is BaseForkTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         address[] memory positions = migrator.getAllCollateralMarkets(USER_V1);
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(positions.length, 2);
-        assertEq(positions[1], WETH_MARKET_V1);
+        assertEq(positions.length, 2, "assertEq failed: values do not match");
+        assertEq(positions[1], WETH_MARKET_V1, "assertEq failed: values do not match");
     }
 
     //The following will revert until a new market is deployed.

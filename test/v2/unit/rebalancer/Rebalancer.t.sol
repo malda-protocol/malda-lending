@@ -29,37 +29,6 @@ contract RebalancerTest is BaseRebalancerTest {
 
     MockRebalanceMarket internal market;
 
-    function _allowGuardian() internal {
-        roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), true);
-    }
-
-    function _enableFirewall() internal returns (MockFirewall) {
-        MockFirewall firewall = new MockFirewall();
-        vm.store(address(rebalancer), ADMIN_SLOT, bytes32(uint256(uint160(address(this)))));
-        rebalancer.setFirewall(address(firewall));
-        return firewall;
-    }
-
-    function _setupSendMsg(uint32 dstId, uint256 minSize, uint256 maxSize) internal {
-        _allowGuardian();
-
-        rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
-        rebalancer.setWhitelistedDestination(dstId, true);
-
-        address[] memory tokens = new address[](1);
-        tokens[0] = address(weth);
-        rebalancer.setAllowedTokens(address(bridgeMock), tokens, true);
-
-        address[] memory markets = new address[](1);
-        markets[0] = address(market);
-        rebalancer.setAllowList(markets, true);
-
-        rebalancer.setMinTransferSize(dstId, address(weth), minSize);
-        rebalancer.setMaxTransferSize(dstId, address(weth), maxSize);
-
-        roles.allowFor(address(this), roles.REBALANCER_EOA(), true);
-    }
-
     ////////////////////////////////////////////////////////////
     //                   SetMaxTransferSize                   //
     ////////////////////////////////////////////////////////////
@@ -237,7 +206,7 @@ contract RebalancerTest is BaseRebalancerTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         localRebalancer.saveEth();
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(users.alice.balance, balanceBefore + 1 ether);
+        assertEq(users.alice.balance, balanceBefore + 1 ether, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -262,20 +231,20 @@ contract RebalancerTest is BaseRebalancerTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(size, amount);
-        assertEq(timestamp, block.timestamp);
+        assertEq(size, amount, "assertEq failed: values do not match");
+        assertEq(timestamp, block.timestamp, "assertEq failed: values do not match");
 
         rebalancer.setMaxTransferSize(dstId, address(weth), 0);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
         (size, timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
-        assertEq(size, amount * 2);
-        assertEq(timestamp, block.timestamp);
+        assertEq(size, amount * 2, "assertEq failed: values do not match");
+        assertEq(timestamp, block.timestamp, "assertEq failed: values do not match");
 
         vm.warp(block.timestamp + rebalancer.transferTimeWindow() + 1);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
         (size, timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
-        assertEq(size, amount);
-        assertEq(timestamp, block.timestamp);
+        assertEq(size, amount, "assertEq failed: values do not match");
+        assertEq(timestamp, block.timestamp, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -368,7 +337,7 @@ contract RebalancerTest is BaseRebalancerTest {
     //                      SetAllowList                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setAllowList_success_updatesMapping() external {
+    function test_unit_setAllowList_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
 
@@ -417,7 +386,7 @@ contract RebalancerTest is BaseRebalancerTest {
     //               SetWhitelistedDestination                //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setWhitelistedDestination_success_updatesMapping() external {
+    function test_unit_setWhitelistedDestination_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
 
@@ -438,14 +407,14 @@ contract RebalancerTest is BaseRebalancerTest {
     //                   SetMinTransferSize                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setMinTransferSize_success_updatesMapping() external {
+    function test_unit_setMinTransferSize_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setMinTransferSize(5, address(weth), 123);
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rebalancer.minTransferSizes(5, address(weth)), 123);
+        assertEq(rebalancer.minTransferSizes(5, address(weth)), 123, "assertEq failed: values do not match");
     }
 
     function test_unit_setMinTransferSize_revertsWith_Rebalancer_NotAuthorized() external {
@@ -466,7 +435,7 @@ contract RebalancerTest is BaseRebalancerTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setMaxTransferSize(6, address(weth), 456);
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rebalancer.maxTransferSizes(6, address(weth)), 456);
+        assertEq(rebalancer.maxTransferSizes(6, address(weth)), 456, "assertEq failed: values do not match");
     }
 
     function test_unit_setMaxTransferSize_revertsWith_Rebalancer_NotAuthorized() external {
@@ -480,15 +449,15 @@ contract RebalancerTest is BaseRebalancerTest {
     //                        SetAdmin                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setAdmin_success_updatesAdmin() external {
+    function test_unit_setAdmin_success() external {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setAdmin(users.alice);
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rebalancer.admin(), users.alice);
+        assertEq(rebalancer.admin(), users.alice, "assertEq failed: values do not match");
     }
 
     function test_unit_setAdmin_revertsWith_Rebalancer_NotAuthorized() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
@@ -507,15 +476,15 @@ contract RebalancerTest is BaseRebalancerTest {
     //                     SetSaveAddress                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setSaveAddress_success_updatesSaveAddress() external {
+    function test_unit_setSaveAddress_success() external {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setSaveAddress(users.alice);
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rebalancer.saveAddress(), users.alice);
+        assertEq(rebalancer.saveAddress(), users.alice, "assertEq failed: values do not match");
     }
 
     function test_unit_setSaveAddress_revertsWith_Rebalancer_NotAuthorized() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
@@ -535,7 +504,7 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_saveTokens_revertsWith_Rebalancer_NotAuthorized() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
@@ -554,14 +523,14 @@ contract RebalancerTest is BaseRebalancerTest {
         rebalancer.saveTokens(address(weth), address(otherMarket));
     }
 
-    function test_unit_saveTokens_success_transfersToMarket() external {
+    function test_unit_saveTokens_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _getTokens(weth, address(rebalancer), 2e18);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.saveTokens(address(weth), address(market));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(weth.balanceOf(address(market)), 2e18);
+        assertEq(weth.balanceOf(address(market)), 2e18, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -579,7 +548,7 @@ contract RebalancerTest is BaseRebalancerTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         localRebalancer.saveEth();
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(users.alice.balance, aliceBalanceBefore + 1 ether);
+        assertEq(users.alice.balance, aliceBalanceBefore + 1 ether, "assertEq failed: values do not match");
     }
 
     function test_unit_saveEth_revertsWith_Rebalancer_NotAuthorized_whenCallerNotAuthorized() external {
@@ -623,7 +592,7 @@ contract RebalancerTest is BaseRebalancerTest {
     //                       Rebalancer                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_rebalancer_success_initData_initializesLists() external {
+    function test_unit_rebalancer_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address[] memory markets = new address[](2);
         markets[0] = address(market);
@@ -668,29 +637,30 @@ contract RebalancerTest is BaseRebalancerTest {
     //                      InitFirewall                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_initFirewall_success_setsAdminAndFirewall() external {
+    function test_unit_initFirewall_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockFirewall firewall = new MockFirewall();
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.initFirewall(address(firewall));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rebalancer.hypernativeFirewallAdmin(), address(this));
+        assertEq(rebalancer.hypernativeFirewallAdmin(), address(this), "assertEq failed: values do not match");
 
         _allowGuardian();
         rebalancer.setWhitelistedDestination(MAINNET_CHAIN_ID, true);
 
-        assertEq(firewall.validateBlacklistedCount(), 1);
-        assertEq(firewall.lastBlacklistedSender(), address(this));
+        assertEq(firewall.validateBlacklistedCount(), 1, "assertEq failed: values do not match");
+        assertEq(firewall.lastBlacklistedSender(), address(this), "assertEq failed: values do not match");
     }
 
     function test_unit_initFirewall_revertsWith_Rebalancer_NotAuthorized() external {
         // Verify admin is address(this), not users.bob
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rebalancer.admin(), address(this));
+        assertEq(rebalancer.admin(), address(this), "assertEq failed: values do not match");
 
         MockFirewall firewall = new MockFirewall();
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.bob);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
@@ -702,7 +672,7 @@ contract RebalancerTest is BaseRebalancerTest {
     //                    FirewallRegister                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_firewallRegister_success_callsFirewall() external {
+    function test_unit_firewallRegister_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.store(address(rebalancer), ADMIN_SLOT, bytes32(uint256(uint160(address(this)))));
 
@@ -713,7 +683,7 @@ contract RebalancerTest is BaseRebalancerTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.firewallRegister(users.alice);
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(firewall.lastAccount(), users.alice);
+        assertEq(firewall.lastAccount(), users.alice, "assertEq failed: values do not match");
         assertTrue(firewall.lastStrict());
     }
 
@@ -830,18 +800,18 @@ contract RebalancerTest is BaseRebalancerTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(size, amount);
-        assertEq(timestamp, block.timestamp);
+        assertEq(size, amount, "assertEq failed: values do not match");
+        assertEq(timestamp, block.timestamp, "assertEq failed: values do not match");
 
-        assertEq(rebalancer.nonce(), 1);
+        assertEq(rebalancer.nonce(), 1, "assertEq failed: values do not match");
         (uint32 loggedDst, address loggedToken, bytes memory loggedMessage, bytes memory loggedBridgeData) =
             rebalancer.logs(dstId, 1);
-        assertEq(loggedDst, dstId);
-        assertEq(loggedToken, address(weth));
-        assertEq(keccak256(loggedMessage), keccak256(message.message));
-        assertEq(keccak256(loggedBridgeData), keccak256(message.bridgeData));
+        assertEq(loggedDst, dstId, "assertEq failed: values do not match");
+        assertEq(loggedToken, address(weth), "assertEq failed: values do not match");
+        assertEq(keccak256(loggedMessage), keccak256(message.message), "assertEq failed: values do not match");
+        assertEq(keccak256(loggedBridgeData), keccak256(message.bridgeData), "assertEq failed: values do not match");
 
-        assertEq(weth.balanceOf(address(bridgeMock)), amount);
+        assertEq(weth.balanceOf(address(bridgeMock)), amount, "assertEq failed: values do not match");
     }
 
     function test_unit_currentTransferSize_success_accumulatesWithinWindow() external {
@@ -862,8 +832,8 @@ contract RebalancerTest is BaseRebalancerTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(size, amount * 2);
-        assertEq(timestamp, block.timestamp);
+        assertEq(size, amount * 2, "assertEq failed: values do not match");
+        assertEq(timestamp, block.timestamp, "assertEq failed: values do not match");
     }
 
     function test_unit_currentTransferSize_success_succeedsWhenMaxTransferSizeZero() external {
@@ -883,8 +853,8 @@ contract RebalancerTest is BaseRebalancerTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(size, amount);
-        assertEq(timestamp, block.timestamp);
+        assertEq(size, amount, "assertEq failed: values do not match");
+        assertEq(timestamp, block.timestamp, "assertEq failed: values do not match");
     }
 
     function test_unit_currentTransferSize_success_resetsWindowAfterDeadline() external {
@@ -908,8 +878,8 @@ contract RebalancerTest is BaseRebalancerTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(size, amount);
-        assertEq(timestamp, block.timestamp);
+        assertEq(size, amount, "assertEq failed: values do not match");
+        assertEq(timestamp, block.timestamp, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -953,22 +923,6 @@ contract RebalancerTest is BaseRebalancerTest {
         abi.decode(msge, (uint32[], bytes32, address, bytes32, uint256, uint256, uint256, bytes));
 
         _extractFeeParams(msge);
-    }
-
-    function _extractFeeParams(bytes memory msge)
-        private
-        pure
-        returns (uint256 fee, uint256 deadline, bytes memory sig)
-    {
-        uint256 feeParamsOffset = BytesLib.toUint256(msge, 0x120);
-        uint256 feeParamsPtr = feeParamsOffset; // absolute inside msge
-
-        fee = BytesLib.toUint256(msge, feeParamsPtr);
-        deadline = BytesLib.toUint256(msge, feeParamsPtr + 32);
-
-        uint256 sigOffset = BytesLib.toUint256(msge, feeParamsOffset + 64);
-        uint256 sigLen = BytesLib.toUint256(msge, feeParamsOffset + sigOffset);
-        sig = BytesLib.slice(msge, feeParamsOffset + sigOffset + 32, sigLen);
     }
 
     ////////////////////////////////////////////////////////////
@@ -1149,5 +1103,56 @@ contract RebalancerTest is BaseRebalancerTest {
         vm.expectRevert();
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.sendMsg(address(bridgeMock), address(mWethHost), amount, _msg);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _allowGuardian() internal {
+        roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), true);
+    }
+
+    function _enableFirewall() internal returns (MockFirewall) {
+        MockFirewall firewall = new MockFirewall();
+        vm.store(address(rebalancer), ADMIN_SLOT, bytes32(uint256(uint160(address(this)))));
+        rebalancer.setFirewall(address(firewall));
+        return firewall;
+    }
+
+    function _setupSendMsg(uint32 dstId, uint256 minSize, uint256 maxSize) internal {
+        _allowGuardian();
+
+        rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
+        rebalancer.setWhitelistedDestination(dstId, true);
+
+        address[] memory tokens = new address[](1);
+        tokens[0] = address(weth);
+        rebalancer.setAllowedTokens(address(bridgeMock), tokens, true);
+
+        address[] memory markets = new address[](1);
+        markets[0] = address(market);
+        rebalancer.setAllowList(markets, true);
+
+        rebalancer.setMinTransferSize(dstId, address(weth), minSize);
+        rebalancer.setMaxTransferSize(dstId, address(weth), maxSize);
+
+        roles.allowFor(address(this), roles.REBALANCER_EOA(), true);
+    }
+
+    function _extractFeeParams(bytes memory msge)
+        private
+        pure
+        returns (uint256 fee, uint256 deadline, bytes memory sig)
+    {
+        uint256 feeParamsOffset = BytesLib.toUint256(msge, 0x120);
+        uint256 feeParamsPtr = feeParamsOffset; // absolute inside msge
+
+        fee = BytesLib.toUint256(msge, feeParamsPtr);
+        deadline = BytesLib.toUint256(msge, feeParamsPtr + 32);
+
+        uint256 sigOffset = BytesLib.toUint256(msge, feeParamsOffset + 64);
+        uint256 sigLen = BytesLib.toUint256(msge, feeParamsOffset + sigOffset);
+        sig = BytesLib.slice(msge, feeParamsOffset + sigOffset + 32, sigLen);
     }
 }

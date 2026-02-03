@@ -51,18 +51,21 @@ contract ZkVerifierTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setVerifier_revertsWith_ZkVerifier_InputNotValid() public {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(owner);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ZkVerifier.ZkVerifier_InputNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         zkVerifier.setVerifier(address(0));
     }
 
-    function test_unit_setVerifier_success_updatesAndEmits() public {
+    function test_unit_setVerifier_success() public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         Risc0VerifierMock newVerifier = new Risc0VerifierMock();
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
@@ -71,7 +74,7 @@ contract ZkVerifierTest is BaseTest {
         zkVerifier.setVerifier(address(newVerifier));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(zkVerifier.verifier()), address(newVerifier));
+        assertEq(address(zkVerifier.verifier()), address(newVerifier), "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -79,7 +82,7 @@ contract ZkVerifierTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setImageId_revertsWith_ZkVerifier_ImageNotValid() public {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ZkVerifier.ZkVerifier_ImageNotValid.selector);
@@ -87,10 +90,11 @@ contract ZkVerifierTest is BaseTest {
         zkVerifier.setImageId(bytes32(0));
     }
 
-    function test_unit_setImageId_success_updatesAndEmits() public {
+    function test_unit_setImageId_success() public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes32 newImageId = bytes32(uint256(2));
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
@@ -99,7 +103,7 @@ contract ZkVerifierTest is BaseTest {
         zkVerifier.setImageId(newImageId);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(zkVerifier.imageId(), newImageId);
+        assertEq(zkVerifier.imageId(), newImageId, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -110,28 +114,48 @@ contract ZkVerifierTest is BaseTest {
         public
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(journalEntry.length <= 1024);
-        vm.assume(seal.length <= 1024);
+        uint256 journalLength = bound(journalEntry.length, 0, 1024);
+        uint256 sealLength = bound(seal.length, 0, 1024);
+
+        bytes memory boundedJournal = new bytes(journalLength);
+        for (uint256 i; i < journalLength; ++i) {
+            boundedJournal[i] = journalEntry[i];
+        }
+
+        bytes memory boundedSeal = new bytes(sealLength);
+        for (uint256 i; i < sealLength; ++i) {
+            boundedSeal[i] = seal[i];
+        }
 
         zkVerifier.setVerifierUnsafe(address(0));
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ZkVerifier.ZkVerifier_VerifierNotSet.selector);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        zkVerifier.verifyInput(journalEntry, seal);
+        zkVerifier.verifyInput(boundedJournal, boundedSeal);
     }
 
-    function test_unit_verifyInput_success_passesToVerifier(bytes memory journalEntry, bytes memory seal) public {
+    function test_unit_verifyInput_success(bytes memory journalEntry, bytes memory seal) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(journalEntry.length <= 1024);
-        vm.assume(seal.length <= 1024);
+        uint256 journalLength = bound(journalEntry.length, 0, 1024);
+        uint256 sealLength = bound(seal.length, 0, 1024);
+
+        bytes memory boundedJournal = new bytes(journalLength);
+        for (uint256 i; i < journalLength; ++i) {
+            boundedJournal[i] = journalEntry[i];
+        }
+
+        bytes memory boundedSeal = new bytes(sealLength);
+        for (uint256 i; i < sealLength; ++i) {
+            boundedSeal[i] = seal[i];
+        }
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectCall(
             address(verifierMock),
-            abi.encodeWithSelector(IRiscZeroVerifier.verify.selector, seal, imageId, sha256(journalEntry))
+            abi.encodeWithSelector(IRiscZeroVerifier.verify.selector, boundedSeal, imageId, sha256(boundedJournal))
         );
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        zkVerifier.verifyInput(journalEntry, seal);
+        zkVerifier.verifyInput(boundedJournal, boundedSeal);
     }
 }

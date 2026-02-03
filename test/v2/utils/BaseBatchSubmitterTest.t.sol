@@ -105,6 +105,10 @@ abstract contract BaseBatchSubmitterTest is BaseUnitTest {
         operator.supportMarket(address(mUsdcHost));
     }
 
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
     function _createBatchJournals(
         address[] memory senders,
         address[] memory markets,

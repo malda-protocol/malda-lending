@@ -78,6 +78,7 @@ contract LineaResetMarketTest is BaseForkTest {
         m.resetMarket();
         vm.stopPrank();
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(m.hypernativeFirewallAdmin());
         m.setFirewall(address(0));
 
@@ -99,6 +100,7 @@ contract LineaResetMarketTest is BaseForkTest {
 
         // Disable Operator firewall to avoid consumer registration issues
         IFirewallProtected operator = IFirewallProtected(OPERATOR);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(operator.hypernativeFirewallAdmin());
         operator.setFirewall(address(0));
 
@@ -112,6 +114,7 @@ contract LineaResetMarketTest is BaseForkTest {
         u.approve(MARKET, mintAmount);
         m.mint(mintAmount, address(this), 0);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertGt(m.balanceOf(address(this)), 0, "mint failed");
         assertEq(m.totalBorrows(), 0, "borrows changed after mint");
 
@@ -120,10 +123,14 @@ contract LineaResetMarketTest is BaseForkTest {
 
         uint256 userBorrow = m.borrowBalanceStored(address(this));
         assertGt(userBorrow, 0, "borrow failed");
-        assertEq(m.totalBorrows(), userBorrow);
+        assertEq(m.totalBorrows(), userBorrow, "assertEq failed: values do not match");
 
         _assertViewMethodsDontRevert(m);
     }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
 
     // ---------- helpers ----------
     function _assertViewMethodsDontRevert(mErc20Host m) internal view {

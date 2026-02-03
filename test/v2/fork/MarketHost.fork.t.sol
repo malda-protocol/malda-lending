@@ -45,7 +45,7 @@ contract MarketHostForkTest is BaseForkTest {
         console2.log("Current borrowRateMaxMantissa: ", crtBorrowRateMaxMantissa);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(crtBorrowRateMaxMantissa, 5000000000000); //5e12
+        assertEq(crtBorrowRateMaxMantissa, 5000000000000, "assertEq failed: values do not match"); //5e12
 
         vm.startPrank(ownerOnChain);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -58,10 +58,14 @@ contract MarketHostForkTest is BaseForkTest {
         // │   │   └─ ← [Revert] mt_BorrowRateTooHigh()
         // │   └─ ← [Revert] mt_BorrowRateTooHigh()
 
-        //assertEq(mTokenConfiguration(address(market18Decimals)).interestRateModel(), address(newInterestModel), "interest set issue");
+        assertEq(
+            mTokenConfiguration(address(market18Decimals)).interestRateModel(),
+            address(newInterestModel),
+            "interest set issue"
+        );
     }
 
-    function test_fork_setInterestRateModel_success_setNewInterestModel() public {
+    function test_fork_setInterestRateModel_success() public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 crtBorrowRate = mToken(address(market18Decimals)).borrowRatePerBlock();
 
@@ -92,8 +96,8 @@ contract MarketHostForkTest is BaseForkTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         market18Decimals.mint(supplyAmount, address(this), 0);
 
-        uint256 balanceOfMarket18Decimals = IERC20(address(market18Decimals)).balanceOf(address(this));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        uint256 balanceOfMarket18Decimals = IERC20(address(market18Decimals)).balanceOf(address(this));
         assertGt(balanceOfMarket18Decimals, 0, "mint didn't work");
 
         uint256 borrowRateAfterMint = mToken(address(market18Decimals)).borrowRatePerBlock();
@@ -436,8 +440,8 @@ contract MarketHostForkTest is BaseForkTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         market18Decimals.mint(supplyAmount, address(this), 0);
 
-        uint256 balanceOfMarket18Decimals = IERC20(address(market18Decimals)).balanceOf(address(this));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        uint256 balanceOfMarket18Decimals = IERC20(address(market18Decimals)).balanceOf(address(this));
         assertGt(balanceOfMarket18Decimals, 0, "mint didn't work");
 
         uint256 borrowRateAfterMint = mToken(address(market18Decimals)).borrowRatePerBlock();

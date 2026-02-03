@@ -74,7 +74,7 @@ contract mTokenProofDecoderLibTest is BaseTest {
             harness.encode(sender, market, accAmountIn, accAmountOut, chainId, dstChainId, l1Inclusion);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(encoded.length, mTokenProofDecoderLib.ENTRY_SIZE);
+        assertEq(encoded.length, mTokenProofDecoderLib.ENTRY_SIZE, "assertEq failed: values do not match");
         _assertDecoded(
             encoded,
             Expected({
@@ -87,26 +87,6 @@ contract mTokenProofDecoderLibTest is BaseTest {
                 l1Inclusion: l1Inclusion
             })
         );
-    }
-
-    function _assertDecoded(bytes memory encoded, Expected memory expected) internal view {
-        (
-            address decodedSender,
-            address decodedMarket,
-            uint256 decodedAccIn,
-            uint256 decodedAccOut,
-            uint32 decodedChainId,
-            uint32 decodedDstChainId,
-            bool decodedL1
-        ) = harness.decode(encoded);
-
-        assertEq(decodedSender, expected.sender);
-        assertEq(decodedMarket, expected.market);
-        assertEq(decodedAccIn, expected.accAmountIn);
-        assertEq(decodedAccOut, expected.accAmountOut);
-        assertEq(decodedChainId, expected.chainId);
-        assertEq(decodedDstChainId, expected.dstChainId);
-        assertEq(decodedL1, expected.l1Inclusion);
     }
 
     ////////////////////////////////////////////////////////////
@@ -134,7 +114,7 @@ contract mTokenProofDecoderLibTest is BaseTest {
         uint8 inclusionValue
     ) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(inclusionValue > 1);
+        inclusionValue = uint8(bound(inclusionValue, 2, type(uint8).max));
 
         bytes memory encoded = harness.encode(sender, market, accAmountIn, accAmountOut, chainId, dstChainId, false);
 
@@ -145,5 +125,29 @@ contract mTokenProofDecoderLibTest is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.decode(encoded);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _assertDecoded(bytes memory encoded, Expected memory expected) internal view {
+        (
+            address decodedSender,
+            address decodedMarket,
+            uint256 decodedAccIn,
+            uint256 decodedAccOut,
+            uint32 decodedChainId,
+            uint32 decodedDstChainId,
+            bool decodedL1
+        ) = harness.decode(encoded);
+
+        assertEq(decodedSender, expected.sender, "assertEq failed: values do not match");
+        assertEq(decodedMarket, expected.market, "assertEq failed: values do not match");
+        assertEq(decodedAccIn, expected.accAmountIn, "assertEq failed: values do not match");
+        assertEq(decodedAccOut, expected.accAmountOut, "assertEq failed: values do not match");
+        assertEq(decodedChainId, expected.chainId, "assertEq failed: values do not match");
+        assertEq(decodedDstChainId, expected.dstChainId, "assertEq failed: values do not match");
+        assertEq(decodedL1, expected.l1Inclusion, "assertEq failed: values do not match");
     }
 }

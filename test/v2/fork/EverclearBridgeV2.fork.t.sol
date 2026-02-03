@@ -5,6 +5,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {console} from "forge-std/console.sol";
 
 import {EverclearBridgeV2, IFeeAdapterV2} from "src/rebalancer/bridges/EverclearBridgeV2.sol";
+import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 import {BaseForkTest} from "test/v2/utils/BaseForkTest.t.sol";
 
 /// @notice Fork tests for EverclearBridgeV2.
@@ -68,11 +69,11 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         console.log("Extra data length:", extraData.length);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(destinations.length, 1);
-        assertEq(destinations[0], 8453);
-        assertEq(inputAsset, USDC);
-        assertEq(amount, 14790000);
-        assertEq(amountOutMin, 14785500);
+        assertEq(destinations.length, 1, "destinations array should have one entry");
+        assertEq(destinations[0], 8453, "destination chain id should be Base");
+        assertEq(inputAsset, USDC, "input asset is not USDC");
+        assertEq(amount, 14790000, "amount does not match expected");
+        assertEq(amountOutMin, 14785500, "min output amount does not match expected");
     }
 
     function test_fork_decodeMessage_success_variant2() public pure {
@@ -103,15 +104,13 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         console.log("Deadline:", deadline);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(fee, 210000);
-        assertEq(deadline, 1764805302);
+        assertEq(fee, 210000, "fee does not match expected");
+        assertEq(deadline, 1764805302, "deadline does not match expected");
     }
 
     ////////////////////////////////////////////////////////////
     //                     CallNewIntent                      //
     ////////////////////////////////////////////////////////////
-
-    // TODO Possibly merge `_callNewIntent` into this test
 
     function test_fork_callNewIntent_success() public {
         // Decode the message into intent parameters
@@ -151,11 +150,8 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
     //                        SendMsg                         //
     ////////////////////////////////////////////////////////////
 
-    // TODO add revert cases and unskip
-
     function test_fork_sendMsg_success() public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.skip(true);
         console.log("\n=== Test: sendMsg Success ===");
 
         // Give rebalancer USDC
@@ -176,6 +172,78 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         uint256 expectedReturn = EXTRACTED_AMOUNT - AMOUNT - FEE;
         console.log("\nExpected excess return to market:", expectedReturn);
 
+        bytes32 intentId = keccak256("everclear-intent");
+        IFeeAdapterV2.Intent memory intentResult = IFeeAdapterV2.Intent({
+            initiator: bytes32(0),
+            receiver: bytes32(0),
+            inputAsset: bytes32(0),
+            outputAsset: bytes32(0),
+            origin: 0,
+            nonce: 0,
+            timestamp: 0,
+            ttl: 0,
+            amount: 0,
+            amountOutMin: 0,
+            destinations: new uint32[](0),
+            data: bytes("")
+        });
+        bytes memory intentCallData = abi.encodeWithSelector(
+            IFeeAdapterV2.newIntent.selector,
+            new uint32[](1),
+            bytes32(uint256(uint160(MARKET))),
+            USDC,
+            bytes32(uint256(uint160(USDC))),
+            AMOUNT,
+            AMOUNT - FEE,
+            uint48(0),
+            bytes(""),
+            IFeeAdapterV2.FeeParams({fee: FEE, deadline: 0, sig: ""})
+        );
+
+        {
+            (
+                uint32[] memory destinations,
+                bytes32 receiver,
+                address inputAsset,
+                bytes32 outputAsset,
+                uint256 amount,
+                uint256 amountOutMin,
+                uint48 ttl,
+                bytes memory extraData
+            ) = _decodeIntentParams();
+            IFeeAdapterV2.FeeParams memory feeParams = _extractFeeParamsFromMessage();
+
+            intentResult = IFeeAdapterV2.Intent({
+                initiator: bytes32(0),
+                receiver: receiver,
+                inputAsset: bytes32(uint256(uint160(inputAsset))),
+                outputAsset: outputAsset,
+                origin: 0,
+                nonce: 0,
+                timestamp: 0,
+                ttl: ttl,
+                amount: amount,
+                amountOutMin: amountOutMin,
+                destinations: destinations,
+                data: extraData
+            });
+
+            intentCallData = abi.encodeWithSelector(
+                IFeeAdapterV2.newIntent.selector,
+                destinations,
+                receiver,
+                inputAsset,
+                outputAsset,
+                amount,
+                amountOutMin,
+                ttl,
+                extraData,
+                feeParams
+            );
+        }
+
+        vm.mockCall(FEE_ADAPTER, intentCallData, abi.encode(intentId, intentResult));
+
         vm.startPrank(REBALANCER);
         IERC20(USDC).approve(address(bridge), EXTRACTED_AMOUNT);
 
@@ -184,6 +252,7 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         vm.stopPrank();
 
         // Record final balances
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 rebalancerBalanceAfter = IERC20(USDC).balanceOf(REBALANCER);
         uint256 marketBalanceAfter = IERC20(USDC).balanceOf(MARKET);
         uint256 bridgeBalanceAfter = IERC20(USDC).balanceOf(address(bridge));
@@ -201,17 +270,154 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         console.log("  Fee Adapter received:", feeAdapterBalanceAfter - feeAdapterBalanceBefore);
 
         // Assertions
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(
             rebalancerBalanceBefore - rebalancerBalanceAfter,
             EXTRACTED_AMOUNT,
-            "Rebalancer should spend exact extracted amount"
+            "rebalancer should spend the extracted amount"
         );
 
-        assertEq(marketBalanceAfter - marketBalanceBefore, expectedReturn, "Market should receive excess");
+        assertEq(marketBalanceAfter - marketBalanceBefore, expectedReturn, "market should receive the excess amount");
 
-        assertEq(bridgeBalanceAfter, bridgeBalanceBefore, "Bridge should not hold funds");
+        uint256 expectedBridgeBalance = bridgeBalanceBefore + EXTRACTED_AMOUNT - expectedReturn;
+        assertEq(bridgeBalanceAfter, expectedBridgeBalance, "bridge should retain the transferred funds");
     }
+
+    function test_fork_sendMsg_revertsWith_Everclear_TokenMismatch() public {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(EverclearBridgeV2.Everclear_TokenMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(EXTRACTED_AMOUNT, MARKET, DST_CHAIN_ID, address(0xdead), TEST_MESSAGE, "");
+    }
+
+    function test_fork_sendMsg_revertsWith_BaseBridge_AmountMismatch_whenExtractedTooSmall() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 extractedAmount = AMOUNT - 1;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_AmountMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(extractedAmount, MARKET, DST_CHAIN_ID, USDC, TEST_MESSAGE, "");
+    }
+
+    function test_fork_sendMsg_revertsWith_BaseBridge_AmountMismatch_whenAmountZero() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        (
+            uint32[] memory destinations,
+            bytes32 receiver,
+            address inputAsset,
+            bytes32 outputAsset,,
+            uint256 amountOutMin,
+            uint48 ttl,
+            bytes memory extraData
+        ) = _decodeIntentParams();
+        IFeeAdapterV2.FeeParams memory feeParams = _extractFeeParamsFromMessage();
+
+        bytes memory message = _encodeIntentParams(
+            destinations, receiver, inputAsset, outputAsset, 0, amountOutMin, ttl, extraData, feeParams
+        );
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_AmountMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(1, MARKET, DST_CHAIN_ID, USDC, message, "");
+    }
+
+    function test_fork_sendMsg_revertsWith_BaseBridge_AddressNotValid_whenReceiverMismatch() public {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_AddressNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(EXTRACTED_AMOUNT, users.bob, DST_CHAIN_ID, USDC, TEST_MESSAGE, "");
+    }
+
+    function test_fork_sendMsg_revertsWith_Everclear_DestinationsLengthMismatch() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        (
+            ,
+            bytes32 receiver,
+            address inputAsset,
+            bytes32 outputAsset,
+            uint256 amount,
+            uint256 amountOutMin,
+            uint48 ttl,
+            bytes memory extraData
+        ) = _decodeIntentParams();
+        IFeeAdapterV2.FeeParams memory feeParams = _extractFeeParamsFromMessage();
+
+        uint32[] memory destinations = new uint32[](2);
+        destinations[0] = DST_CHAIN_ID;
+        destinations[1] = DST_CHAIN_ID;
+
+        bytes memory message = _encodeIntentParams(
+            destinations, receiver, inputAsset, outputAsset, amount, amountOutMin, ttl, extraData, feeParams
+        );
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(EverclearBridgeV2.Everclear_DestinationsLengthMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(EXTRACTED_AMOUNT, MARKET, DST_CHAIN_ID, USDC, message, "");
+    }
+
+    function test_fork_sendMsg_revertsWith_Everclear_DestinationNotValid() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        (
+            ,
+            bytes32 receiver,
+            address inputAsset,
+            bytes32 outputAsset,
+            uint256 amount,
+            uint256 amountOutMin,
+            uint48 ttl,
+            bytes memory extraData
+        ) = _decodeIntentParams();
+        IFeeAdapterV2.FeeParams memory feeParams = _extractFeeParamsFromMessage();
+
+        uint32[] memory destinations = new uint32[](1);
+        destinations[0] = DST_CHAIN_ID + 1;
+
+        bytes memory message = _encodeIntentParams(
+            destinations, receiver, inputAsset, outputAsset, amount, amountOutMin, ttl, extraData, feeParams
+        );
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(EverclearBridgeV2.Everclear_DestinationNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(EXTRACTED_AMOUNT, MARKET, DST_CHAIN_ID, USDC, message, "");
+    }
+
+    function test_fork_sendMsg_revertsWith_Everclear_MaxSlippageExceeded() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        (
+            uint32[] memory destinations,
+            bytes32 receiver,
+            address inputAsset,
+            bytes32 outputAsset,
+            uint256 amount,,
+            uint48 ttl,
+            bytes memory extraData
+        ) = _decodeIntentParams();
+        IFeeAdapterV2.FeeParams memory feeParams = _extractFeeParamsFromMessage();
+
+        uint256 amountOutMin = amount * 9 / 10 - 1;
+        bytes memory message = _encodeIntentParams(
+            destinations, receiver, inputAsset, outputAsset, amount, amountOutMin, ttl, extraData, feeParams
+        );
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(EverclearBridgeV2.Everclear_MaxSlippageExceeded.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(EXTRACTED_AMOUNT, MARKET, DST_CHAIN_ID, USDC, message, "");
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
 
     function _decodeIntentParams()
         internal
@@ -233,6 +439,31 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         }
 
         return abi.decode(data, (uint32[], bytes32, address, bytes32, uint256, uint256, uint48, bytes));
+    }
+
+    function _encodeIntentParams(
+        uint32[] memory destinations,
+        bytes32 receiver,
+        address inputAsset,
+        bytes32 outputAsset,
+        uint256 amount,
+        uint256 amountOutMin,
+        uint48 ttl,
+        bytes memory extraData,
+        IFeeAdapterV2.FeeParams memory feeParams
+    ) internal pure returns (bytes memory) {
+        return abi.encodeWithSelector(
+            IFeeAdapterV2.newIntent.selector,
+            destinations,
+            receiver,
+            inputAsset,
+            outputAsset,
+            amount,
+            amountOutMin,
+            ttl,
+            extraData,
+            feeParams
+        );
     }
 
     function _extractFeeParamsFromMessage() internal pure returns (IFeeAdapterV2.FeeParams memory) {

@@ -64,203 +64,6 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        Helpers                         //
-    ////////////////////////////////////////////////////////////
-
-    function _listMarket(MockMToken mToken) internal {
-        vm.expectEmit(false, false, false, true, address(operator));
-        emit OperatorStorage.MarketListed(address(mToken));
-        operator.supportMarket(address(mToken));
-    }
-
-    function _deployHarness() internal returns (OperatorHarness) {
-        OperatorHarness harnessImpl = new OperatorHarness();
-        bytes memory initData =
-            abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(blacklister), address(this));
-        ERC1967Proxy proxy = new ERC1967Proxy(address(harnessImpl), initData);
-        return OperatorHarness(address(proxy));
-    }
-
-    function _enableFirewall() internal returns (MockFirewall) {
-        MockFirewall firewall = new MockFirewall();
-
-        vm.expectEmit(true, true, false, true, address(operator));
-        emit HypernativeFirewallProtected.FirewallAdminChanged(address(0), address(this));
-        vm.expectEmit(true, true, false, true, address(operator));
-        emit HypernativeFirewallProtected.FirewallAddressChanged(address(0), address(firewall));
-
-        operator.initFirewall(address(firewall));
-        return firewall;
-    }
-
-    function _supportMarketAndJoin(MockMToken mToken, address account) internal {
-        if (!operator.isMarketListed(address(mToken))) {
-            _listMarket(mToken);
-        }
-
-        address[] memory markets = new address[](1);
-        markets[0] = address(mToken);
-
-        vm.expectEmit(true, true, false, true, address(operator));
-        emit OperatorStorage.MarketEntered(address(mToken), account);
-
-        vm.prank(account);
-        operator.enterMarkets(markets);
-    }
-
-    function _supportMarketAndJoin(address account, MockMToken first, MockMToken second) internal {
-        if (!operator.isMarketListed(address(first))) {
-            _listMarket(first);
-        }
-        if (!operator.isMarketListed(address(second))) {
-            _listMarket(second);
-        }
-
-        address[] memory markets = new address[](2);
-        markets[0] = address(first);
-        markets[1] = address(second);
-
-        vm.expectEmit(true, true, false, true, address(operator));
-        emit OperatorStorage.MarketEntered(address(first), account);
-
-        vm.expectEmit(true, true, false, true, address(operator));
-        emit OperatorStorage.MarketEntered(address(second), account);
-
-        vm.prank(account);
-        operator.enterMarkets(markets);
-    }
-
-    function _setBorrowCaps(MockMToken mToken, uint256 cap) internal {
-        address[] memory markets = new address[](1);
-        uint256[] memory caps = new uint256[](1);
-        markets[0] = address(mToken);
-        caps[0] = cap;
-
-        vm.expectEmit(true, false, false, true, address(operator));
-        emit OperatorStorage.NewBorrowCap(address(mToken), cap);
-
-        operator.setMarketBorrowCaps(markets, caps);
-    }
-
-    function _setBorrowSizeMin(MockMToken mToken, uint256 amount) internal {
-        address[] memory markets = new address[](1);
-        uint256[] memory amounts = new uint256[](1);
-        markets[0] = address(mToken);
-        amounts[0] = amount;
-
-        vm.expectEmit(false, false, false, true, address(operator));
-        emit OperatorStorage.MinBorrowSizeSet(markets, amounts);
-
-        operator.setBorrowSizeMin(markets, amounts);
-    }
-
-    function _setSupplyCaps(MockMToken mToken, uint256 cap) internal {
-        address[] memory markets = new address[](1);
-        uint256[] memory caps = new uint256[](1);
-        markets[0] = address(mToken);
-        caps[0] = cap;
-
-        vm.expectEmit(true, false, false, true, address(operator));
-        emit OperatorStorage.NewSupplyCap(address(mToken), cap);
-
-        operator.setMarketSupplyCaps(markets, caps);
-    }
-
-    function _setWhitelistStatus(Operator target, bool status) internal {
-        vm.expectEmit(false, false, false, true, address(target));
-        if (status) {
-            emit OperatorStorage.WhitelistEnabled();
-        } else {
-            emit OperatorStorage.WhitelistDisabled();
-        }
-
-        target.setWhitelistStatus(status);
-    }
-
-    function _setWhitelistedUser(Operator target, address user, bool state) internal {
-        vm.expectEmit(true, false, false, true, address(target));
-        emit OperatorStorage.UserWhitelisted(user, state);
-
-        target.setWhitelistedUser(user, state);
-    }
-
-    function _setOutflowTimeLimitInUSD(uint256 amount) internal {
-        uint256 previous = operator.limitPerTimePeriod();
-
-        vm.expectEmit(true, false, false, true, address(operator));
-        emit OperatorStorage.OutflowLimitUpdated(address(this), previous, amount);
-
-        operator.setOutflowTimeLimitInUSD(amount);
-    }
-
-    function _setOutflowVolumeTimeWindow(uint256 newTimeWindow) internal {
-        uint256 previous = operator.outflowResetTimeWindow();
-
-        vm.expectEmit(false, false, false, true, address(operator));
-        emit OperatorStorage.OutflowTimeWindowUpdated(previous, newTimeWindow);
-
-        operator.setOutflowVolumeTimeWindow(newTimeWindow);
-    }
-
-    function _setPriceOracle(Operator target, address newOracle) internal {
-        address previous = target.oracleOperator();
-
-        vm.expectEmit(true, true, false, true, address(target));
-        emit OperatorStorage.NewPriceOracle(previous, newOracle);
-
-        target.setPriceOracle(newOracle);
-    }
-
-    function _setCloseFactor(uint256 newCloseFactor) internal {
-        uint256 previous = operator.closeFactorMantissa();
-
-        vm.expectEmit(false, false, false, true, address(operator));
-        emit OperatorStorage.NewCloseFactor(previous, newCloseFactor);
-
-        operator.setCloseFactor(newCloseFactor);
-    }
-
-    function _setCollateralFactor(MockMToken mToken, uint256 newCollateralFactor) internal {
-        (, uint256 previous) = operator.markets(address(mToken));
-
-        vm.expectEmit(true, false, false, true, address(operator));
-        emit OperatorStorage.NewCollateralFactor(address(mToken), previous, newCollateralFactor);
-
-        operator.setCollateralFactor(address(mToken), newCollateralFactor);
-    }
-
-    function _setPaused(address mToken, ImTokenOperationTypes.OperationType operation, bool state) internal {
-        vm.expectEmit(true, true, false, true, address(operator));
-        emit OperatorStorage.ActionPaused(mToken, operation, state);
-
-        operator.setPaused(mToken, operation, state);
-    }
-
-    function _setPausedAs(address caller, address mToken, ImTokenOperationTypes.OperationType operation, bool state)
-        internal
-    {
-        vm.expectEmit(true, true, false, true, address(operator));
-        emit OperatorStorage.ActionPaused(mToken, operation, state);
-
-        vm.prank(caller);
-        operator.setPaused(mToken, operation, state);
-    }
-
-    function _allowRole(address target, bytes32 role, bool allowed) internal {
-        vm.expectEmit(true, true, false, true, address(roles));
-        emit Roles.Allowed(target, role, allowed);
-
-        roles.allowFor(target, role, allowed);
-    }
-
-    function _blacklist(address user) internal {
-        vm.expectEmit(true, false, false, true, address(blacklister));
-        emit IBlacklister.Blacklisted(user);
-
-        blacklister.blacklist(user);
-    }
-
-    ////////////////////////////////////////////////////////////
     //                 enterMarketsWithSender                 //
     ////////////////////////////////////////////////////////////
 
@@ -285,6 +88,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.enterMarketsWithSender(users.alice);
@@ -432,7 +236,7 @@ contract OperatorTest is BaseUnitTest {
         _setWhitelistedUser(operator, sender, true);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.beforeMTokenMint(address(market), users.alice, users.bob);
+        operator.beforeMTokenMint(address(market), sender, receiver);
     }
 
     function test_fuzz_beforeMTokenMint_success(address sender, address receiver) public {
@@ -442,7 +246,7 @@ contract OperatorTest is BaseUnitTest {
         _listMarket(market);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.beforeMTokenMint(address(market), users.alice, users.bob);
+        operator.beforeMTokenMint(address(market), sender, receiver);
     }
 
     ////////////////////////////////////////////////////////////
@@ -480,8 +284,8 @@ contract OperatorTest is BaseUnitTest {
         operator.firewallRegister(account);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(firewall.registerCount(), 1);
-        assertEq(firewall.lastRegistered(), account);
+        assertEq(firewall.registerCount(), 1, "assertEq failed: values do not match");
+        assertEq(firewall.lastRegistered(), account, "assertEq failed: values do not match");
         assertFalse(firewall.lastStrictMode());
     }
 
@@ -504,7 +308,7 @@ contract OperatorTest is BaseUnitTest {
         operator.setBlacklister(address(proxy));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(operator.blacklistOperator()), address(proxy));
+        assertEq(address(operator.blacklistOperator()), address(proxy), "assertEq failed: values do not match");
     }
 
     function test_unit_setBlacklister_revertsWith_Operator_AddressNotValid() public {
@@ -521,8 +325,8 @@ contract OperatorTest is BaseUnitTest {
 
     function test_fuzz_setBorrowSizeMin_success(uint8 len, uint256 seed, uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(len > 0 && len < 5);
-        vm.assume(amount <= type(uint256).max - len);
+        len = uint8(bound(len, 1, 4));
+        amount = bound(amount, 0, type(uint256).max - len);
 
         address[] memory markets = new address[](len);
         uint256[] memory amounts = new uint256[](len);
@@ -540,7 +344,7 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         for (uint256 i; i < len; ++i) {
-            assertEq(operator.minBorrowSize(markets[i]), amounts[i]);
+            assertEq(operator.minBorrowSize(markets[i]), amounts[i], "assertEq failed: values do not match");
         }
     }
 
@@ -584,7 +388,7 @@ contract OperatorTest is BaseUnitTest {
         operator.setWhitelistStatus(secondStatus);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.whitelistEnabled(), secondStatus);
+        assertEq(operator.whitelistEnabled(), secondStatus, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -604,7 +408,7 @@ contract OperatorTest is BaseUnitTest {
         operator.setRolesOperator(address(newRoles));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(operator.rolesOperator()), address(newRoles));
+        assertEq(address(operator.rolesOperator()), address(newRoles), "assertEq failed: values do not match");
     }
 
     function test_unit_setRolesOperator_revertsWith_Operator_InvalidInput() public {
@@ -644,7 +448,7 @@ contract OperatorTest is BaseUnitTest {
         operator.setCloseFactor(closeFactor);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.closeFactorMantissa(), closeFactor);
+        assertEq(operator.closeFactorMantissa(), closeFactor, "assertEq failed: values do not match");
     }
 
     function test_unit_setCloseFactor_revertsWith_Operator_InvalidInput() public {
@@ -711,7 +515,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (, uint256 collateralFactor) = operator.markets(address(market));
-        assertEq(collateralFactor, factor);
+        assertEq(collateralFactor, factor, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -748,7 +552,7 @@ contract OperatorTest is BaseUnitTest {
 
     function test_fuzz_setOutflowVolumeTimeWindow_success(uint256 newTimeWindow) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.assume(newTimeWindow > 0);
+        newTimeWindow = bound(newTimeWindow, 1, type(uint256).max);
         uint256 previous = operator.outflowResetTimeWindow();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -759,7 +563,7 @@ contract OperatorTest is BaseUnitTest {
         operator.setOutflowVolumeTimeWindow(newTimeWindow);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.outflowResetTimeWindow(), newTimeWindow);
+        assertEq(operator.outflowResetTimeWindow(), newTimeWindow, "assertEq failed: values do not match");
     }
 
     function test_unit_setOutflowVolumeTimeWindow_revertsWith_Operator_InvalidInput() public {
@@ -781,6 +585,7 @@ contract OperatorTest is BaseUnitTest {
         oracleOperator.setUnderlyingPrice(1e18);
         _setOutflowTimeLimitInUSD(10);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         operator.checkOutflowVolumeLimit(amount);
 
@@ -794,8 +599,8 @@ contract OperatorTest is BaseUnitTest {
         operator.resetOutflowVolume();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.cumulativeOutflowVolume(), 0);
-        assertEq(operator.lastOutflowResetTimestamp(), block.timestamp);
+        assertEq(operator.cumulativeOutflowVolume(), 0, "assertEq failed: values do not match");
+        assertEq(operator.lastOutflowResetTimestamp(), block.timestamp, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -806,6 +611,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(1);
@@ -817,12 +623,13 @@ contract OperatorTest is BaseUnitTest {
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.cumulativeOutflowVolume(), 0);
+        assertEq(operator.cumulativeOutflowVolume(), 0, "assertEq failed: values do not match");
     }
 
     function test_fuzz_checkOutflowVolumeLimit_success_whenWindowElapsed(uint256 amount) public {
@@ -835,13 +642,14 @@ contract OperatorTest is BaseUnitTest {
 
         vm.warp(block.timestamp + 2);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.lastOutflowResetTimestamp(), block.timestamp);
-        assertEq(operator.cumulativeOutflowVolume(), amount / 1e10);
+        assertEq(operator.lastOutflowResetTimestamp(), block.timestamp, "assertEq failed: values do not match");
+        assertEq(operator.cumulativeOutflowVolume(), amount / 1e10, "assertEq failed: values do not match");
     }
 
     function test_fuzz_checkOutflowVolumeLimit_success_whenWindowNotElapsed(uint256 amount) public {
@@ -853,13 +661,14 @@ contract OperatorTest is BaseUnitTest {
 
         uint256 lastReset = operator.lastOutflowResetTimestamp();
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.lastOutflowResetTimestamp(), lastReset);
-        assertEq(operator.cumulativeOutflowVolume(), amount / 1e10);
+        assertEq(operator.lastOutflowResetTimestamp(), lastReset, "assertEq failed: values do not match");
+        assertEq(operator.cumulativeOutflowVolume(), amount / 1e10, "assertEq failed: values do not match");
     }
 
     function test_unit_checkOutflowVolumeLimit_revertsWith_Operator_OutflowVolumeReached() public {
@@ -871,6 +680,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(2e10);
@@ -884,6 +694,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OracleUnderlyingFetchError.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(1);
@@ -907,12 +718,13 @@ contract OperatorTest is BaseUnitTest {
         vm.expectEmit(true, false, false, true, address(operator));
         emit OperatorStorage.NewBorrowCap(address(market), cap);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setMarketBorrowCaps(markets, caps);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.borrowCaps(address(market)), cap);
+        assertEq(operator.borrowCaps(address(market)), cap, "assertEq failed: values do not match");
     }
 
     function test_fuzz_setMarketBorrowCaps_success_whenAdmin(uint256 cap) public {
@@ -931,7 +743,7 @@ contract OperatorTest is BaseUnitTest {
         operator.setMarketBorrowCaps(markets, caps);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.borrowCaps(address(market)), cap);
+        assertEq(operator.borrowCaps(address(market)), cap, "assertEq failed: values do not match");
     }
 
     function test_unit_setMarketBorrowCaps_revertsWith_Operator_OnlyAdminOrRole() public {
@@ -944,6 +756,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OnlyAdminOrRole.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setMarketBorrowCaps(markets, caps);
@@ -992,12 +805,13 @@ contract OperatorTest is BaseUnitTest {
         vm.expectEmit(true, false, false, true, address(operator));
         emit OperatorStorage.NewSupplyCap(address(market), cap);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setMarketSupplyCaps(markets, caps);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.supplyCaps(address(market)), cap);
+        assertEq(operator.supplyCaps(address(market)), cap, "assertEq failed: values do not match");
     }
 
     function test_fuzz_setMarketSupplyCaps_success_whenAdmin(uint256 cap) public {
@@ -1016,7 +830,7 @@ contract OperatorTest is BaseUnitTest {
         operator.setMarketSupplyCaps(markets, caps);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.supplyCaps(address(market)), cap);
+        assertEq(operator.supplyCaps(address(market)), cap, "assertEq failed: values do not match");
     }
 
     function test_unit_setMarketSupplyCaps_revertsWith_Operator_OnlyAdminOrRole() public {
@@ -1029,6 +843,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OnlyAdminOrRole.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setMarketSupplyCaps(markets, caps);
@@ -1080,6 +895,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OnlyAdminOrRole.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, true);
@@ -1095,6 +911,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OnlyAdmin.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
@@ -1109,7 +926,11 @@ contract OperatorTest is BaseUnitTest {
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, paused);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Borrow), paused);
+        assertEq(
+            operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Borrow),
+            paused,
+            "assertEq failed: values do not match"
+        );
     }
 
     function test_fuzz_setPaused_success_withFirewall(bool firstState, bool secondState) public {
@@ -1123,7 +944,11 @@ contract OperatorTest is BaseUnitTest {
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, firstState);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint), firstState);
+        assertEq(
+            operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint),
+            firstState,
+            "assertEq failed: values do not match"
+        );
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true, address(operator));
@@ -1133,7 +958,11 @@ contract OperatorTest is BaseUnitTest {
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, secondState);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint), secondState);
+        assertEq(
+            operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint),
+            secondState,
+            "assertEq failed: values do not match"
+        );
     }
 
     function test_unit_setPaused_revertsWith_Operator_OnlyAdmin() public {
@@ -1146,6 +975,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OnlyAdmin.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
@@ -1157,7 +987,7 @@ contract OperatorTest is BaseUnitTest {
     }
 
     function test_unit_setPaused_revertsWith_Operator_OnlyAdminOrRole() public {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -1170,6 +1000,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OnlyAdmin.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, false);
@@ -1214,6 +1045,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.enterMarkets(markets);
@@ -1232,8 +1064,8 @@ contract OperatorTest is BaseUnitTest {
         address[] memory assets = operator.getAssetsIn(account);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(assets.length, 1);
-        assertEq(assets[0], address(market));
+        assertEq(assets.length, 1, "assertEq failed: values do not match");
+        assertEq(assets[0], address(market), "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -1254,13 +1086,13 @@ contract OperatorTest is BaseUnitTest {
         address[] memory markets = operator.getAllMarkets();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(markets.length, 2);
+        assertEq(markets.length, 2, "assertEq failed: values do not match");
         if (reverseOrder) {
-            assertEq(markets[0], address(market2));
-            assertEq(markets[1], address(market));
+            assertEq(markets[0], address(market2), "assertEq failed: values do not match");
+            assertEq(markets[1], address(market), "assertEq failed: values do not match");
         } else {
-            assertEq(markets[0], address(market));
-            assertEq(markets[1], address(market2));
+            assertEq(markets[0], address(market), "assertEq failed: values do not match");
+            assertEq(markets[1], address(market2), "assertEq failed: values do not match");
         }
     }
 
@@ -1273,6 +1105,7 @@ contract OperatorTest is BaseUnitTest {
         vm.assume(account != address(0));
         _listMarket(market);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(account);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.exitMarket(address(market));
@@ -1293,6 +1126,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Deactivate_MarketBalanceOwed.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.exitMarket(address(market));
@@ -1311,6 +1145,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Deactivate_MarketBalanceOwed.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.exitMarket(address(market));
@@ -1330,6 +1165,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_AssetNotFound.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.exitMarket(address(market));
@@ -1356,6 +1192,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_AssetNotFound.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.exitMarket(address(market));
@@ -1375,13 +1212,14 @@ contract OperatorTest is BaseUnitTest {
         vm.expectEmit(true, true, false, true, address(operator));
         emit OperatorStorage.MarketExited(address(market), account);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(account);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.exitMarket(address(market));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertFalse(operator.checkMembership(account, address(market)));
-        assertEq(operator.getAssetsIn(account).length, 0);
+        assertEq(operator.getAssetsIn(account).length, 0, "assertEq failed: values do not match");
     }
 
     function test_fuzz_exitMarket_success_whenFirewallEnabled(address account) public {
@@ -1399,12 +1237,13 @@ contract OperatorTest is BaseUnitTest {
         vm.expectEmit(true, true, false, true, address(operator));
         emit OperatorStorage.MarketExited(address(market), account);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(account);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.exitMarket(address(market));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.getAssetsIn(account).length, 0);
+        assertEq(operator.getAssetsIn(account).length, 0, "assertEq failed: values do not match");
     }
 
     function test_fuzz_exitMarket_success_whenMultipleMarkets(address account) public {
@@ -1421,6 +1260,7 @@ contract OperatorTest is BaseUnitTest {
         vm.expectEmit(true, true, false, true, address(operator));
         emit OperatorStorage.MarketExited(address(market), account);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(account);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.exitMarket(address(market));
@@ -1428,8 +1268,8 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertFalse(operator.checkMembership(account, address(market)));
         address[] memory assets = operator.getAssetsIn(account);
-        assertEq(assets.length, 1);
-        assertEq(assets[0], address(market2));
+        assertEq(assets.length, 1, "assertEq failed: values do not match");
+        assertEq(assets[0], address(market2), "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -1452,6 +1292,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_AssetNotFound.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.exitMarket(address(market));
@@ -1592,6 +1433,7 @@ contract OperatorTest is BaseUnitTest {
 
         market.setTotals(amount, 0, 0);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         operator.beforeMTokenBorrow(address(market), account, amount);
 
@@ -1693,6 +1535,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
@@ -1715,6 +1558,7 @@ contract OperatorTest is BaseUnitTest {
 
         market.setTotals(1, 0, 0);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         operator.beforeMTokenBorrow(address(market), account, amount);
     }
@@ -1726,6 +1570,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_EmptyPrice.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
@@ -1742,6 +1587,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketBorrowCapReached.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
@@ -1761,6 +1607,7 @@ contract OperatorTest is BaseUnitTest {
         market.setSnapshot(account, tokenBalance, 0, 1e18);
         market.setTotals(1, 0, 0);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         operator.beforeMTokenBorrow(address(market), account, amount);
     }
@@ -1774,6 +1621,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketBorrowSizeNotMet.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 50);
@@ -1789,6 +1637,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_InsufficientLiquidity.selector);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
@@ -1811,6 +1660,7 @@ contract OperatorTest is BaseUnitTest {
         uint256 tokenBalance = amount * 2 + 1;
         market.setSnapshot(account, tokenBalance, 0, 1e18);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(caller);
         operator.beforeMTokenBorrow(address(market), account, amount);
     }
@@ -2182,8 +2032,8 @@ contract OperatorTest is BaseUnitTest {
         (uint256 liquidity, uint256 shortfall) = operator.getHypotheticalAccountLiquidity(account, address(0), 0, 0);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(liquidity, 0);
-        assertEq(shortfall, 0);
+        assertEq(liquidity, 0, "assertEq failed: values do not match");
+        assertEq(shortfall, 0, "assertEq failed: values do not match");
     }
 
     function test_unit_getHypotheticalAccountLiquidity_revertsWith_Operator_OracleUnderlyingFetchError() public {
@@ -2223,7 +2073,7 @@ contract OperatorTest is BaseUnitTest {
         uint256 total = operator.getUSDValueForAllMarkets();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(total, totalUnderlying / 1e10);
+        assertEq(total, totalUnderlying / 1e10, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -2246,7 +2096,7 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         bool expected = pauseBorrow && reserveFactor == 1e18;
-        assertEq(operator.isDeprecated(address(market)), expected);
+        assertEq(operator.isDeprecated(address(market)), expected, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -2275,6 +2125,206 @@ contract OperatorTest is BaseUnitTest {
         }
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.beforeRebalancing(address(market));
+        operator.beforeRebalancing(target);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _listMarket(MockMToken mToken) internal {
+        vm.expectEmit(false, false, false, true, address(operator));
+        emit OperatorStorage.MarketListed(address(mToken));
+        operator.supportMarket(address(mToken));
+    }
+
+    function _deployHarness() internal returns (OperatorHarness) {
+        OperatorHarness harnessImpl = new OperatorHarness();
+        bytes memory initData =
+            abi.encodeWithSelector(Operator.initialize.selector, address(roles), address(blacklister), address(this));
+        ERC1967Proxy proxy = new ERC1967Proxy(address(harnessImpl), initData);
+        return OperatorHarness(address(proxy));
+    }
+
+    function _enableFirewall() internal returns (MockFirewall) {
+        MockFirewall firewall = new MockFirewall();
+
+        vm.expectEmit(true, true, false, true, address(operator));
+        emit HypernativeFirewallProtected.FirewallAdminChanged(address(0), address(this));
+        vm.expectEmit(true, true, false, true, address(operator));
+        emit HypernativeFirewallProtected.FirewallAddressChanged(address(0), address(firewall));
+
+        operator.initFirewall(address(firewall));
+        return firewall;
+    }
+
+    function _supportMarketAndJoin(MockMToken mToken, address account) internal {
+        if (!operator.isMarketListed(address(mToken))) {
+            _listMarket(mToken);
+        }
+
+        address[] memory markets = new address[](1);
+        markets[0] = address(mToken);
+
+        vm.expectEmit(true, true, false, true, address(operator));
+        emit OperatorStorage.MarketEntered(address(mToken), account);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(account);
+        operator.enterMarkets(markets);
+    }
+
+    function _supportMarketAndJoin(address account, MockMToken first, MockMToken second) internal {
+        if (!operator.isMarketListed(address(first))) {
+            _listMarket(first);
+        }
+        if (!operator.isMarketListed(address(second))) {
+            _listMarket(second);
+        }
+
+        address[] memory markets = new address[](2);
+        markets[0] = address(first);
+        markets[1] = address(second);
+
+        vm.expectEmit(true, true, false, true, address(operator));
+        emit OperatorStorage.MarketEntered(address(first), account);
+
+        vm.expectEmit(true, true, false, true, address(operator));
+        emit OperatorStorage.MarketEntered(address(second), account);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(account);
+        operator.enterMarkets(markets);
+    }
+
+    function _setBorrowCaps(MockMToken mToken, uint256 cap) internal {
+        address[] memory markets = new address[](1);
+        uint256[] memory caps = new uint256[](1);
+        markets[0] = address(mToken);
+        caps[0] = cap;
+
+        vm.expectEmit(true, false, false, true, address(operator));
+        emit OperatorStorage.NewBorrowCap(address(mToken), cap);
+
+        operator.setMarketBorrowCaps(markets, caps);
+    }
+
+    function _setBorrowSizeMin(MockMToken mToken, uint256 amount) internal {
+        address[] memory markets = new address[](1);
+        uint256[] memory amounts = new uint256[](1);
+        markets[0] = address(mToken);
+        amounts[0] = amount;
+
+        vm.expectEmit(false, false, false, true, address(operator));
+        emit OperatorStorage.MinBorrowSizeSet(markets, amounts);
+
+        operator.setBorrowSizeMin(markets, amounts);
+    }
+
+    function _setSupplyCaps(MockMToken mToken, uint256 cap) internal {
+        address[] memory markets = new address[](1);
+        uint256[] memory caps = new uint256[](1);
+        markets[0] = address(mToken);
+        caps[0] = cap;
+
+        vm.expectEmit(true, false, false, true, address(operator));
+        emit OperatorStorage.NewSupplyCap(address(mToken), cap);
+
+        operator.setMarketSupplyCaps(markets, caps);
+    }
+
+    function _setWhitelistStatus(Operator target, bool status) internal {
+        vm.expectEmit(false, false, false, true, address(target));
+        if (status) {
+            emit OperatorStorage.WhitelistEnabled();
+        } else {
+            emit OperatorStorage.WhitelistDisabled();
+        }
+
+        target.setWhitelistStatus(status);
+    }
+
+    function _setWhitelistedUser(Operator target, address user, bool state) internal {
+        vm.expectEmit(true, false, false, true, address(target));
+        emit OperatorStorage.UserWhitelisted(user, state);
+
+        target.setWhitelistedUser(user, state);
+    }
+
+    function _setOutflowTimeLimitInUSD(uint256 amount) internal {
+        uint256 previous = operator.limitPerTimePeriod();
+
+        vm.expectEmit(true, false, false, true, address(operator));
+        emit OperatorStorage.OutflowLimitUpdated(address(this), previous, amount);
+
+        operator.setOutflowTimeLimitInUSD(amount);
+    }
+
+    function _setOutflowVolumeTimeWindow(uint256 newTimeWindow) internal {
+        uint256 previous = operator.outflowResetTimeWindow();
+
+        vm.expectEmit(false, false, false, true, address(operator));
+        emit OperatorStorage.OutflowTimeWindowUpdated(previous, newTimeWindow);
+
+        operator.setOutflowVolumeTimeWindow(newTimeWindow);
+    }
+
+    function _setPriceOracle(Operator target, address newOracle) internal {
+        address previous = target.oracleOperator();
+
+        vm.expectEmit(true, true, false, true, address(target));
+        emit OperatorStorage.NewPriceOracle(previous, newOracle);
+
+        target.setPriceOracle(newOracle);
+    }
+
+    function _setCloseFactor(uint256 newCloseFactor) internal {
+        uint256 previous = operator.closeFactorMantissa();
+
+        vm.expectEmit(false, false, false, true, address(operator));
+        emit OperatorStorage.NewCloseFactor(previous, newCloseFactor);
+
+        operator.setCloseFactor(newCloseFactor);
+    }
+
+    function _setCollateralFactor(MockMToken mToken, uint256 newCollateralFactor) internal {
+        (, uint256 previous) = operator.markets(address(mToken));
+
+        vm.expectEmit(true, false, false, true, address(operator));
+        emit OperatorStorage.NewCollateralFactor(address(mToken), previous, newCollateralFactor);
+
+        operator.setCollateralFactor(address(mToken), newCollateralFactor);
+    }
+
+    function _setPaused(address mToken, ImTokenOperationTypes.OperationType operation, bool state) internal {
+        vm.expectEmit(true, true, false, true, address(operator));
+        emit OperatorStorage.ActionPaused(mToken, operation, state);
+
+        operator.setPaused(mToken, operation, state);
+    }
+
+    function _setPausedAs(address caller, address mToken, ImTokenOperationTypes.OperationType operation, bool state)
+        internal
+    {
+        vm.expectEmit(true, true, false, true, address(operator));
+        emit OperatorStorage.ActionPaused(mToken, operation, state);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(caller);
+        operator.setPaused(mToken, operation, state);
+    }
+
+    function _allowRole(address target, bytes32 role, bool allowed) internal {
+        vm.expectEmit(true, true, false, true, address(roles));
+        emit Roles.Allowed(target, role, allowed);
+
+        roles.allowFor(target, role, allowed);
+    }
+
+    function _blacklist(address user) internal {
+        vm.expectEmit(true, false, false, true, address(blacklister));
+        emit IBlacklister.Blacklisted(user);
+
+        blacklister.blacklist(user);
     }
 }

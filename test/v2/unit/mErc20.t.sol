@@ -384,58 +384,6 @@ contract mErc20Test is BaseMTokenTest {
         );
     }
 
-    // stack too deep
-    function _borrowAndCheck(
-        uint256 amount,
-        uint256 balanceUnderlyingBefore,
-        uint256 balanceUnderlyingMTokenBefore,
-        uint256 supplyUnderlyingBefore,
-        uint256 totalBorrowsBefore
-    ) private {
-        uint256 accountBorrowsBefore = mWeth.borrowBalanceStored(address(this));
-
-        // borrow
-        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectEmit(true, true, true, true);
-        emit mTokenStorage.Borrow(address(this), amount, accountBorrowsBefore + amount, totalBorrowsBefore + amount);
-        mWeth.borrow(amount);
-
-        _afterBorrowChecks(
-            amount, balanceUnderlyingBefore, balanceUnderlyingMTokenBefore, supplyUnderlyingBefore, totalBorrowsBefore
-        );
-    }
-
-    function _afterBorrowChecks(
-        uint256 amount,
-        uint256 balanceUnderlyingBefore,
-        uint256 balanceUnderlyingMTokenBefore,
-        uint256 supplyUnderlyingBefore,
-        uint256 totalBorrowsBefore
-    ) private view {
-        // after state
-        bool memberAfter = operator.checkMembership(address(this), address(mWeth));
-        uint256 balanceUnderlyingAfter = weth.balanceOf(address(this));
-        uint256 balanceUnderlyingMTokenAfter = weth.balanceOf(address(mWeth));
-        uint256 supplyUnderlyingAfter = weth.totalSupply();
-        uint256 totalBorrowsAfter = mWeth.totalBorrows();
-
-        // it shoud activate ther market for sender
-        assertTrue(memberAfter);
-
-        // it should transfer underlying token to sender
-        assertGt(balanceUnderlyingAfter, balanceUnderlyingBefore);
-        assertEq(balanceUnderlyingAfter - amount, balanceUnderlyingBefore);
-
-        // it should not modify underlying supply
-        assertEq(supplyUnderlyingBefore, supplyUnderlyingAfter);
-
-        // it should decrease balance of underlying from mToken
-        assertGt(balanceUnderlyingMTokenBefore, balanceUnderlyingMTokenAfter);
-
-        // it should increase totalBorrows
-        assertGt(totalBorrowsAfter, totalBorrowsBefore);
-    }
-
     LiquidationHelper internal helper;
 
     address internal borrower;
@@ -458,8 +406,8 @@ contract mErc20Test is BaseMTokenTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (bool shouldLiquidate, uint256 repayAmount) = helper.getBorrowerPosition(account, address(mWeth));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(shouldLiquidate, false);
-        assertEq(repayAmount, 0);
+        assertEq(shouldLiquidate, false, "assertEq failed: values do not match");
+        assertEq(repayAmount, 0, "assertEq failed: values do not match");
     }
 
     function test_fuzz_getBorrowerPosition_success_skipsZeroDebt(address account) public {
@@ -472,8 +420,8 @@ contract mErc20Test is BaseMTokenTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (bool shouldLiquidate, uint256 repayAmount) = helper.getBorrowerPosition(account, address(mWeth));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(shouldLiquidate, false);
-        assertEq(repayAmount, 0);
+        assertEq(shouldLiquidate, false, "assertEq failed: values do not match");
+        assertEq(repayAmount, 0, "assertEq failed: values do not match");
     }
 
     function test_fuzz_getBorrowerPosition_success_skipsNoShortfall(address account, uint256 borrowBalance) public {
@@ -495,8 +443,8 @@ contract mErc20Test is BaseMTokenTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (bool shouldLiquidate, uint256 repayAmount) = helper.getBorrowerPosition(account, address(mWeth));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(shouldLiquidate, false);
-        assertEq(repayAmount, 0);
+        assertEq(shouldLiquidate, false, "assertEq failed: values do not match");
+        assertEq(repayAmount, 0, "assertEq failed: values do not match");
     }
 
     function test_fuzz_getBorrowerPosition_success_liquidatesCorrectly(
@@ -528,8 +476,8 @@ contract mErc20Test is BaseMTokenTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (bool shouldLiquidate, uint256 repayAmount) = helper.getBorrowerPosition(account, address(mWeth));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(shouldLiquidate, true);
-        assertEq(repayAmount, borrowBalance * closeFactor / 1e18);
+        assertEq(shouldLiquidate, true, "assertEq failed: values do not match");
+        assertEq(repayAmount, borrowBalance * closeFactor / 1e18, "assertEq failed: values do not match");
     }
 
     function test_fuzz_getBorrowerPosition_success_fuzzedRepayAmount(
@@ -559,8 +507,8 @@ contract mErc20Test is BaseMTokenTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (bool shouldLiquidate, uint256 repayAmount) = helper.getBorrowerPosition(borrower, address(mWeth));
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(shouldLiquidate, true);
-        assertEq(repayAmount, borrowBalance * closeFactor / 1e18);
+        assertEq(shouldLiquidate, true, "assertEq failed: values do not match");
+        assertEq(repayAmount, borrowBalance * closeFactor / 1e18, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -647,7 +595,7 @@ contract mErc20Test is BaseMTokenTest {
         // it should transfer underlying from user
         assertGt(balanceWethBefore, balanceWethAfter);
 
-        assertEq(totalSupplyAfter - amount, totalSupplyBefore);
+        assertEq(totalSupplyAfter - amount, totalSupplyBefore, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -679,15 +627,15 @@ contract mErc20Test is BaseMTokenTest {
 
         uint256 totalSupplyAfter = mWeth.totalSupply();
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceOfAfter = mWeth.balanceOf(address(this));
 
         // it should increse balanceOf account
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertGt(balanceOfAfter, balanceOfBefore);
 
         // it should increase total supply by amount
         assertGt(totalSupplyAfter, totalSupplyBefore);
-        assertEq(totalSupplyAfter - SMALL, totalSupplyBefore);
+        assertEq(totalSupplyAfter - SMALL, totalSupplyBefore, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -740,7 +688,7 @@ contract mErc20Test is BaseMTokenTest {
         // it should transfer underlying from user
         assertGt(balanceWethBefore, balanceWethAfter);
 
-        assertEq(totalSupplyAfter - amount, totalSupplyBefore);
+        assertEq(totalSupplyAfter - amount, totalSupplyBefore, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -857,43 +805,6 @@ contract mErc20Test is BaseMTokenTest {
         _redeem(amount, true);
     }
 
-    function _redeem(uint256 amount, bool underlying) private {
-        _borrowPrerequisites(address(mWeth), amount);
-
-        uint256 balanceWethBefore = weth.balanceOf(address(this));
-        uint256 supplyMTokenBefore = mWeth.totalSupply();
-        uint256 balanceMTokenBefore = mWeth.balanceOf(address(this));
-
-        amount = amount - DEFAULT_INFLATION_INCREASE;
-        uint256 exchangeRate = mWeth.exchangeRateStored();
-        uint256 redeemTokens = underlying ? (amount * EXP_SCALE) / exchangeRate : amount;
-        uint256 redeemAmount = underlying ? amount : (exchangeRate * amount) / EXP_SCALE;
-
-        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectEmit(true, true, true, true);
-        emit mTokenStorage.Transfer(address(this), address(mWeth), redeemTokens);
-        vm.expectEmit(true, true, true, true);
-        emit mTokenStorage.Redeem(address(this), redeemAmount, redeemTokens);
-
-        if (underlying) mWeth.redeemUnderlying(amount);
-        else mWeth.redeem(amount);
-
-        uint256 balanceWethAfter = weth.balanceOf(address(this));
-        uint256 supplyMTokenAfter = mWeth.totalSupply();
-        uint256 balanceMTokenAfter = mWeth.balanceOf(address(this));
-
-        // it should transfer underlying to redeemer
-        assertEq(balanceWethBefore + amount, balanceWethAfter);
-
-        // it should decrease totalSupply of mToken
-        assertGt(supplyMTokenBefore, supplyMTokenAfter);
-        assertEq(supplyMTokenBefore - amount, supplyMTokenAfter);
-
-        // it should decrease redeemer balance of mToken
-        assertGt(balanceMTokenBefore, balanceMTokenAfter);
-        assertEq(balanceMTokenBefore - amount, balanceMTokenAfter);
-    }
-
     ////////////////////////////////////////////////////////////
     //                      RepayBehalf                       //
     ////////////////////////////////////////////////////////////
@@ -959,7 +870,7 @@ contract mErc20Test is BaseMTokenTest {
 
         // state should be the same
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(totalBorrowsAfter, totalBorrowsBefore);
+        assertEq(totalBorrowsAfter, totalBorrowsBefore, "assertEq failed: values do not match");
     }
 
     struct mErc20_repayBehalf_RepayStateInternal {
@@ -1005,7 +916,6 @@ contract mErc20Test is BaseMTokenTest {
         vars.totalBorrowsBefore = mWeth.totalBorrows();
         vars.accountBorrowBefore = mWeth.borrowBalanceStored(address(this));
 
-        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(); //panic: arithmetic underflow or overflow (0x11)
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWeth.repayBehalf(address(this), amount * 10);
@@ -1016,6 +926,7 @@ contract mErc20Test is BaseMTokenTest {
         _resetContext(address(this));
 
         // after state
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         vars.balanceUnderlyingAfter = weth.balanceOf(users.alice);
         vars.balanceMTokenAfter = mWeth.balanceOf(address(this));
         vars.totalBorrowsAfter = mWeth.totalBorrows();
@@ -1023,11 +934,14 @@ contract mErc20Test is BaseMTokenTest {
 
         {
             // it should use only the amount borrowed
-            // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-            assertEq(vars.balanceUnderlyingBefore - vars.balanceUnderlyingAfter, amount);
+            assertEq(
+                vars.balanceUnderlyingBefore - vars.balanceUnderlyingAfter,
+                amount,
+                "assertEq failed: values do not match"
+            );
 
             // it should have same mToken balance
-            assertEq(vars.balanceMTokenBefore, vars.balanceMTokenAfter);
+            assertEq(vars.balanceMTokenBefore, vars.balanceMTokenAfter, "it should have same mToken balance");
 
             // it should decrease totalBorrows
             assertGt(vars.totalBorrowsBefore, vars.totalBorrowsAfter);
@@ -1082,10 +996,14 @@ contract mErc20Test is BaseMTokenTest {
 
         // it should use only the amount borrowed
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(vars.balanceUnderlyingBefore - vars.balanceUnderlyingAfter, repayAmount);
+        assertEq(
+            vars.balanceUnderlyingBefore - vars.balanceUnderlyingAfter,
+            repayAmount,
+            "assertEq failed: values do not match"
+        );
 
         // it should have same mToken balance
-        assertEq(vars.balanceMTokenBefore, vars.balanceMTokenAfter);
+        assertEq(vars.balanceMTokenBefore, vars.balanceMTokenAfter, "it should have same mToken balance");
 
         // it should decrease totalBorrows
         assertGt(vars.totalBorrowsBefore, vars.totalBorrowsAfter);
@@ -1157,7 +1075,7 @@ contract mErc20Test is BaseMTokenTest {
         uint256 totalBorrowsAfter = mWeth.totalBorrows();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(totalBorrowsAfter, totalBorrowsBefore);
+        assertEq(totalBorrowsAfter, totalBorrowsBefore, "assertEq failed: values do not match");
     }
 
     struct mErc20_repay_RepayStateInternal {
@@ -1207,14 +1125,16 @@ contract mErc20Test is BaseMTokenTest {
 
         mWeth.repay(type(uint256).max);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         vars.balanceUnderlyingAfter = weth.balanceOf(address(this));
         vars.balanceMTokenAfter = mWeth.balanceOf(address(this));
         vars.totalBorrowsAfter = mWeth.totalBorrows();
         vars.accountBorrowAfter = mWeth.borrowBalanceStored(address(this));
 
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(vars.balanceUnderlyingBefore - vars.balanceUnderlyingAfter, amount);
-        assertEq(vars.balanceMTokenBefore, vars.balanceMTokenAfter);
+        assertEq(
+            vars.balanceUnderlyingBefore - vars.balanceUnderlyingAfter, amount, "assertEq failed: values do not match"
+        );
+        assertEq(vars.balanceMTokenBefore, vars.balanceMTokenAfter, "assertEq failed: values do not match");
         assertGt(vars.totalBorrowsBefore, vars.totalBorrowsAfter);
         assertGt(vars.accountBorrowBefore, vars.accountBorrowAfter);
     }
@@ -1255,8 +1175,12 @@ contract mErc20Test is BaseMTokenTest {
         vars.accountBorrowAfter = mWeth.borrowBalanceStored(address(this));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(vars.balanceUnderlyingBefore - vars.balanceUnderlyingAfter, repayAmount);
-        assertEq(vars.balanceMTokenBefore, vars.balanceMTokenAfter);
+        assertEq(
+            vars.balanceUnderlyingBefore - vars.balanceUnderlyingAfter,
+            repayAmount,
+            "assertEq failed: values do not match"
+        );
+        assertEq(vars.balanceMTokenBefore, vars.balanceMTokenAfter, "assertEq failed: values do not match");
         assertGt(vars.totalBorrowsBefore, vars.totalBorrowsAfter);
         assertGt(vars.totalBorrowsAfter, 0);
         assertGt(vars.accountBorrowBefore, vars.accountBorrowAfter);
@@ -1277,8 +1201,8 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.sweepToken(IERC20(address(dai)), amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(dai.balanceOf(address(mWeth)), 0);
-        assertEq(dai.balanceOf(address(this)), adminBalanceBefore + amount);
+        assertEq(dai.balanceOf(address(mWeth)), 0, "assertEq failed: values do not match");
+        assertEq(dai.balanceOf(address(this)), adminBalanceBefore + amount, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
@@ -1290,5 +1214,98 @@ contract mErc20Test is BaseMTokenTest {
         vm.expectRevert(mErc20.mErc20_TokenNotValid.selector);
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWeth.sweepToken(IERC20(address(weth)), 1);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    // stack too deep
+    function _borrowAndCheck(
+        uint256 amount,
+        uint256 balanceUnderlyingBefore,
+        uint256 balanceUnderlyingMTokenBefore,
+        uint256 supplyUnderlyingBefore,
+        uint256 totalBorrowsBefore
+    ) private {
+        uint256 accountBorrowsBefore = mWeth.borrowBalanceStored(address(this));
+
+        // borrow
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, true, true);
+        emit mTokenStorage.Borrow(address(this), amount, accountBorrowsBefore + amount, totalBorrowsBefore + amount);
+        mWeth.borrow(amount);
+
+        _afterBorrowChecks(
+            amount, balanceUnderlyingBefore, balanceUnderlyingMTokenBefore, supplyUnderlyingBefore, totalBorrowsBefore
+        );
+    }
+
+    function _afterBorrowChecks(
+        uint256 amount,
+        uint256 balanceUnderlyingBefore,
+        uint256 balanceUnderlyingMTokenBefore,
+        uint256 supplyUnderlyingBefore,
+        uint256 totalBorrowsBefore
+    ) private view {
+        // after state
+        bool memberAfter = operator.checkMembership(address(this), address(mWeth));
+        uint256 balanceUnderlyingAfter = weth.balanceOf(address(this));
+        uint256 balanceUnderlyingMTokenAfter = weth.balanceOf(address(mWeth));
+        uint256 supplyUnderlyingAfter = weth.totalSupply();
+        uint256 totalBorrowsAfter = mWeth.totalBorrows();
+
+        // it shoud activate ther market for sender
+        assertTrue(memberAfter);
+
+        // it should transfer underlying token to sender
+        assertGt(balanceUnderlyingAfter, balanceUnderlyingBefore);
+        assertEq(balanceUnderlyingAfter - amount, balanceUnderlyingBefore, "aderlyingBefore)");
+
+        // it should not modify underlying supply
+        assertEq(supplyUnderlyingBefore, supplyUnderlyingAfter, "it should not modify underlying supply");
+
+        // it should decrease balance of underlying from mToken
+        assertGt(balanceUnderlyingMTokenBefore, balanceUnderlyingMTokenAfter);
+
+        // it should increase totalBorrows
+        assertGt(totalBorrowsAfter, totalBorrowsBefore);
+    }
+
+    function _redeem(uint256 amount, bool underlying) private {
+        _borrowPrerequisites(address(mWeth), amount);
+
+        uint256 balanceWethBefore = weth.balanceOf(address(this));
+        uint256 supplyMTokenBefore = mWeth.totalSupply();
+        uint256 balanceMTokenBefore = mWeth.balanceOf(address(this));
+
+        amount = amount - DEFAULT_INFLATION_INCREASE;
+        uint256 exchangeRate = mWeth.exchangeRateStored();
+        uint256 redeemTokens = underlying ? (amount * EXP_SCALE) / exchangeRate : amount;
+        uint256 redeemAmount = underlying ? amount : (exchangeRate * amount) / EXP_SCALE;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, true, true);
+        emit mTokenStorage.Transfer(address(this), address(mWeth), redeemTokens);
+        vm.expectEmit(true, true, true, true);
+        emit mTokenStorage.Redeem(address(this), redeemAmount, redeemTokens);
+
+        if (underlying) mWeth.redeemUnderlying(amount);
+        else mWeth.redeem(amount);
+
+        uint256 balanceWethAfter = weth.balanceOf(address(this));
+        uint256 supplyMTokenAfter = mWeth.totalSupply();
+        uint256 balanceMTokenAfter = mWeth.balanceOf(address(this));
+
+        // it should transfer underlying to redeemer
+        assertEq(balanceWethBefore + amount, balanceWethAfter, "it should transfer underlying to redeemer");
+
+        // it should decrease totalSupply of mToken
+        assertGt(supplyMTokenBefore, supplyMTokenAfter);
+        assertEq(supplyMTokenBefore - amount, supplyMTokenAfter, "assertEq failed: values do not match");
+
+        // it should decrease redeemer balance of mToken
+        assertGt(balanceMTokenBefore, balanceMTokenAfter);
+        assertEq(balanceMTokenBefore - amount, balanceMTokenAfter, "assertEq failed: values do not match");
     }
 }

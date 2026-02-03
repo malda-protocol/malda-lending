@@ -56,8 +56,10 @@ contract CCTPBridgeTest is BaseTest {
 
         token.mint(address(rebalancer), 1_000_000);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(rebalancer));
         token.approve(address(bridge), type(uint256).max);
+
         vm.prank(address(rebalancer));
         token.approve(address(token), type(uint256).max);
 
@@ -70,11 +72,12 @@ contract CCTPBridgeTest is BaseTest {
     //                     setDomainMapping                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setDomainMapping_success_emitsAndStores() external {
-        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+    function test_unit_setDomainMapping_success(uint32 chainId, uint32 domain) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         chainId = uint32(bound(chainId, 1, type(uint32).max));
+        domain = uint32(bound(domain, 1, type(uint32).max));
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true);
         emit CCTPBridge.DomainMappingUpdated(chainId, domain);
 
@@ -82,7 +85,7 @@ contract CCTPBridgeTest is BaseTest {
         bridge.setDomainMapping(chainId, domain);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(bridge.chainIdToDomain(chainId), domain);
+        assertEq(bridge.chainIdToDomain(chainId), domain, "assertEq failed: values do not match");
         assertTrue(bridge.domainSet(chainId));
     }
 
@@ -90,7 +93,7 @@ contract CCTPBridgeTest is BaseTest {
     //                     setAcceptedToken                   //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_setAcceptedToken_success_emitsAndStores(bool allowed) external {
+    function test_fuzz_setAcceptedToken_success(bool allowed) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         ERC20Mock other = new ERC20Mock("Other", "O", 18, address(this), address(0), 0);
 
@@ -102,14 +105,14 @@ contract CCTPBridgeTest is BaseTest {
         bridge.setAcceptedToken(address(other), allowed);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(bridge.acceptedTokens(address(other)), allowed);
+        assertEq(bridge.acceptedTokens(address(other)), allowed, "assertEq failed: values do not match");
     }
 
     ////////////////////////////////////////////////////////////
     //                         sendMsg                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_sendMsg_success_transfersAndBurns() external {
+    function test_unit_sendMsg_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 amount = 1000;
         uint256 balanceBeforeRebalancer = token.balanceOf(address(rebalancer));
@@ -120,15 +123,25 @@ contract CCTPBridgeTest is BaseTest {
         bridge.sendMsg(amount, address(market), dstChainId, address(token), "", "");
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(address(rebalancer)), balanceBeforeRebalancer - amount);
-        assertEq(token.balanceOf(address(bridge)), balanceBeforeBridge + amount);
+        assertEq(
+            token.balanceOf(address(rebalancer)),
+            balanceBeforeRebalancer - amount,
+            "assertEq failed: values do not match"
+        );
+        assertEq(token.balanceOf(address(bridge)), balanceBeforeBridge + amount, "assertEq failed: values do not match");
 
-        assertEq(messenger.lastCaller(), address(bridge));
-        assertEq(messenger.lastToken(), address(token));
-        assertEq(messenger.lastAmount(), amount);
-        assertEq(messenger.lastDst(), dstDomain);
-        assertEq(messenger.lastReceiver(), bytes32(uint256(uint160(address(bridge)))));
-        assertEq(keccak256(messenger.lastPayload()), keccak256(abi.encode(address(market))));
+        assertEq(messenger.lastCaller(), address(bridge), "assertEq failed: values do not match");
+        assertEq(messenger.lastToken(), address(token), "assertEq failed: values do not match");
+        assertEq(messenger.lastAmount(), amount, "assertEq failed: values do not match");
+        assertEq(messenger.lastDst(), dstDomain, "assertEq failed: values do not match");
+        assertEq(
+            messenger.lastReceiver(), bytes32(uint256(uint160(address(bridge)))), "assertEq failed: values do not match"
+        );
+        assertEq(
+            keccak256(messenger.lastPayload()),
+            keccak256(abi.encode(address(market))),
+            "assertEq failed: values do not match"
+        );
     }
 
     function test_unit_sendMsg_revertsWith_BaseBridge_AmountMismatch_whenAmountZero() external {
@@ -176,7 +189,7 @@ contract CCTPBridgeTest is BaseTest {
     //                    handleCCTPMessage                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_handleCCTPMessage_success_transfersAndEmits() external {
+    function test_unit_handleCCTPMessage_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 amount = 500;
         token.mint(address(bridge), amount);
@@ -206,8 +219,8 @@ contract CCTPBridgeTest is BaseTest {
         bridge.handleCCTPMessage(fakeCCTPMessage, "att");
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(address(market)), balanceBeforeMarket + amount);
-        assertEq(token.balanceOf(address(bridge)), balanceBeforeBridge - amount);
+        assertEq(token.balanceOf(address(market)), balanceBeforeMarket + amount, "assertEq failed: values do not match");
+        assertEq(token.balanceOf(address(bridge)), balanceBeforeBridge - amount, "assertEq failed: values do not match");
     }
 
     function test_unit_handleCCTPMessage_revertsWith_CCTPBridge_InvalidReceiver() external {
@@ -295,6 +308,10 @@ contract CCTPBridgeTest is BaseTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.getFee(dstChainId, "", "");
     }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
 
     function _encodeHook(
         bytes32 tokenB32,
