@@ -56,10 +56,11 @@ contract CCTPBridgeTest is BaseTest {
 
         token.mint(address(rebalancer), 1_000_000);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(address(rebalancer));
+        vm.startPrank(address(rebalancer));
         token.approve(address(bridge), type(uint256).max);
+        vm.stopPrank();
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(rebalancer));
         token.approve(address(token), type(uint256).max);
 
@@ -85,8 +86,8 @@ contract CCTPBridgeTest is BaseTest {
         bridge.setDomainMapping(chainId, domain);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(bridge.chainIdToDomain(chainId), domain, "assertEq failed: values do not match");
-        assertTrue(bridge.domainSet(chainId));
+        assertEq(bridge.chainIdToDomain(chainId), domain, "expected bridge.chainIdToDomain(chainId) to equal domain");
+        assertTrue(bridge.domainSet(chainId), "expected condition to be true: bridge.domainSet(chainId)");
     }
 
     ////////////////////////////////////////////////////////////
@@ -105,7 +106,11 @@ contract CCTPBridgeTest is BaseTest {
         bridge.setAcceptedToken(address(other), allowed);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(bridge.acceptedTokens(address(other)), allowed, "assertEq failed: values do not match");
+        assertEq(
+            bridge.acceptedTokens(address(other)),
+            allowed,
+            "expected bridge.acceptedTokens(address(other)) to equal allowed"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -126,21 +131,27 @@ contract CCTPBridgeTest is BaseTest {
         assertEq(
             token.balanceOf(address(rebalancer)),
             balanceBeforeRebalancer - amount,
-            "assertEq failed: values do not match"
+            "expected token.balanceOf(address(rebalancer)) to equal balanceBeforeRebalancer - amount"
         );
-        assertEq(token.balanceOf(address(bridge)), balanceBeforeBridge + amount, "assertEq failed: values do not match");
-
-        assertEq(messenger.lastCaller(), address(bridge), "assertEq failed: values do not match");
-        assertEq(messenger.lastToken(), address(token), "assertEq failed: values do not match");
-        assertEq(messenger.lastAmount(), amount, "assertEq failed: values do not match");
-        assertEq(messenger.lastDst(), dstDomain, "assertEq failed: values do not match");
         assertEq(
-            messenger.lastReceiver(), bytes32(uint256(uint160(address(bridge)))), "assertEq failed: values do not match"
+            token.balanceOf(address(bridge)),
+            balanceBeforeBridge + amount,
+            "expected token.balanceOf(address(bridge)) to equal balanceBeforeBridge + amount"
+        );
+
+        assertEq(messenger.lastCaller(), address(bridge), "expected messenger.lastCaller() to equal address(bridge)");
+        assertEq(messenger.lastToken(), address(token), "expected messenger.lastToken() to equal address(token)");
+        assertEq(messenger.lastAmount(), amount, "expected messenger.lastAmount() to equal amount");
+        assertEq(messenger.lastDst(), dstDomain, "expected messenger.lastDst() to equal dstDomain");
+        assertEq(
+            messenger.lastReceiver(),
+            bytes32(uint256(uint160(address(bridge)))),
+            "expected messenger.lastReceiver() to equal bytes32(uint256(uint160(address(bridge))))"
         );
         assertEq(
             keccak256(messenger.lastPayload()),
             keccak256(abi.encode(address(market))),
-            "assertEq failed: values do not match"
+            "expected keccak256(messenger.lastPayload()) to equal keccak256(abi.encode(address(market)))"
         );
     }
 
@@ -219,8 +230,16 @@ contract CCTPBridgeTest is BaseTest {
         bridge.handleCCTPMessage(fakeCCTPMessage, "att");
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(address(market)), balanceBeforeMarket + amount, "assertEq failed: values do not match");
-        assertEq(token.balanceOf(address(bridge)), balanceBeforeBridge - amount, "assertEq failed: values do not match");
+        assertEq(
+            token.balanceOf(address(market)),
+            balanceBeforeMarket + amount,
+            "expected token.balanceOf(address(market)) to equal balanceBeforeMarket + amount"
+        );
+        assertEq(
+            token.balanceOf(address(bridge)),
+            balanceBeforeBridge - amount,
+            "expected token.balanceOf(address(bridge)) to equal balanceBeforeBridge - amount"
+        );
     }
 
     function test_unit_handleCCTPMessage_revertsWith_CCTPBridge_InvalidReceiver() external {

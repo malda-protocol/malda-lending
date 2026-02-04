@@ -26,11 +26,11 @@ contract JumpRateModelV4Test is BaseTest {
 
     function test_unit_getters_success() public view {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(model.blocksPerYear(), 1000, "assertEq failed: values do not match");
-        assertEq(model.baseRatePerBlock(), 1e16, "assertEq failed: values do not match");
-        assertEq(model.multiplierPerBlock(), 2e16, "assertEq failed: values do not match");
-        assertEq(model.jumpMultiplierPerBlock(), 3e16, "assertEq failed: values do not match");
-        assertEq(model.kink(), 8e17, "assertEq failed: values do not match");
+        assertEq(model.blocksPerYear(), 1000, "expected model.blocksPerYear() to equal 1000");
+        assertEq(model.baseRatePerBlock(), 1e16, "expected model.baseRatePerBlock() to equal 1e16");
+        assertEq(model.multiplierPerBlock(), 2e16, "expected model.multiplierPerBlock() to equal 2e16");
+        assertEq(model.jumpMultiplierPerBlock(), 3e16, "expected model.jumpMultiplierPerBlock() to equal 3e16");
+        assertEq(model.kink(), 8e17, "expected model.kink() to equal 8e17");
         assertEq(model.name(), "MODEL", "model name does not match expected");
     }
 
@@ -55,11 +55,11 @@ contract JumpRateModelV4Test is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_updateJumpRateModelDirect_revertsWith_OwnableUnauthorizedAccount() public {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(other);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, other));
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(other);
         model.updateJumpRateModelDirect(1, 1, 1, 1);
     }
 
@@ -68,8 +68,10 @@ contract JumpRateModelV4Test is BaseTest {
     {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(owner);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateJumpRateModelDirect(1, 0, 1, 1);
     }
@@ -79,18 +81,20 @@ contract JumpRateModelV4Test is BaseTest {
     {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(owner);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateJumpRateModelDirect(1, 1, 0, 1);
     }
 
     function test_unit_updateJumpRateModelDirect_revertsWith_JumpRateModelV4_ZeroValueNotAllowed_whenKinkZero() public {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
         model.updateJumpRateModelDirect(1, 1, 1, 0);
     }
 
@@ -101,19 +105,19 @@ contract JumpRateModelV4Test is BaseTest {
         uint256 jump = 7e16;
         uint256 kink = 9e17;
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(false, false, false, true);
         emit IInterestRateModel.NewInterestParams(base, multiplier, jump, kink);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
         model.updateJumpRateModelDirect(base, multiplier, jump, kink);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(model.baseRatePerBlock(), base, "assertEq failed: values do not match");
-        assertEq(model.multiplierPerBlock(), multiplier, "assertEq failed: values do not match");
-        assertEq(model.jumpMultiplierPerBlock(), jump, "assertEq failed: values do not match");
-        assertEq(model.kink(), kink, "assertEq failed: values do not match");
+        assertEq(model.baseRatePerBlock(), base, "expected model.baseRatePerBlock() to equal base");
+        assertEq(model.multiplierPerBlock(), multiplier, "expected model.multiplierPerBlock() to equal multiplier");
+        assertEq(model.jumpMultiplierPerBlock(), jump, "expected model.jumpMultiplierPerBlock() to equal jump");
+        assertEq(model.kink(), kink, "expected model.kink() to equal kink");
     }
 
     ////////////////////////////////////////////////////////////
@@ -131,36 +135,44 @@ contract JumpRateModelV4Test is BaseTest {
         uint256 expectedMultiplier = multiplierPerYear * 1e18 / (model.blocksPerYear() * kink);
         uint256 expectedJump = jumpMultiplierPerYear / model.blocksPerYear();
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(false, false, false, true);
         emit IInterestRateModel.NewInterestParams(expectedBase, expectedMultiplier, expectedJump, kink);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
         model.updateJumpRateModel(baseRatePerYear, multiplierPerYear, jumpMultiplierPerYear, kink);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(model.baseRatePerBlock(), expectedBase, "assertEq failed: values do not match");
-        assertEq(model.multiplierPerBlock(), expectedMultiplier, "assertEq failed: values do not match");
-        assertEq(model.jumpMultiplierPerBlock(), expectedJump, "assertEq failed: values do not match");
-        assertEq(model.kink(), kink, "assertEq failed: values do not match");
+        assertEq(model.baseRatePerBlock(), expectedBase, "expected model.baseRatePerBlock() to equal expectedBase");
+        assertEq(
+            model.multiplierPerBlock(),
+            expectedMultiplier,
+            "expected model.multiplierPerBlock() to equal expectedMultiplier"
+        );
+        assertEq(
+            model.jumpMultiplierPerBlock(),
+            expectedJump,
+            "expected model.jumpMultiplierPerBlock() to equal expectedJump"
+        );
+        assertEq(model.kink(), kink, "expected model.kink() to equal kink");
     }
 
     function test_unit_updateJumpRateModel_revertsWith_JumpRateModelV4_ZeroValueNotAllowed_whenBaseRateZero() public {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
         model.updateJumpRateModel(0, 1, 1, 1);
     }
 
     function test_unit_updateJumpRateModel_revertsWith_JumpRateModelV4_ZeroValueNotAllowed_whenMultiplierZero() public {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
         model.updateJumpRateModel(1, 0, 1, 1);
     }
 
@@ -169,27 +181,29 @@ contract JumpRateModelV4Test is BaseTest {
     {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(owner);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         model.updateJumpRateModel(1, 1, 0, 1);
     }
 
     function test_unit_updateJumpRateModel_revertsWith_JumpRateModelV4_ZeroValueNotAllowed_whenKinkZero() public {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
         model.updateJumpRateModel(1, 1, 1, 0);
     }
 
     function test_unit_updateJumpRateModel_revertsWith_OwnableUnauthorizedAccount() public {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(other);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, other));
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(other);
         model.updateJumpRateModel(1, 1, 1, 1);
     }
 
@@ -201,33 +215,33 @@ contract JumpRateModelV4Test is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         newBlocksPerYear = bound(newBlocksPerYear, 1, 1e12);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(false, false, false, true);
         emit IInterestRateModel.BlocksPerYearUpdated(newBlocksPerYear);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
         model.updateBlocksPerYear(newBlocksPerYear);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(model.blocksPerYear(), newBlocksPerYear, "assertEq failed: values do not match");
+        assertEq(model.blocksPerYear(), newBlocksPerYear, "expected model.blocksPerYear() to equal newBlocksPerYear");
     }
 
     function test_unit_updateBlocksPerYear_revertsWith_JumpRateModelV4_ZeroValueNotAllowed() public {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IInterestRateModel.JumpRateModelV4_ZeroValueNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
         model.updateBlocksPerYear(0);
     }
 
     function test_unit_updateBlocksPerYear_revertsWith_OwnableUnauthorizedAccount() public {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(other);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, other));
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(other);
         model.updateBlocksPerYear(1);
     }
 
@@ -237,7 +251,7 @@ contract JumpRateModelV4Test is BaseTest {
 
     function test_unit_isInterestRateModel_success() public view {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(model.isInterestRateModel());
+        assertTrue(model.isInterestRateModel(), "expected condition to be true: model.isInterestRateModel()");
     }
 
     ////////////////////////////////////////////////////////////
@@ -250,7 +264,9 @@ contract JumpRateModelV4Test is BaseTest {
         reserves = bound(reserves, 0, cash);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(model.utilizationRate(cash, 0, reserves), 0, "assertEq failed: values do not match");
+        assertEq(
+            model.utilizationRate(cash, 0, reserves), 0, "expected model.utilizationRate(cash, 0, reserves) to equal 0"
+        );
     }
 
     function test_fuzz_utilizationRate_success_cappedAtOne(uint256 cash, uint256 borrows, uint256 reserves)
@@ -265,8 +281,9 @@ contract JumpRateModelV4Test is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 util = model.utilizationRate(cash, borrows, reserves);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(util, 1e18, "assertEq failed: values do not match");
+        assertEq(util, 1e18, "expected util to equal 1e18");
     }
 
     ////////////////////////////////////////////////////////////
@@ -290,10 +307,12 @@ contract JumpRateModelV4Test is BaseTest {
         util = model.utilizationRate(cash, borrows, reserves);
 
         uint256 expected = util * model.multiplierPerBlock() / 1e18 + model.baseRatePerBlock();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 rate = model.getBorrowRate(cash, borrows, reserves);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rate, expected, "assertEq failed: values do not match");
+        assertEq(rate, expected, "expected rate to equal expected");
     }
 
     function test_fuzz_getBorrowRate_success_aboveKink(uint256 cash, uint256 borrows, uint256 reserves) public view {
@@ -306,10 +325,12 @@ contract JumpRateModelV4Test is BaseTest {
 
         uint256 normalRate = model.kink() * model.multiplierPerBlock() / 1e18 + model.baseRatePerBlock();
         uint256 expected = (util - model.kink()) * model.jumpMultiplierPerBlock() / 1e18 + normalRate;
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 rate = model.getBorrowRate(cash, borrows, reserves);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rate, expected, "assertEq failed: values do not match");
+        assertEq(rate, expected, "expected rate to equal expected");
     }
 
     function test_fuzz_getBorrowRate_success(uint256 cash, uint256 borrows, uint256 reserves, uint256 reserveFactor)
@@ -323,6 +344,7 @@ contract JumpRateModelV4Test is BaseTest {
         reserveFactor = bound(reserveFactor, 0, 1e18);
 
         uint256 util = model.utilizationRate(cash, borrows, reserves);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 borrowRate = model.getBorrowRate(cash, borrows, reserves);
         uint256 expected = util * borrowRate * (1e18 - reserveFactor) / 1e36;
@@ -331,7 +353,7 @@ contract JumpRateModelV4Test is BaseTest {
         assertEq(
             model.getSupplyRate(cash, borrows, reserves, reserveFactor),
             expected,
-            "assertEq failed: values do not match"
+            "expected model.getSupplyRate(cash, borrows, reserves, reserveFactor) to equal expected"
         );
     }
 }

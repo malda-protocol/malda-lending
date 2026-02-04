@@ -6,11 +6,12 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 import {CCTPBridge} from "src/rebalancer/bridges/CCTPBridge.sol";
 import {CCTPHelper} from "src/rebalancer/bridges/cctp/CCTPHelper.sol";
+import {Roles} from "src/Roles.sol";
 import {BaseForkTest} from "test/v2/utils/BaseForkTest.t.sol";
-import {MockRoles} from "test/v2/mocks/rebalancer/CCTPBridgeRolesMocks.t.sol";
 
 contract CCTPBridgeForkTest is BaseForkTest {
     address internal constant MAINNET_USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+    address internal constant MAINNET_USDC_HOLDER = 0x55FE002aefF02F77364de339a1292923A15844B8;
     address internal constant MAINNET_TOKEN_MESSENGER = 0x28b5a0e9C621a5BadaA536219b3a228C8168cf5d;
     address internal constant MAINNET_MSG_TRANSMITTER = 0x81D40F21F12A8F0E3252Bccb954D722d4c464B64;
 
@@ -19,7 +20,7 @@ contract CCTPBridgeForkTest is BaseForkTest {
     uint32 internal constant BASE_DOMAIN = 6;
     uint32 internal constant BASE_CHAIN_ID = 8453;
 
-    MockRoles internal roles;
+    Roles internal roles;
     CCTPBridge internal bridge;
 
     address internal rebalancer;
@@ -28,12 +29,11 @@ contract CCTPBridgeForkTest is BaseForkTest {
         super.setUp();
         _selectEthFork();
 
-        roles = new MockRoles();
         rebalancer = address(this);
 
-        roles.grantRebalancer(rebalancer);
-        roles.grantBridgeConfigurator(address(this));
-        roles.grantGuardianBridge(address(this));
+        roles = new Roles(address(this));
+        roles.allowFor(rebalancer, roles.REBALANCER(), true);
+        roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), true);
 
         bridge = new CCTPBridge(address(roles), MAINNET_TOKEN_MESSENGER, MAINNET_MSG_TRANSMITTER, rebalancer);
 
@@ -42,7 +42,7 @@ contract CCTPBridgeForkTest is BaseForkTest {
         bridge.setDomainMapping(BASE_CHAIN_ID, BASE_DOMAIN);
 
         uint256 amount = 1_000e6;
-        deal(MAINNET_USDC, rebalancer, amount);
+        _fundErc20FromHolder(MAINNET_USDC, MAINNET_USDC_HOLDER, rebalancer, amount);
 
         IERC20(MAINNET_USDC).approve(address(bridge), type(uint256).max);
     }
@@ -71,8 +71,12 @@ contract CCTPBridgeForkTest is BaseForkTest {
         uint256 balAfterRebalancer = IERC20(MAINNET_USDC).balanceOf(rebalancer);
         uint256 balAfterBridge = IERC20(MAINNET_USDC).balanceOf(address(bridge));
 
-        assertEq(balBeforeRebalancer - balAfterRebalancer, amount, "rebalancer delta");
-        assertEq(balAfterBridge, balBeforeBridge, "bridge should not hold USDC after burn");
+        assertEq(
+            balBeforeRebalancer - balAfterRebalancer,
+            amount,
+            "rebalancer USDC balance did not decrease by the bridged amount"
+        );
+        assertEq(balAfterBridge, balBeforeBridge, "bridge should not hold USDC after burning via TokenMessenger");
     }
 
     function test_fork_sendMsg_revertsWith_BaseBridge_NotAuthorized() public {

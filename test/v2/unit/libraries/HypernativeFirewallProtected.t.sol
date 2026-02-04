@@ -85,9 +85,17 @@ contract HypernativeFirewallProtectedTest is BaseTest {
         harness.initFirewall(address(firewall), address(this));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.hypernativeFirewallAdmin(), address(this), "assertEq failed: values do not match");
-        assertEq(harness.getFirewallAddress(), address(firewall), "assertEq failed: values do not match");
-        assertEq(harness.getAdminAddress(), address(this), "assertEq failed: values do not match");
+        assertEq(
+            harness.hypernativeFirewallAdmin(),
+            address(this),
+            "expected harness.hypernativeFirewallAdmin() to equal address(this)"
+        );
+        assertEq(
+            harness.getFirewallAddress(),
+            address(firewall),
+            "expected harness.getFirewallAddress() to equal address(firewall)"
+        );
+        assertEq(harness.getAdminAddress(), address(this), "expected harness.getAdminAddress() to equal address(this)");
     }
 
     ////////////////////////////////////////////////////////////
@@ -100,12 +108,11 @@ contract HypernativeFirewallProtectedTest is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(eoa, eoa);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.callOnlyFirewallApprovedAllowEOA();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(firewall.validateBlacklistedCount(), 0, "assertEq failed: values do not match");
-        assertEq(harness.callCount(), 1, "assertEq failed: values do not match");
+        assertEq(firewall.validateBlacklistedCount(), 0, "expected firewall.validateBlacklistedCount() to equal 0");
+        assertEq(harness.callCount(), 1, "expected harness.callCount() to equal 1");
     }
 
     function test_unit_onlyFirewallApprovedAllowEOA_success_forContractCaller() public whenFirewallInitialized {
@@ -114,12 +121,11 @@ contract HypernativeFirewallProtectedTest is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.bob, users.bob);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         caller.callApprovedAllowEOA(harness);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(firewall.validateBlacklistedCount(), 1, "assertEq failed: values do not match");
-        assertEq(harness.callCount(), 1, "assertEq failed: values do not match");
+        assertEq(firewall.validateBlacklistedCount(), 1, "expected firewall.validateBlacklistedCount() to equal 1");
+        assertEq(harness.callCount(), 1, "expected harness.callCount() to equal 1");
     }
 
     ////////////////////////////////////////////////////////////
@@ -135,6 +141,7 @@ contract HypernativeFirewallProtectedTest is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.callOnlyFirewallAdmin();
     }
@@ -144,7 +151,7 @@ contract HypernativeFirewallProtectedTest is BaseTest {
         harness.callOnlyFirewallAdmin();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callCount(), 1, "assertEq failed: values do not match");
+        assertEq(harness.callCount(), 1, "expected harness.callCount() to equal 1");
     }
 
     ////////////////////////////////////////////////////////////
@@ -163,12 +170,16 @@ contract HypernativeFirewallProtectedTest is BaseTest {
         harness.setFirewall(address(firewall2));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.getFirewallAddress(), address(firewall2), "assertEq failed: values do not match");
+        assertEq(
+            harness.getFirewallAddress(),
+            address(firewall2),
+            "expected harness.getFirewallAddress() to equal address(firewall2)"
+        );
 
         harness.setIsStrictMode(true);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(harness.isStrictMode());
+        assertTrue(harness.isStrictMode(), "expected condition to be true: harness.isStrictMode()");
     }
 
     ////////////////////////////////////////////////////////////
@@ -194,18 +205,17 @@ contract HypernativeFirewallProtectedTest is BaseTest {
         vm.expectEmit(true, true, false, true, address(harness));
         emit HypernativeFirewallProtected.FirewallAdminChanged(address(this), newAdmin);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.changeFirewallAdmin(newAdmin);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.getAdminAddress(), newAdmin, "assertEq failed: values do not match");
+        assertEq(harness.getAdminAddress(), newAdmin, "expected harness.getAdminAddress() to equal newAdmin");
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(newAdmin);
         harness.setIsStrictMode(true);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(harness.isStrictMode());
+        assertTrue(harness.isStrictMode(), "expected condition to be true: harness.isStrictMode()");
     }
 
     ////////////////////////////////////////////////////////////
@@ -220,8 +230,8 @@ contract HypernativeFirewallProtectedTest is BaseTest {
         harness.firewallRegister(users.alice);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(firewall.registerCount(), 1, "assertEq failed: values do not match");
-        assertEq(firewall.lastRegistered(), users.alice, "assertEq failed: values do not match");
-        assertTrue(firewall.lastStrictMode());
+        assertEq(firewall.registerCount(), 1, "expected firewall.registerCount() to equal 1");
+        assertEq(firewall.lastRegistered(), users.alice, "expected firewall.lastRegistered() to equal users.alice");
+        assertTrue(firewall.lastStrictMode(), "expected condition to be true: firewall.lastStrictMode()");
     }
 }

@@ -20,7 +20,7 @@ contract LZOptionsTest is BaseTest {
 
     function test_unit_newOptions_success() external {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(options_, abi.encodePacked(uint16(3)), "assertEq failed: values do not match");
+        assertEq(options_, abi.encodePacked(uint16(3)), "expected options_ to equal abi.encodePacked(uint16(3))");
     }
 
     ////////////////////////////////////////////////////////////
@@ -35,10 +35,11 @@ contract LZOptionsTest is BaseTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         bytes memory data = abi.encodePacked(gas, value);
         uint16 size = uint16(1 + data.length);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bytes memory expected = abi.encodePacked(options_, uint8(1), size, uint8(1), data);
 
-        assertEq(updated, expected, "assertEq failed: values do not match");
+        assertEq(updated, expected, "expected updated to equal expected");
     }
 
     ////////////////////////////////////////////////////////////
@@ -53,10 +54,11 @@ contract LZOptionsTest is BaseTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         bytes memory data = abi.encodePacked(index, gas, value);
         uint16 size = uint16(1 + data.length);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bytes memory expected = abi.encodePacked(options_, uint8(1), size, uint8(3), data);
 
-        assertEq(updated, expected, "assertEq failed: values do not match");
+        assertEq(updated, expected, "expected updated to equal expected");
     }
 
     ////////////////////////////////////////////////////////////
@@ -71,9 +73,10 @@ contract LZOptionsTest is BaseTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         bytes memory data = bytes("");
         uint16 size = uint16(1 + data.length);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bytes memory expected = abi.encodePacked(options_, uint8(1), size, uint8(4), data);
 
-        assertEq(updated, expected, "assertEq failed: values do not match");
+        assertEq(updated, expected, "expected updated to equal expected");
     }
 }

@@ -59,6 +59,7 @@ contract WrapAndSupplyTest is BaseTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(WrapAndSupply.WrapAndSupply_AmountNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         helper.wrapAndSupplyOnHostMarket(address(market), address(this), 1);
     }
@@ -75,11 +76,17 @@ contract WrapAndSupplyTest is BaseTest {
         helper.wrapAndSupplyOnHostMarket{value: 2 ether}(address(market), address(this), 123);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(market.lastMintAmount(), 2 ether, "assertEq failed: values do not match");
-        assertEq(market.lastReceiver(), address(this), "assertEq failed: values do not match");
-        assertEq(market.lastMinAmount(), 123, "assertEq failed: values do not match");
-        assertEq(wrapped.balanceOf(address(helper)), 2 ether, "assertEq failed: values do not match");
-        assertEq(wrapped.allowance(address(helper), address(market)), 2 ether, "assertEq failed: values do not match");
+        assertEq(market.lastMintAmount(), 2 ether, "expected market.lastMintAmount() to equal 2 ether");
+        assertEq(market.lastReceiver(), address(this), "expected market.lastReceiver() to equal address(this)");
+        assertEq(market.lastMinAmount(), 123, "expected market.lastMinAmount() to equal 123");
+        assertEq(
+            wrapped.balanceOf(address(helper)), 2 ether, "expected wrapped.balanceOf(address(helper)) to equal 2 ether"
+        );
+        assertEq(
+            wrapped.allowance(address(helper), address(market)),
+            2 ether,
+            "expected wrapped.allowance(address(helper), address(market)) to equal 2 ether"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -138,13 +145,19 @@ contract WrapAndSupplyTest is BaseTest {
         uint256 expectedAmount = amount - gasFee;
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(gateway.lastAmount(), expectedAmount, "assertEq failed: values do not match");
-        assertEq(gateway.lastReceiver(), address(this), "assertEq failed: values do not match");
-        assertEq(gateway.lastSelector(), selector, "assertEq failed: values do not match");
-        assertEq(gateway.lastValue(), gasFee, "assertEq failed: values do not match");
-        assertEq(wrapped.balanceOf(address(helper)), expectedAmount, "assertEq failed: values do not match");
+        assertEq(gateway.lastAmount(), expectedAmount, "expected gateway.lastAmount() to equal expectedAmount");
+        assertEq(gateway.lastReceiver(), address(this), "expected gateway.lastReceiver() to equal address(this)");
+        assertEq(gateway.lastSelector(), selector, "expected gateway.lastSelector() to equal selector");
+        assertEq(gateway.lastValue(), gasFee, "expected gateway.lastValue() to equal gasFee");
         assertEq(
-            wrapped.allowance(address(helper), address(gateway)), expectedAmount, "assertEq failed: values do not match"
+            wrapped.balanceOf(address(helper)),
+            expectedAmount,
+            "expected wrapped.balanceOf(address(helper)) to equal expectedAmount"
+        );
+        assertEq(
+            wrapped.allowance(address(helper), address(gateway)),
+            expectedAmount,
+            "expected wrapped.allowance(address(helper), address(gateway)) to equal expectedAmount"
         );
     }
 }

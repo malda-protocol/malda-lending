@@ -50,7 +50,16 @@ contract RebalancerTest is BaseRebalancerTest {
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
         rebalancer.setWhitelistedDestination(MAINNET_CHAIN_ID, true);
         rebalancer.setMinTransferSize(MAINNET_CHAIN_ID, address(weth), 1);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setMaxTransferSize(MAINNET_CHAIN_ID, address(weth), 2);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            rebalancer.maxTransferSizes(MAINNET_CHAIN_ID, address(weth)),
+            2,
+            "expected rebalancer.maxTransferSizes(MAINNET_CHAIN_ID, address(weth)) to equal 2"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -63,6 +72,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         address[] memory tokens = new address[](1);
         tokens[0] = address(weth);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
         rebalancer.setAllowedTokens(address(bridgeMock), tokens, true);
@@ -88,6 +98,7 @@ contract RebalancerTest is BaseRebalancerTest {
         rebalancer.setMaxTransferSize(MAINNET_CHAIN_ID, address(weth), 1);
 
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.saveEth();
     }
@@ -102,8 +113,10 @@ contract RebalancerTest is BaseRebalancerTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _enableFirewall();
         _allowGuardian();
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setWhitelistedBridgeStatus(address(0), true);
     }
@@ -124,6 +137,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_RequestNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         localRebalancer.saveEth();
     }
@@ -185,6 +199,7 @@ contract RebalancerTest is BaseRebalancerTest {
         rebalancer.setMaxTransferSize(dstId, address(weth), 0);
         rebalancer.setAllowList(markets, false);
         vm.expectRevert(IRebalancer.Rebalancer_MarketNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
     }
@@ -203,10 +218,16 @@ contract RebalancerTest is BaseRebalancerTest {
         vm.deal(address(localRebalancer), 1 ether);
 
         uint256 balanceBefore = users.alice.balance;
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         localRebalancer.saveEth();
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(users.alice.balance, balanceBefore + 1 ether, "assertEq failed: values do not match");
+        assertEq(
+            users.alice.balance,
+            balanceBefore + 1 ether,
+            "expected users.alice.balance to equal balanceBefore + 1 ether"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -228,23 +249,25 @@ contract RebalancerTest is BaseRebalancerTest {
         _getTokens(weth, address(market), amount * 3);
 
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(size, amount, "assertEq failed: values do not match");
-        assertEq(timestamp, block.timestamp, "assertEq failed: values do not match");
+        assertEq(size, amount, "expected size to equal amount");
+        assertEq(timestamp, block.timestamp, "expected timestamp to equal block.timestamp");
 
         rebalancer.setMaxTransferSize(dstId, address(weth), 0);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
         (size, timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
-        assertEq(size, amount * 2, "assertEq failed: values do not match");
-        assertEq(timestamp, block.timestamp, "assertEq failed: values do not match");
+        assertEq(size, amount * 2, "expected size to equal amount * 2");
+        assertEq(timestamp, block.timestamp, "expected timestamp to equal block.timestamp");
 
         vm.warp(block.timestamp + rebalancer.transferTimeWindow() + 1);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
         (size, timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
-        assertEq(size, amount, "assertEq failed: values do not match");
-        assertEq(timestamp, block.timestamp, "assertEq failed: values do not match");
+        assertEq(size, amount, "expected size to equal amount");
+        assertEq(timestamp, block.timestamp, "expected timestamp to equal block.timestamp");
     }
 
     ////////////////////////////////////////////////////////////
@@ -258,6 +281,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setAllowedTokens(address(bridgeMock), tokens, true);
     }
@@ -273,6 +297,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setMarketStatus(markets, true);
     }
@@ -293,8 +318,14 @@ contract RebalancerTest is BaseRebalancerTest {
         rebalancer.setAllowedTokens(address(bridgeMock), tokens, true);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(rebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth)));
-        assertTrue(rebalancer.allowedTokensPerBridge(address(bridgeMock), address(usdc)));
+        assertTrue(
+            rebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth)),
+            "expected condition to be true: rebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth))"
+        );
+        assertTrue(
+            rebalancer.allowedTokensPerBridge(address(bridgeMock), address(usdc)),
+            "expected condition to be true: rebalancer.allowedTokensPerBridge(address(bridgeMock), address(usdc))"
+        );
     }
 
     function test_unit_setAllowedTokens_success_removesMapping() external {
@@ -306,11 +337,18 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setAllowedTokens(address(bridgeMock), tokens, true);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(rebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth)));
+        assertTrue(
+            rebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth)),
+            "expected condition to be true: rebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth))"
+        );
 
         rebalancer.setAllowedTokens(address(bridgeMock), tokens, false);
-        assertFalse(rebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth)));
+        assertFalse(
+            rebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth)),
+            "expected condition to be false: rebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth))"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -329,8 +367,14 @@ contract RebalancerTest is BaseRebalancerTest {
         rebalancer.setMarketStatus(markets, true);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(rebalancer.whitelistedMarkets(address(market)));
-        assertTrue(rebalancer.whitelistedMarkets(address(mWethHost)));
+        assertTrue(
+            rebalancer.whitelistedMarkets(address(market)),
+            "expected condition to be true: rebalancer.whitelistedMarkets(address(market))"
+        );
+        assertTrue(
+            rebalancer.whitelistedMarkets(address(mWethHost)),
+            "expected condition to be true: rebalancer.whitelistedMarkets(address(mWethHost))"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -348,7 +392,10 @@ contract RebalancerTest is BaseRebalancerTest {
         rebalancer.setAllowList(markets, true);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(rebalancer.allowedList(address(market)));
+        assertTrue(
+            rebalancer.allowedList(address(market)),
+            "expected condition to be true: rebalancer.allowedList(address(market))"
+        );
     }
 
     function test_unit_setAllowList_revertsWith_Rebalancer_NotAuthorized() external {
@@ -358,6 +405,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setAllowList(markets, true);
     }
@@ -369,6 +417,7 @@ contract RebalancerTest is BaseRebalancerTest {
     function test_unit_setWhitelistedBridgeStatus_revertsWith_Rebalancer_NotAuthorized() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
     }
@@ -376,8 +425,10 @@ contract RebalancerTest is BaseRebalancerTest {
     function test_unit_setWhitelistedBridgeStatus_revertsWith_Rebalancer_AddressNotValid() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setWhitelistedBridgeStatus(address(0), true);
     }
@@ -392,13 +443,18 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setWhitelistedDestination(OPTIMISM_CHAIN_ID, true);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(rebalancer.isDestinationWhitelisted(10));
+        assertTrue(
+            rebalancer.isDestinationWhitelisted(10),
+            "expected condition to be true: rebalancer.isDestinationWhitelisted(10)"
+        );
     }
 
     function test_unit_setWhitelistedDestination_revertsWith_Rebalancer_NotAuthorized() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setWhitelistedDestination(OPTIMISM_CHAIN_ID, true);
     }
@@ -413,13 +469,19 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setMinTransferSize(5, address(weth), 123);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rebalancer.minTransferSizes(5, address(weth)), 123, "assertEq failed: values do not match");
+        assertEq(
+            rebalancer.minTransferSizes(5, address(weth)),
+            123,
+            "expected rebalancer.minTransferSizes(5, address(weth)) to equal 123"
+        );
     }
 
     function test_unit_setMinTransferSize_revertsWith_Rebalancer_NotAuthorized() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setMinTransferSize(5, address(weth), 123);
     }
@@ -434,13 +496,19 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setMaxTransferSize(6, address(weth), 456);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rebalancer.maxTransferSizes(6, address(weth)), 456, "assertEq failed: values do not match");
+        assertEq(
+            rebalancer.maxTransferSizes(6, address(weth)),
+            456,
+            "expected rebalancer.maxTransferSizes(6, address(weth)) to equal 456"
+        );
     }
 
     function test_unit_setMaxTransferSize_revertsWith_Rebalancer_NotAuthorized() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setMaxTransferSize(6, address(weth), 456);
     }
@@ -452,22 +520,24 @@ contract RebalancerTest is BaseRebalancerTest {
     function test_unit_setAdmin_success() external {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setAdmin(users.alice);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rebalancer.admin(), users.alice, "assertEq failed: values do not match");
+        assertEq(rebalancer.admin(), users.alice, "expected rebalancer.admin() to equal users.alice");
     }
 
     function test_unit_setAdmin_revertsWith_Rebalancer_NotAuthorized() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
         rebalancer.setAdmin(users.bob);
     }
 
     function test_unit_setAdmin_revertsWith_Rebalancer_AddressNotValid() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setAdmin(address(0));
     }
@@ -479,22 +549,24 @@ contract RebalancerTest is BaseRebalancerTest {
     function test_unit_setSaveAddress_success() external {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setSaveAddress(users.alice);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rebalancer.saveAddress(), users.alice, "assertEq failed: values do not match");
+        assertEq(rebalancer.saveAddress(), users.alice, "expected rebalancer.saveAddress() to equal users.alice");
     }
 
     function test_unit_setSaveAddress_revertsWith_Rebalancer_NotAuthorized() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
         rebalancer.setSaveAddress(users.bob);
     }
 
     function test_unit_setSaveAddress_revertsWith_Rebalancer_AddressNotValid() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setSaveAddress(address(0));
     }
@@ -504,11 +576,11 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_saveTokens_revertsWith_Rebalancer_NotAuthorized() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
         rebalancer.saveTokens(address(weth), address(market));
     }
 
@@ -519,6 +591,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_RequestNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.saveTokens(address(weth), address(otherMarket));
     }
@@ -529,8 +602,9 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.saveTokens(address(weth), address(market));
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(weth.balanceOf(address(market)), 2e18, "assertEq failed: values do not match");
+        assertEq(weth.balanceOf(address(market)), 2e18, "expected weth.balanceOf(address(market)) to equal 2e18");
     }
 
     ////////////////////////////////////////////////////////////
@@ -545,15 +619,22 @@ contract RebalancerTest is BaseRebalancerTest {
         vm.deal(address(localRebalancer), 1 ether);
 
         uint256 aliceBalanceBefore = users.alice.balance;
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         localRebalancer.saveEth();
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(users.alice.balance, aliceBalanceBefore + 1 ether, "assertEq failed: values do not match");
+        assertEq(
+            users.alice.balance,
+            aliceBalanceBefore + 1 ether,
+            "expected users.alice.balance to equal aliceBalanceBefore + 1 ether"
+        );
     }
 
     function test_unit_saveEth_revertsWith_Rebalancer_NotAuthorized_whenCallerNotAuthorized() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.saveEth();
     }
@@ -568,6 +649,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_RequestNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         localRebalancer.saveEth();
     }
@@ -579,12 +661,20 @@ contract RebalancerTest is BaseRebalancerTest {
     function test_unit_constructor_revertsWith_Rebalancer_AddressNotValid() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         new Rebalancer(address(0), address(this), address(this), "");
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         new Rebalancer(address(roles), address(0), address(this), "");
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_AddressNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         new Rebalancer(address(roles), address(this), address(0), "");
     }
 
@@ -620,17 +710,44 @@ contract RebalancerTest is BaseRebalancerTest {
         Rebalancer localRebalancer = new Rebalancer(address(roles), address(this), address(this), abi.encode(initInfo));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(localRebalancer.whitelistedMarkets(address(market)));
-        assertTrue(localRebalancer.allowedList(address(market)));
-        assertTrue(localRebalancer.whitelistedMarkets(address(mWethHost)));
-        assertTrue(localRebalancer.allowedList(address(mWethHost)));
+        assertTrue(
+            localRebalancer.whitelistedMarkets(address(market)),
+            "expected condition to be true: localRebalancer.whitelistedMarkets(address(market))"
+        );
+        assertTrue(
+            localRebalancer.allowedList(address(market)),
+            "expected condition to be true: localRebalancer.allowedList(address(market))"
+        );
+        assertTrue(
+            localRebalancer.whitelistedMarkets(address(mWethHost)),
+            "expected condition to be true: localRebalancer.whitelistedMarkets(address(mWethHost))"
+        );
+        assertTrue(
+            localRebalancer.allowedList(address(mWethHost)),
+            "expected condition to be true: localRebalancer.allowedList(address(mWethHost))"
+        );
 
-        assertTrue(localRebalancer.whitelistedBridges(address(bridgeMock)));
-        assertTrue(localRebalancer.isDestinationWhitelisted(10));
-        assertTrue(localRebalancer.isDestinationWhitelisted(11));
+        assertTrue(
+            localRebalancer.whitelistedBridges(address(bridgeMock)),
+            "expected condition to be true: localRebalancer.whitelistedBridges(address(bridgeMock))"
+        );
+        assertTrue(
+            localRebalancer.isDestinationWhitelisted(10),
+            "expected condition to be true: localRebalancer.isDestinationWhitelisted(10)"
+        );
+        assertTrue(
+            localRebalancer.isDestinationWhitelisted(11),
+            "expected condition to be true: localRebalancer.isDestinationWhitelisted(11)"
+        );
 
-        assertTrue(localRebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth)));
-        assertTrue(localRebalancer.allowedTokensPerBridge(address(bridgeMock), address(usdc)));
+        assertTrue(
+            localRebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth)),
+            "expected condition to be true: localRebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth))"
+        );
+        assertTrue(
+            localRebalancer.allowedTokensPerBridge(address(bridgeMock), address(usdc)),
+            "expected condition to be true: localRebalancer.allowedTokensPerBridge(address(bridgeMock), address(usdc))"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -643,28 +760,38 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.initFirewall(address(firewall));
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rebalancer.hypernativeFirewallAdmin(), address(this), "assertEq failed: values do not match");
+        assertEq(
+            rebalancer.hypernativeFirewallAdmin(),
+            address(this),
+            "expected rebalancer.hypernativeFirewallAdmin() to equal address(this)"
+        );
 
         _allowGuardian();
         rebalancer.setWhitelistedDestination(MAINNET_CHAIN_ID, true);
 
-        assertEq(firewall.validateBlacklistedCount(), 1, "assertEq failed: values do not match");
-        assertEq(firewall.lastBlacklistedSender(), address(this), "assertEq failed: values do not match");
+        assertEq(firewall.validateBlacklistedCount(), 1, "expected firewall.validateBlacklistedCount() to equal 1");
+        assertEq(
+            firewall.lastBlacklistedSender(),
+            address(this),
+            "expected firewall.lastBlacklistedSender() to equal address(this)"
+        );
     }
 
     function test_unit_initFirewall_revertsWith_Rebalancer_NotAuthorized() external {
         // Verify admin is address(this), not users.bob
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(rebalancer.admin(), address(this), "assertEq failed: values do not match");
+        assertEq(rebalancer.admin(), address(this), "expected rebalancer.admin() to equal address(this)");
 
         MockFirewall firewall = new MockFirewall();
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.bob);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.bob);
         rebalancer.initFirewall(address(firewall));
     }
 
@@ -682,9 +809,10 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.firewallRegister(users.alice);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(firewall.lastAccount(), users.alice, "assertEq failed: values do not match");
-        assertTrue(firewall.lastStrict());
+        assertEq(firewall.lastAccount(), users.alice, "expected firewall.lastAccount() to equal users.alice");
+        assertTrue(firewall.lastStrict(), "expected condition to be true: firewall.lastStrict()");
     }
 
     ////////////////////////////////////////////////////////////
@@ -702,6 +830,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_DestinationNotWhitelisted.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.sendMsg(address(bridgeMock), address(market), 1e18, message);
     }
@@ -719,6 +848,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_UnderlyingNotAllowedForBridge.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.sendMsg(address(bridgeMock), address(market), 1e18, message);
     }
@@ -732,6 +862,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_TransferSizeMinNotMet.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.sendMsg(address(bridgeMock), address(market), 1e18, message);
     }
@@ -750,6 +881,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_TransferSizeMinNotMet.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
     }
@@ -773,8 +905,10 @@ contract RebalancerTest is BaseRebalancerTest {
         });
 
         _getTokens(weth, address(market), 1e18);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_MarketNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.sendMsg(address(bridgeMock), address(market), 1e18, message);
     }
@@ -799,19 +933,30 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(size, amount, "assertEq failed: values do not match");
-        assertEq(timestamp, block.timestamp, "assertEq failed: values do not match");
 
-        assertEq(rebalancer.nonce(), 1, "assertEq failed: values do not match");
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(size, amount, "expected size to equal amount");
+        assertEq(timestamp, block.timestamp, "expected timestamp to equal block.timestamp");
+
+        assertEq(rebalancer.nonce(), 1, "expected rebalancer.nonce() to equal 1");
         (uint32 loggedDst, address loggedToken, bytes memory loggedMessage, bytes memory loggedBridgeData) =
             rebalancer.logs(dstId, 1);
-        assertEq(loggedDst, dstId, "assertEq failed: values do not match");
-        assertEq(loggedToken, address(weth), "assertEq failed: values do not match");
-        assertEq(keccak256(loggedMessage), keccak256(message.message), "assertEq failed: values do not match");
-        assertEq(keccak256(loggedBridgeData), keccak256(message.bridgeData), "assertEq failed: values do not match");
+        assertEq(loggedDst, dstId, "expected loggedDst to equal dstId");
+        assertEq(loggedToken, address(weth), "expected loggedToken to equal address(weth)");
+        assertEq(
+            keccak256(loggedMessage),
+            keccak256(message.message),
+            "expected keccak256(loggedMessage) to equal keccak256(message.message)"
+        );
+        assertEq(
+            keccak256(loggedBridgeData),
+            keccak256(message.bridgeData),
+            "expected keccak256(loggedBridgeData) to equal keccak256(message.bridgeData)"
+        );
 
-        assertEq(weth.balanceOf(address(bridgeMock)), amount, "assertEq failed: values do not match");
+        assertEq(
+            weth.balanceOf(address(bridgeMock)), amount, "expected weth.balanceOf(address(bridgeMock)) to equal amount"
+        );
     }
 
     function test_unit_currentTransferSize_success_accumulatesWithinWindow() external {
@@ -831,9 +976,10 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(size, amount * 2, "assertEq failed: values do not match");
-        assertEq(timestamp, block.timestamp, "assertEq failed: values do not match");
+        assertEq(size, amount * 2, "expected size to equal amount * 2");
+        assertEq(timestamp, block.timestamp, "expected timestamp to equal block.timestamp");
     }
 
     function test_unit_currentTransferSize_success_succeedsWhenMaxTransferSizeZero() external {
@@ -852,9 +998,10 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(size, amount, "assertEq failed: values do not match");
-        assertEq(timestamp, block.timestamp, "assertEq failed: values do not match");
+        assertEq(size, amount, "expected size to equal amount");
+        assertEq(timestamp, block.timestamp, "expected timestamp to equal block.timestamp");
     }
 
     function test_unit_currentTransferSize_success_resetsWindowAfterDeadline() external {
@@ -877,9 +1024,10 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (uint256 size, uint256 timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(size, amount, "assertEq failed: values do not match");
-        assertEq(timestamp, block.timestamp, "assertEq failed: values do not match");
+        assertEq(size, amount, "expected size to equal amount");
+        assertEq(timestamp, block.timestamp, "expected timestamp to equal block.timestamp");
     }
 
     ////////////////////////////////////////////////////////////
@@ -901,6 +1049,7 @@ contract RebalancerTest is BaseRebalancerTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_TransferSizeExcedeed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
     }
@@ -935,6 +1084,7 @@ contract RebalancerTest is BaseRebalancerTest {
     {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
         // it should not set a bridge and revert with Rebalancer_NotAuthorized
@@ -946,6 +1096,7 @@ contract RebalancerTest is BaseRebalancerTest {
     {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
         // it should not set a bridge and revert with Rebalancer_NotAuthorized
@@ -958,9 +1109,11 @@ contract RebalancerTest is BaseRebalancerTest {
 
     function test_unit_setWhitelistedBridgeStatus_success() external givenSenderHasRoleGUARDIAN_BRIDGE {
         // it should whitelist a bridge
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit IRebalancer.BridgeWhitelistedStatusUpdated(address(bridgeMock), true);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
     }
@@ -972,10 +1125,12 @@ contract RebalancerTest is BaseRebalancerTest {
     function test_unit_isBridgeWhitelisted_success_whenUnwhitelisted() external givenSenderHasRoleGUARDIAN_BRIDGE {
         // it should return true
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bool isWhitelisted = rebalancer.isBridgeWhitelisted(address(bridgeMock));
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(isWhitelisted);
+        assertTrue(isWhitelisted, "expected condition to be true: isWhitelisted");
     }
 
     ////////////////////////////////////////////////////////////
@@ -991,7 +1146,10 @@ contract RebalancerTest is BaseRebalancerTest {
         rebalancer.setMarketStatus(markets, true);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(rebalancer.isMarketWhitelisted(address(mWethHost)));
+        assertTrue(
+            rebalancer.isMarketWhitelisted(address(mWethHost)),
+            "expected condition to be true: rebalancer.isMarketWhitelisted(address(mWethHost))"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -1001,13 +1159,15 @@ contract RebalancerTest is BaseRebalancerTest {
     function test_unit_isBridgeWhitelisted_success() external givenSenderHasRoleGUARDIAN_BRIDGE {
         // it should remove bridge from whitelist mapping
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bool isWhitelisted = rebalancer.isBridgeWhitelisted(address(bridgeMock));
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(isWhitelisted);
+        assertTrue(isWhitelisted, "expected condition to be true: isWhitelisted");
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), false);
         isWhitelisted = rebalancer.isBridgeWhitelisted(address(bridgeMock));
-        assertFalse(isWhitelisted);
+        assertFalse(isWhitelisted, "expected condition to be false: isWhitelisted");
     }
 
     modifier givenSendMsgIsCalledWithWrongParameters() {
@@ -1023,11 +1183,14 @@ contract RebalancerTest is BaseRebalancerTest {
         givenSendMsgIsCalledWithWrongParameters
     {
         // it should revert with Rebalancer_NotAuthorized
+
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         IRebalancer.Msg memory _msg =
             IRebalancer.Msg({dstChainId: 0, token: address(weth), message: "", bridgeData: ""});
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_NotAuthorized.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.sendMsg(address(bridgeMock), address(mWethHost), 1 ether, _msg);
     }
@@ -1040,8 +1203,10 @@ contract RebalancerTest is BaseRebalancerTest {
         roles.allowFor(address(this), roles.REBALANCER_EOA(), true);
         IRebalancer.Msg memory _msg =
             IRebalancer.Msg({dstChainId: 0, token: address(weth), message: "", bridgeData: ""});
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_BridgeNotWhitelisted.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.sendMsg(address(bridgeMock), address(mWethHost), 1 ether, _msg);
         // it should revert with Rebalancer_BridgeNotWhitelisted
@@ -1053,14 +1218,17 @@ contract RebalancerTest is BaseRebalancerTest {
         givenSenderHasRoleGUARDIAN_BRIDGE
     {
         // it should revert with Rebalancer_RequestNotValid
+
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
         rebalancer.setWhitelistedDestination(0, true);
         roles.allowFor(address(this), roles.REBALANCER_EOA(), true);
         IRebalancer.Msg memory _msg =
             IRebalancer.Msg({dstChainId: 0, token: address(usdc), message: "", bridgeData: ""});
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(IRebalancer.Rebalancer_RequestNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.sendMsg(address(bridgeMock), address(mWethHost), 1 ether, _msg);
     }
@@ -1076,12 +1244,15 @@ contract RebalancerTest is BaseRebalancerTest {
         givenSenderHasRoleGUARDIAN_BRIDGE
     {
         // it should revert
+
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
         IRebalancer.Msg memory _msg =
             IRebalancer.Msg({dstChainId: 0, token: address(weth), message: "", bridgeData: ""});
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.sendMsg(address(bridgeMock), address(mWethHost), 1 ether, _msg);
     }
@@ -1099,8 +1270,10 @@ contract RebalancerTest is BaseRebalancerTest {
         IRebalancer.Msg memory _msg =
             IRebalancer.Msg({dstChainId: 0, token: address(weth), message: abi.encode(amount), bridgeData: ""});
         _getTokens(weth, address(mWethHost), amount);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.sendMsg(address(bridgeMock), address(mWethHost), amount, _msg);
     }

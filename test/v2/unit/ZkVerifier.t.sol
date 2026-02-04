@@ -51,13 +51,11 @@ contract ZkVerifierTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setVerifier_revertsWith_ZkVerifier_InputNotValid() public {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(owner);
-
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ZkVerifier.ZkVerifier_InputNotValid.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
         zkVerifier.setVerifier(address(0));
     }
 
@@ -65,16 +63,20 @@ contract ZkVerifierTest is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         Risc0VerifierMock newVerifier = new Risc0VerifierMock();
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit ZkVerifier.VerifierSet(address(verifierMock), address(newVerifier));
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
         zkVerifier.setVerifier(address(newVerifier));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(zkVerifier.verifier()), address(newVerifier), "assertEq failed: values do not match");
+        assertEq(
+            address(zkVerifier.verifier()),
+            address(newVerifier),
+            "expected address(zkVerifier.verifier()) to equal address(newVerifier)"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -82,11 +84,11 @@ contract ZkVerifierTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setImageId_revertsWith_ZkVerifier_ImageNotValid() public {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ZkVerifier.ZkVerifier_ImageNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
         zkVerifier.setImageId(bytes32(0));
     }
 
@@ -94,16 +96,16 @@ contract ZkVerifierTest is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes32 newImageId = bytes32(uint256(2));
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(owner);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit ZkVerifier.ImageSet(newImageId);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
         zkVerifier.setImageId(newImageId);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(zkVerifier.imageId(), newImageId, "assertEq failed: values do not match");
+        assertEq(zkVerifier.imageId(), newImageId, "expected zkVerifier.imageId() to equal newImageId");
     }
 
     ////////////////////////////////////////////////////////////
@@ -131,6 +133,7 @@ contract ZkVerifierTest is BaseTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ZkVerifier.ZkVerifier_VerifierNotSet.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         zkVerifier.verifyInput(boundedJournal, boundedSeal);
     }
@@ -155,6 +158,7 @@ contract ZkVerifierTest is BaseTest {
             address(verifierMock),
             abi.encodeWithSelector(IRiscZeroVerifier.verify.selector, boundedSeal, imageId, sha256(boundedJournal))
         );
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         zkVerifier.verifyInput(boundedJournal, boundedSeal);
     }

@@ -80,8 +80,6 @@ contract CCTPHelperTest is BaseTest {
         bytes32 expectedFrom = bytes32(uint256(uint160(user)));
         bytes32 expectedToken = bytes32(uint256(uint160(address(token))));
 
-        vm.startPrank(user);
-
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit CCTPHelper.BurnInitiated(address(token), amount, DST, receiver, 0, boundedPayload);
@@ -90,27 +88,34 @@ contract CCTPHelperTest is BaseTest {
         emit CCTPHelper.MessageCreated(expectedToken, amount, SRC, DST, 0, expectedFrom, receiver, boundedPayload, "");
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(user);
         (CCTPHelper.CCTPMessage memory msgData, bytes memory encoded) =
             helper.exposedCreateAndBurn(address(token), amount, DST, receiver, boundedPayload, SRC);
 
-        vm.stopPrank();
-
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(msgData.amount, amount, "assertEq failed: values do not match");
-        assertEq(msgData.srcChain, SRC, "assertEq failed: values do not match");
-        assertEq(msgData.dstChain, DST, "assertEq failed: values do not match");
-        assertEq(msgData.nonce, 0, "assertEq failed: values do not match");
-        assertEq(msgData.from, expectedFrom, "assertEq failed: values do not match");
-        assertEq(msgData.receiver, receiver, "assertEq failed: values do not match");
-        assertEq(keccak256(msgData.payload), keccak256(boundedPayload), "assertEq failed: values do not match");
-        assertGe(encoded.length, 147);
+        assertEq(msgData.amount, amount, "expected msgData.amount to equal amount");
+        assertEq(msgData.srcChain, SRC, "expected msgData.srcChain to equal SRC");
+        assertEq(msgData.dstChain, DST, "expected msgData.dstChain to equal DST");
+        assertEq(msgData.nonce, 0, "expected msgData.nonce to equal 0");
+        assertEq(msgData.from, expectedFrom, "expected msgData.from to equal expectedFrom");
+        assertEq(msgData.receiver, receiver, "expected msgData.receiver to equal receiver");
+        assertEq(
+            keccak256(msgData.payload),
+            keccak256(boundedPayload),
+            "expected keccak256(msgData.payload) to equal keccak256(boundedPayload)"
+        );
+        assertGe(encoded.length, 147, "expected encoded.length to be greater than or equal to 147");
 
-        assertEq(messenger.lastCaller(), address(helper), "assertEq failed: values do not match");
-        assertEq(messenger.lastToken(), address(token), "assertEq failed: values do not match");
-        assertEq(messenger.lastAmount(), amount, "assertEq failed: values do not match");
-        assertEq(messenger.lastDst(), DST, "assertEq failed: values do not match");
-        assertEq(messenger.lastReceiver(), receiver, "assertEq failed: values do not match");
-        assertEq(keccak256(messenger.lastPayload()), keccak256(boundedPayload), "assertEq failed: values do not match");
+        assertEq(messenger.lastCaller(), address(helper), "expected messenger.lastCaller() to equal address(helper)");
+        assertEq(messenger.lastToken(), address(token), "expected messenger.lastToken() to equal address(token)");
+        assertEq(messenger.lastAmount(), amount, "expected messenger.lastAmount() to equal amount");
+        assertEq(messenger.lastDst(), DST, "expected messenger.lastDst() to equal DST");
+        assertEq(messenger.lastReceiver(), receiver, "expected messenger.lastReceiver() to equal receiver");
+        assertEq(
+            keccak256(messenger.lastPayload()),
+            keccak256(boundedPayload),
+            "expected keccak256(messenger.lastPayload()) to equal keccak256(boundedPayload)"
+        );
     }
 
     function test_unit_exposedCreateAndBurn_revertsWith_CCTPHelper_AmountZero() external {
@@ -174,10 +179,10 @@ contract CCTPHelperTest is BaseTest {
         CCTPHelper.CCTPMessage memory msgData = helper.exposedHandleDestinationMsg(fakeCCTPMessage, "att");
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(msgData.amount, 100, "assertEq failed: values do not match");
-        assertEq(msgData.srcChain, SRC, "assertEq failed: values do not match");
-        assertEq(msgData.dstChain, DST, "assertEq failed: values do not match");
-        assertEq(msgData.nonce, 777, "assertEq failed: values do not match");
+        assertEq(msgData.amount, 100, "expected msgData.amount to equal 100");
+        assertEq(msgData.srcChain, SRC, "expected msgData.srcChain to equal SRC");
+        assertEq(msgData.dstChain, DST, "expected msgData.dstChain to equal DST");
+        assertEq(msgData.nonce, 777, "expected msgData.nonce to equal 777");
     }
 
     function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_ReceiveFailed() external {

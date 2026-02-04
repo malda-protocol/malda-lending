@@ -45,18 +45,20 @@ contract mErc20HostTest is BaseMTokenTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit ImErc20Host.mErc20Host_ChainStatusUpdated(chainId, true);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.updateAllowedChain(chainId, true);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(mWethHost.allowedChains(chainId));
+        assertTrue(mWethHost.allowedChains(chainId), "expected condition to be true: mWethHost.allowedChains(chainId)");
     }
 
     function test_unit_updateAllowedChain_revertsWith_mErc20Host_CallerNotAllowed_revertsWhenNotAdminOrRole() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_CallerNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
         mWethHost.updateAllowedChain(uint32(block.chainid), true);
     }
 
@@ -71,21 +73,25 @@ contract mErc20HostTest is BaseMTokenTest {
         roles.allowFor(users.alice, roles.REBALANCER(), true);
 
         uint256 balanceBefore = weth.balanceOf(users.alice);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.extractForRebalancing(amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(weth.balanceOf(users.alice), balanceBefore + amount, "assertEq failed: values do not match");
+        assertEq(
+            weth.balanceOf(users.alice),
+            balanceBefore + amount,
+            "expected weth.balanceOf(users.alice) to equal balanceBefore + amount"
+        );
     }
 
     function test_unit_extractForRebalancing_revertsWith_mErc20Host_NotRebalancer_revertsWhenNotRebalancer() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_NotRebalancer.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
         mWethHost.extractForRebalancing(1);
     }
 
@@ -96,15 +102,18 @@ contract mErc20HostTest is BaseMTokenTest {
     function test_unit_setMigrator_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address migrator = users.bob;
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.setMigrator(migrator);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWethHost.migrator(), migrator, "assertEq failed: values do not match");
+        assertEq(mWethHost.migrator(), migrator, "expected mWethHost.migrator() to equal migrator");
     }
 
     function test_unit_setMigrator_revertsWith_mErc20Host_AddressNotValid_revertsWhenZero() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.setMigrator(address(0));
     }
@@ -116,15 +125,18 @@ contract mErc20HostTest is BaseMTokenTest {
     function test_unit_setGasHelper_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address helper = users.carol;
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.setGasHelper(helper);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(mWethHost.gasHelper()), helper, "assertEq failed: values do not match");
+        assertEq(address(mWethHost.gasHelper()), helper, "expected address(mWethHost.gasHelper()) to equal helper");
     }
 
     function test_unit_setGasHelper_revertsWith_mErc20Host_AddressNotValid_revertsWhenZero() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.setGasHelper(address(0));
     }
@@ -142,11 +154,16 @@ contract mErc20HostTest is BaseMTokenTest {
         emit HypernativeFirewallProtected.FirewallAdminChanged(address(0), address(this));
         vm.expectEmit(true, true, true, true);
         emit HypernativeFirewallProtected.FirewallAddressChanged(address(0), address(firewall));
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.initFirewall(address(firewall));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWethHost.hypernativeFirewallAdmin(), address(this), "assertEq failed: values do not match");
+        assertEq(
+            mWethHost.hypernativeFirewallAdmin(),
+            address(this),
+            "expected mWethHost.hypernativeFirewallAdmin() to equal address(this)"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -162,8 +179,12 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.withdrawGasFees(payable(users.alice));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(mWethHost).balance, 0, "assertEq failed: values do not match");
-        assertEq(users.alice.balance, receiverBalanceBefore + 1 ether, "assertEq failed: values do not match");
+        assertEq(address(mWethHost).balance, 0, "expected address(mWethHost).balance to equal 0");
+        assertEq(
+            users.alice.balance,
+            receiverBalanceBefore + 1 ether,
+            "expected users.alice.balance to equal receiverBalanceBefore + 1 ether"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -173,6 +194,7 @@ contract mErc20HostTest is BaseMTokenTest {
     function test_unit_withdrawGasFees_revertsWith_mErc20Host_AddressNotValid_revertsWhenReceiverZero() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.withdrawGasFees(payable(address(0)));
     }
@@ -188,15 +210,22 @@ contract mErc20HostTest is BaseMTokenTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit mTokenStorage.ZkVerifierUpdated(address(zkVerifier), address(newVerifier));
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.updateZkVerifier(address(newVerifier));
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(mWethHost.verifier()), address(newVerifier), "assertEq failed: values do not match");
+        assertEq(
+            address(mWethHost.verifier()),
+            address(newVerifier),
+            "expected address(mWethHost.verifier()) to equal address(newVerifier)"
+        );
     }
 
     function test_unit_updateZkVerifier_revertsWith_mErc20Host_AddressNotValid_revertsWhenZero() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.updateZkVerifier(address(0));
     }
@@ -214,6 +243,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_ActionNotAvailable.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.performExtensionCall(3, 1, dstChainId);
     }
@@ -228,22 +258,24 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.setMigrator(address(this));
 
         amount = bound(amount, 1e21, 1e24);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit ImErc20Host.mErc20Host_MintMigration(users.bob, amount);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mintOrBorrowMigration(true, amount, users.bob, address(this), 0);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertGt(mWethHost.balanceOf(users.bob), 0);
+        assertGt(mWethHost.balanceOf(users.bob), 0, "expected mWethHost.balanceOf(users.bob) to be greater than 0");
     }
 
     function test_unit_mintOrBorrowMigration_revertsWith_mErc20Host_CallerNotAllowed_revertsWhenNotMigrator() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_CallerNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
         mWethHost.mintOrBorrowMigration(true, 1, users.alice, users.alice, 0);
     }
 
@@ -253,6 +285,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mintOrBorrowMigration(true, 0, users.bob, address(this), 0);
     }
@@ -264,11 +297,13 @@ contract mErc20HostTest is BaseMTokenTest {
     function test_fuzz_getProofData_success(address account, uint32 dstChainId) external view {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(account != address(0));
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (uint256 amountIn, uint256 amountOut) = mWethHost.getProofData(account, dstChainId);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(amountIn, 0, "assertEq failed: values do not match");
-        assertEq(amountOut, 0, "assertEq failed: values do not match");
+        assertEq(amountIn, 0, "expected amountIn to equal 0");
+        assertEq(amountOut, 0, "expected amountOut to equal 0");
     }
 
     ////////////////////////////////////////////////////////////
@@ -403,6 +438,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.borrow(amount);
     }
@@ -416,6 +452,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.borrow(amount);
     }
@@ -431,8 +468,10 @@ contract mErc20HostTest is BaseMTokenTest {
         amount = bound(amount, SMALL, LARGE);
 
         // it should revert
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_EmptyPrice.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.borrow(amount);
     }
@@ -449,8 +488,10 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // it should revert with mt_BorrowCashNotAvailable but it actually reverts with InsufficientLiquidity for non cross-chain tokens
         // cannot test this in a non-external flow
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.borrow(amount);
     }
@@ -466,8 +507,10 @@ contract mErc20HostTest is BaseMTokenTest {
         _whenBorrowCapIsReached(address(mWethHost), amount);
 
         // it should revert with Operator_MarketBorrowCapReached
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketBorrowCapReached.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.borrow(amount);
     }
@@ -486,6 +529,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_InsufficientLiquidity.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.borrow(amount);
     }
@@ -509,8 +553,10 @@ contract mErc20HostTest is BaseMTokenTest {
         uint256 totalBorrowsBefore = mWethHost.totalBorrows();
 
         // borrow; should fail
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_InsufficientLiquidity.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.borrow(amount);
 
@@ -569,11 +615,13 @@ contract mErc20HostTest is BaseMTokenTest {
         uint256 accountBorrowsBefore = mWethHost.borrowBalanceStored(address(this));
 
         mWethHost.updateAllowedChain(1, true);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit mTokenStorage.Borrow(address(this), amount, accountBorrowsBefore + amount, totalBorrowsBefore + amount);
         vm.expectEmit(true, true, true, true);
         emit ImErc20Host.mErc20Host_BorrowOnExtensionChain(address(this), 1, amount);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.performExtensionCall(2, amount, 1);
 
@@ -610,6 +658,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
@@ -630,6 +679,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.liquidateExternal("", "0x123", _users, amounts, collaterals, address(this));
     }
@@ -650,6 +700,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.liquidateExternal("0x", "0x123", _users, amounts, collaterals, address(this));
     }
@@ -669,6 +720,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
@@ -692,6 +744,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
@@ -711,6 +764,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_CallerNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
@@ -730,6 +784,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_DstChainNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
@@ -748,6 +803,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AddressNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
@@ -768,6 +824,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_ChainNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
@@ -787,6 +844,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_L1InclusionRequired.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
@@ -805,6 +863,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AmountTooBig.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
@@ -852,8 +911,10 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.updateAllowedCallerStatus(users.alice, true);
 
         _resetContext(users.alice);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.liquidateExternal(journalData, "0x123", _users, amounts, collaterals, address(this));
     }
@@ -871,6 +932,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mint(amount, address(this), amount - 1000);
     }
@@ -884,6 +946,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mint(amount, address(this), amount - 1000);
     }
@@ -901,6 +964,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketSupplyReached.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mint(amount, address(this), amount - 1000);
         // it should revert with Operator_MarketSupplyReached
@@ -924,20 +988,25 @@ contract mErc20HostTest is BaseMTokenTest {
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethHost.totalSupply();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
 
         // it should increse balanceOf account
-        assertGt(balanceOfAfter, balanceOfBefore);
+        assertGt(balanceOfAfter, balanceOfBefore, "expected balanceOfAfter to be greater than balanceOfBefore");
 
         // it should increase total supply by amount
-        assertGt(totalSupplyAfter, totalSupplyBefore);
+        assertGt(totalSupplyAfter, totalSupplyBefore, "expected totalSupplyAfter to be greater than totalSupplyBefore");
 
         // it should transfer underlying from user
-        assertGt(balanceWethBefore, balanceWethAfter);
+        assertGt(balanceWethBefore, balanceWethAfter, "expected balanceWethBefore to be greater than balanceWethAfter");
 
-        assertEq(totalSupplyAfter - amount, totalSupplyBefore, "assertEq failed: values do not match");
+        assertEq(
+            totalSupplyAfter - amount,
+            totalSupplyBefore,
+            "expected totalSupplyAfter - amount to equal totalSupplyBefore"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -947,8 +1016,10 @@ contract mErc20HostTest is BaseMTokenTest {
     function test_unit_mint_revertsWith_mint_GivenAmountIs0() external whenMarketIsListed(address(mWethHost)) {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 amount = 0;
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(); //arithmetic underflow or overflow
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mint(amount, address(this), amount);
     }
@@ -966,6 +1037,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mintExternal("", "0x123", amounts, new uint256[](1), address(this));
     }
@@ -985,6 +1057,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenProofDecoderLib.mTokenProofDecoderLib_InvalidLength.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
     }
@@ -1001,6 +1074,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
     }
@@ -1020,6 +1094,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
     }
@@ -1048,20 +1123,25 @@ contract mErc20HostTest is BaseMTokenTest {
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethHost.totalSupply();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
 
         // it should increse balanceOf account
-        assertGt(balanceOfAfter, balanceOfBefore);
+        assertGt(balanceOfAfter, balanceOfBefore, "expected balanceOfAfter to be greater than balanceOfBefore");
 
         // it should increase total supply by amount
-        assertGt(totalSupplyAfter, totalSupplyBefore);
+        assertGt(totalSupplyAfter, totalSupplyBefore, "expected totalSupplyAfter to be greater than totalSupplyBefore");
 
         // it should transfer underlying from user
         assertEq(balanceWethBefore, balanceWethAfter, "it should transfer underlying from user");
 
-        assertEq(totalSupplyAfter - amount, totalSupplyBefore, "assertEq failed: values do not match");
+        assertEq(
+            totalSupplyAfter - amount,
+            totalSupplyBefore,
+            "expected totalSupplyAfter - amount to equal totalSupplyBefore"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -1090,8 +1170,10 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AmountTooBig.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mintExternal(journalData, "0x123", mintAmounts, minAmountsOut, users.alice);
     }
@@ -1115,8 +1197,10 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AmountTooBig.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mintExternal(journalData, "0x123", mintAmounts, minAmountsOut, users.alice);
     }
@@ -1132,6 +1216,7 @@ contract mErc20HostTest is BaseMTokenTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit mTokenStorage.NewReserveFactor(mWethHost.reserveFactorMantissa(), 1e17);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.setReserveFactor(1e17);
     }
@@ -1170,6 +1255,7 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
         vm.warp(block.timestamp + 1);
         vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
@@ -1177,14 +1263,15 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         uint256 totalSupplyAfter = mWethHost.totalSupply();
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
 
         // it should increse balanceOf account
-        assertGt(balanceOfAfter, balanceOfBefore);
+        assertGt(balanceOfAfter, balanceOfBefore, "expected balanceOfAfter to be greater than balanceOfBefore");
 
         // it should increase total supply by amount
-        assertGt(totalSupplyAfter, totalSupplyBefore);
+        assertGt(totalSupplyAfter, totalSupplyBefore, "expected totalSupplyAfter to be greater than totalSupplyBefore");
     }
 
     ////////////////////////////////////////////////////////////
@@ -1212,11 +1299,16 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         uint256 totalSupplyAfter = mWethHost.totalSupply();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
-        assertGt(balanceOfAfter, balanceOfBefore);
-        assertEq(totalSupplyAfter, totalSupplyBefore + 2 * amount, "assertEq failed: values do not match");
+        assertGt(balanceOfAfter, balanceOfBefore, "expected balanceOfAfter to be greater than balanceOfBefore");
+        assertEq(
+            totalSupplyAfter,
+            totalSupplyBefore + 2 * amount,
+            "expected totalSupplyAfter to equal totalSupplyBefore + 2 * amount"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -1238,8 +1330,10 @@ contract mErc20HostTest is BaseMTokenTest {
 
         Operator(operator).setOutflowTimeLimitInUSD(amount * 50);
         blacklister.blacklist(address(this));
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_UserBlacklisted.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
     }
@@ -1262,15 +1356,17 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         uint256 totalSupplyAfter = mWethHost.totalSupply();
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
 
-        assertEq(balanceOfAfter, balanceOfBefore, "assertEq failed: values do not match");
-        assertEq(totalSupplyAfter, totalSupplyBefore, "assertEq failed: values do not match");
+        assertEq(balanceOfAfter, balanceOfBefore, "expected balanceOfAfter to equal balanceOfBefore");
+        assertEq(totalSupplyAfter, totalSupplyBefore, "expected totalSupplyAfter to equal totalSupplyBefore");
     }
 
     function test_unit_mintExternal_revertsWith_Operator_OutflowVolumeReached_whenSealVerificationWasOk(uint256 amount)
@@ -1294,6 +1390,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OutflowVolumeReached.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
@@ -1301,10 +1398,11 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
         uint256 totalSupplyAfter = mWethHost.totalSupply();
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
-        assertGt(balanceOfAfter, balanceOfBefore);
-        assertGt(totalSupplyAfter, totalSupplyBefore);
+        assertGt(balanceOfAfter, balanceOfBefore, "expected balanceOfAfter to be greater than balanceOfBefore");
+        assertGt(totalSupplyAfter, totalSupplyBefore, "expected totalSupplyAfter to be greater than totalSupplyBefore");
     }
 
     function test_unit_mintExternal_revertsWith_Operator_UserNotWhitelisted_whenSealVerificationWasOk(uint256 amount)
@@ -1329,6 +1427,7 @@ contract mErc20HostTest is BaseMTokenTest {
         vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
         vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.mintExternal(journalData, "0x123", amounts, new uint256[](1), address(this));
 
@@ -1341,15 +1440,19 @@ contract mErc20HostTest is BaseMTokenTest {
         uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
 
         // it should increse balanceOf account
-        assertGt(balanceOfAfter, balanceOfBefore);
+        assertGt(balanceOfAfter, balanceOfBefore, "expected balanceOfAfter to be greater than balanceOfBefore");
 
         // it should increase total supply by amount
-        assertGt(totalSupplyAfter, totalSupplyBefore);
+        assertGt(totalSupplyAfter, totalSupplyBefore, "expected totalSupplyAfter to be greater than totalSupplyBefore");
 
         // it should transfer underlying from user
         assertEq(balanceWethBefore, balanceWethAfter, "it should transfer underlying from user");
 
-        assertEq(totalSupplyAfter - amount, totalSupplyBefore, "assertEq failed: values do not match");
+        assertEq(
+            totalSupplyAfter - amount,
+            totalSupplyBefore,
+            "expected totalSupplyAfter - amount to equal totalSupplyBefore"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -1369,6 +1472,7 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.redeem(amount);
 
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.redeemUnderlying(amount);
     }
@@ -1385,6 +1489,7 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.redeem(amount);
 
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.redeemUnderlying(amount);
     }
@@ -1398,11 +1503,13 @@ contract mErc20HostTest is BaseMTokenTest {
         amount = bound(amount, SMALL, LARGE);
 
         _getTokens(weth, address(mWethHost), amount);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
         mWethHost.redeem(amount);
 
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.redeemUnderlying(amount);
     }
@@ -1416,6 +1523,7 @@ contract mErc20HostTest is BaseMTokenTest {
         vm.expectRevert(mTokenStorage.mt_RedeemEmpty.selector);
         mWethHost.redeem(0);
         vm.expectRevert(mTokenStorage.mt_RedeemEmpty.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.redeemUnderlying(0);
     }
@@ -1429,11 +1537,13 @@ contract mErc20HostTest is BaseMTokenTest {
         amount = bound(amount, SMALL, LARGE);
 
         // it should revert with mt_RedeemCashNotAvailable
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_RedeemCashNotAvailable.selector);
         mWethHost.redeem(amount);
 
         vm.expectRevert(mTokenStorage.mt_RedeemCashNotAvailable.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.redeemUnderlying(amount);
     }
@@ -1473,6 +1583,7 @@ contract mErc20HostTest is BaseMTokenTest {
     function test_unit_performExtensionCall_revertsWith_AmountNotValid_givenDecodedLiquidityIs0() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(CommonLib.AmountNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.performExtensionCall(1, 0, 1);
     }
@@ -1485,6 +1596,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.performExtensionCall(1, amount, 1);
     }
@@ -1514,6 +1626,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
         uint256 totalSupplyAfter = mWethHost.totalSupply();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceOfAfter = mWethHost.balanceOf(address(this));
@@ -1543,6 +1656,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.repay(amount);
     }
@@ -1556,6 +1670,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.repay(amount);
     }
@@ -1586,8 +1701,9 @@ contract mErc20HostTest is BaseMTokenTest {
         uint256 totalBorrowsAfter = mWethHost.totalBorrows();
 
         // state should be the same
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(totalBorrowsAfter, totalBorrowsBefore, "assertEq failed: values do not match");
+        assertEq(totalBorrowsAfter, totalBorrowsBefore, "expected totalBorrowsAfter to equal totalBorrowsBefore");
     }
 
     struct RepayStateInternal {
@@ -1633,12 +1749,14 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(); //panic: arithmetic underflow or overflow (0x11)
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.repay(amount * 10);
 
         mWethHost.repay(type(uint256).max);
 
         // after state
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         vars.balanceUnderlyingAfter = weth.balanceOf(address(this));
         vars.balanceMTokenAfter = mWethHost.balanceOf(address(this));
@@ -1650,17 +1768,25 @@ contract mErc20HostTest is BaseMTokenTest {
             assertEq(
                 vars.balanceUnderlyingBefore - vars.balanceUnderlyingAfter,
                 amount,
-                "assertEq failed: values do not match"
+                "expected vars.balanceUnderlyingBefore - vars.balanceUnderlyingAfter to equal amount"
             );
 
             // it should have same mToken balance
             assertEq(vars.balanceMTokenBefore, vars.balanceMTokenAfter, "it should have same mToken balance");
 
             // it should decrease totalBorrows
-            assertGt(vars.totalBorrowsBefore, vars.totalBorrowsAfter);
+            assertGt(
+                vars.totalBorrowsBefore,
+                vars.totalBorrowsAfter,
+                "expected vars.totalBorrowsBefore to be greater than vars.totalBorrowsAfter"
+            );
 
             // it should decrease accountBorrows
-            assertGt(vars.accountBorrowBefore, vars.accountBorrowAfter);
+            assertGt(
+                vars.accountBorrowBefore,
+                vars.accountBorrowAfter,
+                "expected vars.accountBorrowBefore to be greater than vars.accountBorrowAfter"
+            );
         }
     }
 
@@ -1700,27 +1826,37 @@ contract mErc20HostTest is BaseMTokenTest {
         vars.balanceMTokenAfter = mWethHost.balanceOf(address(this));
         vars.totalMSupplyAfter = mWethHost.totalSupply();
         vars.totalBorrowsAfter = mWethHost.totalBorrows();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vars.accountBorrowAfter = mWethHost.borrowBalanceStored(address(this));
 
         // it should use only the amount borrowed
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(
             vars.balanceUnderlyingBefore - vars.balanceUnderlyingAfter,
             repayAmount,
-            "assertEq failed: values do not match"
+            "expected vars.balanceUnderlyingBefore - vars.balanceUnderlyingAfter to equal repayAmount"
         );
 
         // it should have same mToken balance
         assertEq(vars.balanceMTokenBefore, vars.balanceMTokenAfter, "it should have same mToken balance");
 
         // it should decrease totalBorrows
-        assertGt(vars.totalBorrowsBefore, vars.totalBorrowsAfter);
-        assertGt(vars.totalBorrowsAfter, 0);
+        assertGt(
+            vars.totalBorrowsBefore,
+            vars.totalBorrowsAfter,
+            "expected vars.totalBorrowsBefore to be greater than vars.totalBorrowsAfter"
+        );
+        assertGt(vars.totalBorrowsAfter, 0, "expected vars.totalBorrowsAfter to be greater than 0");
 
         // it should decrease accountBorrows
-        assertGt(vars.accountBorrowBefore, vars.accountBorrowAfter);
-        assertGt(vars.accountBorrowAfter, 0);
+        assertGt(
+            vars.accountBorrowBefore,
+            vars.accountBorrowAfter,
+            "expected vars.accountBorrowBefore to be greater than vars.accountBorrowAfter"
+        );
+        assertGt(vars.accountBorrowAfter, 0, "expected vars.accountBorrowAfter to be greater than 0");
     }
 
     ////////////////////////////////////////////////////////////
@@ -1753,6 +1889,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AmountTooBig.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.repayExternal(journalData, "0x123", repayAmounts, address(this));
     }
@@ -1769,6 +1906,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_JournalNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.repayExternal("", "0x123", amounts, address(this));
     }
@@ -1789,6 +1927,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenProofDecoderLib.mTokenProofDecoderLib_InvalidLength.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.repayExternal(journalData, "0x123", amounts, address(this));
     }
@@ -1807,6 +1946,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImErc20Host.mErc20Host_AmountNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.repayExternal(journalData, "0x123", amounts, address(this));
     }
@@ -1829,6 +1969,7 @@ contract mErc20HostTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethHost.repayExternal(journalData, "0x123", amounts, address(this));
     }
@@ -1867,23 +2008,37 @@ contract mErc20HostTest is BaseMTokenTest {
         vars.balanceUnderlyingAfter = weth.balanceOf(address(this));
         vars.balanceMTokenAfter = mWethHost.balanceOf(address(this));
         vars.totalBorrowsAfter = mWethHost.totalBorrows();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vars.accountBorrowAfter = mWethHost.borrowBalanceStored(address(this));
 
         // it should not use tokens
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(vars.balanceUnderlyingBefore, vars.balanceUnderlyingAfter, "assertEq failed: values do not match");
+        assertEq(
+            vars.balanceUnderlyingBefore,
+            vars.balanceUnderlyingAfter,
+            "expected vars.balanceUnderlyingBefore to equal vars.balanceUnderlyingAfter"
+        );
 
         // it should have same mToken balance
         assertEq(vars.balanceMTokenBefore, vars.balanceMTokenAfter, "it should have same mToken balance");
 
         // it should decrease totalBorrows
-        assertGt(vars.totalBorrowsBefore, vars.totalBorrowsAfter);
-        assertEq(vars.totalBorrowsAfter, 0, "assertEq failed: values do not match");
+        assertGt(
+            vars.totalBorrowsBefore,
+            vars.totalBorrowsAfter,
+            "expected vars.totalBorrowsBefore to be greater than vars.totalBorrowsAfter"
+        );
+        assertEq(vars.totalBorrowsAfter, 0, "expected vars.totalBorrowsAfter to equal 0");
 
         // it should decrease accountBorrows
-        assertGt(vars.accountBorrowBefore, vars.accountBorrowAfter);
-        assertEq(vars.accountBorrowAfter, 0, "assertEq failed: values do not match");
+        assertGt(
+            vars.accountBorrowBefore,
+            vars.accountBorrowAfter,
+            "expected vars.accountBorrowBefore to be greater than vars.accountBorrowAfter"
+        );
+        assertEq(vars.accountBorrowAfter, 0, "expected vars.accountBorrowAfter to equal 0");
     }
 
     function test_unit_borrowBalanceStored_success_andRepayingMax(uint256 amount)
@@ -1916,23 +2071,37 @@ contract mErc20HostTest is BaseMTokenTest {
         vars.balanceUnderlyingAfter = weth.balanceOf(address(this));
         vars.balanceMTokenAfter = mWethHost.balanceOf(address(this));
         vars.totalBorrowsAfter = mWethHost.totalBorrows();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vars.accountBorrowAfter = mWethHost.borrowBalanceStored(address(this));
 
         // it should not use tokens
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(vars.balanceUnderlyingBefore, vars.balanceUnderlyingAfter, "assertEq failed: values do not match");
+        assertEq(
+            vars.balanceUnderlyingBefore,
+            vars.balanceUnderlyingAfter,
+            "expected vars.balanceUnderlyingBefore to equal vars.balanceUnderlyingAfter"
+        );
 
         // it should have same mToken balance
         assertEq(vars.balanceMTokenBefore, vars.balanceMTokenAfter, "it should have same mToken balance");
 
         // it should decrease totalBorrows
-        assertGt(vars.totalBorrowsBefore, vars.totalBorrowsAfter);
-        assertEq(vars.totalBorrowsAfter, 0, "assertEq failed: values do not match");
+        assertGt(
+            vars.totalBorrowsBefore,
+            vars.totalBorrowsAfter,
+            "expected vars.totalBorrowsBefore to be greater than vars.totalBorrowsAfter"
+        );
+        assertEq(vars.totalBorrowsAfter, 0, "expected vars.totalBorrowsAfter to equal 0");
 
         // it should decrease accountBorrows
-        assertGt(vars.accountBorrowBefore, vars.accountBorrowAfter);
-        assertEq(vars.accountBorrowAfter, 0, "assertEq failed: values do not match");
+        assertGt(
+            vars.accountBorrowBefore,
+            vars.accountBorrowAfter,
+            "expected vars.accountBorrowBefore to be greater than vars.accountBorrowAfter"
+        );
+        assertEq(vars.accountBorrowAfter, 0, "expected vars.accountBorrowAfter to equal 0");
     }
 
     ////////////////////////////////////////////////////////////
@@ -1994,6 +2163,7 @@ contract mErc20HostTest is BaseMTokenTest {
         uint256 accountBorrowsBefore = mWethHost.borrowBalanceStored(address(this));
 
         // borrow
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit mTokenStorage.Borrow(address(this), amount, accountBorrowsBefore + amount, totalBorrowsBefore + amount);
@@ -2019,20 +2189,34 @@ contract mErc20HostTest is BaseMTokenTest {
         uint256 totalBorrowsAfter = mWethHost.totalBorrows();
 
         // it shoud activate ther market for sender
-        assertTrue(memberAfter);
+        assertTrue(memberAfter, "expected condition to be true: memberAfter");
 
         // it should transfer underlying token to sender
-        assertGt(balanceUnderlyingAfter, balanceUnderlyingBefore);
-        assertEq(balanceUnderlyingAfter - amount, balanceUnderlyingBefore, "assertEq failed: values do not match");
+        assertGt(
+            balanceUnderlyingAfter,
+            balanceUnderlyingBefore,
+            "expected balanceUnderlyingAfter to be greater than balanceUnderlyingBefore"
+        );
+        assertEq(
+            balanceUnderlyingAfter - amount,
+            balanceUnderlyingBefore,
+            "expected balanceUnderlyingAfter - amount to equal balanceUnderlyingBefore"
+        );
 
         // it should not modify underlying supply
         assertEq(supplyUnderlyingBefore, supplyUnderlyingAfter, "it should not modify underlying supply");
 
         // it should decrease balance of underlying from mToken
-        assertGt(balanceUnderlyingMTokenBefore, balanceUnderlyingMTokenAfter);
+        assertGt(
+            balanceUnderlyingMTokenBefore,
+            balanceUnderlyingMTokenAfter,
+            "expected balanceUnderlyingMTokenBefore to be greater than balanceUnderlyingMTokenAfter"
+        );
 
         // it should increase totalBorrows
-        assertGt(totalBorrowsAfter, totalBorrowsBefore);
+        assertGt(
+            totalBorrowsAfter, totalBorrowsBefore, "expected totalBorrowsAfter to be greater than totalBorrowsBefore"
+        );
     }
 
     function _encodeJournal(
@@ -2082,11 +2266,25 @@ contract mErc20HostTest is BaseMTokenTest {
         assertEq(balanceWethBefore + amount, balanceWethAfter, "it should transfer underlying to redeemer");
 
         // it should decrease totalSupply of mToken
-        assertGt(supplyMTokenBefore, supplyMTokenAfter);
-        assertEq(supplyMTokenBefore - amount, supplyMTokenAfter, "assertEq failed: values do not match");
+        assertGt(
+            supplyMTokenBefore, supplyMTokenAfter, "expected supplyMTokenBefore to be greater than supplyMTokenAfter"
+        );
+        assertEq(
+            supplyMTokenBefore - amount,
+            supplyMTokenAfter,
+            "expected supplyMTokenBefore - amount to equal supplyMTokenAfter"
+        );
 
         // it should decrease redeemer balance of mToken
-        assertGt(balanceMTokenBefore, balanceMTokenAfter);
-        assertEq(balanceMTokenBefore - amount, balanceMTokenAfter, "assertEq failed: values do not match");
+        assertGt(
+            balanceMTokenBefore,
+            balanceMTokenAfter,
+            "expected balanceMTokenBefore to be greater than balanceMTokenAfter"
+        );
+        assertEq(
+            balanceMTokenBefore - amount,
+            balanceMTokenAfter,
+            "expected balanceMTokenBefore - amount to equal balanceMTokenAfter"
+        );
     }
 }

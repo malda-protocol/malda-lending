@@ -38,12 +38,13 @@ contract mTokenGatewayTest is BaseMTokenTest {
         MockFirewall firewall = new MockFirewall();
 
         mWethExtension.initFirewall(address(firewall));
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.firewallRegister(users.alice);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(firewall.registerCount(), 1, "assertEq failed: values do not match");
-        assertEq(firewall.lastRegistered(), users.alice, "assertEq failed: values do not match");
+        assertEq(firewall.registerCount(), 1, "expected firewall.registerCount() to equal 1");
+        assertEq(firewall.lastRegistered(), users.alice, "expected firewall.lastRegistered() to equal users.alice");
     }
 
     ////////////////////////////////////////////////////////////
@@ -53,15 +54,19 @@ contract mTokenGatewayTest is BaseMTokenTest {
     function test_unit_setBlacklister_success() external {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.setBlacklister(address(blacklister));
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(
-            address(mWethExtension.blacklistOperator()), address(blacklister), "assertEq failed: values do not match"
+            address(mWethExtension.blacklistOperator()),
+            address(blacklister),
+            "expected address(mWethExtension.blacklistOperator()) to equal address(blacklister)"
         );
     }
 
     function test_unit_setBlacklister_revertsWith_mTokenGateway_AddressNotValid_revertsWhenZero() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_AddressNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.setBlacklister(address(0));
     }
@@ -75,15 +80,21 @@ contract mTokenGatewayTest is BaseMTokenTest {
         vm.expectEmit(true, true, true, true);
         emit ImTokenGateway.mTokenGateway_WhitelistEnabled();
         mWethExtension.enableWhitelist();
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(mWethExtension.whitelistEnabled());
+        assertTrue(
+            mWethExtension.whitelistEnabled(), "expected condition to be true: mWethExtension.whitelistEnabled()"
+        );
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit ImTokenGateway.mTokenGateway_WhitelistDisabled();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.disableWhitelist();
-        assertFalse(mWethExtension.whitelistEnabled());
+        assertFalse(
+            mWethExtension.whitelistEnabled(), "expected condition to be false: mWethExtension.whitelistEnabled()"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -95,23 +106,31 @@ contract mTokenGatewayTest is BaseMTokenTest {
         vm.expectEmit(true, true, true, true);
         emit ImTokenGateway.mTokenGateway_PausedState(ImTokenOperationTypes.OperationType.AmountIn, true);
         mWethExtension.setPaused(ImTokenOperationTypes.OperationType.AmountIn, true);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(mWethExtension.paused(ImTokenOperationTypes.OperationType.AmountIn));
+        assertTrue(
+            mWethExtension.paused(ImTokenOperationTypes.OperationType.AmountIn),
+            "expected condition to be true: mWethExtension.paused(ImTokenOperationTypes.OperationType.AmountIn)"
+        );
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit ImTokenGateway.mTokenGateway_PausedState(ImTokenOperationTypes.OperationType.AmountIn, false);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.setPaused(ImTokenOperationTypes.OperationType.AmountIn, false);
-        assertFalse(mWethExtension.paused(ImTokenOperationTypes.OperationType.AmountIn));
+        assertFalse(
+            mWethExtension.paused(ImTokenOperationTypes.OperationType.AmountIn),
+            "expected condition to be false: mWethExtension.paused(ImTokenOperationTypes.OperationType.AmountIn)"
+        );
     }
 
     function test_unit_setPaused_revertsWith_mTokenGateway_CallerNotAllowed_revertsWhenNonOwner() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_CallerNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
         mWethExtension.setPaused(ImTokenOperationTypes.OperationType.AmountIn, true);
     }
 
@@ -120,11 +139,11 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.setPaused(ImTokenOperationTypes.OperationType.AmountIn, true);
         roles.allowFor(users.bob, roles.GUARDIAN_PAUSE(), true);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.bob);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_CallerNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.bob);
         mWethExtension.setPaused(ImTokenOperationTypes.OperationType.AmountIn, false);
     }
 
@@ -139,13 +158,17 @@ contract mTokenGatewayTest is BaseMTokenTest {
         roles.allowFor(users.alice, roles.REBALANCER(), true);
 
         uint256 balanceBefore = weth.balanceOf(users.alice);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.extractForRebalancing(amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(weth.balanceOf(users.alice), balanceBefore + amount, "assertEq failed: values do not match");
+        assertEq(
+            weth.balanceOf(users.alice),
+            balanceBefore + amount,
+            "expected weth.balanceOf(users.alice) to equal balanceBefore + amount"
+        );
     }
 
     function test_unit_extractForRebalancing_revertsWith_mTokenGateway_Paused_revertsWhenPaused() external {
@@ -158,6 +181,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
                 ImTokenGateway.mTokenGateway_Paused.selector, ImTokenOperationTypes.OperationType.Rebalancing
             )
         );
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.extractForRebalancing(1);
     }
@@ -167,8 +191,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
     {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_NotRebalancer.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.extractForRebalancing(1);
     }
@@ -186,8 +212,12 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.withdrawGasFees(payable(users.alice));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(mWethExtension).balance, 0, "assertEq failed: values do not match");
-        assertEq(users.alice.balance, receiverBalanceBefore + 1 ether, "assertEq failed: values do not match");
+        assertEq(address(mWethExtension).balance, 0, "expected address(mWethExtension).balance to equal 0");
+        assertEq(
+            users.alice.balance,
+            receiverBalanceBefore + 1 ether,
+            "expected users.alice.balance to equal receiverBalanceBefore + 1 ether"
+        );
     }
 
     function test_unit_payable_success_bySequencer() external {
@@ -196,14 +226,18 @@ contract mTokenGatewayTest is BaseMTokenTest {
         roles.allowFor(users.bob, roles.SEQUENCER(), true);
 
         uint256 receiverBalanceBefore = users.bob.balance;
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.bob);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.withdrawGasFees(payable(users.bob));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(mWethExtension).balance, 0, "assertEq failed: values do not match");
-        assertEq(users.bob.balance, receiverBalanceBefore + 1 ether, "assertEq failed: values do not match");
+        assertEq(address(mWethExtension).balance, 0, "expected address(mWethExtension).balance to equal 0");
+        assertEq(
+            users.bob.balance,
+            receiverBalanceBefore + 1 ether,
+            "expected users.bob.balance to equal receiverBalanceBefore + 1 ether"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -211,17 +245,18 @@ contract mTokenGatewayTest is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_withdrawGasFees_revertsWith_mTokenGateway_CallerNotAllowed_revertsWhenUnauthorized() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.alice);
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_CallerNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
         mWethExtension.withdrawGasFees(payable(users.alice));
     }
 
     function test_unit_withdrawGasFees_revertsWith_mTokenGateway_AddressNotValid_revertsWhenReceiverZero() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_AddressNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.withdrawGasFees(payable(address(0)));
     }
@@ -237,16 +272,22 @@ contract mTokenGatewayTest is BaseMTokenTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
         emit ImTokenGateway.ZkVerifierUpdated(address(zkVerifier), address(newVerifier));
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.updateZkVerifier(address(newVerifier));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(mWethExtension.verifier()), address(newVerifier), "assertEq failed: values do not match");
+        assertEq(
+            address(mWethExtension.verifier()),
+            address(newVerifier),
+            "expected address(mWethExtension.verifier()) to equal address(newVerifier)"
+        );
     }
 
     function test_unit_updateZkVerifier_revertsWith_mTokenGateway_AddressNotValid_revertsWhenZero() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_AddressNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.updateZkVerifier(address(0));
     }
@@ -258,9 +299,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
     function test_unit_getProofData_success() external view {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (uint256 amountIn, uint256 amountOut) = mWethExtension.getProofData(users.alice, 0);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(amountIn, 0, "assertEq failed: values do not match");
-        assertEq(amountOut, 0, "assertEq failed: values do not match");
+        assertEq(amountIn, 0, "expected amountIn to equal 0");
+        assertEq(amountOut, 0, "expected amountOut to equal 0");
     }
 
     ////////////////////////////////////////////////////////////
@@ -313,8 +355,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_liquidate_revertsWith_mTokenGateway_AmountNotValid() external {
         // it should revert
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.liquidate(borrower, 0, address(mWethHost), address(this));
     }
@@ -326,8 +370,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.Liquidate, true);
 
         // it should revert
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.liquidate(borrower, amount, address(mWethHost), address(this));
     }
@@ -339,8 +385,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.AmountIn, true);
 
         // it should revert
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.liquidate(borrower, amount, address(mWethHost), address(this));
     }
@@ -351,8 +399,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         // it should revert
         weth.approve(address(mWethExtension), amount);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.liquidate(borrower, amount, address(mWethHost), address(this));
     }
@@ -386,10 +436,14 @@ contract mTokenGatewayTest is BaseMTokenTest {
         uint256 accAmountInAfter = mWethExtension.accAmountIn(address(this));
 
         // it should decrease the caller underlying balance
-        assertEq(balanceWethAfter + amount, balanceWethBefore, "assertEq failed: values do not match");
+        assertEq(
+            balanceWethAfter + amount,
+            balanceWethBefore,
+            "expected balanceWethAfter + amount to equal balanceWethBefore"
+        );
 
         // it should increase accAmount
-        assertGt(accAmountInAfter, accAmountInBefore);
+        assertGt(accAmountInAfter, accAmountInBefore, "expected accAmountInAfter to be greater than accAmountInBefore");
     }
 
     ////////////////////////////////////////////////////////////
@@ -405,8 +459,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
         weth.approve(address(mWethExtension), amount);
 
         blacklister.blacklist(address(this));
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_UserBlacklisted.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.liquidate(borrower, amount, address(mWethHost), address(this));
     }
@@ -422,8 +478,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
         weth.approve(address(mWethExtension), amount);
 
         blacklister.blacklist(receiver); // Blacklist receiver
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_UserBlacklisted.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.liquidate(borrower, amount, address(mWethHost), receiver);
     }
@@ -468,10 +526,14 @@ contract mTokenGatewayTest is BaseMTokenTest {
         uint256 accAmountInAfter = mWethExtension.accAmountIn(address(this));
 
         // it should decrease the caller underlying balance
-        assertEq(balanceWethAfter + amount, balanceWethBefore, "assertEq failed: values do not match");
+        assertEq(
+            balanceWethAfter + amount,
+            balanceWethBefore,
+            "expected balanceWethAfter + amount to equal balanceWethBefore"
+        );
 
         // it should increase accAmount
-        assertGt(accAmountInAfter, accAmountInBefore);
+        assertGt(accAmountInAfter, accAmountInBefore, "expected accAmountInAfter to be greater than accAmountInBefore");
     }
 
     function test_fuzz_liquidate_success_withPayoutReceiver(uint256 amount) external {
@@ -494,8 +556,13 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.liquidate(userToLiquidate, amount, collateral, payoutReceiver);
 
         // Verify accAmountIn increased for the receiver
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(mWethExtension.accAmountIn(payoutReceiver), amount, "assertEq failed: values do not match");
+        assertEq(
+            mWethExtension.accAmountIn(payoutReceiver),
+            amount,
+            "expected mWethExtension.accAmountIn(payoutReceiver) to equal amount"
+        );
     }
 
     function test_fuzz_liquidate_success_withGasFee(uint256 amount, uint256 gasFee) external {
@@ -517,8 +584,9 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.liquidate{value: gasFee}(borrower, amount, address(mWethHost), address(this));
 
         // Verify the gas fee was received
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(mWethExtension).balance, gasFee, "assertEq failed: values do not match");
+        assertEq(address(mWethExtension).balance, gasFee, "expected address(mWethExtension).balance to equal gasFee");
     }
 
     ////////////////////////////////////////////////////////////
@@ -554,6 +622,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         vm.expectRevert();
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.outHere("", "0x123", amounts, address(this));
     }
@@ -576,6 +645,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountNotValid.selector);
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = 0;
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
@@ -591,8 +661,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethExtension), amount - 1);
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountTooBig.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
@@ -608,8 +680,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethExtension), amount);
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_ReleaseCashNotAvailable.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
@@ -626,8 +700,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
         _resetContext(users.alice);
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_CallerNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
     }
@@ -639,6 +715,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_JournalNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.outHere("", "0x123", amounts, address(this));
     }
@@ -656,6 +733,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_LengthNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.outHere(_wrapJournals(journals), "0x123", amounts, address(this));
     }
@@ -669,6 +747,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_UserBlacklisted.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.outHere("", "0x123", new uint256[](0), address(this));
     }
@@ -682,6 +761,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_UserBlacklisted.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.outHere("", "0x123", new uint256[](0), users.alice);
     }
@@ -703,6 +783,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_UserBlacklisted.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.outHere(_wrapJournals(journals), "0x123", amounts, address(this));
     }
@@ -723,6 +804,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_ChainNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.outHere(_wrapJournals(journals), "0x123", amounts, address(this));
     }
@@ -743,6 +825,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_ChainNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.outHere(_wrapJournals(journals), "0x123", amounts, address(this));
     }
@@ -759,6 +842,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_L1InclusionRequired.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.outHere(_wrapJournals(journals), "0x123", amounts, address(this));
     }
@@ -779,12 +863,17 @@ contract mTokenGatewayTest is BaseMTokenTest {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceUserAfter = weth.balanceOf(address(this));
 
         // it should increase accAmountOut
-        assertEq(mWethExtension.accAmountOut(address(this)), amount, "assertEq failed: values do not match");
+        assertEq(
+            mWethExtension.accAmountOut(address(this)),
+            amount,
+            "expected mWethExtension.accAmountOut(address(this)) to equal amount"
+        );
 
         // it should transfer underlying to user
         assertEq(balanceUserBefore + amount, balanceUserAfter, "it should transfer underlying to user");
@@ -807,12 +896,17 @@ contract mTokenGatewayTest is BaseMTokenTest {
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
         mWethExtension.outHere(journalData, "0x123", amounts, address(this));
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 balanceUserAfter = weth.balanceOf(address(this));
 
         // it should increase accAmountOut
-        assertEq(mWethExtension.accAmountOut(address(this)), amount, "assertEq failed: values do not match");
+        assertEq(
+            mWethExtension.accAmountOut(address(this)),
+            amount,
+            "expected mWethExtension.accAmountOut(address(this)) to equal amount"
+        );
 
         // it should transfer underlying to user
         assertEq(balanceUserBefore + amount, balanceUserAfter, "it should transfer underlying to user");
@@ -824,8 +918,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_supplyOnHost_revertsWith_mTokenGateway_AmountNotValid() external {
         // it should revert
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_AmountNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.supplyOnHost(0, address(this), LINEA_MINT_SELECTOR);
     }
@@ -837,8 +933,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.AmountIn, true);
 
         // it should revert
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.supplyOnHost(amount, address(this), LINEA_MINT_SELECTOR);
     }
@@ -851,8 +949,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         // it should revert
         weth.approve(address(mWethExtension), amount);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.supplyOnHost(amount, address(this), LINEA_MINT_SELECTOR);
     }
@@ -874,15 +974,21 @@ contract mTokenGatewayTest is BaseMTokenTest {
         mWethExtension.supplyOnHost(amount, address(this), LINEA_MINT_SELECTOR);
 
         uint256 balanceWethAfter = weth.balanceOf(address(this));
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 accAmountInAfter = mWethExtension.accAmountIn(address(this));
 
         // it should decrease the caller underlying balance
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(balanceWethAfter + amount, balanceWethBefore, "assertEq failed: values do not match");
+        assertEq(
+            balanceWethAfter + amount,
+            balanceWethBefore,
+            "expected balanceWethAfter + amount to equal balanceWethBefore"
+        );
 
         // it should increase accAmount
-        assertGt(accAmountInAfter, accAmountInBefore);
+        assertGt(accAmountInAfter, accAmountInBefore, "expected accAmountInAfter to be greater than accAmountInBefore");
     }
 
     ////////////////////////////////////////////////////////////
@@ -898,8 +1004,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
         weth.approve(address(mWethExtension), amount);
 
         blacklister.blacklist(address(this));
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_UserBlacklisted.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.supplyOnHost(amount, address(this), LINEA_MINT_SELECTOR);
     }
@@ -914,8 +1022,10 @@ contract mTokenGatewayTest is BaseMTokenTest {
         weth.approve(address(mWethExtension), amount);
 
         blacklister.blacklist(users.alice);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_UserBlacklisted.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.supplyOnHost(amount, users.alice, LINEA_MINT_SELECTOR);
     }
@@ -939,6 +1049,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         mWethExtension.setWhitelistedUser(address(this), false);
         vm.expectRevert(ImTokenGateway.mTokenGateway_UserNotWhitelisted.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.supplyOnHost(amount, address(this), LINEA_MINT_SELECTOR);
 
@@ -950,10 +1061,14 @@ contract mTokenGatewayTest is BaseMTokenTest {
         uint256 accAmountInAfter = mWethExtension.accAmountIn(address(this));
 
         // it should decrease the caller underlying balance
-        assertEq(balanceWethAfter + amount, balanceWethBefore, "assertEq failed: values do not match");
+        assertEq(
+            balanceWethAfter + amount,
+            balanceWethBefore,
+            "expected balanceWethAfter + amount to equal balanceWethBefore"
+        );
 
         // it should increase accAmount
-        assertGt(accAmountInAfter, accAmountInBefore);
+        assertGt(accAmountInAfter, accAmountInBefore, "expected accAmountInAfter to be greater than accAmountInBefore");
     }
 
     ////////////////////////////////////////////////////////////
@@ -969,12 +1084,14 @@ contract mTokenGatewayTest is BaseMTokenTest {
         wrapAndSupply.wrapAndSupplyOnExtensionMarket{value: SMALL}(
             address(mWethExtension), address(this), LINEA_MINT_SELECTOR
         );
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 accAmountInAfter = mWethExtension.accAmountIn(address(this));
 
         // it should increase accAmount
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertGt(accAmountInAfter, accAmountInBefore);
+        assertGt(accAmountInAfter, accAmountInBefore, "expected accAmountInAfter to be greater than accAmountInBefore");
     }
 
     ////////////////////////////////////////////////////////////

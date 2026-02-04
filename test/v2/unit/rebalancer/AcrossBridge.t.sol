@@ -85,7 +85,10 @@ contract AcrossBridgeTest is BaseTest {
         bridge.setWhitelistedRelayer(MAINNET_CHAIN_ID, users.bob, true);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(bridge.isRelayerWhitelisted(MAINNET_CHAIN_ID, users.bob));
+        assertTrue(
+            bridge.isRelayerWhitelisted(MAINNET_CHAIN_ID, users.bob),
+            "expected condition to be true: bridge.isRelayerWhitelisted(MAINNET_CHAIN_ID, users.bob)"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -136,7 +139,7 @@ contract AcrossBridgeTest is BaseTest {
         bridge.handleV3AcrossMessage(address(token), 5e18, address(0), abi.encode(address(market)));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(address(market)), 5e18, "assertEq failed: values do not match");
+        assertEq(token.balanceOf(address(market)), 5e18, "expected token.balanceOf(address(market)) to equal 5e18");
     }
 
     ////////////////////////////////////////////////////////////
@@ -194,21 +197,35 @@ contract AcrossBridgeTest is BaseTest {
         bridge.sendMsg(inputAmount, address(market), MAINNET_CHAIN_ID, address(token), message, "");
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(spokePool.lastDepositor(), address(this), "assertEq failed: values do not match");
-        assertEq(spokePool.lastRecipient(), address(bridge), "assertEq failed: values do not match");
-        assertEq(spokePool.lastInputToken(), address(token), "assertEq failed: values do not match");
-        assertEq(spokePool.lastOutputToken(), address(token), "assertEq failed: values do not match");
-        assertEq(spokePool.lastInputAmount(), inputAmount, "assertEq failed: values do not match");
-        assertEq(spokePool.lastOutputAmount(), outputAmount, "assertEq failed: values do not match");
-        assertEq(spokePool.lastDestinationChainId(), MAINNET_CHAIN_ID, "assertEq failed: values do not match");
-        assertEq(spokePool.lastExclusiveRelayer(), users.bob, "assertEq failed: values do not match");
-        assertEq(spokePool.lastFillDeadline(), 100, "assertEq failed: values do not match");
-        assertEq(spokePool.lastExclusivityDeadline(), 200, "assertEq failed: values do not match");
-        assertEq(spokePool.lastMessageLength(), 32, "assertEq failed: values do not match");
+        assertEq(spokePool.lastDepositor(), address(this), "expected spokePool.lastDepositor() to equal address(this)");
+        assertEq(
+            spokePool.lastRecipient(), address(bridge), "expected spokePool.lastRecipient() to equal address(bridge)"
+        );
+        assertEq(
+            spokePool.lastInputToken(), address(token), "expected spokePool.lastInputToken() to equal address(token)"
+        );
+        assertEq(
+            spokePool.lastOutputToken(), address(token), "expected spokePool.lastOutputToken() to equal address(token)"
+        );
+        assertEq(spokePool.lastInputAmount(), inputAmount, "expected spokePool.lastInputAmount() to equal inputAmount");
+        assertEq(
+            spokePool.lastOutputAmount(), outputAmount, "expected spokePool.lastOutputAmount() to equal outputAmount"
+        );
+        assertEq(
+            spokePool.lastDestinationChainId(),
+            MAINNET_CHAIN_ID,
+            "expected spokePool.lastDestinationChainId() to equal MAINNET_CHAIN_ID"
+        );
+        assertEq(
+            spokePool.lastExclusiveRelayer(), users.bob, "expected spokePool.lastExclusiveRelayer() to equal users.bob"
+        );
+        assertEq(spokePool.lastFillDeadline(), 100, "expected spokePool.lastFillDeadline() to equal 100");
+        assertEq(spokePool.lastExclusivityDeadline(), 200, "expected spokePool.lastExclusivityDeadline() to equal 200");
+        assertEq(spokePool.lastMessageLength(), 32, "expected spokePool.lastMessageLength() to equal 32");
         assertEq(
             spokePool.lastMessageWord(),
             bytes32(uint256(uint160(address(market)))),
-            "assertEq failed: values do not match"
+            "expected spokePool.lastMessageWord() to equal bytes32(uint256(uint160(address(market))))"
         );
     }
 

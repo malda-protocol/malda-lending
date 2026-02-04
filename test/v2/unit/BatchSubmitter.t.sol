@@ -96,6 +96,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
     function test_unit_updateZkVerifier_revertsWith_BatchSubmitter_AddressNotValid() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BatchSubmitter.BatchSubmitter_AddressNotValid.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.updateZkVerifier(address(0));
     }
@@ -112,7 +113,11 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         batchSubmitter.updateZkVerifier(address(newVerifier));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(batchSubmitter.verifier()), address(newVerifier), "assertEq failed: values do not match");
+        assertEq(
+            address(batchSubmitter.verifier()),
+            address(newVerifier),
+            "expected address(batchSubmitter.verifier()) to equal address(newVerifier)"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -122,8 +127,10 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
     function test_unit_batchProcess_revertsWith_BatchSubmitter_CallerNotAllowed() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory encodedJournals = abi.encode(journals);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BatchSubmitter.BatchSubmitter_CallerNotAllowed.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
@@ -199,6 +206,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BatchSubmitter.BatchSubmitter_InvalidSelector.selector);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
@@ -227,6 +235,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(stdError.indexOOBError);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
@@ -254,6 +263,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(stdError.indexOOBError);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
@@ -281,6 +291,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(stdError.indexOOBError);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
@@ -346,11 +357,13 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         initHashes[0] = keccak256(journals[0]);
 
         bytes memory reason = abi.encodeWithSelector(OperatorStorage.Operator_MarketNotListed.selector);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true, address(batchSubmitter));
         emit BatchSubmitter.BatchProcessFailed(
             initHashes[0], receivers[0], mTokens[0], amounts[0], amounts[0], selectors[0], reason
         );
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
@@ -388,6 +401,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         emit BatchSubmitter.BatchProcessSuccess(
             initHashes[1], receivers[1], mTokens[1], amounts[1], amounts[1], selectors[1]
         );
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
@@ -428,6 +442,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         emit BatchSubmitter.BatchProcessSuccess(
             initHashes[1], receivers[1], mTokens[1], amounts[1], minAmountsOut[1], MINT_SELECTOR
         );
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
@@ -488,6 +503,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         emit BatchSubmitter.BatchProcessSuccess(
             initHashes[1], receivers[1], mTokens[1], amounts[1], amounts[1], selectors[1]
         );
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(
@@ -543,6 +559,7 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         emit BatchSubmitter.BatchProcessSuccess(
             initHashes[1], receivers[1], mTokens[1], amounts[1], amounts[1], MINT_SELECTOR
         );
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         batchSubmitter.batchProcess(
             BatchSubmitter.BatchProcessMsg(

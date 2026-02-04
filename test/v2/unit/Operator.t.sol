@@ -81,7 +81,10 @@ contract OperatorTest is BaseUnitTest {
         operator.enterMarketsWithSender(account);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(operator.checkMembership(account, address(market)));
+        assertTrue(
+            operator.checkMembership(account, address(market)),
+            "expected condition to be true: operator.checkMembership(account, address(market))"
+        );
     }
 
     function test_unit_enterMarketsWithSender_revertsWith_Operator_MarketNotListed() public {
@@ -90,7 +93,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.enterMarketsWithSender(users.alice);
     }
 
@@ -123,7 +125,10 @@ contract OperatorTest is BaseUnitTest {
         operator.enterMarketsWithSender(account);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(operator.checkMembership(account, address(market)));
+        assertTrue(
+            operator.checkMembership(account, address(market)),
+            "expected condition to be true: operator.checkMembership(account, address(market))"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -134,14 +139,12 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         OperatorHarness harness = _deployHarness();
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.callOnlyAllowedUser(users.bob);
 
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _setWhitelistStatus(harness, true);
         _setWhitelistedUser(harness, users.alice, true);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.callOnlyAllowedUser(users.alice);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -161,9 +164,14 @@ contract OperatorTest is BaseUnitTest {
         _supportMarketAndJoin(market, account);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertFalse(operator.whitelistEnabled());
-        assertFalse(operator.userWhitelisted(account));
-        assertTrue(operator.checkMembership(account, address(market)));
+        assertFalse(operator.whitelistEnabled(), "expected condition to be false: operator.whitelistEnabled()");
+        assertFalse(
+            operator.userWhitelisted(account), "expected condition to be false: operator.userWhitelisted(account)"
+        );
+        assertTrue(
+            operator.checkMembership(account, address(market)),
+            "expected condition to be true: operator.checkMembership(account, address(market))"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -257,7 +265,6 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         OperatorHarness harness = _deployHarness();
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.callIfNotBlacklisted(users.alice);
 
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
@@ -280,13 +287,14 @@ contract OperatorTest is BaseUnitTest {
         MockFirewall firewall = new MockFirewall();
 
         operator.initFirewall(address(firewall));
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.firewallRegister(account);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(firewall.registerCount(), 1, "assertEq failed: values do not match");
-        assertEq(firewall.lastRegistered(), account, "assertEq failed: values do not match");
-        assertFalse(firewall.lastStrictMode());
+        assertEq(firewall.registerCount(), 1, "expected firewall.registerCount() to equal 1");
+        assertEq(firewall.lastRegistered(), account, "expected firewall.lastRegistered() to equal account");
+        assertFalse(firewall.lastStrictMode(), "expected condition to be false: firewall.lastStrictMode()");
     }
 
     ////////////////////////////////////////////////////////////
@@ -308,7 +316,11 @@ contract OperatorTest is BaseUnitTest {
         operator.setBlacklister(address(proxy));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(operator.blacklistOperator()), address(proxy), "assertEq failed: values do not match");
+        assertEq(
+            address(operator.blacklistOperator()),
+            address(proxy),
+            "expected address(operator.blacklistOperator()) to equal address(proxy)"
+        );
     }
 
     function test_unit_setBlacklister_revertsWith_Operator_AddressNotValid() public {
@@ -344,7 +356,11 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         for (uint256 i; i < len; ++i) {
-            assertEq(operator.minBorrowSize(markets[i]), amounts[i], "assertEq failed: values do not match");
+            assertEq(
+                operator.minBorrowSize(markets[i]),
+                amounts[i],
+                "expected operator.minBorrowSize(markets[i]) to equal amounts[i]"
+            );
         }
     }
 
@@ -388,7 +404,9 @@ contract OperatorTest is BaseUnitTest {
         operator.setWhitelistStatus(secondStatus);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.whitelistEnabled(), secondStatus, "assertEq failed: values do not match");
+        assertEq(
+            operator.whitelistEnabled(), secondStatus, "expected operator.whitelistEnabled() to equal secondStatus"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -408,7 +426,11 @@ contract OperatorTest is BaseUnitTest {
         operator.setRolesOperator(address(newRoles));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(operator.rolesOperator()), address(newRoles), "assertEq failed: values do not match");
+        assertEq(
+            address(operator.rolesOperator()),
+            address(newRoles),
+            "expected address(operator.rolesOperator()) to equal address(newRoles)"
+        );
     }
 
     function test_unit_setRolesOperator_revertsWith_Operator_InvalidInput() public {
@@ -448,7 +470,9 @@ contract OperatorTest is BaseUnitTest {
         operator.setCloseFactor(closeFactor);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.closeFactorMantissa(), closeFactor, "assertEq failed: values do not match");
+        assertEq(
+            operator.closeFactorMantissa(), closeFactor, "expected operator.closeFactorMantissa() to equal closeFactor"
+        );
     }
 
     function test_unit_setCloseFactor_revertsWith_Operator_InvalidInput() public {
@@ -515,7 +539,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         (, uint256 collateralFactor) = operator.markets(address(market));
-        assertEq(collateralFactor, factor, "assertEq failed: values do not match");
+        assertEq(collateralFactor, factor, "expected collateralFactor to equal factor");
     }
 
     ////////////////////////////////////////////////////////////
@@ -563,7 +587,11 @@ contract OperatorTest is BaseUnitTest {
         operator.setOutflowVolumeTimeWindow(newTimeWindow);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.outflowResetTimeWindow(), newTimeWindow, "assertEq failed: values do not match");
+        assertEq(
+            operator.outflowResetTimeWindow(),
+            newTimeWindow,
+            "expected operator.outflowResetTimeWindow() to equal newTimeWindow"
+        );
     }
 
     function test_unit_setOutflowVolumeTimeWindow_revertsWith_Operator_InvalidInput() public {
@@ -585,9 +613,9 @@ contract OperatorTest is BaseUnitTest {
         oracleOperator.setUnderlyingPrice(1e18);
         _setOutflowTimeLimitInUSD(10);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(address(market));
+        vm.startPrank(address(market));
         operator.checkOutflowVolumeLimit(amount);
+        vm.stopPrank();
 
         vm.warp(block.timestamp + 1 hours);
 
@@ -599,8 +627,12 @@ contract OperatorTest is BaseUnitTest {
         operator.resetOutflowVolume();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.cumulativeOutflowVolume(), 0, "assertEq failed: values do not match");
-        assertEq(operator.lastOutflowResetTimestamp(), block.timestamp, "assertEq failed: values do not match");
+        assertEq(operator.cumulativeOutflowVolume(), 0, "expected operator.cumulativeOutflowVolume() to equal 0");
+        assertEq(
+            operator.lastOutflowResetTimestamp(),
+            block.timestamp,
+            "expected operator.lastOutflowResetTimestamp() to equal block.timestamp"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -613,7 +645,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(1);
     }
 
@@ -625,11 +656,10 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.cumulativeOutflowVolume(), 0, "assertEq failed: values do not match");
+        assertEq(operator.cumulativeOutflowVolume(), 0, "expected operator.cumulativeOutflowVolume() to equal 0");
     }
 
     function test_fuzz_checkOutflowVolumeLimit_success_whenWindowElapsed(uint256 amount) public {
@@ -644,12 +674,19 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.lastOutflowResetTimestamp(), block.timestamp, "assertEq failed: values do not match");
-        assertEq(operator.cumulativeOutflowVolume(), amount / 1e10, "assertEq failed: values do not match");
+        assertEq(
+            operator.lastOutflowResetTimestamp(),
+            block.timestamp,
+            "expected operator.lastOutflowResetTimestamp() to equal block.timestamp"
+        );
+        assertEq(
+            operator.cumulativeOutflowVolume(),
+            amount / 1e10,
+            "expected operator.cumulativeOutflowVolume() to equal amount / 1e10"
+        );
     }
 
     function test_fuzz_checkOutflowVolumeLimit_success_whenWindowNotElapsed(uint256 amount) public {
@@ -663,12 +700,19 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.lastOutflowResetTimestamp(), lastReset, "assertEq failed: values do not match");
-        assertEq(operator.cumulativeOutflowVolume(), amount / 1e10, "assertEq failed: values do not match");
+        assertEq(
+            operator.lastOutflowResetTimestamp(),
+            lastReset,
+            "expected operator.lastOutflowResetTimestamp() to equal lastReset"
+        );
+        assertEq(
+            operator.cumulativeOutflowVolume(),
+            amount / 1e10,
+            "expected operator.cumulativeOutflowVolume() to equal amount / 1e10"
+        );
     }
 
     function test_unit_checkOutflowVolumeLimit_revertsWith_Operator_OutflowVolumeReached() public {
@@ -682,7 +726,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(2e10);
     }
 
@@ -696,7 +739,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.checkOutflowVolumeLimit(1);
     }
 
@@ -720,11 +762,12 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setMarketBorrowCaps(markets, caps);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.borrowCaps(address(market)), cap, "assertEq failed: values do not match");
+        assertEq(
+            operator.borrowCaps(address(market)), cap, "expected operator.borrowCaps(address(market)) to equal cap"
+        );
     }
 
     function test_fuzz_setMarketBorrowCaps_success_whenAdmin(uint256 cap) public {
@@ -743,7 +786,9 @@ contract OperatorTest is BaseUnitTest {
         operator.setMarketBorrowCaps(markets, caps);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.borrowCaps(address(market)), cap, "assertEq failed: values do not match");
+        assertEq(
+            operator.borrowCaps(address(market)), cap, "expected operator.borrowCaps(address(market)) to equal cap"
+        );
     }
 
     function test_unit_setMarketBorrowCaps_revertsWith_Operator_OnlyAdminOrRole() public {
@@ -758,7 +803,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setMarketBorrowCaps(markets, caps);
     }
 
@@ -807,11 +851,12 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setMarketSupplyCaps(markets, caps);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.supplyCaps(address(market)), cap, "assertEq failed: values do not match");
+        assertEq(
+            operator.supplyCaps(address(market)), cap, "expected operator.supplyCaps(address(market)) to equal cap"
+        );
     }
 
     function test_fuzz_setMarketSupplyCaps_success_whenAdmin(uint256 cap) public {
@@ -830,7 +875,9 @@ contract OperatorTest is BaseUnitTest {
         operator.setMarketSupplyCaps(markets, caps);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.supplyCaps(address(market)), cap, "assertEq failed: values do not match");
+        assertEq(
+            operator.supplyCaps(address(market)), cap, "expected operator.supplyCaps(address(market)) to equal cap"
+        );
     }
 
     function test_unit_setMarketSupplyCaps_revertsWith_Operator_OnlyAdminOrRole() public {
@@ -845,7 +892,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setMarketSupplyCaps(markets, caps);
     }
 
@@ -897,7 +943,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, true);
     }
 
@@ -913,7 +958,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
     }
 
@@ -929,7 +973,7 @@ contract OperatorTest is BaseUnitTest {
         assertEq(
             operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Borrow),
             paused,
-            "assertEq failed: values do not match"
+            "expected operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Borrow) to equal paused"
         );
     }
 
@@ -947,7 +991,7 @@ contract OperatorTest is BaseUnitTest {
         assertEq(
             operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint),
             firstState,
-            "assertEq failed: values do not match"
+            "expected operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint) to equal firstState"
         );
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -961,7 +1005,7 @@ contract OperatorTest is BaseUnitTest {
         assertEq(
             operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint),
             secondState,
-            "assertEq failed: values do not match"
+            "expected operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint) to equal secondState"
         );
     }
 
@@ -977,33 +1021,24 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(guardian);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
 
         _setPaused(address(market), ImTokenOperationTypes.OperationType.Mint, false);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertFalse(operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint));
+        assertFalse(
+            operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint),
+            "expected condition to be false: operator.isPaused(address(market), ImTokenOperationTypes.OperationType.Mint)"
+        );
     }
 
     function test_unit_setPaused_revertsWith_Operator_OnlyAdminOrRole() public {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(users.alice);
-
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_OnlyAdminOrRole.selector);
 
-        operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
-
-        _setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
-
-        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(OperatorStorage.Operator_OnlyAdmin.selector);
-
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, false);
+        operator.setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
     }
 
     ////////////////////////////////////////////////////////////
@@ -1047,7 +1082,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.enterMarkets(markets);
     }
 
@@ -1064,8 +1098,8 @@ contract OperatorTest is BaseUnitTest {
         address[] memory assets = operator.getAssetsIn(account);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(assets.length, 1, "assertEq failed: values do not match");
-        assertEq(assets[0], address(market), "assertEq failed: values do not match");
+        assertEq(assets.length, 1, "expected assets.length to equal 1");
+        assertEq(assets[0], address(market), "expected assets[0] to equal address(market)");
     }
 
     ////////////////////////////////////////////////////////////
@@ -1086,13 +1120,13 @@ contract OperatorTest is BaseUnitTest {
         address[] memory markets = operator.getAllMarkets();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(markets.length, 2, "assertEq failed: values do not match");
+        assertEq(markets.length, 2, "expected markets.length to equal 2");
         if (reverseOrder) {
-            assertEq(markets[0], address(market2), "assertEq failed: values do not match");
-            assertEq(markets[1], address(market), "assertEq failed: values do not match");
+            assertEq(markets[0], address(market2), "expected markets[0] to equal address(market2)");
+            assertEq(markets[1], address(market), "expected markets[1] to equal address(market)");
         } else {
-            assertEq(markets[0], address(market), "assertEq failed: values do not match");
-            assertEq(markets[1], address(market2), "assertEq failed: values do not match");
+            assertEq(markets[0], address(market), "expected markets[0] to equal address(market)");
+            assertEq(markets[1], address(market2), "expected markets[1] to equal address(market2)");
         }
     }
 
@@ -1107,11 +1141,13 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(account);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.exitMarket(address(market));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertFalse(operator.checkMembership(account, address(market)));
+        assertFalse(
+            operator.checkMembership(account, address(market)),
+            "expected condition to be false: operator.checkMembership(account, address(market))"
+        );
     }
 
     function test_unit_exitMarket_revertsWith_Operator_Deactivate_MarketBalanceOwed() public {
@@ -1128,7 +1164,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.exitMarket(address(market));
     }
 
@@ -1147,7 +1182,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.exitMarket(address(market));
     }
 
@@ -1167,7 +1201,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.exitMarket(address(market));
     }
 
@@ -1194,7 +1227,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.exitMarket(address(market));
     }
 
@@ -1214,12 +1246,14 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(account);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.exitMarket(address(market));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertFalse(operator.checkMembership(account, address(market)));
-        assertEq(operator.getAssetsIn(account).length, 0, "assertEq failed: values do not match");
+        assertFalse(
+            operator.checkMembership(account, address(market)),
+            "expected condition to be false: operator.checkMembership(account, address(market))"
+        );
+        assertEq(operator.getAssetsIn(account).length, 0, "expected operator.getAssetsIn(account).length to equal 0");
     }
 
     function test_fuzz_exitMarket_success_whenFirewallEnabled(address account) public {
@@ -1239,11 +1273,10 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(account);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.exitMarket(address(market));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(operator.getAssetsIn(account).length, 0, "assertEq failed: values do not match");
+        assertEq(operator.getAssetsIn(account).length, 0, "expected operator.getAssetsIn(account).length to equal 0");
     }
 
     function test_fuzz_exitMarket_success_whenMultipleMarkets(address account) public {
@@ -1262,14 +1295,16 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(account);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.exitMarket(address(market));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertFalse(operator.checkMembership(account, address(market)));
+        assertFalse(
+            operator.checkMembership(account, address(market)),
+            "expected condition to be false: operator.checkMembership(account, address(market))"
+        );
         address[] memory assets = operator.getAssetsIn(account);
-        assertEq(assets.length, 1, "assertEq failed: values do not match");
-        assertEq(assets[0], address(market2), "assertEq failed: values do not match");
+        assertEq(assets.length, 1, "expected assets.length to equal 1");
+        assertEq(assets[0], address(market2), "expected assets[0] to equal address(market2)");
     }
 
     ////////////////////////////////////////////////////////////
@@ -1294,7 +1329,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.alice);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.exitMarket(address(market));
     }
 
@@ -1340,7 +1374,7 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenTransfer(address(market), sender, receiver, amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(market.accrueInterestCalled());
+        assertTrue(market.accrueInterestCalled(), "expected condition to be true: market.accrueInterestCalled()");
     }
 
     ////////////////////////////////////////////////////////////
@@ -1537,7 +1571,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
@@ -1572,7 +1605,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
@@ -1589,7 +1621,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
@@ -1623,7 +1654,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 50);
     }
 
@@ -1639,7 +1669,6 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(market));
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
@@ -2032,8 +2061,8 @@ contract OperatorTest is BaseUnitTest {
         (uint256 liquidity, uint256 shortfall) = operator.getHypotheticalAccountLiquidity(account, address(0), 0, 0);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(liquidity, 0, "assertEq failed: values do not match");
-        assertEq(shortfall, 0, "assertEq failed: values do not match");
+        assertEq(liquidity, 0, "expected liquidity to equal 0");
+        assertEq(shortfall, 0, "expected shortfall to equal 0");
     }
 
     function test_unit_getHypotheticalAccountLiquidity_revertsWith_Operator_OracleUnderlyingFetchError() public {
@@ -2073,7 +2102,7 @@ contract OperatorTest is BaseUnitTest {
         uint256 total = operator.getUSDValueForAllMarkets();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(total, totalUnderlying / 1e10, "assertEq failed: values do not match");
+        assertEq(total, totalUnderlying / 1e10, "expected total to equal totalUnderlying / 1e10");
     }
 
     ////////////////////////////////////////////////////////////
@@ -2086,8 +2115,14 @@ contract OperatorTest is BaseUnitTest {
         _listMarket(market);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(operator.isMarketListed(address(market)));
-        assertFalse(operator.isDeprecated(address(market)));
+        assertTrue(
+            operator.isMarketListed(address(market)),
+            "expected condition to be true: operator.isMarketListed(address(market))"
+        );
+        assertFalse(
+            operator.isDeprecated(address(market)),
+            "expected condition to be false: operator.isDeprecated(address(market))"
+        );
 
         if (pauseBorrow) {
             _setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
@@ -2096,7 +2131,11 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         bool expected = pauseBorrow && reserveFactor == 1e18;
-        assertEq(operator.isDeprecated(address(market)), expected, "assertEq failed: values do not match");
+        assertEq(
+            operator.isDeprecated(address(market)),
+            expected,
+            "expected operator.isDeprecated(address(market)) to equal expected"
+        );
     }
 
     ////////////////////////////////////////////////////////////

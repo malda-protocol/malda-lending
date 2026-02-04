@@ -46,6 +46,9 @@ contract RolesTest is BaseTest {
         roles.allowFor(users.alice, pauseManager, true);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(roles.isAllowedFor(users.alice, pauseManager));
+        assertTrue(
+            roles.isAllowedFor(users.alice, pauseManager),
+            "expected condition to be true: roles.isAllowedFor(users.alice, pauseManager)"
+        );
     }
 }

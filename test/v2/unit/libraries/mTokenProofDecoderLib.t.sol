@@ -74,7 +74,11 @@ contract mTokenProofDecoderLibTest is BaseTest {
             harness.encode(sender, market, accAmountIn, accAmountOut, chainId, dstChainId, l1Inclusion);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(encoded.length, mTokenProofDecoderLib.ENTRY_SIZE, "assertEq failed: values do not match");
+        assertEq(
+            encoded.length,
+            mTokenProofDecoderLib.ENTRY_SIZE,
+            "expected encoded.length to equal mTokenProofDecoderLib.ENTRY_SIZE"
+        );
         _assertDecoded(
             encoded,
             Expected({
@@ -142,12 +146,12 @@ contract mTokenProofDecoderLibTest is BaseTest {
             bool decodedL1
         ) = harness.decode(encoded);
 
-        assertEq(decodedSender, expected.sender, "assertEq failed: values do not match");
-        assertEq(decodedMarket, expected.market, "assertEq failed: values do not match");
-        assertEq(decodedAccIn, expected.accAmountIn, "assertEq failed: values do not match");
-        assertEq(decodedAccOut, expected.accAmountOut, "assertEq failed: values do not match");
-        assertEq(decodedChainId, expected.chainId, "assertEq failed: values do not match");
-        assertEq(decodedDstChainId, expected.dstChainId, "assertEq failed: values do not match");
-        assertEq(decodedL1, expected.l1Inclusion, "assertEq failed: values do not match");
+        assertEq(decodedSender, expected.sender, "expected decodedSender to equal expected.sender");
+        assertEq(decodedMarket, expected.market, "expected decodedMarket to equal expected.market");
+        assertEq(decodedAccIn, expected.accAmountIn, "expected decodedAccIn to equal expected.accAmountIn");
+        assertEq(decodedAccOut, expected.accAmountOut, "expected decodedAccOut to equal expected.accAmountOut");
+        assertEq(decodedChainId, expected.chainId, "expected decodedChainId to equal expected.chainId");
+        assertEq(decodedDstChainId, expected.dstChainId, "expected decodedDstChainId to equal expected.dstChainId");
+        assertEq(decodedL1, expected.l1Inclusion, "expected decodedL1 to equal expected.l1Inclusion");
     }
 }

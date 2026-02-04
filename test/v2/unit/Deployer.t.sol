@@ -37,8 +37,8 @@ contract DeployerTest is BaseTest {
         Deployer newDeployer = new Deployer(admin);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(newDeployer.admin(), admin, "assertEq failed: values do not match");
-        assertEq(newDeployer.pendingAdmin(), address(0), "assertEq failed: values do not match");
+        assertEq(newDeployer.admin(), admin, "expected newDeployer.admin() to equal admin");
+        assertEq(newDeployer.pendingAdmin(), address(0), "expected newDeployer.pendingAdmin() to equal address(0)");
     }
 
     ////////////////////////////////////////////////////////////
@@ -47,7 +47,7 @@ contract DeployerTest is BaseTest {
 
     function test_unit_admin_success() external view {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(deployer.admin(), admin, "assertEq failed: values do not match");
+        assertEq(deployer.admin(), admin, "expected deployer.admin() to equal admin");
     }
 
     ////////////////////////////////////////////////////////////
@@ -68,7 +68,7 @@ contract DeployerTest is BaseTest {
         deployer.setPendingAdmin(newAdmin);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(deployer.pendingAdmin(), newAdmin, "assertEq failed: values do not match");
+        assertEq(deployer.pendingAdmin(), newAdmin, "expected deployer.pendingAdmin() to equal newAdmin");
     }
 
     function test_unit_setPendingAdmin_revertsWith_NotAuthorized() external {
@@ -107,7 +107,7 @@ contract DeployerTest is BaseTest {
         deployer.setNewAdmin(newAdmin);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(deployer.admin(), newAdmin, "assertEq failed: values do not match");
+        assertEq(deployer.admin(), newAdmin, "expected deployer.admin() to equal newAdmin");
     }
 
     ////////////////////////////////////////////////////////////
@@ -120,9 +120,9 @@ contract DeployerTest is BaseTest {
         vm.assume(newAdmin != admin);
         vm.assume(newAdmin != other);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(admin);
+        vm.startPrank(admin);
         deployer.setPendingAdmin(newAdmin);
+        vm.stopPrank();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, false, false, true);
@@ -133,8 +133,8 @@ contract DeployerTest is BaseTest {
         deployer.acceptAdmin();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(deployer.admin(), newAdmin, "assertEq failed: values do not match");
-        assertEq(deployer.pendingAdmin(), address(0), "assertEq failed: values do not match");
+        assertEq(deployer.admin(), newAdmin, "expected deployer.admin() to equal newAdmin");
+        assertEq(deployer.pendingAdmin(), address(0), "expected deployer.pendingAdmin() to equal address(0)");
     }
 
     function test_fuzz_acceptAdmin_revertsWith_NotAuthorized(address newAdmin) external {
@@ -143,9 +143,9 @@ contract DeployerTest is BaseTest {
         vm.assume(newAdmin != admin);
         vm.assume(newAdmin != other);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(admin);
+        vm.startPrank(admin);
         deployer.setPendingAdmin(newAdmin);
+        vm.stopPrank();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(abi.encodeWithSelector(Deployer.NotAuthorized.selector, newAdmin, other));
@@ -160,13 +160,13 @@ contract DeployerTest is BaseTest {
         vm.assume(newAdmin != address(0));
         vm.assume(newAdmin != admin);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(admin);
+        vm.startPrank(admin);
         deployer.setPendingAdmin(newAdmin);
+        vm.stopPrank();
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(newAdmin);
+        vm.startPrank(newAdmin);
         deployer.acceptAdmin();
+        vm.stopPrank();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(abi.encodeWithSelector(Deployer.NotAuthorized.selector, newAdmin, admin));
@@ -200,8 +200,10 @@ contract DeployerTest is BaseTest {
         deployer.saveEth();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(address(deployer).balance, 0, "assertEq failed: values do not match");
-        assertEq(admin.balance, adminBalanceBefore + amount, "assertEq failed: values do not match");
+        assertEq(address(deployer).balance, 0, "expected address(deployer).balance to equal 0");
+        assertEq(
+            admin.balance, adminBalanceBefore + amount, "expected admin.balance to equal adminBalanceBefore + amount"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -223,10 +225,14 @@ contract DeployerTest is BaseTest {
         address deployed = deployer.create{value: value}(salt, code);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(deployed, expected, "assertEq failed: values do not match");
-        assertGt(deployed.code.length, 0);
-        assertEq(DeployableMock(payable(deployed)).value(), storedValue, "assertEq failed: values do not match");
-        assertEq(deployed.balance, value, "assertEq failed: values do not match");
+        assertEq(deployed, expected, "expected deployed to equal expected");
+        assertGt(deployed.code.length, 0, "expected deployed.code.length to be greater than 0");
+        assertEq(
+            DeployableMock(payable(deployed)).value(),
+            storedValue,
+            "expected DeployableMock(payable(deployed)).value() to equal storedValue"
+        );
+        assertEq(deployed.balance, value, "expected deployed.balance to equal value");
     }
 
     function test_fuzz_create_revertsWith_NotAuthorized(bytes32 salt) external {

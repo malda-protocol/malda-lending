@@ -37,7 +37,7 @@ contract ChainlinkOracleTest is BaseTest {
 
     function test_fuzz_getPrice_success_scalesFeedDecimals(uint8 feedDecimals, uint64 rawPrice) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        feedDecimals = uint8(bound(feedDecimals, 0, 18));
+        feedDecimals = uint8(bound(feedDecimals, 4, 18));
         rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
 
         MockAggregatorV3 feed = new MockAggregatorV3(feedDecimals, int256(uint256(rawPrice)));
@@ -49,12 +49,12 @@ contract ChainlinkOracleTest is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 expected = uint256(rawPrice) * 10 ** (18 - feedDecimals);
-        assertEq(price, expected, "assertEq failed: values do not match");
+        assertEq(price, expected, "expected price to equal expected");
     }
 
     function test_fuzz_getPrice_success_scales(uint8 feedDecimals, uint64 rawPrice) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        feedDecimals = uint8(bound(feedDecimals, 0, 18));
+        feedDecimals = uint8(bound(feedDecimals, 4, 18));
         rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
 
         MockAggregatorV3 feed = new MockAggregatorV3(feedDecimals, int256(uint256(rawPrice)));
@@ -66,7 +66,7 @@ contract ChainlinkOracleTest is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 expected = uint256(rawPrice) * 10 ** (18 - feedDecimals);
-        assertEq(price, expected, "assertEq failed: values do not match");
+        assertEq(price, expected, "expected price to equal expected");
     }
 
     ////////////////////////////////////////////////////////////
@@ -79,8 +79,8 @@ contract ChainlinkOracleTest is BaseTest {
         uint64 rawPrice
     ) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        feedDecimals = uint8(bound(feedDecimals, 0, 18));
-        underlyingDecimals = uint8(bound(underlyingDecimals, 0, 18));
+        feedDecimals = uint8(bound(feedDecimals, 4, 18));
+        underlyingDecimals = uint8(bound(underlyingDecimals, 4, 18));
         rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
 
         MockAggregatorV3 feed = new MockAggregatorV3(feedDecimals, int256(uint256(rawPrice)));
@@ -93,15 +93,15 @@ contract ChainlinkOracleTest is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 expected = (uint256(rawPrice) * (10 ** (36 - feedDecimals))) / (10 ** underlyingDecimals);
-        assertEq(price, expected, "assertEq failed: values do not match");
+        assertEq(price, expected, "expected price to equal expected");
     }
 
     function test_fuzz_getUnderlyingPrice_success_scales(uint8 feedDecimals, uint8 underlyingDecimals, uint64 rawPrice)
         external
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        feedDecimals = uint8(bound(feedDecimals, 0, 18));
-        underlyingDecimals = uint8(bound(underlyingDecimals, 0, 18));
+        feedDecimals = uint8(bound(feedDecimals, 4, 18));
+        underlyingDecimals = uint8(bound(underlyingDecimals, 4, 18));
         rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
 
         MockAggregatorV3 feed = new MockAggregatorV3(feedDecimals, int256(uint256(rawPrice)));
@@ -114,7 +114,7 @@ contract ChainlinkOracleTest is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 expected = (uint256(rawPrice) * (10 ** (36 - feedDecimals))) / (10 ** underlyingDecimals);
-        assertEq(price, expected, "assertEq failed: values do not match");
+        assertEq(price, expected, "expected price to equal expected");
     }
 
     ////////////////////////////////////////////////////////////

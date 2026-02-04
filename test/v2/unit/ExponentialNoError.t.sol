@@ -105,7 +105,11 @@ contract ExponentialNoErrorTest is BaseTest {
 
     function test_fuzz_callLessThanOrEqualExp_success(uint256 left, uint256 right) external view {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callLessThanOrEqualExp(left, right), left <= right, "assertEq failed: values do not match");
+        assertEq(
+            harness.callLessThanOrEqualExp(left, right),
+            left <= right,
+            "expected harness.callLessThanOrEqualExp(left, right) to equal left <= right"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -114,7 +118,11 @@ contract ExponentialNoErrorTest is BaseTest {
 
     function test_fuzz_callGreaterThanExp_success(uint256 left, uint256 right) external view {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callGreaterThanExp(left, right), left > right, "assertEq failed: values do not match");
+        assertEq(
+            harness.callGreaterThanExp(left, right),
+            left > right,
+            "expected harness.callGreaterThanExp(left, right) to equal left > right"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -123,7 +131,7 @@ contract ExponentialNoErrorTest is BaseTest {
 
     function test_fuzz_callIsZeroExp_success(uint256 value) external view {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callIsZeroExp(value), value == 0, "assertEq failed: values do not match");
+        assertEq(harness.callIsZeroExp(value), value == 0, "expected harness.callIsZeroExp(value) to equal value == 0");
     }
 
     ////////////////////////////////////////////////////////////
@@ -142,8 +150,10 @@ contract ExponentialNoErrorTest is BaseTest {
     function test_fuzz_callSafe224_revertsWith_SAFE224_revertsWhenTooLarge(uint256 value) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         value = bound(value, uint256(type(uint224).max) + 1, type(uint256).max);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert("SAFE224");
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.callSafe224(value, "SAFE224");
     }
@@ -162,8 +172,10 @@ contract ExponentialNoErrorTest is BaseTest {
     function test_fuzz_callSafe32_revertsWith_SAFE32_revertsWhenTooLarge(uint256 value) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         value = bound(value, uint256(type(uint32).max) + 1, type(uint256).max);
+
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert("SAFE32");
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.callSafe32(value, "SAFE32");
     }
@@ -176,8 +188,13 @@ contract ExponentialNoErrorTest is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         left = bound(left, 0, DOUBLE_SCALE);
         right = bound(right, 0, DOUBLE_SCALE);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callAddExp(left, right), left + right, "assertEq failed: values do not match");
+        assertEq(
+            harness.callAddExp(left, right),
+            left + right,
+            "expected harness.callAddExp(left, right) to equal left + right"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -188,8 +205,13 @@ contract ExponentialNoErrorTest is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         left = bound(left, 0, DOUBLE_SCALE);
         right = bound(right, 0, DOUBLE_SCALE);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callAddDouble(left, right), left + right, "assertEq failed: values do not match");
+        assertEq(
+            harness.callAddDouble(left, right),
+            left + right,
+            "expected harness.callAddDouble(left, right) to equal left + right"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -200,8 +222,13 @@ contract ExponentialNoErrorTest is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         left = bound(left, 0, DOUBLE_SCALE);
         right = bound(right, 0, left);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callSubExp(left, right), left - right, "assertEq failed: values do not match");
+        assertEq(
+            harness.callSubExp(left, right),
+            left - right,
+            "expected harness.callSubExp(left, right) to equal left - right"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -212,8 +239,13 @@ contract ExponentialNoErrorTest is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         left = bound(left, 0, DOUBLE_SCALE);
         right = bound(right, 0, left);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callSubDouble(left, right), left - right, "assertEq failed: values do not match");
+        assertEq(
+            harness.callSubDouble(left, right),
+            left - right,
+            "expected harness.callSubDouble(left, right) to equal left - right"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -224,8 +256,13 @@ contract ExponentialNoErrorTest is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         left = bound(left, 0, DOUBLE_SCALE);
         right = bound(right, 0, left);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callSubUint(left, right), left - right, "assertEq failed: values do not match");
+        assertEq(
+            harness.callSubUint(left, right),
+            left - right,
+            "expected harness.callSubUint(left, right) to equal left - right"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -237,8 +274,13 @@ contract ExponentialNoErrorTest is BaseTest {
         left = bound(left, 0, DOUBLE_SCALE);
         right = bound(right, 0, DOUBLE_SCALE);
         uint256 expected = (left * right) / DOUBLE_SCALE;
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callMulDoubleDouble(left, right), expected, "assertEq failed: values do not match");
+        assertEq(
+            harness.callMulDoubleDouble(left, right),
+            expected,
+            "expected harness.callMulDoubleDouble(left, right) to equal expected"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -249,9 +291,12 @@ contract ExponentialNoErrorTest is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mantissa = bound(mantissa, 0, DOUBLE_SCALE);
         scalar = bound(scalar, 0, EXP_SCALE);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(
-            harness.callMulDoubleScalar(mantissa, scalar), mantissa * scalar, "assertEq failed: values do not match"
+            harness.callMulDoubleScalar(mantissa, scalar),
+            mantissa * scalar,
+            "expected harness.callMulDoubleScalar(mantissa, scalar) to equal mantissa * scalar"
         );
     }
 
@@ -264,8 +309,13 @@ contract ExponentialNoErrorTest is BaseTest {
         value = bound(value, 0, DOUBLE_SCALE);
         mantissa = bound(mantissa, 0, DOUBLE_SCALE);
         uint256 expected = (value * mantissa) / DOUBLE_SCALE;
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callMulUintDouble(value, mantissa), expected, "assertEq failed: values do not match");
+        assertEq(
+            harness.callMulUintDouble(value, mantissa),
+            expected,
+            "expected harness.callMulUintDouble(value, mantissa) to equal expected"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -276,9 +326,12 @@ contract ExponentialNoErrorTest is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mantissa = bound(mantissa, 0, DOUBLE_SCALE);
         divisor = bound(divisor, 1, DOUBLE_SCALE);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(
-            harness.callDivExpScalar(mantissa, divisor), mantissa / divisor, "assertEq failed: values do not match"
+            harness.callDivExpScalar(mantissa, divisor),
+            mantissa / divisor,
+            "expected harness.callDivExpScalar(mantissa, divisor) to equal mantissa / divisor"
         );
     }
 
@@ -291,8 +344,13 @@ contract ExponentialNoErrorTest is BaseTest {
         left = bound(left, 0, MAX_DOUBLE_NUMERATOR);
         right = bound(right, 1, DOUBLE_SCALE);
         uint256 expected = (left * DOUBLE_SCALE) / right;
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callDivDoubleDouble(left, right), expected, "assertEq failed: values do not match");
+        assertEq(
+            harness.callDivDoubleDouble(left, right),
+            expected,
+            "expected harness.callDivDoubleDouble(left, right) to equal expected"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -303,9 +361,12 @@ contract ExponentialNoErrorTest is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mantissa = bound(mantissa, 0, DOUBLE_SCALE);
         divisor = bound(divisor, 1, DOUBLE_SCALE);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(
-            harness.callDivDoubleScalar(mantissa, divisor), mantissa / divisor, "assertEq failed: values do not match"
+            harness.callDivDoubleScalar(mantissa, divisor),
+            mantissa / divisor,
+            "expected harness.callDivDoubleScalar(mantissa, divisor) to equal mantissa / divisor"
         );
     }
 
@@ -318,8 +379,13 @@ contract ExponentialNoErrorTest is BaseTest {
         value = bound(value, 0, MAX_DOUBLE_NUMERATOR);
         mantissa = bound(mantissa, 1, DOUBLE_SCALE);
         uint256 expected = (value * DOUBLE_SCALE) / mantissa;
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callDivUintDouble(value, mantissa), expected, "assertEq failed: values do not match");
+        assertEq(
+            harness.callDivUintDouble(value, mantissa),
+            expected,
+            "expected harness.callDivUintDouble(value, mantissa) to equal expected"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -329,6 +395,7 @@ contract ExponentialNoErrorTest is BaseTest {
     function test_fuzz_callDivUpUint_revertsWith_DIV_BY_ZERO_DIV_revertsWhenDivisorZero(uint256 value) external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert("DIV_BY_ZERO");
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.callDivUpUint(value, 0);
     }
@@ -336,8 +403,9 @@ contract ExponentialNoErrorTest is BaseTest {
     function test_fuzz_callDivUpUint_success_whenDividendIsOne(uint256 divisor) external view {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         divisor = bound(divisor, 1, DOUBLE_SCALE);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callDivUpUint(0, divisor), 0, "assertEq failed: values do not match");
+        assertEq(harness.callDivUpUint(0, divisor), 0, "expected harness.callDivUpUint(0, divisor) to equal 0");
     }
 
     function test_fuzz_callDivUpUint_success_withNonZeroValue(uint256 value, uint256 divisor) external view {
@@ -345,8 +413,13 @@ contract ExponentialNoErrorTest is BaseTest {
         value = bound(value, 1, DOUBLE_SCALE);
         divisor = bound(divisor, 1, EXP_SCALE);
         uint256 expected = (value + divisor - 1) / divisor;
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callDivUpUint(value, divisor), expected, "assertEq failed: values do not match");
+        assertEq(
+            harness.callDivUpUint(value, divisor),
+            expected,
+            "expected harness.callDivUpUint(value, divisor) to equal expected"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -360,8 +433,13 @@ contract ExponentialNoErrorTest is BaseTest {
         mantissa = bound(mantissa, 1, DOUBLE_SCALE);
         uint256 scaled = value * EXP_SCALE;
         uint256 expected = scaled == 0 ? 0 : 1 + ((scaled - 1) / mantissa);
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callDivUpExp(value, mantissa), expected, "assertEq failed: values do not match");
+        assertEq(
+            harness.callDivUpExp(value, mantissa),
+            expected,
+            "expected harness.callDivUpExp(value, mantissa) to equal expected"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -373,7 +451,12 @@ contract ExponentialNoErrorTest is BaseTest {
         value = bound(value, 0, MAX_DOUBLE_NUMERATOR);
         divisor = bound(divisor, 1, DOUBLE_SCALE);
         uint256 expected = (value * DOUBLE_SCALE) / divisor;
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(harness.callFraction(value, divisor), expected, "assertEq failed: values do not match");
+        assertEq(
+            harness.callFraction(value, divisor),
+            expected,
+            "expected harness.callFraction(value, divisor) to equal expected"
+        );
     }
 }

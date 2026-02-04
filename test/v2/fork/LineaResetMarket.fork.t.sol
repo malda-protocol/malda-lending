@@ -20,6 +20,7 @@ interface IFirewallProtected {
 contract LineaResetMarketTest is BaseForkTest {
     address internal constant MARKET = 0x301E5481271fD4F4f4C0291F88d7d829c64E2B2b;
     address internal constant OPERATOR = 0x4bbd2B599425026b8A504816D8A043636e2D7Ec7;
+    address internal constant WEETH_LINEA_HOLDER = 0x3E944fF6573a62cb9D55e39CC954Ebbdcffb7984;
 
     bytes32 internal constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 
@@ -37,8 +38,6 @@ contract LineaResetMarketTest is BaseForkTest {
 
         mErc20Host impl = new mErc20Host();
         NEW_IMPL = address(impl);
-
-        vm.deal(MARKET_ADMIN, 100 ether);
     }
 
     ////////////////////////////////////////////////////////////
@@ -46,60 +45,66 @@ contract LineaResetMarketTest is BaseForkTest {
     ////////////////////////////////////////////////////////////
 
     function test_fork_resetMarket_success_upgradeResetMarketAndViews() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20Host m = mErc20Host(MARKET);
-
         _assertViewMethodsDontRevert(m);
 
-        vm.startPrank(MARKET_ADMIN);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(MARKET_ADMIN);
         ProxyAdmin(PROXY_ADMIN).upgradeAndCall(ITransparentUpgradeableProxy(payable(MARKET)), NEW_IMPL, "");
+
+        vm.prank(MARKET_ADMIN);
         m.resetMarket();
-        vm.stopPrank();
 
-        assertEq(m.totalSupply(), 0, "totalSupply changed");
-        assertEq(m.totalBorrows(), 0, "totalBorrows not reset");
-        assertEq(m.totalReserves(), 0, "totalReserves not reset");
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(m.totalSupply(), 0, "totalSupply should be 0 after resetMarket");
+        assertEq(m.totalBorrows(), 0, "totalBorrows should be 0 after resetMarket");
+        assertEq(m.totalReserves(), 0, "totalReserves should be 0 after resetMarket");
 
-        assertTrue(m.borrowIndex() > 0, "borrowIndex is zero");
-        assertTrue(m.accrualBlockTimestamp() > 0, "accrualBlockTimestamp is zero");
+        assertTrue(m.borrowIndex() > 0, "borrowIndex should be non-zero after resetMarket");
+        assertTrue(m.accrualBlockTimestamp() > 0, "accrualBlockTimestamp should be non-zero after resetMarket");
 
         uint256 ex = m.exchangeRateStored();
-        assertTrue(ex > 0, "exchangeRateStored is zero");
+        assertTrue(ex > 0, "exchangeRateStored should be non-zero after resetMarket");
 
         _assertViewMethodsDontRevert(m);
     }
 
     function test_fork_resetMarket_success_upgradeResetMarketAndActions() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mErc20Host m = mErc20Host(MARKET);
-
         _assertViewMethodsDontRevert(m);
 
-        vm.startPrank(MARKET_ADMIN);
-        ProxyAdmin(PROXY_ADMIN).upgradeAndCall(ITransparentUpgradeableProxy(payable(MARKET)), NEW_IMPL, "");
-        m.resetMarket();
-        vm.stopPrank();
-
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(MARKET_ADMIN);
+        ProxyAdmin(PROXY_ADMIN).upgradeAndCall(ITransparentUpgradeableProxy(payable(MARKET)), NEW_IMPL, "");
+
+        vm.prank(MARKET_ADMIN);
+        m.resetMarket();
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         vm.prank(m.hypernativeFirewallAdmin());
         m.setFirewall(address(0));
 
-        assertEq(m.totalSupply(), 0, "totalSupply changed");
-        assertEq(m.totalBorrows(), 0, "totalBorrows not reset");
-        assertEq(m.totalReserves(), 0, "totalReserves not reset");
+        assertEq(m.totalSupply(), 0, "totalSupply should be 0 after resetMarket");
+        assertEq(m.totalBorrows(), 0, "totalBorrows should be 0 after resetMarket");
+        assertEq(m.totalReserves(), 0, "totalReserves should be 0 after resetMarket");
 
-        assertTrue(m.borrowIndex() > 0, "borrowIndex is zero");
-        assertTrue(m.accrualBlockTimestamp() > 0, "accrualBlockTimestamp is zero");
+        assertTrue(m.borrowIndex() > 0, "borrowIndex should be non-zero after resetMarket");
+        assertTrue(m.accrualBlockTimestamp() > 0, "accrualBlockTimestamp should be non-zero after resetMarket");
 
         uint256 ex = m.exchangeRateStored();
-        assertTrue(ex > 0, "exchangeRateStored is zero");
+        assertTrue(ex > 0, "exchangeRateStored should be non-zero after resetMarket");
 
         _assertViewMethodsDontRevert(m);
 
-        vm.startPrank(MARKET_ADMIN);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(MARKET_ADMIN);
         IWhitelistLike(OPERATOR).setWhitelistStatus(false);
-        vm.stopPrank();
 
         // Disable Operator firewall to avoid consumer registration issues
         IFirewallProtected operator = IFirewallProtected(OPERATOR);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(operator.hypernativeFirewallAdmin());
         operator.setFirewall(address(0));
@@ -109,21 +114,24 @@ contract LineaResetMarketTest is BaseForkTest {
         address underlying = m.underlying();
         IERC20 u = IERC20(underlying);
         uint256 mintAmount = 1e17;
-        deal(underlying, address(this), mintAmount);
+        _fundErc20FromHolder(underlying, WEETH_LINEA_HOLDER, address(this), mintAmount);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         u.approve(MARKET, mintAmount);
         m.mint(mintAmount, address(this), 0);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertGt(m.balanceOf(address(this)), 0, "mint failed");
-        assertEq(m.totalBorrows(), 0, "borrows changed after mint");
+        assertGt(m.balanceOf(address(this)), 0, "mint should increase user mToken balance");
+        assertEq(m.totalBorrows(), 0, "totalBorrows should remain 0 after mint");
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 borrowAmount = mintAmount / 10;
         m.borrow(borrowAmount);
 
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 userBorrow = m.borrowBalanceStored(address(this));
-        assertGt(userBorrow, 0, "borrow failed");
-        assertEq(m.totalBorrows(), userBorrow, "assertEq failed: values do not match");
+        assertGt(userBorrow, 0, "borrow should increase user borrow balance");
+        assertEq(m.totalBorrows(), userBorrow, "totalBorrows should equal the user's borrow balance");
 
         _assertViewMethodsDontRevert(m);
     }
@@ -132,7 +140,6 @@ contract LineaResetMarketTest is BaseForkTest {
     //                        Helpers                         //
     ////////////////////////////////////////////////////////////
 
-    // ---------- helpers ----------
     function _assertViewMethodsDontRevert(mErc20Host m) internal view {
         m.totalSupply();
         m.totalBorrows();

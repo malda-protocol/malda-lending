@@ -249,21 +249,29 @@ contract EverclearBridgeTest is BaseTest {
         vm.stopPrank();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(market), extra, "assertEq failed: values do not match");
-        assertEq(token.balanceOf(address(bridge)), input.amount + input.fee, "assertEq failed: values do not match");
+        assertEq(token.balanceOf(market), extra, "expected token.balanceOf(market) to equal extra");
+        assertEq(
+            token.balanceOf(address(bridge)),
+            input.amount + input.fee,
+            "expected token.balanceOf(address(bridge)) to equal input.amount + input.fee"
+        );
         assertEq(
             token.allowance(address(bridge), address(feeAdapter)),
             input.amount + input.fee,
-            "assertEq failed: values do not match"
+            "expected token.allowance(address(bridge), address(feeAdapter)) to equal input.amount + input.fee"
         );
-        assertEq(feeAdapter.callCount(), 1, "assertEq failed: values do not match");
-        assertEq(feeAdapter.lastDestinations(0), dstChainId, "assertEq failed: values do not match");
-        assertEq(feeAdapter.lastAmount(), input.amount, "assertEq failed: values do not match");
+        assertEq(feeAdapter.callCount(), 1, "expected feeAdapter.callCount() to equal 1");
+        assertEq(
+            feeAdapter.lastDestinations(0), dstChainId, "expected feeAdapter.lastDestinations(0) to equal dstChainId"
+        );
+        assertEq(feeAdapter.lastAmount(), input.amount, "expected feeAdapter.lastAmount() to equal input.amount");
 
         (uint256 storedFee, uint256 storedDeadline, bytes memory storedSig) = feeAdapter.lastFeeParams();
-        assertEq(storedFee, input.fee, "assertEq failed: values do not match");
-        assertEq(storedDeadline, input.deadline, "assertEq failed: values do not match");
-        assertEq(keccak256(storedSig), keccak256(input.sig), "assertEq failed: values do not match");
+        assertEq(storedFee, input.fee, "expected storedFee to equal input.fee");
+        assertEq(storedDeadline, input.deadline, "expected storedDeadline to equal input.deadline");
+        assertEq(
+            keccak256(storedSig), keccak256(input.sig), "expected keccak256(storedSig) to equal keccak256(input.sig)"
+        );
     }
 
     function test_fuzz_msgSent_success_noExcess(
@@ -314,15 +322,21 @@ contract EverclearBridgeTest is BaseTest {
         vm.stopPrank();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(market), 0, "assertEq failed: values do not match");
-        assertEq(token.balanceOf(address(bridge)), input.amount + input.fee, "assertEq failed: values do not match");
+        assertEq(token.balanceOf(market), 0, "expected token.balanceOf(market) to equal 0");
+        assertEq(
+            token.balanceOf(address(bridge)),
+            input.amount + input.fee,
+            "expected token.balanceOf(address(bridge)) to equal input.amount + input.fee"
+        );
         assertEq(
             token.allowance(address(bridge), address(feeAdapter)),
             input.amount + input.fee,
-            "assertEq failed: values do not match"
+            "expected token.allowance(address(bridge), address(feeAdapter)) to equal input.amount + input.fee"
         );
-        assertEq(feeAdapter.callCount(), 1, "assertEq failed: values do not match");
-        assertEq(feeAdapter.lastDestinations(0), dstChainId, "assertEq failed: values do not match");
+        assertEq(feeAdapter.callCount(), 1, "expected feeAdapter.callCount() to equal 1");
+        assertEq(
+            feeAdapter.lastDestinations(0), dstChainId, "expected feeAdapter.lastDestinations(0) to equal dstChainId"
+        );
     }
 
     struct IntentInput {

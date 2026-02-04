@@ -30,10 +30,10 @@ contract ERC20MockTest is BaseTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(token.name(), "TestToken", "token name does not match expected");
         assertEq(token.symbol(), "TTK", "token symbol does not match expected");
-        assertEq(token.decimals(), decimals, "assertEq failed: values do not match");
-        assertEq(token.admin(), admin, "assertEq failed: values do not match");
-        assertEq(token.pohVerify(), pohVerify, "assertEq failed: values do not match");
-        assertEq(token.mintLimit(), mintLimit, "assertEq failed: values do not match");
+        assertEq(token.decimals(), decimals, "expected token.decimals() to equal decimals");
+        assertEq(token.admin(), admin, "expected token.admin() to equal admin");
+        assertEq(token.pohVerify(), pohVerify, "expected token.pohVerify() to equal pohVerify");
+        assertEq(token.mintLimit(), mintLimit, "expected token.mintLimit() to equal mintLimit");
     }
 
     ////////////////////////////////////////////////////////////
@@ -55,7 +55,7 @@ contract ERC20MockTest is BaseTest {
         token.setOnlyVerify(true);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(token.onlyVerified());
+        assertTrue(token.onlyVerified(), "expected condition to be true: token.onlyVerified()");
     }
 
     ////////////////////////////////////////////////////////////
@@ -75,14 +75,14 @@ contract ERC20MockTest is BaseTest {
         token.mint(user, amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(user), amount, "assertEq failed: values do not match");
-        assertEq(token.minted(user), amount, "assertEq failed: values do not match");
+        assertEq(token.balanceOf(user), amount, "expected token.balanceOf(user) to equal amount");
+        assertEq(token.minted(user), amount, "expected token.minted(user) to equal amount");
     }
 
     function test_unit_mint_revertsWith_ERC20Mock_OnlyVerified() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(admin);
+        vm.startPrank(admin);
         token.setOnlyVerify(true);
+        vm.stopPrank();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ERC20Mock.ERC20Mock_OnlyVerified.selector);
@@ -93,9 +93,9 @@ contract ERC20MockTest is BaseTest {
     }
 
     function test_unit_mint_revertsWith_ERC20Mock_AlreadyMinted() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(user);
+        vm.startPrank(user);
         token.mint(user, mintLimit - 1);
+        vm.stopPrank();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ERC20Mock.ERC20Mock_AlreadyMinted.selector);
@@ -110,9 +110,9 @@ contract ERC20MockTest is BaseTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_burn_success() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(user);
+        vm.startPrank(user);
         token.mint(user, 500);
+        vm.stopPrank();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true);
@@ -123,14 +123,14 @@ contract ERC20MockTest is BaseTest {
         token.burn(300);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(user), 200, "assertEq failed: values do not match");
-        assertEq(token.minted(user), 500, "assertEq failed: values do not match");
+        assertEq(token.balanceOf(user), 200, "expected token.balanceOf(user) to equal 200");
+        assertEq(token.minted(user), 500, "expected token.minted(user) to equal 500");
     }
 
     function test_unit_burn_revertsWith_ERC20Mock_TooMuch() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(user);
+        vm.startPrank(user);
         token.mint(user, 500);
+        vm.stopPrank();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ERC20Mock.ERC20Mock_TooMuch.selector);
@@ -141,9 +141,9 @@ contract ERC20MockTest is BaseTest {
     }
 
     function test_unit_burn_success_admin() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(user);
+        vm.startPrank(user);
         token.mint(user, 500);
+        vm.stopPrank();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true);
@@ -154,14 +154,14 @@ contract ERC20MockTest is BaseTest {
         token.burn(user, 300);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(user), 200, "assertEq failed: values do not match");
-        assertEq(token.minted(user), 500, "assertEq failed: values do not match");
+        assertEq(token.balanceOf(user), 200, "expected token.balanceOf(user) to equal 200");
+        assertEq(token.minted(user), 500, "expected token.minted(user) to equal 500");
     }
 
     function test_unit_burn_revertsWith_ERC20Mock_NotAuthorized() external {
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(user);
+        vm.startPrank(user);
         token.mint(user, 500);
+        vm.stopPrank();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ERC20Mock.ERC20Mock_NotAuthorized.selector);

@@ -4,6 +4,10 @@ pragma solidity 0.8.28;
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 import {LZUnifiedBridge} from "src/rebalancer/bridges/LZUnifiedBridge.sol";
 
+import {MessagingFee, SendParam, ILayerZeroOFT} from "src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol";
+import {MessagingReceipt} from "src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol";
+import {IOftMessageExecutor} from "src/interfaces/IOftMessageExecutor.sol";
+
 import {MockRoles} from "test/mocks/MockRoles.sol";
 import {
     LZBridgeMockExecutor,
@@ -12,6 +16,24 @@ import {
     LZBridgeRevertingExecutor
 } from "test/v2/mocks/rebalancer/LZUnifiedBridgeMocks.t.sol";
 import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
+
+contract LZOftSendExecutor is IOftMessageExecutor {
+    function executeSend(
+        address,
+        address bridgeContract,
+        SendParam calldata params,
+        MessagingFee calldata fees,
+        address,
+        address refundAddress
+    ) external payable returns (MessagingReceipt memory receipt) {
+        // solhint-disable-next-line check-send-result
+        (receipt,) = ILayerZeroOFT(bridgeContract).send{value: fees.nativeFee}(params, fees, refundAddress);
+    }
+
+    function processUncomposed(address, address, address) external payable {}
+
+    function executeCompose(address, address, address) external payable {}
+}
 
 contract LZUnifiedBridgeUnitTest is BaseTest {
     MockRoles internal roles;
@@ -66,7 +88,11 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         bridge.setBridgeContract(address(oft), bridgeContract);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(bridge.bridgeContracts(address(oft)), bridgeContract, "assertEq failed: values do not match");
+        assertEq(
+            bridge.bridgeContracts(address(oft)),
+            bridgeContract,
+            "expected bridge.bridgeContracts(address(oft)) to equal bridgeContract"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -85,7 +111,11 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         bridge.setOftExecutorContract(address(oft), newExecutor);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(bridge.oftExecutors(address(oft)), newExecutor, "assertEq failed: values do not match");
+        assertEq(
+            bridge.oftExecutors(address(oft)),
+            newExecutor,
+            "expected bridge.oftExecutors(address(oft)) to equal newExecutor"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -104,6 +134,39 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.sendMsg{value: 1 ether}(amount, address(market), dstChainId, address(oft), message, extraData);
+    }
+
+    function test_fuzz_sendMsg_success(uint256 amountRaw, uint256 minAmountRaw, uint96 feeRaw) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        LZUnifiedBridge bridge2 = new LZUnifiedBridge(address(roles), address(this));
+        LZOftSendExecutor sendExecutor = new LZOftSendExecutor();
+        bridge2.setOftExecutorContract(address(oft), address(sendExecutor));
+
+        uint256 amountFuzzed = bound(amountRaw, 1, 1e24);
+        uint256 minAmountFuzzed = bound(minAmountRaw, 0, amountFuzzed);
+        uint256 fee = uint256(bound(feeRaw, 0, 10 ether));
+
+        vm.deal(address(this), fee);
+        oft.setQuoteFee(fee, 0);
+        bytes memory message = abi.encode(address(market), amountFuzzed, minAmountFuzzed, bytes("extra"));
+        bytes memory extraData = _extraData(users.bob);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true);
+        emit LZUnifiedBridge.MsgSent(dstChainId, address(market), amountFuzzed, minAmountFuzzed, bytes32("guid"));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge2.sendMsg{value: fee}(amountFuzzed, address(market), dstChainId, address(oft), message, extraData);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        (uint32 dstEid,, uint256 amountLD, uint256 minAmountLD,,,) = oft.lastSendParams();
+        (uint256 nativeFee,) = oft.lastSendFee();
+
+        assertEq(oft.lastRefund(), users.bob, "refund address was not forwarded to the OFT send");
+        assertEq(dstEid, dstChainId, "destination chain id was not forwarded to the OFT send");
+        assertEq(amountLD, amountFuzzed, "amountLD was not forwarded to the OFT send");
+        assertEq(minAmountLD, minAmountFuzzed, "minAmountLD was not forwarded to the OFT send");
+        assertEq(nativeFee, fee, "nativeFee was not forwarded to the OFT send");
     }
 
     function test_unit_sendMsg_revertsWith_LZBridge_ChainNotRegistered() external {
@@ -323,15 +386,15 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
     //                          getFee                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_getFee_success() external {
+    function test_fuzz_getFee_success(uint256 fuzzFee) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        oft.setQuoteFee(0.5 ether, 0);
+        oft.setQuoteFee(fuzzFee, 0);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 fee = bridge.getFee(dstChainId, _message(), "");
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(fee, 0.5 ether, "assertEq failed: values do not match");
+        assertEq(fee, fuzzFee, "expected fee to equal fuzzFee");
     }
 
     function test_unit_getFee_revertsWith_LZBridge_ChainNotRegistered() external {

@@ -82,9 +82,21 @@ contract OracleUnderlyingTest is Operator, BaseTest {
         uint256 usdcPrice = mixedPriceOracle.getUnderlyingPrice(address(mUsdc));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(btcPrice, 10 ** (36 - BITCOIN_DECIMALS) * USD_PER_BITCOIN, "assertEq failed: values do not match");
-        assertEq(ethPrice, 10 ** (36 - ETH_DECIMALS) * USD_PER_ETH, "assertEq failed: values do not match");
-        assertEq(usdcPrice, 10 ** (36 - USDC_DECIMALS) * USD_PER_USDC, "assertEq failed: values do not match");
+        assertEq(
+            btcPrice,
+            10 ** (36 - BITCOIN_DECIMALS) * USD_PER_BITCOIN,
+            "expected btcPrice to equal 10 ** (36 - BITCOIN_DECIMALS) * USD_PER_BITCOIN"
+        );
+        assertEq(
+            ethPrice,
+            10 ** (36 - ETH_DECIMALS) * USD_PER_ETH,
+            "expected ethPrice to equal 10 ** (36 - ETH_DECIMALS) * USD_PER_ETH"
+        );
+        assertEq(
+            usdcPrice,
+            10 ** (36 - USDC_DECIMALS) * USD_PER_USDC,
+            "expected usdcPrice to equal 10 ** (36 - USDC_DECIMALS) * USD_PER_USDC"
+        );
     }
 
     function test_fuzz_convertMarketAmountToUSDValue_success(uint256 rawAmount) external {
@@ -101,11 +113,17 @@ contract OracleUnderlyingTest is Operator, BaseTest {
         assertEq(
             btcValue,
             _expectedUsdValue(amount, USD_PER_BITCOIN, BITCOIN_DECIMALS),
-            "assertEq failed: values do not match"
+            "expected btcValue to equal _expectedUsdValue(amount, USD_PER_BITCOIN, BITCOIN_DECIMALS)"
         );
-        assertEq(ethValue, _expectedUsdValue(amount, USD_PER_ETH, ETH_DECIMALS), "assertEq failed: values do not match");
         assertEq(
-            usdcValue, _expectedUsdValue(amount, USD_PER_USDC, USDC_DECIMALS), "assertEq failed: values do not match"
+            ethValue,
+            _expectedUsdValue(amount, USD_PER_ETH, ETH_DECIMALS),
+            "expected ethValue to equal _expectedUsdValue(amount, USD_PER_ETH, ETH_DECIMALS)"
+        );
+        assertEq(
+            usdcValue,
+            _expectedUsdValue(amount, USD_PER_USDC, USDC_DECIMALS),
+            "expected usdcValue to equal _expectedUsdValue(amount, USD_PER_USDC, USDC_DECIMALS)"
         );
     }
 

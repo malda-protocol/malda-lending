@@ -43,11 +43,20 @@ contract ReferralSigningTest is BaseTest {
         referral.claimReferral(sig, referrer);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(referral.referralsForUserRegistry(referred), referrer, "assertEq failed: values do not match");
-        assertTrue(referral.referredByRegistry(referrer, referred));
-        assertTrue(referral.isUserReferred(referred));
-        assertEq(referral.totalReferred(referrer), 1, "assertEq failed: values do not match");
-        assertEq(referral.nonces(referred), nonce + 1, "assertEq failed: values do not match");
+        assertEq(
+            referral.referralsForUserRegistry(referred),
+            referrer,
+            "expected referral.referralsForUserRegistry(referred) to equal referrer"
+        );
+        assertTrue(
+            referral.referredByRegistry(referrer, referred),
+            "expected condition to be true: referral.referredByRegistry(referrer, referred)"
+        );
+        assertTrue(
+            referral.isUserReferred(referred), "expected condition to be true: referral.isUserReferred(referred)"
+        );
+        assertEq(referral.totalReferred(referrer), 1, "expected referral.totalReferred(referrer) to equal 1");
+        assertEq(referral.nonces(referred), nonce + 1, "expected referral.nonces(referred) to equal nonce + 1");
     }
 
     function test_unit_claimReferral_revertsWith_ReferralSigning_SameUser() public {
@@ -74,9 +83,9 @@ contract ReferralSigningTest is BaseTest {
         vm.expectEmit(true, true, false, true, address(referral));
         emit ReferralSigning.ReferralClaimed(referred, referrer);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(referred);
+        vm.startPrank(referred);
         referral.claimReferral(sig, referrer);
+        vm.stopPrank();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true, address(referral));

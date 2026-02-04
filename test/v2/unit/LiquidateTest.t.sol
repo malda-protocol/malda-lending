@@ -59,14 +59,14 @@ contract LiquidationTest is BaseMTokenTest {
         dai.approve(address(mDaiHost), type(uint256).max);
         mDaiHost.mint(5000 ether, address(this), 5000 ether - 1000);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(borrower);
+        vm.startPrank(borrower);
         mDaiHost.borrow(1000 ether);
+        vm.stopPrank();
 
         _getTokens(dai, liquidator, 2000 ether);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(liquidator);
+        vm.startPrank(liquidator);
         dai.approve(address(mDaiHost), type(uint256).max);
+        vm.stopPrank();
 
         // force undercollateralization; reduce collateral factor to 10%
         operator.setCollateralFactor(address(mWeth), 0.1e18);
@@ -75,12 +75,13 @@ contract LiquidationTest is BaseMTokenTest {
         uint256 liquidatorCollatBefore = mWeth.balanceOf(liquidator);
 
         // perform liquidation
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
 
         uint256 borrowerCollatAfter = mWeth.balanceOf(borrower);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 liquidatorCollatAfter = mWeth.balanceOf(liquidator);
 
@@ -107,14 +108,14 @@ contract LiquidationTest is BaseMTokenTest {
         dai.approve(address(mDaiHost), type(uint256).max);
         mDaiHost.mint(5000 ether, address(this), 5000 ether - 1000);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(borrower);
+        vm.startPrank(borrower);
         mDaiHost.borrow(1000 ether);
+        vm.stopPrank();
 
         _getTokens(dai, liquidator, 2000 ether);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(liquidator);
+        vm.startPrank(liquidator);
         dai.approve(address(mDaiHost), type(uint256).max);
+        vm.stopPrank();
 
         // price drop
         newOracle.setUnderlyingPrice(address(mWeth), 5e17); // $0.50
@@ -123,12 +124,13 @@ contract LiquidationTest is BaseMTokenTest {
         uint256 liquidatorCollatBefore = mWeth.balanceOf(liquidator);
 
         // perform liquidation
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
 
         uint256 borrowerCollatAfter = mWeth.balanceOf(borrower);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
+
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 liquidatorCollatAfter = mWeth.balanceOf(liquidator);
 
@@ -155,14 +157,14 @@ contract LiquidationTest is BaseMTokenTest {
         dai.approve(address(mDaiHost), type(uint256).max);
         mDaiHost.mint(5000 ether, address(this), 5000 ether - 1000);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(borrower);
+        vm.startPrank(borrower);
         mDaiHost.borrow(1000 ether);
+        vm.stopPrank();
 
         _getTokens(dai, liquidator, 2000 ether);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(liquidator);
+        vm.startPrank(liquidator);
         dai.approve(address(mDaiHost), type(uint256).max);
+        vm.stopPrank();
 
         // price drop
         newOracle.setUnderlyingPrice(address(mWeth), 5e17);
@@ -170,8 +172,8 @@ contract LiquidationTest is BaseMTokenTest {
         uint256 borrowerCollatBefore = mWeth.balanceOf(borrower);
         uint256 liquidatorCollatBefore = mWeth.balanceOf(liquidator);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         // perform liquidation
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
@@ -205,11 +207,12 @@ contract LiquidationTest is BaseMTokenTest {
         dai.approve(address(mDaiHost), type(uint256).max);
         mDaiHost.mint(5000 ether, address(this), 5000 ether - 1000);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(borrower);
+        vm.startPrank(borrower);
         mDaiHost.borrow(1000 ether);
+        vm.stopPrank();
 
         _getTokens(dai, liquidator, 2000 ether);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         dai.approve(address(mDaiHost), type(uint256).max);

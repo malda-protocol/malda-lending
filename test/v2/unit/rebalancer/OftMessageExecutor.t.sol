@@ -63,21 +63,25 @@ contract BaseOftMessageExecutorTest is BaseTest {
     //                   pullFromRebalancer                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_pullFromRebalancer_success() external {
+    function test_fuzz_pullFromRebalancer_success(uint256 amountRaw) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
         address rebalancer = users.alice;
-        underlying.mint(rebalancer, 1e18);
+        uint256 amount = bound(amountRaw, 1, 1e24);
+        underlying.mint(rebalancer, amount);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(rebalancer);
-        underlying.approve(address(harness), 1e18);
+        underlying.approve(address(harness), amount);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        harness.pullFromRebalancer(address(underlying), 1e18, rebalancer);
+        harness.pullFromRebalancer(address(underlying), amount, rebalancer);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(underlying.balanceOf(address(harness)), 1e18, "assertEq failed: values do not match");
+        assertEq(
+            underlying.balanceOf(address(harness)),
+            amount,
+            "harness did not pull the expected amount of underlying from the rebalancer"
+        );
     }
 
     function test_unit_pullFromRebalancer_revertsWith_Executor_NotRebalancer() external {
@@ -95,18 +99,19 @@ contract BaseOftMessageExecutorTest is BaseTest {
     //                  fallbackToUnderlying                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_fallbackToUnderlying_success_transfersWhenUnderlyingBridge() external {
+    function test_fuzz_fallbackToUnderlying_success_transfersWhenUnderlyingBridge(uint256 amountRaw) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
         address market = users.bob;
 
-        underlying.mint(address(harness), 2e18);
+        uint256 amount = bound(amountRaw, 1, 1e24);
+        underlying.mint(address(harness), amount);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.fallbackToUnderlying(market, address(underlying), address(underlying));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(underlying.balanceOf(market), 2e18, "assertEq failed: values do not match");
+        assertEq(underlying.balanceOf(market), amount, "market did not receive the expected underlying amount");
     }
 
     function test_unit_fallbackToUnderlying_success_returnsWhenNoOftBalance() external {
@@ -119,22 +124,23 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness.fallbackToUnderlying(market, address(underlying), address(oft));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(underlying.balanceOf(market), 0, "assertEq failed: values do not match");
+        assertEq(underlying.balanceOf(market), 0, "expected underlying.balanceOf(market) to equal 0");
     }
 
-    function test_unit_fallbackToUnderlying_success_depositsAndTransfers() external {
+    function test_fuzz_fallbackToUnderlying_success_depositsAndTransfers(uint256 amountRaw) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockWrapperToken underlying = new MockWrapperToken("U", "U");
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
         address market = users.bob;
 
-        oft.mint(address(harness), 3e18);
+        uint256 amount = bound(amountRaw, 1, 1e24);
+        oft.mint(address(harness), amount);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         harness.fallbackToUnderlying(market, address(underlying), address(oft));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(underlying.balanceOf(market), 3e18, "assertEq failed: values do not match");
+        assertEq(underlying.balanceOf(market), amount, "market did not receive the expected wrapped underlying amount");
     }
 
     ////////////////////////////////////////////////////////////
@@ -175,7 +181,7 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness.sendOFT(address(oft), params, fees, users.bob);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(oft.lastRefund(), users.bob, "assertEq failed: values do not match");
+        assertEq(oft.lastRefund(), users.bob, "expected oft.lastRefund() to equal users.bob");
     }
 
     ////////////////////////////////////////////////////////////
@@ -193,7 +199,7 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness.processUncomposed(market, address(underlying), address(underlying));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(underlying.balanceOf(market), 1e18, "assertEq failed: values do not match");
+        assertEq(underlying.balanceOf(market), 1e18, "expected underlying.balanceOf(market) to equal 1e18");
     }
 
     ////////////////////////////////////////////////////////////
@@ -211,7 +217,7 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness.executeCompose(market, address(underlying), address(underlying));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(underlying.balanceOf(market), 1e18, "assertEq failed: values do not match");
+        assertEq(underlying.balanceOf(market), 1e18, "expected underlying.balanceOf(market) to equal 1e18");
     }
 
     ////////////////////////////////////////////////////////////
@@ -251,9 +257,9 @@ contract rsEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 2e18);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(rebalancer);
+        vm.startPrank(rebalancer);
         underlying.approve(address(executor), 2e18);
+        vm.stopPrank();
 
         SendParam memory params = _sendParam(2e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
@@ -262,7 +268,7 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(oft.balanceOf(address(executor)), 2e18, "assertEq failed: values do not match");
+        assertEq(oft.balanceOf(address(executor)), 2e18, "expected oft.balanceOf(address(executor)) to equal 2e18");
     }
 
     function test_unit_executeSend_revertsWith_Executor_DifferentInnerToken() external {
@@ -272,9 +278,9 @@ contract rsEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(rebalancer);
+        vm.startPrank(rebalancer);
         underlying.approve(address(executor), 1e18);
+        vm.stopPrank();
 
         SendParam memory params = _sendParam(1e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
@@ -293,9 +299,9 @@ contract rsEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(rebalancer);
+        vm.startPrank(rebalancer);
         underlying.approve(address(executor), 1e18);
+        vm.stopPrank();
 
         SendParam memory params = _sendParam(1e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
@@ -316,9 +322,9 @@ contract rsEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(rebalancer);
+        vm.startPrank(rebalancer);
         underlying.approve(address(executor), 1e18);
+        vm.stopPrank();
 
         SendParam memory params = _sendParam(1e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
@@ -336,9 +342,9 @@ contract rsEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(rebalancer);
+        vm.startPrank(rebalancer);
         underlying.approve(address(executor), 1e18);
+        vm.stopPrank();
 
         SendParam memory params = _sendParam(1e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
@@ -379,9 +385,9 @@ contract weEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(rebalancer);
+        vm.startPrank(rebalancer);
         underlying.approve(address(executor), 1e18);
+        vm.stopPrank();
 
         SendParam memory params = _sendParam(1e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
@@ -398,9 +404,9 @@ contract weEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(rebalancer);
+        vm.startPrank(rebalancer);
         underlying.approve(address(executor), 1e18);
+        vm.stopPrank();
 
         SendParam memory params = _sendParam(1e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
@@ -419,9 +425,9 @@ contract weEthOftMessageExecutorTest is BaseTest {
 
         address rebalancer = users.alice;
         underlying.mint(rebalancer, 1e18);
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(rebalancer);
+        vm.startPrank(rebalancer);
         underlying.approve(address(executor), 1e18);
+        vm.stopPrank();
 
         SendParam memory params = _sendParam(1e18);
         MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});

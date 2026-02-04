@@ -56,12 +56,12 @@ contract BlacklisterTest is BaseTest {
         vm.expectEmit(true, false, false, true);
         emit IBlacklister.Blacklisted(user);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(owner);
+        vm.startPrank(owner);
         blacklister.blacklist(user);
+        vm.stopPrank();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(blacklister.isBlacklisted(user));
+        assertTrue(blacklister.isBlacklisted(user), "expected condition to be true: blacklister.isBlacklisted(user)");
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, false, false, true);
@@ -72,7 +72,7 @@ contract BlacklisterTest is BaseTest {
         blacklister.unblacklist(user);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertFalse(blacklister.isBlacklisted(user));
+        assertFalse(blacklister.isBlacklisted(user), "expected condition to be false: blacklister.isBlacklisted(user)");
     }
 
     function test_unit_blacklist_revertsWith_Blacklister_AlreadyBlacklisted() external {
@@ -105,12 +105,12 @@ contract BlacklisterTest is BaseTest {
         vm.expectEmit(true, false, false, true);
         emit IBlacklister.Blacklisted(user);
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(guardian);
+        vm.startPrank(guardian);
         blacklister.blacklist(user);
+        vm.stopPrank();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(blacklister.isBlacklisted(user));
+        assertTrue(blacklister.isBlacklisted(user), "expected condition to be true: blacklister.isBlacklisted(user)");
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, false, false, true);
@@ -121,7 +121,7 @@ contract BlacklisterTest is BaseTest {
         blacklister.unblacklist(user);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertFalse(blacklister.isBlacklisted(user));
+        assertFalse(blacklister.isBlacklisted(user), "expected condition to be false: blacklister.isBlacklisted(user)");
     }
 
     ////////////////////////////////////////////////////////////
@@ -178,8 +178,8 @@ contract BlacklisterTest is BaseTest {
         vm.stopPrank();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(list.length, 1, "assertEq failed: values do not match");
-        assertEq(list[0], user2, "assertEq failed: values do not match");
+        assertEq(list.length, 1, "expected list.length to equal 1");
+        assertEq(list[0], user2, "expected list[0] to equal user2");
     }
 
     function test_unit_getBlacklistedAddresses_success_handlesIndexRemoval() external {
@@ -195,8 +195,8 @@ contract BlacklisterTest is BaseTest {
         vm.stopPrank();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(list.length, 1, "assertEq failed: values do not match");
-        assertEq(list[0], user2, "assertEq failed: values do not match");
+        assertEq(list.length, 1, "expected list.length to equal 1");
+        assertEq(list[0], user2, "expected list[0] to equal user2");
     }
 
     function test_unit_getBlacklistedAddresses_success_singleEntry() external {
@@ -209,7 +209,7 @@ contract BlacklisterTest is BaseTest {
         vm.stopPrank();
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(list.length, 1, "assertEq failed: values do not match");
-        assertEq(list[0], user, "assertEq failed: values do not match");
+        assertEq(list.length, 1, "expected list.length to equal 1");
+        assertEq(list[0], user, "expected list[0] to equal user");
     }
 }

@@ -25,7 +25,7 @@ contract DefaultGasHelperTest is BaseTest {
 
     function test_unit_constructor_success() external view {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(helper.owner(), owner, "assertEq failed: values do not match");
+        assertEq(helper.owner(), owner, "expected helper.owner() to equal owner");
     }
 
     ////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@ contract DefaultGasHelperTest is BaseTest {
         helper.setGasFee(chainId, amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(helper.gasFees(chainId), amount, "assertEq failed: values do not match");
+        assertEq(helper.gasFees(chainId), amount, "expected helper.gasFees(chainId) to equal amount");
     }
 
     function test_unit_setGasFee_revertsWith_OwnableUnauthorizedAccount() external {

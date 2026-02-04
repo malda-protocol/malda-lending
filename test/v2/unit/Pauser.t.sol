@@ -15,9 +15,7 @@ contract PauserTest is BasePauserTest {
 
     function test_fuzz_constructor_revertsWith_Pauser_AddressNotValid(bool zeroRoles, bool zeroOperator) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        if (!zeroRoles && !zeroOperator) {
-            zeroRoles = true;
-        }
+        vm.assume(zeroRoles || zeroOperator);
         address rolesAddress = zeroRoles ? address(0) : address(roles);
         address operatorAddress = zeroOperator ? address(0) : address(operator);
 
@@ -56,8 +54,14 @@ contract PauserTest is BasePauserTest {
         pauser.addPausableMarket(market, pausableType);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(pauser.registeredContracts(market));
-        assertEq(uint256(pauser.contractTypes(market)), uint256(pausableType), "assertEq failed: values do not match");
+        assertTrue(
+            pauser.registeredContracts(market), "expected condition to be true: pauser.registeredContracts(market)"
+        );
+        assertEq(
+            uint256(pauser.contractTypes(market)),
+            uint256(pausableType),
+            "expected uint256(pauser.contractTypes(market)) to equal uint256(pausableType)"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -94,9 +98,13 @@ contract PauserTest is BasePauserTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         if (isHost) {
-            assertTrue(operator.isPaused(market, opType));
+            assertTrue(
+                operator.isPaused(market, opType), "expected condition to be true: operator.isPaused(market, opType)"
+            );
         } else {
-            assertTrue(mWethExtension.isPaused(opType));
+            assertTrue(
+                mWethExtension.isPaused(opType), "expected condition to be true: mWethExtension.isPaused(opType)"
+            );
         }
     }
 
@@ -205,11 +213,14 @@ contract PauserTest is BasePauserTest {
         pauser.removePausableMarket(address(mWethHost));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertFalse(pauser.registeredContracts(address(mWethHost)));
+        assertFalse(
+            pauser.registeredContracts(address(mWethHost)),
+            "expected condition to be false: pauser.registeredContracts(address(mWethHost))"
+        );
         assertEq(
             uint256(pauser.contractTypes(address(mWethHost))),
             uint256(IPauser.PausableType.NonPausable),
-            "assertEq failed: values do not match"
+            "expected uint256(pauser.contractTypes(address(mWethHost))) to equal uint256(IPauser.PausableType.NonPausable)"
         );
     }
 
@@ -226,20 +237,26 @@ contract PauserTest is BasePauserTest {
         vm.expectEmit(true, false, false, true, address(pauser));
         emit IPauser.MarketRemoved(address(mWethHost));
 
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
         pauser.removePausableMarket(address(mWethHost));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertFalse(pauser.registeredContracts(address(mWethHost)));
+        assertFalse(
+            pauser.registeredContracts(address(mWethHost)),
+            "expected condition to be false: pauser.registeredContracts(address(mWethHost))"
+        );
         assertEq(
             uint256(pauser.contractTypes(address(mWethHost))),
             uint256(IPauser.PausableType.NonPausable),
-            "assertEq failed: values do not match"
+            "expected uint256(pauser.contractTypes(address(mWethHost))) to equal uint256(IPauser.PausableType.NonPausable)"
         );
 
         (address market, IPauser.PausableType marketType) = pauser.pausableContracts(0);
-        assertEq(market, address(mWethExtension), "assertEq failed: values do not match");
-        assertEq(uint256(marketType), uint256(IPauser.PausableType.Extension), "assertEq failed: values do not match");
+        assertEq(market, address(mWethExtension), "expected market to equal address(mWethExtension)");
+        assertEq(
+            uint256(marketType),
+            uint256(IPauser.PausableType.Extension),
+            "expected uint256(marketType) to equal uint256(IPauser.PausableType.Extension)"
+        );
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert();
@@ -319,9 +336,14 @@ contract PauserTest is BasePauserTest {
 
         for (uint256 i; i < ops.length; ++i) {
             if (isHost) {
-                assertTrue(operator.isPaused(market, ops[i]));
+                assertTrue(
+                    operator.isPaused(market, ops[i]),
+                    "expected condition to be true: operator.isPaused(market, ops[i])"
+                );
             } else {
-                assertTrue(mWethExtension.isPaused(ops[i]));
+                assertTrue(
+                    mWethExtension.isPaused(ops[i]), "expected condition to be true: mWethExtension.isPaused(ops[i])"
+                );
             }
         }
     }

@@ -48,6 +48,10 @@ contract MTokenInvariantTest is BaseMTokenTest {
     }
 
     function invariant_totalSupply_matchesGhost() public {
-        assertEq(mWethHost.totalSupply(), handler.ghostTotalSupply(), "assertEq failed: values do not match");
+        assertEq(
+            mWethHost.totalSupply(),
+            handler.ghostTotalSupply(),
+            "expected mWethHost.totalSupply() to equal handler.ghostTotalSupply()"
+        );
     }
 }
