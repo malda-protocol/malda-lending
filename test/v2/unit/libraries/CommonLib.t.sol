@@ -182,4 +182,28 @@ contract CommonLibTest is BaseTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(sum, expected, "sum is not equal to expected");
     }
+
+    function test_unit_computeSum_success_whenEmptyArray() public view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256[] memory values = new uint256[](0);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 sum = harness.computeSum(values);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(sum, 0, "sum is not equal to zero");
+    }
+
+    function test_unit_computeSum_revertsWith_PanicArithmeticOverflow() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256[] memory values = new uint256[](2);
+        values[0] = type(uint256).max;
+        values[1] = 1;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(abi.encodeWithSignature("Panic(uint256)", 0x11));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.computeSum(values);
+    }
 }

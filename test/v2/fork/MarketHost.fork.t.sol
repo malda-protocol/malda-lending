@@ -4,11 +4,13 @@ pragma solidity 0.8.28;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import {Operator} from "src/Operator/Operator.sol";
+import {OperatorStorage} from "src/Operator/OperatorStorage.sol";
 import {JumpRateModelV4} from "src/interest/JumpRateModelV4.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {mToken} from "src/mToken/mToken.sol";
 import {mTokenConfiguration} from "src/mToken/mTokenConfiguration.sol";
 import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
+import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {BaseForkTest} from "test/v2/utils/BaseForkTest.t.sol";
 
 interface IWETH {
@@ -23,6 +25,13 @@ contract MarketHostForkTest is BaseForkTest {
 
     // A Linea address with a large WETH balance at our pinned fork block (used to fund the test user).
     address internal constant LINEA_WETH_HOLDER = 0x90E8a5b881D211f418d77Ba8978788b62544914B;
+
+    uint256 internal constant TEST_BORROW_RATE_MAX_MANTISSA = 1e18;
+    uint256 internal constant STANDARD_SUPPLY_MULTIPLIER = 20;
+    uint256 internal constant INSUFFICIENT_LIQUIDITY_SUPPLY_MULTIPLIER = 5;
+    uint256 internal constant SAFE_ZONE_UTILIZATION_UPPER_BOUND = 0.5e18;
+    uint256 internal constant FUZZ_INPUT_UPPER_BOUND = 1e30;
+    uint256 internal constant ONE_MANTISSA = 1e18;
 
     address internal ownerOnChain;
 
@@ -85,7 +94,7 @@ contract MarketHostForkTest is BaseForkTest {
         address oldInterestRateModel = mTokenConfiguration(address(market)).interestRateModel();
 
         vm.startPrank(ownerOnChain);
-        mTokenConfiguration(address(market)).setBorrowRateMaxMantissa(1e18);
+        mTokenConfiguration(address(market)).setBorrowRateMaxMantissa(TEST_BORROW_RATE_MAX_MANTISSA);
         vm.warp(block.timestamp + 1);
         mTokenStorage(address(market)).accrueInterest(); // ensure the next `setInterestRateModel` does not emit AccrueInterest
 
@@ -105,6 +114,15 @@ contract MarketHostForkTest is BaseForkTest {
         );
     }
 
+    function test_fork_setInterestRateModel_revertsWith_mt_OnlyAdmin_whenCallerNotAdmin() public {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.prank(users.alice);
+        vm.expectRevert(mTokenStorage.mt_OnlyAdmin.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        mTokenConfiguration(address(market)).setInterestRateModel(address(newInterestModel));
+    }
+
     ////////////////////////////////////////////////////////////
     //                         Borrow                         //
     ////////////////////////////////////////////////////////////
@@ -114,7 +132,7 @@ contract MarketHostForkTest is BaseForkTest {
         address borrower = users.alice;
 
         vm.startPrank(ownerOnChain);
-        mTokenConfiguration(address(market)).setBorrowRateMaxMantissa(1e18);
+        mTokenConfiguration(address(market)).setBorrowRateMaxMantissa(TEST_BORROW_RATE_MAX_MANTISSA);
         mTokenConfiguration(address(market)).setInterestRateModel(address(newInterestModel));
 
         address operatorAddr = market.operator();
@@ -125,7 +143,7 @@ contract MarketHostForkTest is BaseForkTest {
 
         uint256 minBorrowSize = Operator(operatorAddr).minBorrowSize(address(market));
         uint256 borrowAmount = minBorrowSize + 1;
-        uint256 supplyAmount = borrowAmount * 20;
+        uint256 supplyAmount = borrowAmount * STANDARD_SUPPLY_MULTIPLIER;
 
         _fundUserWithWeth(borrower, supplyAmount);
 
@@ -172,7 +190,7 @@ contract MarketHostForkTest is BaseForkTest {
         uint256 totalReserves = mToken(address(market)).totalReserves();
         uint256 utilization = newInterestModel.utilizationRate(cash, totalBorrows, totalReserves);
 
-        assertLe(utilization, 1e18, "utilization exceeded 100% after borrow");
+        assertLe(utilization, ONE_MANTISSA, "utilization exceeded 100% after borrow");
     }
 
     function test_fork_borrow_success_safeZonePoc_whenMultipleSuppliers() public {
@@ -194,7 +212,7 @@ contract MarketHostForkTest is BaseForkTest {
         address supplier3 = makeAddr("Supplier3");
 
         vm.startPrank(ownerOnChain);
-        mTokenConfiguration(address(market)).setBorrowRateMaxMantissa(1e18);
+        mTokenConfiguration(address(market)).setBorrowRateMaxMantissa(TEST_BORROW_RATE_MAX_MANTISSA);
         mTokenConfiguration(address(market)).setInterestRateModel(address(newInterestModel));
 
         Operator(operatorAddr).setWhitelistedUser(borrower1, true);
@@ -283,7 +301,11 @@ contract MarketHostForkTest is BaseForkTest {
         uint256 utilization = newInterestModel.utilizationRate(cash, totalBorrows, totalReserves);
 
         assertLe(utilization, 1e18, "utilization exceeded 100% after borrows");
-        assertLt(utilization, 0.5e18, "expected utilization to remain below 50% in safe-zone setup");
+        assertLt(
+            utilization,
+            SAFE_ZONE_UTILIZATION_UPPER_BOUND,
+            "expected utilization to remain below 50% in safe-zone setup"
+        );
     }
 
     function test_fork_borrow_revertsWith_Operator_InsufficientLiquidity() public {
@@ -291,7 +313,7 @@ contract MarketHostForkTest is BaseForkTest {
         address borrower = users.alice;
 
         vm.startPrank(ownerOnChain);
-        mTokenConfiguration(address(market)).setBorrowRateMaxMantissa(1e18);
+        mTokenConfiguration(address(market)).setBorrowRateMaxMantissa(TEST_BORROW_RATE_MAX_MANTISSA);
         mTokenConfiguration(address(market)).setInterestRateModel(address(newInterestModel));
 
         address operatorAddr = market.operator();
@@ -301,7 +323,7 @@ contract MarketHostForkTest is BaseForkTest {
         _disableOperatorFirewall(operatorAddr);
 
         uint256 minBorrowSize = Operator(operatorAddr).minBorrowSize(address(market));
-        uint256 supplyAmount = (minBorrowSize + 1) * 5;
+        uint256 supplyAmount = (minBorrowSize + 1) * INSUFFICIENT_LIQUIDITY_SUPPLY_MULTIPLIER;
 
         _fundUserWithWeth(borrower, supplyAmount);
 
@@ -315,11 +337,115 @@ contract MarketHostForkTest is BaseForkTest {
         uint256 overBorrowAmount = cash + 1;
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(bytes("Operator_InsufficientLiquidity()"));
+        vm.expectRevert(OperatorStorage.Operator_InsufficientLiquidity.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(borrower);
         market.borrow(overBorrowAmount);
+    }
+
+    function test_fork_borrow_revertsWith_Operator_UserNotWhitelisted() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address borrower = users.alice;
+        address operatorAddr = market.operator();
+
+        vm.startPrank(ownerOnChain);
+        mTokenConfiguration(address(market)).setBorrowRateMaxMantissa(TEST_BORROW_RATE_MAX_MANTISSA);
+        mTokenConfiguration(address(market)).setInterestRateModel(address(newInterestModel));
+        Operator(operatorAddr).setWhitelistedUser(borrower, true);
+        vm.stopPrank();
+
+        _disableOperatorFirewall(operatorAddr);
+
+        uint256 minBorrowSize = Operator(operatorAddr).minBorrowSize(address(market));
+        uint256 borrowAmount = minBorrowSize + 1;
+        uint256 supplyAmount = borrowAmount * STANDARD_SUPPLY_MULTIPLIER;
+
+        _fundUserWithWeth(borrower, supplyAmount);
+
+        vm.startPrank(borrower);
+        IWETH(LINEA_WETH).approve(address(market), supplyAmount);
+        market.mint(supplyAmount, borrower, 0);
+        vm.stopPrank();
+
+        vm.prank(ownerOnChain);
+        Operator(operatorAddr).setWhitelistedUser(borrower, false);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(OperatorStorage.Operator_UserNotWhitelisted.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(borrower);
+        market.borrow(borrowAmount);
+    }
+
+    function test_fork_borrow_revertsWith_Operator_MarketBorrowSizeNotMet() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address borrower = users.alice;
+        address operatorAddr = market.operator();
+
+        vm.startPrank(ownerOnChain);
+        mTokenConfiguration(address(market)).setBorrowRateMaxMantissa(TEST_BORROW_RATE_MAX_MANTISSA);
+        mTokenConfiguration(address(market)).setInterestRateModel(address(newInterestModel));
+        Operator(operatorAddr).setWhitelistedUser(borrower, true);
+        vm.stopPrank();
+
+        _disableOperatorFirewall(operatorAddr);
+
+        uint256 minBorrowSize = Operator(operatorAddr).minBorrowSize(address(market));
+        uint256 supplyAmount = (minBorrowSize + 1) * STANDARD_SUPPLY_MULTIPLIER;
+
+        _fundUserWithWeth(borrower, supplyAmount);
+
+        vm.startPrank(borrower);
+        IWETH(LINEA_WETH).approve(address(market), supplyAmount);
+        market.mint(supplyAmount, borrower, 0);
+        vm.stopPrank();
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(OperatorStorage.Operator_MarketBorrowSizeNotMet.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(borrower);
+        market.borrow(minBorrowSize);
+    }
+
+    function test_fork_borrow_revertsWith_Operator_Paused_whenBorrowPaused() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address borrower = users.alice;
+        address operatorAddr = market.operator();
+
+        _disableOperatorFirewall(operatorAddr);
+
+        vm.startPrank(ownerOnChain);
+        mTokenConfiguration(address(market)).setBorrowRateMaxMantissa(TEST_BORROW_RATE_MAX_MANTISSA);
+        mTokenConfiguration(address(market)).setInterestRateModel(address(newInterestModel));
+        Operator(operatorAddr).setWhitelistedUser(borrower, true);
+        Operator(operatorAddr).setPaused(address(market), ImTokenOperationTypes.OperationType.Borrow, true);
+        vm.stopPrank();
+
+        uint256 minBorrowSize = Operator(operatorAddr).minBorrowSize(address(market));
+        uint256 borrowAmount = minBorrowSize + 1;
+        uint256 supplyAmount = borrowAmount * STANDARD_SUPPLY_MULTIPLIER;
+
+        _fundUserWithWeth(borrower, supplyAmount);
+
+        vm.startPrank(borrower);
+        IWETH(LINEA_WETH).approve(address(market), supplyAmount);
+        market.mint(supplyAmount, borrower, 0);
+        vm.stopPrank();
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        bool isBorrowPaused =
+            Operator(operatorAddr).isPaused(address(market), ImTokenOperationTypes.OperationType.Borrow);
+        assertTrue(isBorrowPaused, "borrow operation is not paused");
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(OperatorStorage.Operator_Paused.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(borrower);
+        market.borrow(borrowAmount);
     }
 
     ////////////////////////////////////////////////////////////
@@ -337,7 +463,105 @@ contract MarketHostForkTest is BaseForkTest {
             .utilizationRate(cash, totalBorrows, totalReserves);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertLe(utilization, 1e18, "utilization should never exceed 100%");
+        assertLe(utilization, ONE_MANTISSA, "utilization should never exceed 100%");
+    }
+
+    function test_fork_fuzz_utilizationRate_success_withBoundedInputs(
+        uint256 cash,
+        uint256 totalBorrows,
+        uint256 totalReserves
+    ) public view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        cash = bound(cash, 1, FUZZ_INPUT_UPPER_BOUND);
+        totalBorrows = bound(totalBorrows, 0, FUZZ_INPUT_UPPER_BOUND);
+        totalReserves = bound(totalReserves, 0, cash);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 utilization = JumpRateModelV4(mToken(address(market)).interestRateModel())
+            .utilizationRate(cash, totalBorrows, totalReserves);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        uint256 expectedUtilization;
+        if (totalBorrows == 0) {
+            expectedUtilization = 0;
+        } else {
+            uint256 rawUtilization = totalBorrows * ONE_MANTISSA / (cash + totalBorrows - totalReserves);
+            expectedUtilization = rawUtilization > ONE_MANTISSA ? ONE_MANTISSA : rawUtilization;
+        }
+
+        assertEq(utilization, expectedUtilization, "utilization formula mismatch");
+        assertLe(utilization, ONE_MANTISSA, "utilization should stay within [0, 1e18]");
+    }
+
+    function test_fork_fuzz_getBorrowRate_success_monotonicWithBorrows(
+        uint256 cash,
+        uint256 borrowLowRaw,
+        uint256 borrowDeltaRaw,
+        uint256 totalReserves
+    ) public view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        JumpRateModelV4 model = JumpRateModelV4(mToken(address(market)).interestRateModel());
+
+        cash = bound(cash, 1, FUZZ_INPUT_UPPER_BOUND);
+        totalReserves = bound(totalReserves, 0, cash);
+        borrowLowRaw = bound(borrowLowRaw, 0, FUZZ_INPUT_UPPER_BOUND - 1);
+        borrowDeltaRaw = bound(borrowDeltaRaw, 1, FUZZ_INPUT_UPPER_BOUND - borrowLowRaw);
+
+        uint256 borrowLow = borrowLowRaw;
+        uint256 borrowHigh = borrowLowRaw + borrowDeltaRaw;
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 borrowRateLow = model.getBorrowRate(cash, borrowLow, totalReserves);
+        uint256 borrowRateHigh = model.getBorrowRate(cash, borrowHigh, totalReserves);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertGe(borrowRateLow, model.baseRatePerBlock(), "borrow rate fell below model base rate");
+        assertGe(borrowRateHigh, borrowRateLow, "borrow rate did not increase with higher borrows");
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                      SupplyRate                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_fork_fuzz_getSupplyRate_success_zeroWhenBorrowsZero(
+        uint256 cash,
+        uint256 totalReserves,
+        uint256 reserveFactorMantissa
+    ) public view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        JumpRateModelV4 model = JumpRateModelV4(mToken(address(market)).interestRateModel());
+
+        cash = bound(cash, 1, FUZZ_INPUT_UPPER_BOUND);
+        totalReserves = bound(totalReserves, 0, cash);
+        reserveFactorMantissa = bound(reserveFactorMantissa, 0, ONE_MANTISSA);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 supplyRate = model.getSupplyRate(cash, 0, totalReserves, reserveFactorMantissa);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(supplyRate, 0, "supply rate must be zero when borrows are zero");
+    }
+
+    function test_fork_fuzz_getSupplyRate_success_notGreaterThanBorrowRate(
+        uint256 cash,
+        uint256 totalBorrows,
+        uint256 totalReserves,
+        uint256 reserveFactorMantissa
+    ) public view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        JumpRateModelV4 model = JumpRateModelV4(mToken(address(market)).interestRateModel());
+
+        cash = bound(cash, 1, FUZZ_INPUT_UPPER_BOUND);
+        totalBorrows = bound(totalBorrows, 1, FUZZ_INPUT_UPPER_BOUND);
+        totalReserves = bound(totalReserves, 0, cash);
+        reserveFactorMantissa = bound(reserveFactorMantissa, 0, ONE_MANTISSA);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 borrowRate = model.getBorrowRate(cash, totalBorrows, totalReserves);
+        uint256 supplyRate = model.getSupplyRate(cash, totalBorrows, totalReserves, reserveFactorMantissa);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertLe(supplyRate, borrowRate, "supply rate should never exceed borrow rate");
     }
 
     ////////////////////////////////////////////////////////////

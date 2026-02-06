@@ -10,7 +10,13 @@ import {LZOptions} from "src/libraries/LZOptions.sol";
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 import {LZUnifiedBridge} from "src/rebalancer/bridges/LZUnifiedBridge.sol";
 
-import {DummyMarket, LZSendExecutor, RevertingExecutor} from "test/v2/mocks/rebalancer/LZUnifiedBridgeForkMocks.t.sol";
+import {
+    ComposeRevertingExecutor,
+    DummyMarket,
+    LZSendExecutor,
+    ProcessRevertingExecutor,
+    RevertingExecutor
+} from "test/v2/mocks/rebalancer/LZUnifiedBridgeForkMocks.t.sol";
 import {BaseForkTest} from "test/v2/utils/BaseForkTest.t.sol";
 
 /// @title LZUnifiedBridge Fork Tests
@@ -41,8 +47,12 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
     uint32 internal constant LINEA_LZ_ID = 30_183;
     uint32 internal constant BASE_LZ_ID = 30_184;
 
+    uint256 internal constant DEFAULT_SEND_AMOUNT = 0.001e18;
     // The OFT rounds/normalizes amounts to shared decimals, so tiny `amountLD` values can revert.
     uint256 internal constant _MIN_OFT_AMOUNT = 1e12;
+    uint256 internal constant _SMALL_AMOUNT = 1;
+    address internal constant _BOGUS_ADDRESS = address(0xBEEF);
+    address internal constant _NON_ZERO_ADDRESS = address(1);
 
     function setUp() public override {
         super.setUp();
@@ -54,6 +64,36 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
     //                        SendMsg                         //
     ////////////////////////////////////////////////////////////
 
+    function test_fork_constructor_revertsWith_LZBridge_EndpointZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        roles = new Roles(address(this));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(LZUnifiedBridge.LZBridge_EndpointZero.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        new LZUnifiedBridge(address(roles), address(0));
+    }
+
+    function test_fork_sendMsg_revertsWith_BaseBridge_NotAuthorized_whenNotRebalancer() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+        _configureWeEthExecutor(WEETH_LINEA, address(0));
+
+        DummyMarket market = new DummyMarket(WEETH_LINEA);
+        bytes memory message = abi.encode(address(market), _SMALL_AMOUNT, _SMALL_AMOUNT, bytes(""));
+        bytes memory extraData = abi.encode(address(this));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.prank(users.alice);
+        vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(_SMALL_AMOUNT, address(market), BASE_LZ_ID, WEETH_LINEA, message, extraData);
+    }
+
     function test_fork_sendMsg_success_lineaToBaseWeEth() external {
         _selectLineaFork();
 
@@ -63,7 +103,7 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
 
         DummyMarket market = new DummyMarket(WEETH_LINEA);
 
-        uint256 amount = 0.001e18;
+        uint256 amount = DEFAULT_SEND_AMOUNT;
         _fundErc20FromHolder(WEETH_LINEA, WEETH_LINEA_HOLDER, address(this), amount);
         IERC20(WEETH_LINEA).approve(address(bridge), amount);
 
@@ -77,6 +117,8 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
         uint256 balanceBefore = IERC20(WEETH_LINEA).balanceOf(address(this));
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, false, address(bridge));
+        emit LZUnifiedBridge.MsgSent(BASE_LZ_ID, address(market), 0, 0, bytes32(0));
         vm.recordLogs();
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
@@ -103,7 +145,7 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
 
         DummyMarket market = new DummyMarket(WEETH_BASE);
 
-        uint256 amount = 0.001e18;
+        uint256 amount = DEFAULT_SEND_AMOUNT;
         _fundErc20FromHolder(WEETH_BASE, WEETH_BASE_HOLDER, address(this), amount);
         IERC20(WEETH_BASE).approve(address(bridge), amount);
 
@@ -117,6 +159,8 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
         uint256 balanceBefore = IERC20(WEETH_BASE).balanceOf(address(this));
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, false, address(bridge));
+        emit LZUnifiedBridge.MsgSent(LINEA_LZ_ID, address(market), 0, 0, bytes32(0));
         vm.recordLogs();
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
@@ -143,7 +187,7 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
 
         DummyMarket market = new DummyMarket(WEETH_ETH);
 
-        uint256 amount = 0.001e18;
+        uint256 amount = DEFAULT_SEND_AMOUNT;
         _fundErc20FromHolder(WEETH_ETH, WEETH_ETH_HOLDER, address(this), amount);
         IERC20(WEETH_ETH).approve(address(bridge), amount);
 
@@ -157,6 +201,8 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
         uint256 balanceBefore = IERC20(WEETH_ETH).balanceOf(address(this));
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, false, address(bridge));
+        emit LZUnifiedBridge.MsgSent(LINEA_LZ_ID, address(market), 0, 0, bytes32(0));
         vm.recordLogs();
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
@@ -182,14 +228,14 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
         _configureWeEthExecutor(WEETH_LINEA, address(0));
 
         DummyMarket market = new DummyMarket(WEETH_LINEA);
-        bytes memory message = abi.encode(address(market), 1, 1, bytes(""));
+        bytes memory message = abi.encode(address(market), _SMALL_AMOUNT, _SMALL_AMOUNT, bytes(""));
         bytes memory extraData = abi.encode(address(this));
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(LZUnifiedBridge.LZBridge_ChainNotRegistered.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        bridge.sendMsg(1, address(market), 0, WEETH_LINEA, message, extraData);
+        bridge.sendMsg(_SMALL_AMOUNT, address(market), 0, WEETH_LINEA, message, extraData);
     }
 
     function test_fork_sendMsg_revertsWith_LZBridge_DestinationMismatch() external {
@@ -200,14 +246,14 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
         _configureWeEthExecutor(WEETH_LINEA, address(0));
 
         DummyMarket market = new DummyMarket(WEETH_LINEA);
-        bytes memory message = abi.encode(users.alice, 1, 1, bytes(""));
+        bytes memory message = abi.encode(users.alice, _SMALL_AMOUNT, _SMALL_AMOUNT, bytes(""));
         bytes memory extraData = abi.encode(address(this));
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(LZUnifiedBridge.LZBridge_DestinationMismatch.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        bridge.sendMsg(1, address(market), BASE_LZ_ID, WEETH_LINEA, message, extraData);
+        bridge.sendMsg(_SMALL_AMOUNT, address(market), BASE_LZ_ID, WEETH_LINEA, message, extraData);
     }
 
     function test_fork_sendMsg_revertsWith_LZBridge_TokenMismatch() external {
@@ -218,14 +264,14 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
         _configureWeEthExecutor(WEETH_LINEA, address(0));
 
         DummyMarket market = new DummyMarket(WEETH_LINEA);
-        bytes memory message = abi.encode(address(market), 1, 1, bytes(""));
+        bytes memory message = abi.encode(address(market), _SMALL_AMOUNT, _SMALL_AMOUNT, bytes(""));
         bytes memory extraData = abi.encode(address(this));
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(LZUnifiedBridge.LZBridge_TokenMismatch.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        bridge.sendMsg(1, address(market), BASE_LZ_ID, WEETH_BASE, message, extraData);
+        bridge.sendMsg(_SMALL_AMOUNT, address(market), BASE_LZ_ID, WEETH_BASE, message, extraData);
     }
 
     function test_fork_sendMsg_revertsWith_LZBridge_ExecutorNotSet() external {
@@ -235,14 +281,14 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
         _deployBridge();
 
         DummyMarket market = new DummyMarket(WEETH_LINEA);
-        bytes memory message = abi.encode(address(market), 1, 1, bytes(""));
+        bytes memory message = abi.encode(address(market), _SMALL_AMOUNT, _SMALL_AMOUNT, bytes(""));
         bytes memory extraData = abi.encode(address(this));
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(LZUnifiedBridge.LZBridge_ExecutorNotSet.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        bridge.sendMsg(1, address(market), BASE_LZ_ID, WEETH_LINEA, message, extraData);
+        bridge.sendMsg(_SMALL_AMOUNT, address(market), BASE_LZ_ID, WEETH_LINEA, message, extraData);
     }
 
     function test_fork_sendMsg_revertsWith_LZBridge_NotEnoughFees() external {
@@ -322,7 +368,7 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
         uint256 fee = bridge.getFee(BASE_LZ_ID, message, extraData);
         _selfFundEth(LINEA_WETH, fee);
 
-        bridge.setOftExecutorContract(WEETH_LINEA, address(1));
+        bridge.setOftExecutorContract(WEETH_LINEA, _NON_ZERO_ADDRESS);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(LZUnifiedBridge.LZBridge_ExecutorNoCode.selector);
@@ -354,6 +400,306 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
         bridge.sendMsg{value: fee}(_MIN_OFT_AMOUNT, address(market), BASE_LZ_ID, WEETH_LINEA, message, extraData);
     }
 
+    function test_fork_sendMsg_revertsWith_LZBridge_DestinationMismatch_withMultipleInputs() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+        _configureWeEthExecutor(WEETH_LINEA, address(0));
+
+        DummyMarket market = new DummyMarket(WEETH_LINEA);
+        bytes memory message = abi.encode(address(market), _SMALL_AMOUNT, _SMALL_AMOUNT, bytes(""));
+        bytes memory extraData = abi.encode(address(this));
+
+        address[3] memory wrongMarkets = [users.alice, users.bob, _BOGUS_ADDRESS];
+        uint256 revertedCalls;
+
+        // ~~~~~~~~~~ Expectations / Call ~~~~~~~~~~
+        for (uint256 i; i < wrongMarkets.length; ++i) {
+            vm.expectRevert(LZUnifiedBridge.LZBridge_DestinationMismatch.selector);
+            bridge.sendMsg(_SMALL_AMOUNT, wrongMarkets[i], BASE_LZ_ID, WEETH_LINEA, message, extraData);
+            ++revertedCalls;
+        }
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(revertedCalls, wrongMarkets.length, "not all destination-mismatch inputs reverted");
+    }
+
+    function test_fork_sendMsg_revertsWith_LZBridge_TokenMismatch_withMultipleInputs() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+        _configureWeEthExecutor(WEETH_LINEA, address(0));
+
+        DummyMarket market = new DummyMarket(WEETH_LINEA);
+        bytes memory message = abi.encode(address(market), _SMALL_AMOUNT, _SMALL_AMOUNT, bytes(""));
+        bytes memory extraData = abi.encode(address(this));
+
+        address[3] memory wrongTokens = [users.alice, users.bob, WEETH_BASE];
+        uint256 revertedCalls;
+
+        // ~~~~~~~~~~ Expectations / Call ~~~~~~~~~~
+        for (uint256 i; i < wrongTokens.length; ++i) {
+            vm.expectRevert(LZUnifiedBridge.LZBridge_TokenMismatch.selector);
+            bridge.sendMsg(_SMALL_AMOUNT, address(market), BASE_LZ_ID, wrongTokens[i], message, extraData);
+            ++revertedCalls;
+        }
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(revertedCalls, wrongTokens.length, "not all token-mismatch inputs reverted");
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                    Config / Fees                       //
+    ////////////////////////////////////////////////////////////
+
+    function test_fork_setBridgeContract_success_emitsEvent() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true, address(bridge));
+        emit LZUnifiedBridge.BridgeContractSet(WEETH_LINEA, WEETH_ADAPTER_ETH);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.setBridgeContract(WEETH_LINEA, WEETH_ADAPTER_ETH);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(bridge.bridgeContracts(WEETH_LINEA), WEETH_ADAPTER_ETH, "bridge contract not set");
+    }
+
+    function test_fork_setBridgeContract_revertsWith_BaseBridge_NotAuthorized() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.prank(users.alice);
+        vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.setBridgeContract(WEETH_LINEA, WEETH_ADAPTER_ETH);
+    }
+
+    function test_fork_setOftExecutorContract_success_emitsEvent() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true, address(bridge));
+        emit LZUnifiedBridge.OftExecutorSet(WEETH_LINEA, address(executor));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.setOftExecutorContract(WEETH_LINEA, address(executor));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(bridge.oftExecutors(WEETH_LINEA), address(executor), "executor not set");
+    }
+
+    function test_fork_setOftExecutorContract_revertsWith_BaseBridge_NotAuthorized() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.prank(users.alice);
+        vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.setOftExecutorContract(WEETH_LINEA, address(executor));
+    }
+
+    function test_fork_getFee_revertsWith_LZBridge_ChainNotRegistered() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+
+        DummyMarket market = new DummyMarket(WEETH_LINEA);
+        bytes memory message = abi.encode(address(market), _SMALL_AMOUNT, _SMALL_AMOUNT, bytes(""));
+        bytes memory extraData = abi.encode(address(this));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(LZUnifiedBridge.LZBridge_ChainNotRegistered.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.getFee(0, message, extraData);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                      lzCompose                         //
+    ////////////////////////////////////////////////////////////
+
+    function test_fork_lzCompose_revertsWith_LZBridge_OnlyEndpoint() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+        _configureWeEthExecutor(WEETH_LINEA, address(0));
+
+        DummyMarket market = new DummyMarket(WEETH_LINEA);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(LZUnifiedBridge.LZBridge_OnlyEndpoint.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.lzCompose(WEETH_LINEA, bytes32(0), abi.encode(address(market)), address(0), bytes(""));
+    }
+
+    function test_fork_lzCompose_revertsWith_LZBridge_BadFrom() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+        _configureWeEthExecutor(WEETH_LINEA, address(0));
+
+        DummyMarket market = new DummyMarket(WEETH_LINEA);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.prank(_NON_ZERO_ADDRESS);
+        vm.expectRevert(LZUnifiedBridge.LZBridge_BadFrom.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.lzCompose(_BOGUS_ADDRESS, bytes32(0), abi.encode(address(market)), address(0), bytes(""));
+    }
+
+    function test_fork_lzCompose_revertsWith_LZBridge_ExecutorNotSet() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+
+        DummyMarket market = new DummyMarket(WEETH_LINEA);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.prank(_NON_ZERO_ADDRESS);
+        vm.expectRevert(LZUnifiedBridge.LZBridge_ExecutorNotSet.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.lzCompose(WEETH_LINEA, bytes32(0), abi.encode(address(market)), address(0), bytes(""));
+    }
+
+    function test_fork_lzCompose_revertsWith_ExecutorRevert() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+        bridge.setOftExecutorContract(WEETH_LINEA, address(new ComposeRevertingExecutor()));
+
+        DummyMarket market = new DummyMarket(WEETH_LINEA);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.prank(_NON_ZERO_ADDRESS);
+        vm.expectRevert(ComposeRevertingExecutor.ComposeRevert.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.lzCompose(WEETH_LINEA, bytes32(0), abi.encode(address(market)), address(0), bytes(""));
+    }
+
+    function test_fork_lzCompose_success() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+        _configureWeEthExecutor(WEETH_LINEA, address(0));
+
+        DummyMarket market = new DummyMarket(WEETH_LINEA);
+        address executorBefore = bridge.oftExecutors(WEETH_LINEA);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, true, true, address(bridge));
+        emit LZSendExecutor.ComposeExecuted(address(market), WEETH_LINEA, WEETH_LINEA);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(_NON_ZERO_ADDRESS);
+        bridge.lzCompose(WEETH_LINEA, bytes32(0), abi.encode(address(market)), address(0), bytes(""));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(bridge.oftExecutors(WEETH_LINEA), executorBefore, "executor changed after lzCompose");
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                ProcessUncomposedMessages               //
+    ////////////////////////////////////////////////////////////
+
+    function test_fork_processUncomposedMessages_revertsWith_BaseBridge_NotAuthorized() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+        _configureWeEthExecutor(WEETH_LINEA, address(0));
+
+        DummyMarket market = new DummyMarket(WEETH_LINEA);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.prank(users.alice);
+        vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.processUncomposedMessages(address(market));
+    }
+
+    function test_fork_processUncomposedMessages_revertsWith_LZBridge_ExecutorNotSet() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+
+        DummyMarket market = new DummyMarket(WEETH_LINEA);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(LZUnifiedBridge.LZBridge_ExecutorNotSet.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.processUncomposedMessages(address(market));
+    }
+
+    function test_fork_processUncomposedMessages_revertsWith_ExecutorRevert() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+        bridge.setOftExecutorContract(WEETH_LINEA, address(new ProcessRevertingExecutor()));
+
+        DummyMarket market = new DummyMarket(WEETH_LINEA);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(ProcessRevertingExecutor.ProcessRevert.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.processUncomposedMessages(address(market));
+    }
+
+    function test_fork_processUncomposedMessages_success() external {
+        _selectLineaFork();
+
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _deployBridge();
+        _configureWeEthExecutor(WEETH_LINEA, address(0));
+
+        DummyMarket market = new DummyMarket(WEETH_LINEA);
+        address executorBefore = bridge.oftExecutors(WEETH_LINEA);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, true, true, address(bridge));
+        emit LZSendExecutor.UncomposedProcessed(address(market), WEETH_LINEA, WEETH_LINEA);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.processUncomposedMessages(address(market));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            bridge.oftExecutors(WEETH_LINEA), executorBefore, "executor changed after processing uncomposed messages"
+        );
+    }
+
     ////////////////////////////////////////////////////////////
     //                        Helpers                         //
     ////////////////////////////////////////////////////////////
@@ -364,7 +710,7 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
         roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), true);
 
         // `ENDPOINT` is only used by lzCompose, not by sendMsg. It must be non-zero.
-        bridge = new LZUnifiedBridge(address(roles), address(1));
+        bridge = new LZUnifiedBridge(address(roles), _NON_ZERO_ADDRESS);
 
         executor = new LZSendExecutor();
     }
@@ -384,10 +730,11 @@ contract LZUnifiedBridgeForkTest is BaseForkTest {
 
     function _findMsgSent()
         internal
+        view
         returns (uint32 dstEid, address market, uint256 amountLD, uint256 minAmountLD, bytes32 guid)
     {
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        bytes32 sig = keccak256("MsgSent(uint32,address,uint256,uint256,bytes32)");
+        bytes32 sig = LZUnifiedBridge.MsgSent.selector;
 
         for (uint256 i; i < entries.length; ++i) {
             Vm.Log memory e = entries[i];

@@ -12,6 +12,7 @@ import {BatchSubmitter} from "src/mToken/BatchSubmitter.sol";
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 
+import {BatchSubmitterCallTargetMock} from "test/v2/mocks/BatchSubmitterMocks.t.sol";
 import {BaseBatchSubmitterTest} from "test/v2/utils/BaseBatchSubmitterTest.t.sol";
 
 contract BatchSubmitterTest is BaseBatchSubmitterTest {
@@ -118,6 +119,18 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
             address(newVerifier),
             "expected address(batchSubmitter.verifier()) to equal address(newVerifier)"
         );
+    }
+
+    function test_unit_updateZkVerifier_revertsWith_OwnableUnauthorizedAccount() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address unauthorized = users.bob;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(abi.encodeWithSignature("OwnableUnauthorizedAccount(address)", unauthorized));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(unauthorized);
+        batchSubmitter.updateZkVerifier(address(zkVerifier));
     }
 
     ////////////////////////////////////////////////////////////
@@ -522,6 +535,62 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         );
     }
 
+    function test_unit_batchProcess_success_repayEmitsBatchProcessFailed_whenRepayExternalReverts()
+        external
+        givenSenderHasProofForwarderRole
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        BatchSubmitterCallTargetMock target = new BatchSubmitterCallTargetMock();
+        target.setRevertFlags(true, false, false);
+
+        mTokens = new address[](1);
+        mTokens[0] = address(target);
+
+        selectors = new bytes4[](1);
+        selectors[0] = REPAY_SELECTOR;
+
+        amounts = new uint256[](1);
+        amounts[0] = 1 ether;
+
+        receivers = new address[](1);
+        receivers[0] = address(this);
+
+        address[] memory senders = new address[](1);
+        senders[0] = address(this);
+
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
+        journals = abi.decode(encodedJournals, (bytes[]));
+
+        initHashes = new bytes32[](1);
+        initHashes[0] = keccak256(journals[0]);
+
+        bytes memory reason = abi.encodeWithSignature("Error(string)", "REPAY_FAIL");
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(false, false, false, true, address(batchSubmitter));
+        emit BatchSubmitter.BatchProcessFailed(
+            initHashes[0], receivers[0], mTokens[0], amounts[0], amounts[0], selectors[0], reason
+        );
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
+            )
+        );
+    }
+
     function test_unit_batchProcess_success_liquidateHost_whenLiquidateFails()
         external
         givenSenderHasProofForwarderRole
@@ -558,6 +627,128 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         vm.expectEmit(false, false, false, true, address(batchSubmitter));
         emit BatchSubmitter.BatchProcessSuccess(
             initHashes[1], receivers[1], mTokens[1], amounts[1], amounts[1], MINT_SELECTOR
+        );
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                usersToLiquidate,
+                collateral
+            )
+        );
+    }
+
+    function test_unit_batchProcess_success_liquidateHost_whenLiquidateExternalSucceeds()
+        external
+        givenSenderHasProofForwarderRole
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        BatchSubmitterCallTargetMock target = new BatchSubmitterCallTargetMock();
+        target.setRevertFlags(false, false, false);
+
+        mTokens = new address[](1);
+        mTokens[0] = address(target);
+
+        selectors = new bytes4[](1);
+        selectors[0] = LIQUIDATE_SELECTOR;
+
+        amounts = new uint256[](1);
+        amounts[0] = 1 ether;
+
+        receivers = new address[](1);
+        receivers[0] = address(this);
+
+        address[] memory usersToLiquidate = new address[](1);
+        usersToLiquidate[0] = users.bob;
+
+        address[] memory collateral = new address[](1);
+        collateral[0] = address(mWethHost);
+
+        address[] memory senders = new address[](1);
+        senders[0] = address(this);
+
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
+        journals = abi.decode(encodedJournals, (bytes[]));
+
+        initHashes = new bytes32[](1);
+        initHashes[0] = keccak256(journals[0]);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(false, false, false, true, address(batchSubmitter));
+        emit BatchSubmitter.BatchProcessSuccess(
+            initHashes[0], receivers[0], mTokens[0], amounts[0], amounts[0], LIQUIDATE_SELECTOR
+        );
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                usersToLiquidate,
+                collateral
+            )
+        );
+    }
+
+    function test_unit_batchProcess_success_liquidateHost_emitsBatchProcessFailed_whenLiquidateAndMintFallbackFail()
+        external
+        givenSenderHasProofForwarderRole
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        BatchSubmitterCallTargetMock target = new BatchSubmitterCallTargetMock();
+        target.setRevertFlags(false, true, true);
+
+        mTokens = new address[](1);
+        mTokens[0] = address(target);
+
+        selectors = new bytes4[](1);
+        selectors[0] = LIQUIDATE_SELECTOR;
+
+        amounts = new uint256[](1);
+        amounts[0] = 1 ether;
+
+        receivers = new address[](1);
+        receivers[0] = address(this);
+
+        address[] memory usersToLiquidate = new address[](1);
+        usersToLiquidate[0] = users.bob;
+
+        address[] memory collateral = new address[](1);
+        collateral[0] = address(mWethHost);
+
+        address[] memory senders = new address[](1);
+        senders[0] = address(this);
+
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
+        journals = abi.decode(encodedJournals, (bytes[]));
+
+        initHashes = new bytes32[](1);
+        initHashes[0] = keccak256(journals[0]);
+
+        bytes memory reason = abi.encodeWithSignature("Error(string)", "LIQUIDATE_FAIL");
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(false, false, false, true, address(batchSubmitter));
+        emit BatchSubmitter.BatchProcessFailed(
+            initHashes[0], receivers[0], mTokens[0], amounts[0], 0, LIQUIDATE_SELECTOR, reason
         );
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~

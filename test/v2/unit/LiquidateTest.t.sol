@@ -2,6 +2,7 @@
 pragma solidity 0.8.28;
 
 import {OracleMockPerToken} from "test/mocks/OracleMockPerToken.sol";
+import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
 import {BaseMTokenTest} from "test/v2/utils/BaseMTokenTest.t.sol";
 
 contract LiquidationTest is BaseMTokenTest {
@@ -77,6 +78,8 @@ contract LiquidationTest is BaseMTokenTest {
         // perform liquidation
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.expectEmit(true, true, true, false);
+        emit mTokenStorage.LiquidateBorrow(liquidator, borrower, repayAmount, address(mWeth), 0);
         vm.prank(liquidator);
         mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
 
@@ -126,6 +129,8 @@ contract LiquidationTest is BaseMTokenTest {
         // perform liquidation
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.expectEmit(true, true, true, false);
+        emit mTokenStorage.LiquidateBorrow(liquidator, borrower, repayAmount, address(mWeth), 0);
         vm.prank(liquidator);
         mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
 
@@ -175,6 +180,8 @@ contract LiquidationTest is BaseMTokenTest {
         // perform liquidation
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.expectEmit(true, true, true, false);
+        emit mTokenStorage.LiquidateBorrow(liquidator, borrower, repayAmount, address(mWeth), 0);
         vm.prank(liquidator);
         mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
 
@@ -184,6 +191,89 @@ contract LiquidationTest is BaseMTokenTest {
 
         assertLt(borrowerCollatAfter, borrowerCollatBefore, "should decrease");
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
+    }
+
+    function test_unit_liquidate_revertsWith_mt_InvalidInput_whenRepayAmountZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 repayAmount = 0;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(mTokenStorage.mt_InvalidInput.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
+    }
+
+    function test_unit_liquidate_revertsWith_mt_InvalidInput_whenBorrowerEqualsLiquidator() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 repayAmount = 1 ether;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(mTokenStorage.mt_InvalidInput.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(borrower);
+        mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
+    }
+
+    function test_fuzz_liquidate_success_emitsLiquidateBorrow(uint256 repayAmount) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        repayAmount = bound(repayAmount, 1 ether, 100 ether);
+
+        OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
+        operator.setPriceOracle(address(newOracle));
+        newOracle.setUnderlyingPrice(address(mWeth), 1e18);
+        newOracle.setUnderlyingPrice(address(mDaiHost), 1e18);
+
+        _getTokens(weth, borrower, 1000 ether);
+        vm.startPrank(borrower);
+        weth.approve(address(mWeth), type(uint256).max);
+        mWeth.mint(1000 ether, borrower, 1000 ether - 1000);
+        vm.stopPrank();
+
+        _getTokens(dai, address(this), 5000 ether);
+        dai.approve(address(mDaiHost), type(uint256).max);
+        mDaiHost.mint(5000 ether, address(this), 5000 ether - 1000);
+
+        vm.prank(borrower);
+        mDaiHost.borrow(1000 ether);
+
+        _getTokens(dai, liquidator, 2000 ether);
+        vm.prank(liquidator);
+        dai.approve(address(mDaiHost), type(uint256).max);
+
+        newOracle.setUnderlyingPrice(address(mWeth), 5e17);
+
+        uint256 borrowerBorrowBefore = mDaiHost.borrowBalanceStored(borrower);
+        uint256 borrowerCollateralBefore = mWeth.balanceOf(borrower);
+        uint256 liquidatorCollateralBefore = mWeth.balanceOf(liquidator);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, true, false);
+        emit mTokenStorage.LiquidateBorrow(liquidator, borrower, repayAmount, address(mWeth), 0);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(liquidator);
+        mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        uint256 borrowerBorrowAfter = mDaiHost.borrowBalanceStored(borrower);
+        uint256 borrowerCollateralAfter = mWeth.balanceOf(borrower);
+        uint256 liquidatorCollateralAfter = mWeth.balanceOf(liquidator);
+
+        assertLt(
+            borrowerBorrowAfter, borrowerBorrowBefore, "expected borrower borrow balance to decrease after liquidation"
+        );
+        assertLt(
+            borrowerCollateralAfter,
+            borrowerCollateralBefore,
+            "expected borrower collateral balance to decrease after liquidation"
+        );
+        assertGt(
+            liquidatorCollateralAfter,
+            liquidatorCollateralBefore,
+            "expected liquidator collateral balance to increase after liquidation"
+        );
     }
 
     ////////////////////////////////////////////////////////////

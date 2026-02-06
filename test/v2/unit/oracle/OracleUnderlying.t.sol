@@ -75,7 +75,7 @@ contract OracleUnderlyingTest is Operator, BaseTest {
     //                   getUnderlyingPrice                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_getUnderlyingPrice_success() external {
+    function test_unit_getUnderlyingPrice_success() external view {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 btcPrice = mixedPriceOracle.getUnderlyingPrice(address(mBtc));
         uint256 ethPrice = mixedPriceOracle.getUnderlyingPrice(address(mEth));
@@ -99,7 +99,7 @@ contract OracleUnderlyingTest is Operator, BaseTest {
         );
     }
 
-    function test_fuzz_convertMarketAmountToUSDValue_success(uint256 rawAmount) external {
+    function test_fuzz_convertMarketAmountToUSDValue_success(uint256 rawAmount) external view {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 maxPrice = 10 ** (36 - BITCOIN_DECIMALS) * USD_PER_BITCOIN;
         uint256 maxAmount = type(uint256).max / maxPrice;
@@ -127,6 +127,30 @@ contract OracleUnderlyingTest is Operator, BaseTest {
         );
     }
 
+    function test_unit_convertMarketAmountToUSDValue_success_whenAmountIsZero() external view {
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 btcValue = _convertMarketAmountToUSDValue(0, address(mBtc));
+        uint256 ethValue = _convertMarketAmountToUSDValue(0, address(mEth));
+        uint256 usdcValue = _convertMarketAmountToUSDValue(0, address(mUsdc));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(btcValue, 0, "expected btcValue to equal 0");
+        assertEq(ethValue, 0, "expected ethValue to equal 0");
+        assertEq(usdcValue, 0, "expected usdcValue to equal 0");
+    }
+
+    function test_unit_convertMarketAmountToUSDValue_revertsWhenUnderlyingHasNoConfig() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        DummyToken badToken = new DummyToken("BAD", 18);
+        DummyMToken badMToken = new DummyMToken(address(badToken));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert();
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        this.exposed_convertMarketAmountToUSDValue(1e18, address(badMToken));
+    }
+
     ////////////////////////////////////////////////////////////
     //                        Helpers                         //
     ////////////////////////////////////////////////////////////
@@ -134,6 +158,10 @@ contract OracleUnderlyingTest is Operator, BaseTest {
     function _newUsdOracle(uint256 usdPerToken) internal returns (MockChainlinkOracle) {
         uint256 price = 10 ** FEED_DECIMALS * usdPerToken;
         return new MockChainlinkOracle(price, FEED_DECIMALS);
+    }
+
+    function exposed_convertMarketAmountToUSDValue(uint256 amount, address mToken) external view returns (uint256) {
+        return _convertMarketAmountToUSDValue(amount, mToken);
     }
 
     function _newOracleInBase(uint256 usdPerQuotedToken, uint256 usdPerBaseToken)

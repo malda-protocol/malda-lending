@@ -28,6 +28,14 @@ contract DefaultGasHelperTest is BaseTest {
         assertEq(helper.owner(), owner, "expected helper.owner() to equal owner");
     }
 
+    function test_unit_constructor_revertsWith_OwnableInvalidOwner() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        new DefaultGasHelper(address(0));
+    }
+
     ////////////////////////////////////////////////////////////
     //                        setGasFee                       //
     ////////////////////////////////////////////////////////////
@@ -52,5 +60,26 @@ contract DefaultGasHelperTest is BaseTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(nonOwner);
         helper.setGasFee(1, 1);
+    }
+
+    function test_fuzz_setGasFee_success_overwritesPreviousValue(
+        uint32 chainId,
+        uint256 firstAmount,
+        uint256 secondAmount
+    ) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.prank(owner);
+        helper.setGasFee(chainId, firstAmount);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true);
+        emit DefaultGasHelper.GasFeeUpdated(chainId, secondAmount);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(owner);
+        helper.setGasFee(chainId, secondAmount);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(helper.gasFees(chainId), secondAmount, "expected helper.gasFees(chainId) to equal secondAmount");
     }
 }

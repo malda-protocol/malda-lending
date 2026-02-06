@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
 import {IPauser} from "src/interfaces/IPauser.sol";
 import {ImTokenOperationTypes} from "src/interfaces/ImToken.sol";
 import {Pauser} from "src/pauser/Pauser.sol";
@@ -61,6 +63,39 @@ contract PauserTest is BasePauserTest {
             uint256(pauser.contractTypes(market)),
             uint256(pausableType),
             "expected uint256(pauser.contractTypes(market)) to equal uint256(pausableType)"
+        );
+    }
+
+    function test_unit_addPausableMarket_revertsWith_OwnableUnauthorizedAccount() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address unauthorized = users.alice;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(unauthorized);
+        pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
+    }
+
+    function test_unit_addPausableMarket_success_whenAlreadyRegistered() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        pauser.addPausableMarket(address(mWethHost), IPauser.PausableType.Extension);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        (address market, IPauser.PausableType marketType) = pauser.pausableContracts(0);
+        assertEq(market, address(mWethHost), "expected first market to remain mWethHost");
+        assertEq(uint256(marketType), uint256(IPauser.PausableType.Host), "expected first type to remain host");
+
+        vm.expectRevert();
+        pauser.pausableContracts(1);
+        assertEq(
+            uint256(pauser.contractTypes(address(mWethHost))),
+            uint256(IPauser.PausableType.Host),
+            "expected pausable type to remain host"
         );
     }
 
@@ -224,6 +259,19 @@ contract PauserTest is BasePauserTest {
         );
     }
 
+    function test_unit_removePausableMarket_revertsWith_OwnableUnauthorizedAccount() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _addPausableMarket(address(mWethHost), IPauser.PausableType.Host);
+        address unauthorized = users.alice;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(unauthorized);
+        pauser.removePausableMarket(address(mWethHost));
+    }
+
     ////////////////////////////////////////////////////////////
     //                   pausableContracts                    //
     ////////////////////////////////////////////////////////////
@@ -318,7 +366,7 @@ contract PauserTest is BasePauserTest {
         emit IPauser.MarketPaused(market);
     }
 
-    function _assertMarketPausedForAllOperations(address market, bool isHost) internal {
+    function _assertMarketPausedForAllOperations(address market, bool isHost) internal view {
         ImTokenOperationTypes.OperationType[12] memory ops = [
             ImTokenOperationTypes.OperationType.AmountIn,
             ImTokenOperationTypes.OperationType.AmountOut,

@@ -36,6 +36,14 @@ contract CCTPHelperHarness is CCTPHelper {
 }
 
 contract CCTPHelperTest is BaseTest {
+    uint8 internal constant PAYLOAD_ID_V1 = 1;
+    uint8 internal constant WRONG_PAYLOAD_ID = 2;
+    uint256 internal constant DEFAULT_TRANSFER_AMOUNT = 100;
+    uint64 internal constant DEFAULT_NONCE = 777;
+    uint256 internal constant CCTP_HEADER_BYTES = 148;
+    uint256 internal constant CCTP_BODY_HEADER_BYTES = 228;
+    uint256 internal constant MIN_HOOK_MESSAGE_LENGTH = 147;
+
     CCTPHelperHarness internal helper;
     ERC20Mock internal token;
     MockTokenMessenger internal messenger;
@@ -66,6 +74,22 @@ contract CCTPHelperTest is BaseTest {
     ////////////////////////////////////////////////////////////
     //                  exposedCreateAndBurn                  //
     ////////////////////////////////////////////////////////////
+
+    function test_unit_constructor_revertsWith_CCTPHelper_AddressZero_whenTokenMessengerIsZero() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(CCTPHelper.CCTPHelper_AddressZero.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        new CCTPHelperHarness(address(0), address(transmitter));
+    }
+
+    function test_unit_constructor_revertsWith_CCTPHelper_AddressZero_whenMessageTransmitterIsZero() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(CCTPHelper.CCTPHelper_AddressZero.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        new CCTPHelperHarness(address(messenger), address(0));
+    }
 
     function test_fuzz_exposedCreateAndBurn_success(uint256 amount, bytes calldata payload) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
@@ -104,7 +128,11 @@ contract CCTPHelperTest is BaseTest {
             keccak256(boundedPayload),
             "expected keccak256(msgData.payload) to equal keccak256(boundedPayload)"
         );
-        assertGe(encoded.length, 147, "expected encoded.length to be greater than or equal to 147");
+        assertGe(
+            encoded.length,
+            MIN_HOOK_MESSAGE_LENGTH,
+            "expected encoded.length to be greater than or equal to MIN_HOOK_MESSAGE_LENGTH"
+        );
 
         assertEq(messenger.lastCaller(), address(helper), "expected messenger.lastCaller() to equal address(helper)");
         assertEq(messenger.lastToken(), address(token), "expected messenger.lastToken() to equal address(token)");
@@ -157,32 +185,36 @@ contract CCTPHelperTest is BaseTest {
 
     function test_unit_exposedHandleDestinationMsg_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint16 payloadLength = 0;
         bytes memory fakeHook = abi.encodePacked(
-            uint8(1),
+            PAYLOAD_ID_V1,
             bytes32(uint256(uint160(address(token)))),
-            uint256(100),
+            DEFAULT_TRANSFER_AMOUNT,
             uint32(SRC),
             uint32(DST),
-            uint64(777),
+            DEFAULT_NONCE,
             bytes32(uint256(uint160(user))),
             bytes32(uint256(uint160(users.carol))),
-            uint16(0)
+            payloadLength
         );
 
-        bytes memory fakeCCTPMessage = bytes.concat(new bytes(148), new bytes(228), fakeHook);
+        bytes memory fakeCCTPMessage =
+            bytes.concat(new bytes(CCTP_HEADER_BYTES), new bytes(CCTP_BODY_HEADER_BYTES), fakeHook);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
-        emit CCTPHelper.MessageReceived(777, SRC, DST, 100, bytes32(uint256(uint160(users.carol))), "");
+        emit CCTPHelper.MessageReceived(
+            DEFAULT_NONCE, SRC, DST, DEFAULT_TRANSFER_AMOUNT, bytes32(uint256(uint160(users.carol))), ""
+        );
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         CCTPHelper.CCTPMessage memory msgData = helper.exposedHandleDestinationMsg(fakeCCTPMessage, "att");
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(msgData.amount, 100, "expected msgData.amount to equal 100");
+        assertEq(msgData.amount, DEFAULT_TRANSFER_AMOUNT, "expected msgData.amount to equal DEFAULT_TRANSFER_AMOUNT");
         assertEq(msgData.srcChain, SRC, "expected msgData.srcChain to equal SRC");
         assertEq(msgData.dstChain, DST, "expected msgData.dstChain to equal DST");
-        assertEq(msgData.nonce, 777, "expected msgData.nonce to equal 777");
+        assertEq(msgData.nonce, DEFAULT_NONCE, "expected msgData.nonce to equal DEFAULT_NONCE");
     }
 
     function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_ReceiveFailed() external {
@@ -204,27 +236,81 @@ contract CCTPHelperTest is BaseTest {
         helper.exposedHandleDestinationMsg(new bytes(10), "att");
     }
 
+    function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_MsgTooShort_whenBodyHeaderTooShort()
+        external
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 shortBodyHeaderLength = CCTP_BODY_HEADER_BYTES - 1;
+        bytes memory fakeCCTPMessage = bytes.concat(new bytes(CCTP_HEADER_BYTES), new bytes(shortBodyHeaderLength));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(CCTPHelper.CCTPHelper_MsgTooShort.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        helper.exposedHandleDestinationMsg(fakeCCTPMessage, "att");
+    }
+
+    function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_MsgTooShort_whenHookTooShort() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 shortHookLength = MIN_HOOK_MESSAGE_LENGTH - 1;
+        bytes memory fakeCCTPMessage =
+            bytes.concat(new bytes(CCTP_HEADER_BYTES), new bytes(CCTP_BODY_HEADER_BYTES), new bytes(shortHookLength));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(CCTPHelper.CCTPHelper_MsgTooShort.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        helper.exposedHandleDestinationMsg(fakeCCTPMessage, "att");
+    }
+
     function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_PayloadMismatch() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory payload = abi.encode(users.bob);
 
         bytes memory badHook = abi.encodePacked(
-            uint8(2),
+            WRONG_PAYLOAD_ID,
             bytes32(uint256(uint160(address(token)))),
-            uint256(100),
+            DEFAULT_TRANSFER_AMOUNT,
             uint32(SRC),
             uint32(DST),
-            uint64(777),
+            DEFAULT_NONCE,
             bytes32(uint256(uint160(user))),
             bytes32(uint256(uint160(users.carol))),
             uint16(payload.length),
             payload
         );
 
-        bytes memory fakeCCTPMessage = bytes.concat(new bytes(148), new bytes(228), badHook);
+        bytes memory fakeCCTPMessage =
+            bytes.concat(new bytes(CCTP_HEADER_BYTES), new bytes(CCTP_BODY_HEADER_BYTES), badHook);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(CCTPHelper.CCTPHelper_PayloadMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        helper.exposedHandleDestinationMsg(fakeCCTPMessage, "att");
+    }
+
+    function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_LengthMismatch() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint64 mismatchedNonce = 1;
+        uint16 mismatchedPayloadLen = 1;
+        bytes memory badHook = abi.encodePacked(
+            PAYLOAD_ID_V1,
+            bytes32(uint256(uint160(address(token)))),
+            DEFAULT_TRANSFER_AMOUNT,
+            uint32(SRC),
+            uint32(DST),
+            mismatchedNonce,
+            bytes32(uint256(uint160(user))),
+            bytes32(uint256(uint160(users.carol))),
+            mismatchedPayloadLen
+        );
+
+        bytes memory fakeCCTPMessage =
+            bytes.concat(new bytes(CCTP_HEADER_BYTES), new bytes(CCTP_BODY_HEADER_BYTES), badHook);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(CCTPHelper.CCTPHelper_LengthMismatch.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         helper.exposedHandleDestinationMsg(fakeCCTPMessage, "att");

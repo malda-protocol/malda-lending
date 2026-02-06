@@ -28,11 +28,34 @@ contract RevertingExecutor {
     }
 }
 
+contract ComposeRevertingExecutor {
+    error ComposeRevert();
+
+    function executeCompose(address, address, address) external payable {
+        revert ComposeRevert();
+    }
+
+    function processUncomposed(address, address, address) external payable {}
+}
+
+contract ProcessRevertingExecutor {
+    error ProcessRevert();
+
+    function executeCompose(address, address, address) external payable {}
+
+    function processUncomposed(address, address, address) external payable {
+        revert ProcessRevert();
+    }
+}
+
 /// @notice Minimal executor used by fork tests to execute real OFT sends via delegatecall.
 /// @dev This intentionally avoids using production executors (which have additional invariants) because the goal
 ///      of the fork suite is to validate LZUnifiedBridge's checks + integrations against real OFT contracts.
 contract LZSendExecutor is IOftMessageExecutor {
     using SafeERC20 for IERC20;
+
+    event ComposeExecuted(address indexed market, address indexed underlying, address indexed bridgeContract);
+    event UncomposedProcessed(address indexed market, address indexed underlying, address indexed bridgeContract);
 
     function executeSend(
         address underlying,
@@ -52,7 +75,11 @@ contract LZSendExecutor is IOftMessageExecutor {
         (receipt,) = ILayerZeroOFT(bridgeContract).send{value: fees.nativeFee}(params, fees, refundAddress);
     }
 
-    function processUncomposed(address, address, address) external payable {}
+    function processUncomposed(address market, address underlying, address bridgeContract) external payable {
+        emit UncomposedProcessed(market, underlying, bridgeContract);
+    }
 
-    function executeCompose(address, address, address) external payable {}
+    function executeCompose(address market, address underlying, address bridgeContract) external payable {
+        emit ComposeExecuted(market, underlying, bridgeContract);
+    }
 }

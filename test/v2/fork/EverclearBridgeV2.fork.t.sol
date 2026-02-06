@@ -10,6 +10,7 @@ import {BaseForkTest} from "test/v2/utils/BaseForkTest.t.sol";
 
 interface IRolesRegistry {
     function REBALANCER() external view returns (bytes32);
+    function GUARDIAN_BRIDGE() external view returns (bytes32);
     function isAllowedFor(address contractAddress, bytes32 roleIdentifier) external view returns (bool);
     function allowFor(address contractAddress, bytes32 roleIdentifier, bool allowed) external;
     function owner() external view returns (address);
@@ -50,11 +51,17 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         // rebalancer is authorized on this fork snapshot (no mocks, real Roles contract).
         IRolesRegistry roles = IRolesRegistry(ROLES);
         bytes32 rebalancerRole = roles.REBALANCER();
+        bytes32 guardianBridgeRole = roles.GUARDIAN_BRIDGE();
         if (!roles.isAllowedFor(REBALANCER, rebalancerRole)) {
             vm.prank(roles.owner());
             roles.allowFor(REBALANCER, rebalancerRole, true);
         }
+        if (!roles.isAllowedFor(address(this), guardianBridgeRole)) {
+            vm.prank(roles.owner());
+            roles.allowFor(address(this), guardianBridgeRole, true);
+        }
         assertTrue(roles.isAllowedFor(REBALANCER, rebalancerRole), "REBALANCER is not allowed in Roles");
+        assertTrue(roles.isAllowedFor(address(this), guardianBridgeRole), "GUARDIAN_BRIDGE is not allowed in Roles");
 
         bridge = new EverclearBridgeV2(ROLES, FEE_ADAPTER);
     }
@@ -114,6 +121,8 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         IERC20(USDC).approve(address(bridge), EXTRACTED_AMOUNT);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, false, address(bridge));
+        emit EverclearBridgeV2.MsgSent(DST_CHAIN_ID, MARKET, 0, bytes32(0));
         vm.recordLogs();
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
@@ -160,6 +169,266 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(REBALANCER);
         bridge.sendMsg(extractedAmount, MARKET, DST_CHAIN_ID, USDC, TEST_MESSAGE, "");
+    }
+
+    function test_fork_sendMsg_revertsWith_BaseBridge_NotAuthorized() public {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
+        bridge.sendMsg(EXTRACTED_AMOUNT, MARKET, DST_CHAIN_ID, USDC, TEST_MESSAGE, "");
+    }
+
+    function test_fork_sendMsg_revertsWith_BaseBridge_AddressNotValid_whenReceiverMismatch() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        (
+            uint32[] memory destinations,
+            bytes32 receiver,
+            address inputAsset,
+            bytes32 outputAsset,
+            uint256 amount,
+            uint256 amountOutMin,
+            uint48 ttl,
+            bytes memory extraData
+        ) = _decodeIntentParams();
+
+        bytes32 wrongReceiver = bytes32(uint256(uint160(users.alice)));
+        IFeeAdapterV2.FeeParams memory feeParams = _extractFeeParamsFromMessage();
+        bytes memory message = _encodeIntentParams(
+            destinations, wrongReceiver, inputAsset, outputAsset, amount, amountOutMin, ttl, extraData, feeParams
+        );
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_AddressNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(REBALANCER);
+        bridge.sendMsg(EXTRACTED_AMOUNT, MARKET, DST_CHAIN_ID, USDC, message, "");
+
+        // Silence unused local warning for receiver.
+        receiver;
+    }
+
+    function test_fork_sendMsg_revertsWith_Everclear_DestinationsLengthMismatch() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        (
+            uint32[] memory destinations,
+            bytes32 receiver,
+            address inputAsset,
+            bytes32 outputAsset,
+            uint256 amount,
+            uint256 amountOutMin,
+            uint48 ttl,
+            bytes memory extraData
+        ) = _decodeIntentParams();
+
+        uint32[] memory invalidDestinations = new uint32[](2);
+        invalidDestinations[0] = destinations[0];
+        invalidDestinations[1] = uint32(10);
+        IFeeAdapterV2.FeeParams memory feeParams = _extractFeeParamsFromMessage();
+        bytes memory message = _encodeIntentParams(
+            invalidDestinations, receiver, inputAsset, outputAsset, amount, amountOutMin, ttl, extraData, feeParams
+        );
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(EverclearBridgeV2.Everclear_DestinationsLengthMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(REBALANCER);
+        bridge.sendMsg(EXTRACTED_AMOUNT, MARKET, DST_CHAIN_ID, USDC, message, "");
+    }
+
+    function test_fork_sendMsg_revertsWith_Everclear_DestinationNotValid() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        (
+            uint32[] memory destinations,
+            bytes32 receiver,
+            address inputAsset,
+            bytes32 outputAsset,
+            uint256 amount,
+            uint256 amountOutMin,
+            uint48 ttl,
+            bytes memory extraData
+        ) = _decodeIntentParams();
+
+        destinations[0] = uint32(1);
+        IFeeAdapterV2.FeeParams memory feeParams = _extractFeeParamsFromMessage();
+        bytes memory message = _encodeIntentParams(
+            destinations, receiver, inputAsset, outputAsset, amount, amountOutMin, ttl, extraData, feeParams
+        );
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(EverclearBridgeV2.Everclear_DestinationNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(REBALANCER);
+        bridge.sendMsg(EXTRACTED_AMOUNT, MARKET, DST_CHAIN_ID, USDC, message, "");
+    }
+
+    function test_fork_sendMsg_revertsWith_Everclear_MaxSlippageExceeded() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.prank(REBALANCER);
+        IERC20(USDC).approve(address(bridge), EXTRACTED_AMOUNT);
+
+        (
+            uint32[] memory destinations,
+            bytes32 receiver,
+            address inputAsset,
+            bytes32 outputAsset,
+            uint256 amount,
+            uint256 decodedAmountOutMin,
+            uint48 ttl,
+            bytes memory extraData
+        ) = _decodeIntentParams();
+
+        // Silence unused local warning for decodedAmountOutMin.
+        decodedAmountOutMin;
+        uint256 tooLowAmountOutMin = (amount * 9 / 10) - 1;
+        IFeeAdapterV2.FeeParams memory feeParams = _extractFeeParamsFromMessage();
+        bytes memory message = _encodeIntentParams(
+            destinations, receiver, inputAsset, outputAsset, amount, tooLowAmountOutMin, ttl, extraData, feeParams
+        );
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(EverclearBridgeV2.Everclear_MaxSlippageExceeded.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(REBALANCER);
+        bridge.sendMsg(EXTRACTED_AMOUNT, MARKET, DST_CHAIN_ID, USDC, message, "");
+    }
+
+    function test_fork_sendMsg_revertsWith_BaseBridge_AmountMismatch_whenDecodedAmountZero() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        (
+            uint32[] memory destinations,
+            bytes32 receiver,
+            address inputAsset,
+            bytes32 outputAsset,
+            uint256 amount,
+            uint256 amountOutMin,
+            uint48 ttl,
+            bytes memory extraData
+        ) = _decodeIntentParams();
+
+        uint256 decodedAmount = amount;
+        IFeeAdapterV2.FeeParams memory feeParams = _extractFeeParamsFromMessage();
+        bytes memory message = _encodeIntentParams(
+            destinations,
+            receiver,
+            inputAsset,
+            outputAsset,
+            decodedAmount - decodedAmount,
+            amountOutMin,
+            ttl,
+            extraData,
+            feeParams
+        );
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_AmountMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(REBALANCER);
+        bridge.sendMsg(EXTRACTED_AMOUNT, MARKET, DST_CHAIN_ID, USDC, message, "");
+    }
+
+    function test_fork_sendMsg_emits_RebalancingReturnedToMarket_whenExtractedAmountHasExcess() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _selectLineaFork();
+        uint256 extractedAmount = EXTRACTED_AMOUNT + 1;
+        uint256 excessAmount = extractedAmount - EXTRACTED_AMOUNT;
+        uint256 marketBalanceBefore = IERC20(USDC).balanceOf(MARKET);
+        uint256 bridgeBalanceBefore = IERC20(USDC).balanceOf(address(bridge));
+
+        vm.prank(REBALANCER);
+        IERC20(USDC).approve(address(bridge), extractedAmount);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true, address(bridge));
+        emit EverclearBridgeV2.RebalancingReturnedToMarket(MARKET, excessAmount, extractedAmount);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(REBALANCER);
+        bridge.sendMsg(extractedAmount, MARKET, DST_CHAIN_ID, USDC, TEST_MESSAGE, "");
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        uint256 marketBalanceAfter = IERC20(USDC).balanceOf(MARKET);
+        uint256 bridgeBalanceAfter = IERC20(USDC).balanceOf(address(bridge));
+
+        assertEq(
+            marketBalanceAfter - marketBalanceBefore, excessAmount, "market should receive the expected excess amount"
+        );
+        assertEq(bridgeBalanceAfter, bridgeBalanceBefore, "bridge should not retain USDC after bridging");
+    }
+
+    function test_fork_setEverclearFeeAdapter_success_emitsEvent() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address oldAdapter = address(bridge.everclearFeeAdapter());
+        address newAdapter = users.alice;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true, address(bridge));
+        emit EverclearBridgeV2.EverclearFeeAdapterUpdated(oldAdapter, newAdapter);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.setEverclearFeeAdapter(newAdapter);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(address(bridge.everclearFeeAdapter()), newAdapter, "fee adapter should be updated");
+    }
+
+    function test_fork_setEverclearFeeAdapter_revertsWith_BaseBridge_NotAuthorized() public {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
+        bridge.setEverclearFeeAdapter(FEE_ADAPTER);
+    }
+
+    function test_fork_setEverclearFeeAdapter_revertsWith_Everclear_AddressNotValid_whenZeroAddress() public {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(EverclearBridgeV2.Everclear_AddressNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.setEverclearFeeAdapter(address(0));
+    }
+
+    function test_fork_getFee_revertsWith_Everclear_NotImplemented() public {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(EverclearBridgeV2.Everclear_NotImplemented.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.getFee(DST_CHAIN_ID, "", "");
+    }
+
+    function test_fork_fuzz_sendMsg_revertsWith_Everclear_MaxSlippageExceeded(uint256 bpsRaw) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        (
+            uint32[] memory destinations,
+            bytes32 receiver,
+            address inputAsset,
+            bytes32 outputAsset,
+            uint256 amount,
+            uint256 amountOutMin,
+            uint48 ttl,
+            bytes memory extraData
+        ) = _decodeIntentParams();
+
+        uint256 bps = bound(bpsRaw, 0, 8999);
+        amountOutMin = amount * bps / 10_000;
+        IFeeAdapterV2.FeeParams memory feeParams = _extractFeeParamsFromMessage();
+        bytes memory message = _encodeIntentParams(
+            destinations, receiver, inputAsset, outputAsset, amount, amountOutMin, ttl, extraData, feeParams
+        );
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(EverclearBridgeV2.Everclear_MaxSlippageExceeded.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(REBALANCER);
+        bridge.sendMsg(EXTRACTED_AMOUNT, MARKET, DST_CHAIN_ID, USDC, message, "");
     }
 
     ////////////////////////////////////////////////////////////
@@ -249,9 +518,9 @@ contract EverclearBridgeV2ForkTest is BaseForkTest {
         return IFeeAdapterV2.FeeParams({fee: fee, deadline: deadline, sig: sig});
     }
 
-    function _findMsgSent() internal returns (uint256 dstChainId, address market, uint256 amountLD, bytes32 id) {
+    function _findMsgSent() internal view returns (uint256 dstChainId, address market, uint256 amountLD, bytes32 id) {
         Vm.Log[] memory entries = vm.getRecordedLogs();
-        bytes32 sig = keccak256("MsgSent(uint256,address,uint256,bytes32)");
+        bytes32 sig = EverclearBridgeV2.MsgSent.selector;
 
         for (uint256 i; i < entries.length; ++i) {
             Vm.Log memory e = entries[i];

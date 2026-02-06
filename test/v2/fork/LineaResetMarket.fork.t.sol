@@ -6,6 +6,7 @@ import {ITransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transp
 import {ProxyAdmin} from "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
 
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
+import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
 import {BaseForkTest} from "test/v2/utils/BaseForkTest.t.sol";
 
 interface IWhitelistLike {
@@ -60,9 +61,8 @@ contract LineaResetMarketTest is BaseForkTest {
         assertEq(m.totalSupply(), 0, "totalSupply should be 0 after resetMarket");
         assertEq(m.totalBorrows(), 0, "totalBorrows should be 0 after resetMarket");
         assertEq(m.totalReserves(), 0, "totalReserves should be 0 after resetMarket");
-
-        assertTrue(m.borrowIndex() > 0, "borrowIndex should be non-zero after resetMarket");
-        assertTrue(m.accrualBlockTimestamp() > 0, "accrualBlockTimestamp should be non-zero after resetMarket");
+        assertEq(m.borrowIndex(), 1e18, "borrowIndex should be reset to 1e18");
+        assertEq(m.accrualBlockTimestamp(), block.timestamp, "accrual timestamp should be reset to current block");
 
         uint256 ex = m.exchangeRateStored();
         assertTrue(ex > 0, "exchangeRateStored should be non-zero after resetMarket");
@@ -89,9 +89,8 @@ contract LineaResetMarketTest is BaseForkTest {
         assertEq(m.totalSupply(), 0, "totalSupply should be 0 after resetMarket");
         assertEq(m.totalBorrows(), 0, "totalBorrows should be 0 after resetMarket");
         assertEq(m.totalReserves(), 0, "totalReserves should be 0 after resetMarket");
-
-        assertTrue(m.borrowIndex() > 0, "borrowIndex should be non-zero after resetMarket");
-        assertTrue(m.accrualBlockTimestamp() > 0, "accrualBlockTimestamp should be non-zero after resetMarket");
+        assertEq(m.borrowIndex(), 1e18, "borrowIndex should be reset to 1e18");
+        assertEq(m.accrualBlockTimestamp(), block.timestamp, "accrual timestamp should be reset to current block");
 
         uint256 ex = m.exchangeRateStored();
         assertTrue(ex > 0, "exchangeRateStored should be non-zero after resetMarket");
@@ -134,6 +133,21 @@ contract LineaResetMarketTest is BaseForkTest {
         assertEq(m.totalBorrows(), userBorrow, "totalBorrows should equal the user's borrow balance");
 
         _assertViewMethodsDontRevert(m);
+    }
+
+    function test_fork_resetMarket_reverts_whenCallerIsNotAdmin() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        mErc20Host m = mErc20Host(MARKET);
+
+        vm.prank(MARKET_ADMIN);
+        ProxyAdmin(PROXY_ADMIN).upgradeAndCall(ITransparentUpgradeableProxy(payable(MARKET)), NEW_IMPL, "");
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(mTokenStorage.mt_OnlyAdmin.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
+        m.resetMarket();
     }
 
     ////////////////////////////////////////////////////////////

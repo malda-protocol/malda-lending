@@ -1,11 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
 
+import {stdError} from "forge-std/StdError.sol";
+
 import {ExponentialNoError} from "src/utils/ExponentialNoError.sol";
 
 import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 contract ExponentialNoErrorHarness is ExponentialNoError {
+    function callLessThanExp(uint256 left, uint256 right) external pure returns (bool) {
+        return lessThanExp(Exp({mantissa: left}), Exp({mantissa: right}));
+    }
+
     function callLessThanOrEqualExp(uint256 left, uint256 right) external pure returns (bool) {
         return lessThanOrEqualExp(Exp({mantissa: left}), Exp({mantissa: right}));
     }
@@ -50,6 +56,18 @@ contract ExponentialNoErrorHarness is ExponentialNoError {
         return mul_(Double({mantissa: a}), Double({mantissa: b})).mantissa;
     }
 
+    function callMulExpExp(uint256 a, uint256 b) external pure returns (uint256) {
+        return mul_(Exp({mantissa: a}), Exp({mantissa: b})).mantissa;
+    }
+
+    function callMulExpScalar(uint256 a, uint256 b) external pure returns (uint256) {
+        return mul_(Exp({mantissa: a}), b).mantissa;
+    }
+
+    function callMulUintExp(uint256 a, uint256 b) external pure returns (uint256) {
+        return mul_(a, Exp({mantissa: b}));
+    }
+
     function callMulDoubleScalar(uint256 a, uint256 b) external pure returns (uint256) {
         return mul_(Double({mantissa: a}), b).mantissa;
     }
@@ -60,6 +78,14 @@ contract ExponentialNoErrorHarness is ExponentialNoError {
 
     function callDivExpScalar(uint256 a, uint256 b) external pure returns (uint256) {
         return div_(Exp({mantissa: a}), b).mantissa;
+    }
+
+    function callDivExpExp(uint256 a, uint256 b) external pure returns (uint256) {
+        return div_(Exp({mantissa: a}), Exp({mantissa: b})).mantissa;
+    }
+
+    function callDivUintExp(uint256 a, uint256 b) external pure returns (uint256) {
+        return div_(a, Exp({mantissa: b}));
     }
 
     function callDivDoubleDouble(uint256 a, uint256 b) external pure returns (uint256) {
@@ -85,6 +111,22 @@ contract ExponentialNoErrorHarness is ExponentialNoError {
     function callFraction(uint256 a, uint256 b) external pure returns (uint256) {
         return fraction(a, b).mantissa;
     }
+
+    function callTruncate(uint256 mantissa) external pure returns (uint256) {
+        return truncate(Exp({mantissa: mantissa}));
+    }
+
+    function callMulScalarTruncate(uint256 mantissa, uint256 scalar) external pure returns (uint256) {
+        return mul_ScalarTruncate(Exp({mantissa: mantissa}), scalar);
+    }
+
+    function callMulScalarTruncateAddUInt(uint256 mantissa, uint256 scalar, uint256 addend)
+        external
+        pure
+        returns (uint256)
+    {
+        return mul_ScalarTruncateAddUInt(Exp({mantissa: mantissa}), scalar, addend);
+    }
 }
 
 contract ExponentialNoErrorTest is BaseTest {
@@ -97,6 +139,19 @@ contract ExponentialNoErrorTest is BaseTest {
     function setUp() public override {
         super.setUp();
         harness = new ExponentialNoErrorHarness();
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                     CallLessThanExp                    //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_callLessThanExp_success(uint256 left, uint256 right) external view {
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            harness.callLessThanExp(left, right),
+            left < right,
+            "expected harness.callLessThanExp(left, right) to equal left < right"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -215,6 +270,59 @@ contract ExponentialNoErrorTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
+    //                      CallTruncate                      //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_callTruncate_success(uint256 mantissa) external view {
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            harness.callTruncate(mantissa),
+            mantissa / EXP_SCALE,
+            "expected harness.callTruncate(mantissa) to equal mantissa / EXP_SCALE"
+        );
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                  CallMulScalarTruncate                //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_callMulScalarTruncate_success(uint256 mantissa, uint256 scalar) external view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 maxScalar = type(uint256).max / DOUBLE_SCALE;
+        mantissa = bound(mantissa, 0, DOUBLE_SCALE);
+        scalar = bound(scalar, 0, maxScalar);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            harness.callMulScalarTruncate(mantissa, scalar),
+            (mantissa * scalar) / EXP_SCALE,
+            "expected harness.callMulScalarTruncate(mantissa, scalar) to equal (mantissa * scalar) / EXP_SCALE"
+        );
+    }
+
+    ////////////////////////////////////////////////////////////
+    //               CallMulScalarTruncateAddUInt            //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_callMulScalarTruncateAddUInt_success(uint256 mantissa, uint256 scalar, uint256 addend)
+        external
+        view
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 maxScalar = type(uint256).max / DOUBLE_SCALE;
+        mantissa = bound(mantissa, 0, DOUBLE_SCALE);
+        scalar = bound(scalar, 0, maxScalar);
+        addend = bound(addend, 0, DOUBLE_SCALE);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            harness.callMulScalarTruncateAddUInt(mantissa, scalar, addend),
+            ((mantissa * scalar) / EXP_SCALE) + addend,
+            "expected harness.callMulScalarTruncateAddUInt(mantissa, scalar, addend) to equal ((mantissa * scalar) / EXP_SCALE) + addend"
+        );
+    }
+
+    ////////////////////////////////////////////////////////////
     //                       CallSubExp                       //
     ////////////////////////////////////////////////////////////
 
@@ -229,6 +337,20 @@ contract ExponentialNoErrorTest is BaseTest {
             left - right,
             "expected harness.callSubExp(left, right) to equal left - right"
         );
+    }
+
+    function test_fuzz_callSubExp_revertsWith_ArithmeticError_whenRightGreaterThanLeft(uint256 left, uint256 right)
+        external
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        left = bound(left, 0, DOUBLE_SCALE - 1);
+        right = bound(right, left + 1, DOUBLE_SCALE);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.arithmeticError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.callSubExp(left, right);
     }
 
     ////////////////////////////////////////////////////////////
@@ -248,6 +370,20 @@ contract ExponentialNoErrorTest is BaseTest {
         );
     }
 
+    function test_fuzz_callSubDouble_revertsWith_ArithmeticError_whenRightGreaterThanLeft(uint256 left, uint256 right)
+        external
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        left = bound(left, 0, DOUBLE_SCALE - 1);
+        right = bound(right, left + 1, DOUBLE_SCALE);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.arithmeticError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.callSubDouble(left, right);
+    }
+
     ////////////////////////////////////////////////////////////
     //                      CallSubUint                       //
     ////////////////////////////////////////////////////////////
@@ -262,6 +398,73 @@ contract ExponentialNoErrorTest is BaseTest {
             harness.callSubUint(left, right),
             left - right,
             "expected harness.callSubUint(left, right) to equal left - right"
+        );
+    }
+
+    function test_fuzz_callSubUint_revertsWith_ArithmeticError_whenRightGreaterThanLeft(uint256 left, uint256 right)
+        external
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        left = bound(left, 0, DOUBLE_SCALE - 1);
+        right = bound(right, left + 1, DOUBLE_SCALE);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.arithmeticError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.callSubUint(left, right);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                    CallMulExpExp                       //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_callMulExpExp_success(uint256 left, uint256 right) external view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        left = bound(left, 0, DOUBLE_SCALE);
+        right = bound(right, 0, DOUBLE_SCALE);
+        uint256 expected = (left * right) / EXP_SCALE;
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            harness.callMulExpExp(left, right),
+            expected,
+            "expected harness.callMulExpExp(left, right) to equal expected"
+        );
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                   CallMulExpScalar                     //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_callMulExpScalar_success(uint256 mantissa, uint256 scalar) external view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        mantissa = bound(mantissa, 0, DOUBLE_SCALE);
+        scalar = bound(scalar, 0, EXP_SCALE);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            harness.callMulExpScalar(mantissa, scalar),
+            mantissa * scalar,
+            "expected harness.callMulExpScalar(mantissa, scalar) to equal mantissa * scalar"
+        );
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                    CallMulUintExp                      //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_callMulUintExp_success(uint256 value, uint256 mantissa) external view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        value = bound(value, 0, DOUBLE_SCALE);
+        mantissa = bound(mantissa, 0, DOUBLE_SCALE);
+        uint256 expected = (value * mantissa) / EXP_SCALE;
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            harness.callMulUintExp(value, mantissa),
+            expected,
+            "expected harness.callMulUintExp(value, mantissa) to equal expected"
         );
     }
 
@@ -335,6 +538,75 @@ contract ExponentialNoErrorTest is BaseTest {
         );
     }
 
+    function test_fuzz_callDivExpScalar_revertsWith_DivisionError_whenDivisorIsZero(uint256 mantissa) external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.divisionError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.callDivExpScalar(mantissa, 0);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                    CallDivExpExp                       //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_callDivExpExp_success(uint256 left, uint256 right) external view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        left = bound(left, 0, MAX_DOUBLE_NUMERATOR);
+        right = bound(right, 1, DOUBLE_SCALE);
+        uint256 expected = (left * EXP_SCALE) / right;
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            harness.callDivExpExp(left, right),
+            expected,
+            "expected harness.callDivExpExp(left, right) to equal expected"
+        );
+    }
+
+    function test_fuzz_callDivExpExp_revertsWith_DivisionError_whenRightIsZero(uint256 left) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 maxLeft = type(uint256).max / EXP_SCALE;
+        left = bound(left, 0, maxLeft);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.divisionError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.callDivExpExp(left, 0);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                    CallDivUintExp                      //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_callDivUintExp_success(uint256 value, uint256 mantissa) external view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 maxValue = type(uint256).max / EXP_SCALE;
+        value = bound(value, 0, maxValue);
+        mantissa = bound(mantissa, 1, DOUBLE_SCALE);
+        uint256 expected = (value * EXP_SCALE) / mantissa;
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            harness.callDivUintExp(value, mantissa),
+            expected,
+            "expected harness.callDivUintExp(value, mantissa) to equal expected"
+        );
+    }
+
+    function test_fuzz_callDivUintExp_revertsWith_DivisionError_whenMantissaIsZero(uint256 value) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 maxValue = type(uint256).max / EXP_SCALE;
+        value = bound(value, 0, maxValue);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.divisionError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.callDivUintExp(value, 0);
+    }
+
     ////////////////////////////////////////////////////////////
     //                  CallDivDoubleDouble                   //
     ////////////////////////////////////////////////////////////
@@ -351,6 +623,17 @@ contract ExponentialNoErrorTest is BaseTest {
             expected,
             "expected harness.callDivDoubleDouble(left, right) to equal expected"
         );
+    }
+
+    function test_fuzz_callDivDoubleDouble_revertsWith_DivisionError_whenRightIsZero(uint256 left) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        left = bound(left, 0, MAX_DOUBLE_NUMERATOR);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.divisionError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.callDivDoubleDouble(left, 0);
     }
 
     ////////////////////////////////////////////////////////////
@@ -370,6 +653,14 @@ contract ExponentialNoErrorTest is BaseTest {
         );
     }
 
+    function test_fuzz_callDivDoubleScalar_revertsWith_DivisionError_whenDivisorIsZero(uint256 mantissa) external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.divisionError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.callDivDoubleScalar(mantissa, 0);
+    }
+
     ////////////////////////////////////////////////////////////
     //                   CallDivUintDouble                    //
     ////////////////////////////////////////////////////////////
@@ -386,6 +677,18 @@ contract ExponentialNoErrorTest is BaseTest {
             expected,
             "expected harness.callDivUintDouble(value, mantissa) to equal expected"
         );
+    }
+
+    function test_fuzz_callDivUintDouble_revertsWith_DivisionError_whenMantissaIsZero(uint256 value) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 maxValue = type(uint256).max / DOUBLE_SCALE;
+        value = bound(value, 0, maxValue);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.divisionError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.callDivUintDouble(value, 0);
     }
 
     ////////////////////////////////////////////////////////////
@@ -442,6 +745,18 @@ contract ExponentialNoErrorTest is BaseTest {
         );
     }
 
+    function test_fuzz_callDivUpExp_revertsWith_DIV_BY_ZERO_whenMantissaIsZero(uint256 value) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 maxValue = type(uint256).max / EXP_SCALE;
+        value = bound(value, 0, maxValue);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert("DIV_BY_ZERO");
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.callDivUpExp(value, 0);
+    }
+
     ////////////////////////////////////////////////////////////
     //                      CallFraction                      //
     ////////////////////////////////////////////////////////////
@@ -458,5 +773,16 @@ contract ExponentialNoErrorTest is BaseTest {
             expected,
             "expected harness.callFraction(value, divisor) to equal expected"
         );
+    }
+
+    function test_fuzz_callFraction_revertsWith_DivisionError_whenDivisorIsZero(uint256 value) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        value = bound(value, 0, MAX_DOUBLE_NUMERATOR);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.divisionError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.callFraction(value, 0);
     }
 }

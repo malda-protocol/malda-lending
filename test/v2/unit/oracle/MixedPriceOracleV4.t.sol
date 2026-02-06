@@ -2,6 +2,7 @@
 pragma solidity 0.8.28;
 
 import {MixedPriceOracleV4} from "src/oracles/MixedPriceOracleV4.sol";
+import {CommonLib} from "src/libraries/CommonLib.sol";
 
 import {MockAdapter, MockRoles, MockToken} from "test/v2/mocks/oracles/OracleV4Mocks.t.sol";
 import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
@@ -57,6 +58,20 @@ contract MixedPriceOracleV4Test is BaseTest {
         vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_AddressNotValid.selector);
 
         new MixedPriceOracleV4(symbols, configs, address(0), staleness);
+    }
+
+    function test_unit_constructor_revertsWith_CommonLib_LengthMismatch() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        string[] memory symbols = new string[](1);
+        symbols[0] = SYMBOL;
+
+        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](0);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(CommonLib.CommonLib_LengthMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        new MixedPriceOracleV4(symbols, configs, address(roles), 1 days);
     }
 
     ////////////////////////////////////////////////////////////
@@ -149,6 +164,28 @@ contract MixedPriceOracleV4Test is BaseTest {
         oracle.setConfig(SYMBOL, config);
     }
 
+    function test_fuzz_setConfig_revertsWith_MixedPriceOracle_Unauthorized(uint8 underlyingDecimals) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        underlyingDecimals = uint8(bound(underlyingDecimals, 4, 18));
+        MockRoles noAccessRoles = new MockRoles();
+
+        string[] memory symbols = new string[](1);
+        symbols[0] = SYMBOL;
+
+        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](1);
+        configs[0] = _config(address(api3), address(chainlink), "USD", "USD", 18);
+        MixedPriceOracleV4 newOracle = new MixedPriceOracleV4(symbols, configs, address(noAccessRoles), 1 days);
+
+        MixedPriceOracleV4.PriceConfig memory config =
+            _config(address(api3), address(chainlink), "USD", "USD", underlyingDecimals);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_Unauthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        newOracle.setConfig(SYMBOL, config);
+    }
+
     ////////////////////////////////////////////////////////////
     //                    setMaxPriceDelta                    //
     ////////////////////////////////////////////////////////////
@@ -180,6 +217,25 @@ contract MixedPriceOracleV4Test is BaseTest {
         oracle.setMaxPriceDelta(delta);
     }
 
+    function test_fuzz_setMaxPriceDelta_revertsWith_MixedPriceOracle_Unauthorized(uint256 delta) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        delta = bound(delta, 0, oracle.PRICE_DELTA_EXP());
+        MockRoles noAccessRoles = new MockRoles();
+
+        string[] memory symbols = new string[](1);
+        symbols[0] = SYMBOL;
+
+        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](1);
+        configs[0] = _config(address(api3), address(chainlink), "USD", "USD", 18);
+        MixedPriceOracleV4 newOracle = new MixedPriceOracleV4(symbols, configs, address(noAccessRoles), 1 days);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_Unauthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        newOracle.setMaxPriceDelta(delta);
+    }
+
     ////////////////////////////////////////////////////////////
     //                 setSymbolMaxPriceDelta                 //
     ////////////////////////////////////////////////////////////
@@ -208,6 +264,25 @@ contract MixedPriceOracleV4Test is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         oracle.setSymbolMaxPriceDelta(delta, SYMBOL);
+    }
+
+    function test_fuzz_setSymbolMaxPriceDelta_revertsWith_MixedPriceOracle_Unauthorized(uint256 delta) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        delta = bound(delta, 0, oracle.PRICE_DELTA_EXP());
+        MockRoles noAccessRoles = new MockRoles();
+
+        string[] memory symbols = new string[](1);
+        symbols[0] = SYMBOL;
+
+        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](1);
+        configs[0] = _config(address(api3), address(chainlink), "USD", "USD", 18);
+        MixedPriceOracleV4 newOracle = new MixedPriceOracleV4(symbols, configs, address(noAccessRoles), 1 days);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_Unauthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        newOracle.setSymbolMaxPriceDelta(delta, SYMBOL);
     }
 
     ////////////////////////////////////////////////////////////
@@ -441,6 +516,48 @@ contract MixedPriceOracleV4Test is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 weEthInEth = uint256(weEthRaw) * 10 ** (18 - api3WeEth.decimals());
+        uint256 expected = (weEthInEth * ethUsd) / 1e18;
+        assertEq(price, expected, "expected price to equal expected");
+    }
+
+    function test_unit_getPrice_success_handlesChainedSymbols_usesOldestParentUpdate() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        MockAdapter api3Eth = new MockAdapter();
+        MockAdapter chainlinkEth = new MockAdapter();
+        MockAdapter api3WeEth = new MockAdapter();
+        MockAdapter chainlinkWeEth = new MockAdapter();
+
+        api3Eth.setPrice(2_000e8);
+        chainlinkEth.setPrice(2_000e8);
+        api3WeEth.setPrice(1e8);
+        chainlinkWeEth.setPrice(1e8);
+
+        uint256 oldTs = block.timestamp - 1 days;
+        uint256 freshTs = block.timestamp;
+        api3Eth.setUpdatedAt(oldTs);
+        chainlinkEth.setUpdatedAt(oldTs);
+        api3WeEth.setUpdatedAt(freshTs);
+        chainlinkWeEth.setUpdatedAt(freshTs);
+
+        string[] memory symbols = new string[](2);
+        symbols[0] = "ETH";
+        symbols[1] = "WEETH";
+
+        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](2);
+        configs[0] = _config(address(api3Eth), address(chainlinkEth), "USD", "USD", 18);
+        configs[1] = _config(address(api3WeEth), address(chainlinkWeEth), "ETH", "ETH", 18);
+
+        MixedPriceOracleV4 newOracle = new MixedPriceOracleV4(symbols, configs, address(roles), 2 days);
+
+        MockToken localToken = new MockToken();
+        localToken.setSymbol("WEETH");
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 price = newOracle.getPrice(address(localToken));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        uint256 ethUsd = 2_000e18;
+        uint256 weEthInEth = 1e18;
         uint256 expected = (weEthInEth * ethUsd) / 1e18;
         assertEq(price, expected, "expected price to equal expected");
     }

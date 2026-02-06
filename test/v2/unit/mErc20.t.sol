@@ -276,7 +276,7 @@ contract mErc20Test is BaseMTokenTest {
         // cannot test this in a non-external flow
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert();
+        vm.expectRevert(OperatorStorage.Operator_InsufficientLiquidity.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWeth.borrow(amount);
@@ -651,7 +651,7 @@ contract mErc20Test is BaseMTokenTest {
         uint256 amount = ZERO_VALUE;
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(); //arithmetic underflow or overflow
+        vm.expectRevert(abi.encodeWithSignature("Panic(uint256)", 0x11)); // arithmetic underflow or overflow
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWeth.mint(amount, address(this), amount);
@@ -793,13 +793,13 @@ contract mErc20Test is BaseMTokenTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         amount = bound(amount, SMALL, LARGE);
 
-        _getTokens(weth, address(mWeth), amount);
+        _getTokens(weth, address(mWeth), amount / 2);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert();
+        vm.expectRevert(mTokenStorage.mt_RedeemCashNotAvailable.selector);
         mWeth.redeem(amount);
 
-        vm.expectRevert();
+        vm.expectRevert(mTokenStorage.mt_RedeemCashNotAvailable.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWeth.redeemUnderlying(amount);
@@ -983,7 +983,7 @@ contract mErc20Test is BaseMTokenTest {
         vars.totalBorrowsBefore = mWeth.totalBorrows();
         vars.accountBorrowBefore = mWeth.borrowBalanceStored(address(this));
 
-        vm.expectRevert(); //panic: arithmetic underflow or overflow (0x11)
+        vm.expectRevert(abi.encodeWithSignature("Panic(uint256)", 0x11)); // panic: arithmetic underflow or overflow
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWeth.repayBehalf(address(this), amount * 10);
@@ -1210,7 +1210,7 @@ contract mErc20Test is BaseMTokenTest {
         vars.accountBorrowBefore = mWeth.borrowBalanceStored(address(this));
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert();
+        vm.expectRevert(abi.encodeWithSignature("Panic(uint256)", 0x11));
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWeth.repay(amount * 10);
@@ -1321,6 +1321,22 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.sweepToken(IERC20(address(dai)), amount);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(dai.balanceOf(address(mWeth)), 0, "expected dai.balanceOf(address(mWeth)) to equal 0");
+        assertEq(
+            dai.balanceOf(address(this)),
+            adminBalanceBefore + amount,
+            "expected dai.balanceOf(address(this)) to equal adminBalanceBefore + amount"
+        );
+    }
+
+    function test_fuzz_iERC20_success(uint256 amount) external {
+        amount = bound(amount, 1, LARGE);
+        _getTokens(dai, address(mWeth), amount);
+
+        uint256 adminBalanceBefore = dai.balanceOf(address(this));
+
+        mWeth.sweepToken(IERC20(address(dai)), amount);
+
         assertEq(dai.balanceOf(address(mWeth)), 0, "expected dai.balanceOf(address(mWeth)) to equal 0");
         assertEq(
             dai.balanceOf(address(this)),

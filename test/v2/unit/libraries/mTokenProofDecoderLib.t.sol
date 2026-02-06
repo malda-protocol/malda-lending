@@ -108,6 +108,18 @@ contract mTokenProofDecoderLibTest is BaseTest {
         harness.decode(encoded);
     }
 
+    function test_fuzz_decode_revertsWith_mTokenProofDecoderLib_InvalidLength(uint16 length) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(length != mTokenProofDecoderLib.ENTRY_SIZE);
+        bytes memory encoded = new bytes(uint256(length));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(mTokenProofDecoderLib.mTokenProofDecoderLib_InvalidLength.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        harness.decode(encoded);
+    }
+
     function test_fuzz_decode_revertsWith_mTokenProofDecoderLib_InvalidInclusion(
         address sender,
         address market,

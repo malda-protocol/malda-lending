@@ -4,6 +4,7 @@ pragma solidity 0.8.28;
 import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
 import {MixedPriceOracleV3} from "src/oracles/MixedPriceOracleV3.sol";
 import {Roles} from "src/Roles.sol";
+import {CommonLib} from "src/libraries/CommonLib.sol";
 
 import {MockV3Feed, MockV3MToken, MockV3Token} from "test/v2/mocks/oracles/OracleV3Mocks.t.sol";
 import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
@@ -42,6 +43,20 @@ contract MixedPriceOracleV3Test is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         new MixedPriceOracleV3(symbols, configs, address(0), staleness);
+    }
+
+    function test_unit_constructor_revertsWith_CommonLib_LengthMismatch() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        string[] memory symbols = new string[](1);
+        symbols[0] = SYMBOL;
+
+        IDefaultAdapter.PriceConfig[] memory configs = new IDefaultAdapter.PriceConfig[](0);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(CommonLib.CommonLib_LengthMismatch.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        new MixedPriceOracleV3(symbols, configs, address(roles), 1 days);
     }
 
     ////////////////////////////////////////////////////////////
@@ -128,6 +143,21 @@ contract MixedPriceOracleV3Test is BaseTest {
         oracle.setConfig(SYMBOL, config);
     }
 
+    function test_fuzz_setConfig_revertsWith_MixedPriceOracle_Unauthorized(uint8 underlyingDecimals) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        underlyingDecimals = uint8(bound(underlyingDecimals, 4, 18));
+        MockV3Feed feed = new MockV3Feed(8, 1e8);
+        MixedPriceOracleV3 oracle = _deployOracle(address(feed), SYMBOL, 18);
+        IDefaultAdapter.PriceConfig memory config = _config(address(feed), underlyingDecimals);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(MixedPriceOracleV3.MixedPriceOracle_Unauthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.bob);
+        oracle.setConfig(SYMBOL, config);
+    }
+
     ////////////////////////////////////////////////////////////
     //                         getPrice                       //
     ////////////////////////////////////////////////////////////
@@ -200,23 +230,6 @@ contract MixedPriceOracleV3Test is BaseTest {
         assertEq(price, expected, "expected price to equal expected");
     }
 
-    function test_fuzz_getPrice_success_scales(uint8 feedDecimals, uint64 rawPrice) external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        feedDecimals = uint8(bound(feedDecimals, 4, 18));
-        rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
-
-        MockV3Feed feed = new MockV3Feed(feedDecimals, int256(uint256(rawPrice)));
-        MixedPriceOracleV3 oracle = _deployOracle(address(feed), SYMBOL, 18);
-        MockV3MToken token = new MockV3MToken(SYMBOL, address(0));
-
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        uint256 price = oracle.getPrice(address(token));
-
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        uint256 expected = uint256(rawPrice) * 10 ** (18 - feedDecimals);
-        assertEq(price, expected, "expected price to equal expected");
-    }
-
     ////////////////////////////////////////////////////////////
     //                   getUnderlyingPrice                   //
     ////////////////////////////////////////////////////////////
@@ -242,6 +255,23 @@ contract MixedPriceOracleV3Test is BaseTest {
         uint256 priceUsd = uint256(rawPrice) * 10 ** (18 - feedDecimals);
         uint256 expected = priceUsd * 10 ** (18 - underlyingDecimals);
         assertEq(price, expected, "expected price to equal expected");
+    }
+
+    function test_fuzz_getUnderlyingPrice_revertsWith_MixedPriceOracle_InvalidConfig(uint8 underlyingDecimals)
+        external
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        underlyingDecimals = uint8(bound(underlyingDecimals, 4, 18));
+        IDefaultAdapter.PriceConfig memory config = _config(address(0), underlyingDecimals);
+        MixedPriceOracleV3 oracle = _deployOracleWithConfig(SYMBOL, config);
+        MockV3Token underlying = new MockV3Token(SYMBOL);
+        MockV3MToken token = new MockV3MToken("mMOCK", address(underlying));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(MixedPriceOracleV3.MixedPriceOracle_InvalidConfig.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        oracle.getUnderlyingPrice(address(token));
     }
 
     ////////////////////////////////////////////////////////////

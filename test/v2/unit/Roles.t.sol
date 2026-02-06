@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+
 import {IRoles} from "src/interfaces/IRoles.sol";
 import {Roles} from "src/Roles.sol";
 
@@ -33,22 +35,37 @@ contract RolesTest is BaseTest {
         roles.allowFor(target, role, true);
     }
 
-    function test_unit_allowFor_success() external {
+    function test_fuzz_allowFor_revertsWith_OwnableUnauthorizedAccount(address unauthorized) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bytes32 pauseManager = roles.PAUSE_MANAGER();
+        vm.assume(unauthorized != address(0));
+        vm.assume(unauthorized != roles.owner());
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(unauthorized);
+        roles.allowFor(users.bob, pauseManager, true);
+    }
+
+    function test_fuzz_allowFor_success(bool isAllowed) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes32 pauseManager = roles.PAUSE_MANAGER();
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, false, true, address(roles));
-        emit Roles.Allowed(users.alice, pauseManager, true);
+        emit Roles.Allowed(users.alice, pauseManager, isAllowed);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(users.admin);
-        roles.allowFor(users.alice, pauseManager, true);
+        roles.allowFor(users.alice, pauseManager, isAllowed);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertTrue(
+        assertEq(
             roles.isAllowedFor(users.alice, pauseManager),
-            "expected condition to be true: roles.isAllowedFor(users.alice, pauseManager)"
+            isAllowed,
+            "expected roles.isAllowedFor(users.alice, pauseManager) to equal isAllowed"
         );
     }
 }

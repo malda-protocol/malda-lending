@@ -73,6 +73,16 @@ contract CCTPBridgeTest is BaseTest {
     //                     setDomainMapping                   //
     ////////////////////////////////////////////////////////////
 
+    function test_unit_constructor_revertsWith_CCTPBridge_AddressNotValid() external {
+        address invalidRebalancer = address(0);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(CCTPBridge.CCTPBridge_AddressNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        new CCTPBridgeHarness(address(roles), address(messenger), address(transmitter), invalidRebalancer);
+    }
+
     function test_unit_setDomainMapping_success(uint32 chainId, uint32 domain) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         chainId = uint32(bound(chainId, 1, type(uint32).max));
@@ -119,9 +129,35 @@ contract CCTPBridgeTest is BaseTest {
 
     function test_unit_sendMsg_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint8 payloadId = 1;
+        uint64 nonce = 0;
         uint256 amount = 1000;
         uint256 balanceBeforeRebalancer = token.balanceOf(address(rebalancer));
         uint256 balanceBeforeBridge = token.balanceOf(address(bridge));
+        bytes memory payload = abi.encode(address(market));
+        bytes32 receiver = bytes32(uint256(uint160(address(bridge))));
+        bytes32 expectedToken = bytes32(uint256(uint160(address(token))));
+        bytes32 expectedFrom = bytes32(uint256(uint160(address(rebalancer))));
+        bytes memory encodedMessage = abi.encodePacked(
+            payloadId,
+            expectedToken,
+            amount,
+            srcDomain,
+            dstDomain,
+            nonce,
+            expectedFrom,
+            receiver,
+            uint16(payload.length),
+            payload
+        );
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, true, true);
+        emit CCTPHelper.BurnInitiated(address(token), amount, dstDomain, receiver, nonce, payload);
+        vm.expectEmit(true, true, true, true);
+        emit CCTPHelper.MessageCreated(
+            expectedToken, amount, srcDomain, dstDomain, nonce, expectedFrom, receiver, payload, encodedMessage
+        );
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(rebalancer));

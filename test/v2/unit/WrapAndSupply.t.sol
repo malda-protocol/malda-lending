@@ -73,6 +73,11 @@ contract WrapAndSupplyTest is BaseTest {
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockHostMarket market = new MockHostMarket(address(wrapped));
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, true, true, address(helper));
+        emit WrapAndSupply.WrappedAndSupplied(address(this), address(this), address(market), 2 ether);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         helper.wrapAndSupplyOnHostMarket{value: 2 ether}(address(market), address(this), 123);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
@@ -127,26 +132,47 @@ contract WrapAndSupplyTest is BaseTest {
         helper.wrapAndSupplyOnExtensionMarket{value: 1 ether}(address(gateway), address(this), bytes4(0));
     }
 
+    function test_unit_wrapAndSupplyOnExtensionMarket_revertsWith_PanicArithmetic_whenGasFeeExceedsMsgValue() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        WrapAndSupply helper = new WrapAndSupply(address(wrapped));
+        MockGateway gateway = new MockGateway(address(wrapped), 1 ether + 1);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(abi.encodeWithSignature("Panic(uint256)", 0x11));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        helper.wrapAndSupplyOnExtensionMarket{value: 1 ether}(address(gateway), address(this), bytes4(0));
+    }
+
     ////////////////////////////////////////////////////////////
     //                         Supply                         //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_supply_success(uint256 amount, uint256 gasFee) external {
+    function test_fuzz_wrapAndSupplyOnExtensionMarket_success(
+        uint256 amount,
+        uint256 gasFee,
+        address receiver,
+        bytes4 selector
+    ) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(receiver != address(0));
         amount = bound(amount, 1, 10 ether);
         gasFee = bound(gasFee, 0, amount - 1);
 
         WrapAndSupply helper = new WrapAndSupply(address(wrapped));
         MockGateway gateway = new MockGateway(address(wrapped), gasFee);
-
-        bytes4 selector = bytes4(keccak256("supply(uint256)"));
-        helper.wrapAndSupplyOnExtensionMarket{value: amount}(address(gateway), address(this), selector);
-
         uint256 expectedAmount = amount - gasFee;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, true, true, address(helper));
+        emit WrapAndSupply.WrappedAndSupplied(address(this), receiver, address(gateway), expectedAmount);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        helper.wrapAndSupplyOnExtensionMarket{value: amount}(address(gateway), receiver, selector);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(gateway.lastAmount(), expectedAmount, "expected gateway.lastAmount() to equal expectedAmount");
-        assertEq(gateway.lastReceiver(), address(this), "expected gateway.lastReceiver() to equal address(this)");
+        assertEq(gateway.lastReceiver(), receiver, "expected gateway.lastReceiver() to equal receiver");
         assertEq(gateway.lastSelector(), selector, "expected gateway.lastSelector() to equal selector");
         assertEq(gateway.lastValue(), gasFee, "expected gateway.lastValue() to equal gasFee");
         assertEq(

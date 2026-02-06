@@ -50,6 +50,50 @@ contract JumpRateModelV4Test is BaseTest {
         new JumpRateModelV4(0, 1, 1, 1, 1, owner, "MODEL");
     }
 
+    function test_unit_constructor_success_emits() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 blocksPerYear_ = 900;
+        uint256 baseRatePerBlock_ = 3e15;
+        uint256 multiplierPerBlock_ = 2e16;
+        uint256 jumpMultiplierPerBlock_ = 4e16;
+        uint256 kink_ = 85e16;
+        string memory name_ = "MODEL_V2";
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(false, false, false, true);
+        emit IInterestRateModel.BlocksPerYearUpdated(blocksPerYear_);
+
+        vm.expectEmit(false, false, false, true);
+        emit IInterestRateModel.NewInterestParams(
+            baseRatePerBlock_, multiplierPerBlock_, jumpMultiplierPerBlock_, kink_
+        );
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        JumpRateModelV4 newModel = new JumpRateModelV4(
+            blocksPerYear_, baseRatePerBlock_, multiplierPerBlock_, jumpMultiplierPerBlock_, kink_, owner, name_
+        );
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(newModel.blocksPerYear(), blocksPerYear_, "expected newModel.blocksPerYear() to equal blocksPerYear_");
+        assertEq(
+            newModel.baseRatePerBlock(),
+            baseRatePerBlock_,
+            "expected newModel.baseRatePerBlock() to equal baseRatePerBlock_"
+        );
+        assertEq(
+            newModel.multiplierPerBlock(),
+            multiplierPerBlock_,
+            "expected newModel.multiplierPerBlock() to equal multiplierPerBlock_"
+        );
+        assertEq(
+            newModel.jumpMultiplierPerBlock(),
+            jumpMultiplierPerBlock_,
+            "expected newModel.jumpMultiplierPerBlock() to equal jumpMultiplierPerBlock_"
+        );
+        assertEq(newModel.kink(), kink_, "expected newModel.kink() to equal kink_");
+        assertEq(newModel.name(), name_, "expected newModel.name() to equal name_");
+    }
+
     ////////////////////////////////////////////////////////////
     //               UpdateJumpRateModelDirect                //
     ////////////////////////////////////////////////////////////

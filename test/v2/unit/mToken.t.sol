@@ -197,6 +197,30 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.setReserveFactor(1e18 + 1);
     }
 
+    function test_unit_setReserveFactor_revertsWith_mt_OnlyAdmin(uint256 newReserveFactorMantissa) external {
+        newReserveFactorMantissa = bound(newReserveFactorMantissa, 0, 1e18);
+
+        vm.expectRevert(mTokenStorage.mt_OnlyAdmin.selector);
+
+        vm.prank(users.alice);
+        mWeth.setReserveFactor(newReserveFactorMantissa);
+    }
+
+    function test_fuzz_setReserveFactor_success(uint256 newReserveFactorMantissa) external {
+        newReserveFactorMantissa = bound(newReserveFactorMantissa, 0, 1e18);
+
+        vm.expectEmit(true, true, true, true);
+        emit mTokenStorage.NewReserveFactor(mWeth.reserveFactorMantissa(), newReserveFactorMantissa);
+
+        mWeth.setReserveFactor(newReserveFactorMantissa);
+
+        assertEq(
+            mWeth.reserveFactorMantissa(),
+            newReserveFactorMantissa,
+            "expected mWeth.reserveFactorMantissa() to equal newReserveFactorMantissa"
+        );
+    }
+
     ////////////////////////////////////////////////////////////
     //                     AccrueInterest                     //
     ////////////////////////////////////////////////////////////

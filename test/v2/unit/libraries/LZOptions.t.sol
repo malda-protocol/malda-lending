@@ -18,7 +18,7 @@ contract LZOptionsTest is BaseTest {
     //                       newOptions                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_newOptions_success() external {
+    function test_unit_newOptions_success() external view {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(options_, abi.encodePacked(uint16(3)), "expected options_ to equal abi.encodePacked(uint16(3))");
     }
@@ -27,7 +27,7 @@ contract LZOptionsTest is BaseTest {
     //               addExecutorLzReceiveOption               //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_addExecutorLzReceiveOption_success(uint128 gas, uint128 value) external {
+    function test_fuzz_addExecutorLzReceiveOption_success(uint128 gas, uint128 value) external view {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
 
         bytes memory updated = LZOptions.addExecutorLzReceiveOption(options_, gas, value);
@@ -46,7 +46,7 @@ contract LZOptionsTest is BaseTest {
     //               addExecutorLzComposeOption               //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_addExecutorLzComposeOption_success(uint16 index, uint128 gas, uint128 value) external {
+    function test_fuzz_addExecutorLzComposeOption_success(uint16 index, uint128 gas, uint128 value) external view {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
 
         bytes memory updated = LZOptions.addExecutorLzComposeOption(options_, index, gas, value);
@@ -65,7 +65,7 @@ contract LZOptionsTest is BaseTest {
     //           addExecutorOrderedExecutionOption            //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_addExecutorOrderedExecutionOption_success() external {
+    function test_unit_addExecutorOrderedExecutionOption_success() external view {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
 
         bytes memory updated = LZOptions.addExecutorOrderedExecutionOption(options_);
@@ -76,6 +76,60 @@ contract LZOptionsTest is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bytes memory expected = abi.encodePacked(options_, uint8(1), size, uint8(4), data);
+
+        assertEq(updated, expected, "expected updated to equal expected");
+    }
+
+    function test_fuzz_addExecutorLzReceiveOption_success_whenExistingOptions(
+        bytes calldata existingOptions,
+        uint128 gas,
+        uint128 value
+    ) external pure {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bytes memory updated = LZOptions.addExecutorLzReceiveOption(existingOptions, gas, value);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        bytes memory data = abi.encodePacked(gas, value);
+        uint16 size = uint16(1 + data.length);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bytes memory expected = abi.encodePacked(existingOptions, uint8(1), size, uint8(1), data);
+
+        assertEq(updated, expected, "expected updated to equal expected");
+    }
+
+    function test_fuzz_addExecutorLzComposeOption_success_whenExistingOptions(
+        bytes calldata existingOptions,
+        uint16 index,
+        uint128 gas,
+        uint128 value
+    ) external pure {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bytes memory updated = LZOptions.addExecutorLzComposeOption(existingOptions, index, gas, value);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        bytes memory data = abi.encodePacked(index, gas, value);
+        uint16 size = uint16(1 + data.length);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bytes memory expected = abi.encodePacked(existingOptions, uint8(1), size, uint8(3), data);
+
+        assertEq(updated, expected, "expected updated to equal expected");
+    }
+
+    function test_fuzz_addExecutorOrderedExecutionOption_success_whenExistingOptions(bytes calldata existingOptions)
+        external
+        pure
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bytes memory updated = LZOptions.addExecutorOrderedExecutionOption(existingOptions);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        bytes memory data = bytes("");
+        uint16 size = uint16(1 + data.length);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bytes memory expected = abi.encodePacked(existingOptions, uint8(1), size, uint8(4), data);
 
         assertEq(updated, expected, "expected updated to equal expected");
     }

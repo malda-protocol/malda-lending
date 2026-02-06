@@ -137,6 +137,19 @@ contract BlacklisterTest is BaseTest {
         blacklister.unblacklist(user);
     }
 
+    function test_unit_unblacklist_revertsWith_Blacklister_NotAllowed() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.prank(owner);
+        blacklister.blacklist(user);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(IBlacklister.Blacklister_NotAllowed.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(user);
+        blacklister.unblacklist(user);
+    }
+
     function test_unit_unblacklist_revertsWith_Blacklister_NotBlacklisted_withIndex() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address user2 = users.bob;
@@ -211,5 +224,24 @@ contract BlacklisterTest is BaseTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(list.length, 1, "expected list.length to equal 1");
         assertEq(list[0], user, "expected list[0] to equal user");
+    }
+
+    function test_unit_unblacklist_success_iteratesUntilMatch() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address user2 = users.bob;
+        vm.startPrank(owner);
+        blacklister.blacklist(user2);
+        blacklister.blacklist(user);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true);
+        emit IBlacklister.Unblacklisted(user);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        blacklister.unblacklist(user);
+        vm.stopPrank();
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertFalse(blacklister.isBlacklisted(user), "expected condition to be false: blacklister.isBlacklisted(user)");
     }
 }

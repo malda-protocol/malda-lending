@@ -6,6 +6,16 @@ import {Deployer} from "src/utils/Deployer.sol";
 import {DeployableMock} from "test/v2/mocks/DeployerMocks.t.sol";
 import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
+contract RevertingReceiverAdmin {
+    function callSaveEth(Deployer deployer) external {
+        deployer.saveEth();
+    }
+
+    receive() external payable {
+        revert("RECEIVE_REVERTED");
+    }
+}
+
 contract DeployerTest is BaseTest {
     Deployer internal deployer;
     address internal admin;
@@ -78,6 +88,15 @@ contract DeployerTest is BaseTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(other);
         deployer.setPendingAdmin(other);
+    }
+
+    function test_unit_setPendingAdmin_revertsWith_NotAuthorized_whenNewAdminIsZero() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(abi.encodeWithSelector(Deployer.NotAuthorized.selector, address(0), admin));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(admin);
+        deployer.setPendingAdmin(address(0));
     }
 
     ////////////////////////////////////////////////////////////
@@ -204,6 +223,19 @@ contract DeployerTest is BaseTest {
         assertEq(
             admin.balance, adminBalanceBefore + amount, "expected admin.balance to equal adminBalanceBefore + amount"
         );
+    }
+
+    function test_unit_saveEth_revertsWith_ETH_whenAdminCannotReceiveEth() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        RevertingReceiverAdmin revertingAdmin = new RevertingReceiverAdmin();
+        Deployer localDeployer = new Deployer(address(revertingAdmin));
+        vm.deal(address(localDeployer), 1 ether);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(bytes("ETH"));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        revertingAdmin.callSaveEth(localDeployer);
     }
 
     ////////////////////////////////////////////////////////////

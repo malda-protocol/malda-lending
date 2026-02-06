@@ -47,7 +47,7 @@ contract MTokenInvariantTest is BaseMTokenTest {
         targetContract(address(handler));
     }
 
-    function invariant_totalSupply_matchesGhost() public {
+    function invariant_totalSupply_matchesGhost() public view {
         assertEq(
             mWethHost.totalSupply(),
             handler.ghostTotalSupply(),

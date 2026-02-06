@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
 
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
@@ -46,6 +47,16 @@ contract ZkVerifierTest is BaseTest {
         new ZkVerifier(owner, bytes32(0), address(verifierMock));
     }
 
+    function test_unit_constructor_success() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        ZkVerifier deployed = new ZkVerifier(owner, imageId, address(verifierMock));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(deployed.owner(), owner, "expected owner to equal configured owner");
+        assertEq(address(deployed.verifier()), address(verifierMock), "expected verifier to equal verifierMock");
+        assertEq(deployed.imageId(), imageId, "expected imageId to equal configured imageId");
+    }
+
     ////////////////////////////////////////////////////////////
     //                      SetVerifier                       //
     ////////////////////////////////////////////////////////////
@@ -57,6 +68,18 @@ contract ZkVerifierTest is BaseTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(owner);
         zkVerifier.setVerifier(address(0));
+    }
+
+    function test_unit_setVerifier_revertsWith_OwnableUnauthorizedAccount() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address unauthorized = users.alice;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(unauthorized);
+        zkVerifier.setVerifier(address(verifierMock));
     }
 
     function test_unit_setVerifier_success() public {
@@ -90,6 +113,18 @@ contract ZkVerifierTest is BaseTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(owner);
         zkVerifier.setImageId(bytes32(0));
+    }
+
+    function test_unit_setImageId_revertsWith_OwnableUnauthorizedAccount() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address unauthorized = users.alice;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(unauthorized);
+        zkVerifier.setImageId(bytes32(uint256(2)));
     }
 
     function test_unit_setImageId_success() public {

@@ -9,6 +9,9 @@ import {DummyReferrer} from "test/v2/mocks/ReferralSigningMocks.t.sol";
 import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 contract ReferralSigningTest is BaseTest {
+    uint256 internal constant SECP256K1_CURVE_ORDER =
+        0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141;
+
     ReferralSigning internal referral;
 
     address internal referrer;
@@ -57,6 +60,40 @@ contract ReferralSigningTest is BaseTest {
         );
         assertEq(referral.totalReferred(referrer), 1, "expected referral.totalReferred(referrer) to equal 1");
         assertEq(referral.nonces(referred), nonce + 1, "expected referral.nonces(referred) to equal nonce + 1");
+    }
+
+    function test_fuzz_claimReferral_success(uint256 referrerPrivateKey, uint256 referredPrivateKey) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        referrerPrivateKey = bound(referrerPrivateKey, 1, SECP256K1_CURVE_ORDER - 1);
+        referredPrivateKey = bound(referredPrivateKey, 1, SECP256K1_CURVE_ORDER - 1);
+        vm.assume(referrerPrivateKey != referredPrivateKey);
+
+        address fuzzReferrer = vm.addr(referrerPrivateKey);
+        address fuzzReferred = vm.addr(referredPrivateKey);
+
+        uint256 nonce = referral.nonces(fuzzReferred);
+        bytes memory sig = _signReferral(referredPrivateKey, fuzzReferred, fuzzReferrer, nonce);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true, address(referral));
+        emit ReferralSigning.ReferralClaimed(fuzzReferred, fuzzReferrer);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(fuzzReferred);
+        referral.claimReferral(sig, fuzzReferrer);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertTrue(
+            referral.referredByRegistry(fuzzReferrer, fuzzReferred),
+            "expected condition to be true: referral.referredByRegistry(fuzzReferrer, fuzzReferred)"
+        );
+        assertEq(
+            referral.referralsForUserRegistry(fuzzReferred),
+            fuzzReferrer,
+            "expected referral.referralsForUserRegistry(fuzzReferred) to equal fuzzReferrer"
+        );
+        assertEq(referral.totalReferred(fuzzReferrer), 1, "expected referral.totalReferred(fuzzReferrer) to equal 1");
+        assertEq(referral.nonces(fuzzReferred), nonce + 1, "expected referral.nonces(fuzzReferred) to equal nonce + 1");
     }
 
     function test_unit_claimReferral_revertsWith_ReferralSigning_SameUser() public {

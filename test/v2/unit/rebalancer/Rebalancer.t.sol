@@ -35,6 +35,9 @@ contract RebalancerTest is BaseRebalancerTest {
 
     function test_unit_setMaxTransferSize_success_withFirewallEnabled() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint32 destinationChainId = MAINNET_CHAIN_ID;
+        uint256 minTransferSize = 1;
+        uint256 maxTransferSize = 2;
         _enableFirewall();
         _allowGuardian();
 
@@ -48,17 +51,21 @@ contract RebalancerTest is BaseRebalancerTest {
         rebalancer.setAllowList(markets, true);
 
         rebalancer.setWhitelistedBridgeStatus(address(bridgeMock), true);
-        rebalancer.setWhitelistedDestination(MAINNET_CHAIN_ID, true);
-        rebalancer.setMinTransferSize(MAINNET_CHAIN_ID, address(weth), 1);
+        rebalancer.setWhitelistedDestination(destinationChainId, true);
+        rebalancer.setMinTransferSize(destinationChainId, address(weth), minTransferSize);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true);
+        emit IRebalancer.MaxTransferSizeUpdated(destinationChainId, address(weth), maxTransferSize);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        rebalancer.setMaxTransferSize(MAINNET_CHAIN_ID, address(weth), 2);
+        rebalancer.setMaxTransferSize(destinationChainId, address(weth), maxTransferSize);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(
-            rebalancer.maxTransferSizes(MAINNET_CHAIN_ID, address(weth)),
-            2,
-            "expected rebalancer.maxTransferSizes(MAINNET_CHAIN_ID, address(weth)) to equal 2"
+            rebalancer.maxTransferSizes(destinationChainId, address(weth)),
+            maxTransferSize,
+            "expected rebalancer.maxTransferSizes(destinationChainId, address(weth)) to equal maxTransferSize"
         );
     }
 
@@ -210,14 +217,19 @@ contract RebalancerTest is BaseRebalancerTest {
 
     function test_unit_saveEth_success_withFirewallEnabled() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 amountToSave = 1 ether;
         Rebalancer localRebalancer = new Rebalancer(address(roles), users.alice, address(this), "");
         MockFirewall firewall = new MockFirewall();
         vm.store(address(localRebalancer), ADMIN_SLOT, bytes32(uint256(uint160(address(this)))));
         localRebalancer.setFirewall(address(firewall));
         roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), true);
-        vm.deal(address(localRebalancer), 1 ether);
+        vm.deal(address(localRebalancer), amountToSave);
 
         uint256 balanceBefore = users.alice.balance;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(false, false, false, true);
+        emit IRebalancer.EthSaved(amountToSave);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         localRebalancer.saveEth();
@@ -225,8 +237,8 @@ contract RebalancerTest is BaseRebalancerTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(
             users.alice.balance,
-            balanceBefore + 1 ether,
-            "expected users.alice.balance to equal balanceBefore + 1 ether"
+            balanceBefore + amountToSave,
+            "expected users.alice.balance to equal balanceBefore + amountToSave"
         );
     }
 
@@ -248,6 +260,8 @@ contract RebalancerTest is BaseRebalancerTest {
 
         _getTokens(weth, address(market), amount * 3);
 
+        vm.expectEmit(true, true, true, true);
+        emit IRebalancer.MsgSent(address(bridgeMock), dstId, address(weth), message.message, message.bridgeData);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
@@ -257,13 +271,19 @@ contract RebalancerTest is BaseRebalancerTest {
         assertEq(size, amount, "expected size to equal amount");
         assertEq(timestamp, block.timestamp, "expected timestamp to equal block.timestamp");
 
+        vm.expectEmit(true, true, false, true);
+        emit IRebalancer.MaxTransferSizeUpdated(dstId, address(weth), 0);
         rebalancer.setMaxTransferSize(dstId, address(weth), 0);
+        vm.expectEmit(true, true, true, true);
+        emit IRebalancer.MsgSent(address(bridgeMock), dstId, address(weth), message.message, message.bridgeData);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
         (size, timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
         assertEq(size, amount * 2, "expected size to equal amount * 2");
         assertEq(timestamp, block.timestamp, "expected timestamp to equal block.timestamp");
 
         vm.warp(block.timestamp + rebalancer.transferTimeWindow() + 1);
+        vm.expectEmit(true, true, true, true);
+        emit IRebalancer.MsgSent(address(bridgeMock), dstId, address(weth), message.message, message.bridgeData);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
         (size, timestamp) = rebalancer.currentTransferSize(dstId, address(weth));
         assertEq(size, amount, "expected size to equal amount");
@@ -314,6 +334,10 @@ contract RebalancerTest is BaseRebalancerTest {
         tokens[0] = address(weth);
         tokens[1] = address(usdc);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true);
+        emit IRebalancer.AllowedTokensUpdated(address(bridgeMock), true, tokens);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setAllowedTokens(address(bridgeMock), tokens, true);
 
@@ -335,6 +359,10 @@ contract RebalancerTest is BaseRebalancerTest {
         address[] memory tokens = new address[](1);
         tokens[0] = address(weth);
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true);
+        emit IRebalancer.AllowedTokensUpdated(address(bridgeMock), true, tokens);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setAllowedTokens(address(bridgeMock), tokens, true);
 
@@ -344,6 +372,8 @@ contract RebalancerTest is BaseRebalancerTest {
             "expected condition to be true: rebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth))"
         );
 
+        vm.expectEmit(true, false, false, true);
+        emit IRebalancer.AllowedTokensUpdated(address(bridgeMock), false, tokens);
         rebalancer.setAllowedTokens(address(bridgeMock), tokens, false);
         assertFalse(
             rebalancer.allowedTokensPerBridge(address(bridgeMock), address(weth)),
@@ -362,6 +392,10 @@ contract RebalancerTest is BaseRebalancerTest {
         address[] memory markets = new address[](2);
         markets[0] = address(market);
         markets[1] = address(mWethHost);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(false, false, false, true);
+        emit IRebalancer.MarketListUpdated(markets, true);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setMarketStatus(markets, true);
@@ -387,6 +421,10 @@ contract RebalancerTest is BaseRebalancerTest {
 
         address[] memory markets = new address[](1);
         markets[0] = address(market);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(false, false, false, true);
+        emit IRebalancer.AllowedListUpdated(markets, true);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setAllowList(markets, true);
@@ -441,6 +479,10 @@ contract RebalancerTest is BaseRebalancerTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _allowGuardian();
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true);
+        emit IRebalancer.DestinationWhitelistedStatusUpdated(OPTIMISM_CHAIN_ID, true);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setWhitelistedDestination(OPTIMISM_CHAIN_ID, true);
 
@@ -465,16 +507,22 @@ contract RebalancerTest is BaseRebalancerTest {
 
     function test_unit_setMinTransferSize_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint32 destinationChainId = 5;
+        uint256 minTransferSize = 123;
         _allowGuardian();
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true);
+        emit IRebalancer.MinTransferSizeUpdated(destinationChainId, address(weth), minTransferSize);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        rebalancer.setMinTransferSize(5, address(weth), 123);
+        rebalancer.setMinTransferSize(destinationChainId, address(weth), minTransferSize);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(
-            rebalancer.minTransferSizes(5, address(weth)),
-            123,
-            "expected rebalancer.minTransferSizes(5, address(weth)) to equal 123"
+            rebalancer.minTransferSizes(destinationChainId, address(weth)),
+            minTransferSize,
+            "expected rebalancer.minTransferSizes(destinationChainId, address(weth)) to equal minTransferSize"
         );
     }
 
@@ -492,16 +540,22 @@ contract RebalancerTest is BaseRebalancerTest {
 
     function test_unit_setMaxTransferSize_success_updatesMapping() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint32 destinationChainId = 6;
+        uint256 maxTransferSize = 456;
         _allowGuardian();
 
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true);
+        emit IRebalancer.MaxTransferSizeUpdated(destinationChainId, address(weth), maxTransferSize);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        rebalancer.setMaxTransferSize(6, address(weth), 456);
+        rebalancer.setMaxTransferSize(destinationChainId, address(weth), maxTransferSize);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(
-            rebalancer.maxTransferSizes(6, address(weth)),
-            456,
-            "expected rebalancer.maxTransferSizes(6, address(weth)) to equal 456"
+            rebalancer.maxTransferSizes(destinationChainId, address(weth)),
+            maxTransferSize,
+            "expected rebalancer.maxTransferSizes(destinationChainId, address(weth)) to equal maxTransferSize"
         );
     }
 
@@ -518,6 +572,10 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setAdmin_success() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true);
+        emit IRebalancer.NewAdmin(users.alice);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setAdmin(users.alice);
 
@@ -547,6 +605,10 @@ contract RebalancerTest is BaseRebalancerTest {
     ////////////////////////////////////////////////////////////
 
     function test_unit_setSaveAddress_success() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true);
+        emit IRebalancer.SaveAddressUpdated(users.alice);
+
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setSaveAddress(users.alice);
 
@@ -598,13 +660,22 @@ contract RebalancerTest is BaseRebalancerTest {
 
     function test_unit_saveTokens_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        _getTokens(weth, address(rebalancer), 2e18);
+        uint256 amountToSave = 2e18;
+        _getTokens(weth, address(rebalancer), amountToSave);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true);
+        emit IRebalancer.TokensSaved(address(weth), address(market), amountToSave);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.saveTokens(address(weth), address(market));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(weth.balanceOf(address(market)), 2e18, "expected weth.balanceOf(address(market)) to equal 2e18");
+        assertEq(
+            weth.balanceOf(address(market)),
+            amountToSave,
+            "expected weth.balanceOf(address(market)) to equal amountToSave"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -613,12 +684,17 @@ contract RebalancerTest is BaseRebalancerTest {
 
     function test_unit_saveEth_success_transfersToSaveAddress() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 amountToSave = 1 ether;
         Rebalancer localRebalancer = new Rebalancer(address(roles), users.alice, address(this), "");
 
         _allowGuardian();
-        vm.deal(address(localRebalancer), 1 ether);
+        vm.deal(address(localRebalancer), amountToSave);
 
         uint256 aliceBalanceBefore = users.alice.balance;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(false, false, false, true);
+        emit IRebalancer.EthSaved(amountToSave);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         localRebalancer.saveEth();
@@ -626,8 +702,8 @@ contract RebalancerTest is BaseRebalancerTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(
             users.alice.balance,
-            aliceBalanceBefore + 1 ether,
-            "expected users.alice.balance to equal aliceBalanceBefore + 1 ether"
+            aliceBalanceBefore + amountToSave,
+            "expected users.alice.balance to equal aliceBalanceBefore + amountToSave"
         );
     }
 
@@ -929,6 +1005,8 @@ contract RebalancerTest is BaseRebalancerTest {
 
         _getTokens(weth, address(market), amount);
 
+        vm.expectEmit(true, true, true, true);
+        emit IRebalancer.MsgSent(address(bridgeMock), dstId, address(weth), message.message, message.bridgeData);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
@@ -971,7 +1049,11 @@ contract RebalancerTest is BaseRebalancerTest {
 
         _getTokens(weth, address(market), amount * 2);
 
+        vm.expectEmit(true, true, true, true);
+        emit IRebalancer.MsgSent(address(bridgeMock), dstId, address(weth), message.message, message.bridgeData);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
+        vm.expectEmit(true, true, true, true);
+        emit IRebalancer.MsgSent(address(bridgeMock), dstId, address(weth), message.message, message.bridgeData);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
@@ -994,6 +1076,8 @@ contract RebalancerTest is BaseRebalancerTest {
 
         _getTokens(weth, address(market), amount);
 
+        vm.expectEmit(true, true, true, true);
+        emit IRebalancer.MsgSent(address(bridgeMock), dstId, address(weth), message.message, message.bridgeData);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
@@ -1016,10 +1100,14 @@ contract RebalancerTest is BaseRebalancerTest {
 
         _getTokens(weth, address(market), amount * 2);
 
+        vm.expectEmit(true, true, true, true);
+        emit IRebalancer.MsgSent(address(bridgeMock), dstId, address(weth), message.message, message.bridgeData);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
 
         vm.warp(block.timestamp + rebalancer.transferTimeWindow() + 1);
 
+        vm.expectEmit(true, true, true, true);
+        emit IRebalancer.MsgSent(address(bridgeMock), dstId, address(weth), message.message, message.bridgeData);
         rebalancer.sendMsg(address(bridgeMock), address(market), amount, message);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
@@ -1141,6 +1229,10 @@ contract RebalancerTest is BaseRebalancerTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address[] memory markets = new address[](1);
         markets[0] = address(mWethHost);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(false, false, false, true);
+        emit IRebalancer.MarketListUpdated(markets, true);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         rebalancer.setMarketStatus(markets, true);

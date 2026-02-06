@@ -180,6 +180,23 @@ contract AcrossBridgeTest is BaseTest {
         bridge.sendMsg(100, address(market), MAINNET_CHAIN_ID, address(token), message, "");
     }
 
+    function test_unit_sendMsg_revertsWith_AcrossBridge_SlippageNotValid() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 inputAmount = 1;
+        uint256 outputAmount = 0;
+        bridge.setWhitelistedRelayer(MAINNET_CHAIN_ID, users.bob, true);
+        bytes memory message = _encodeMessage(inputAmount, outputAmount, users.bob);
+
+        token.mint(address(this), inputAmount);
+        token.approve(address(bridge), inputAmount);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(AccrossBridge.AcrossBridge_SlippageNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge.sendMsg(inputAmount, address(market), MAINNET_CHAIN_ID, address(token), message, "");
+    }
+
     function test_fuzz_sendMsg_success(uint256 inputAmount, uint256 outputAmount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bridge.setWhitelistedRelayer(MAINNET_CHAIN_ID, users.bob, true);

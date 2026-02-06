@@ -35,6 +35,21 @@ contract ChainlinkOracleTest is BaseTest {
         oracle.getPrice(address(token));
     }
 
+    function test_unit_getPrice_revertsWith_ChainlinkOracle_NoPriceFeed() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        string[] memory symbols = new string[](0);
+        IAggregatorV3[] memory feeds = new IAggregatorV3[](0);
+        uint256[] memory baseUnits = new uint256[](0);
+        ChainlinkOracle oracle = new ChainlinkOracle(symbols, feeds, baseUnits);
+        MockMToken token = new MockMToken("MISSING", address(0));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert();
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        oracle.getPrice(address(token));
+    }
+
     function test_fuzz_getPrice_success_scalesFeedDecimals(uint8 feedDecimals, uint64 rawPrice) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         feedDecimals = uint8(bound(feedDecimals, 4, 18));
@@ -52,7 +67,7 @@ contract ChainlinkOracleTest is BaseTest {
         assertEq(price, expected, "expected price to equal expected");
     }
 
-    function test_fuzz_getPrice_success_scales(uint8 feedDecimals, uint64 rawPrice) external {
+    function test_fuzz_getPrice_success_scales_to18Decimals(uint8 feedDecimals, uint64 rawPrice) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         feedDecimals = uint8(bound(feedDecimals, 4, 18));
         rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
@@ -96,25 +111,35 @@ contract ChainlinkOracleTest is BaseTest {
         assertEq(price, expected, "expected price to equal expected");
     }
 
-    function test_fuzz_getUnderlyingPrice_success_scales(uint8 feedDecimals, uint8 underlyingDecimals, uint64 rawPrice)
-        external
-    {
+    function test_unit_getUnderlyingPrice_revertsWith_ChainlinkOracle_NoPriceFeed() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        feedDecimals = uint8(bound(feedDecimals, 4, 18));
-        underlyingDecimals = uint8(bound(underlyingDecimals, 4, 18));
-        rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
+        string[] memory symbols = new string[](0);
+        IAggregatorV3[] memory feeds = new IAggregatorV3[](0);
+        uint256[] memory baseUnits = new uint256[](0);
+        ChainlinkOracle oracle = new ChainlinkOracle(symbols, feeds, baseUnits);
 
-        MockAggregatorV3 feed = new MockAggregatorV3(feedDecimals, int256(uint256(rawPrice)));
-        MockSymbolToken underlying = new MockSymbolToken("MOCK");
-        MockMToken token = new MockMToken("mMOCK", address(underlying));
-        ChainlinkOracle oracle = _deployOracle("MOCK", feed, 10 ** underlyingDecimals);
+        MockSymbolToken underlying = new MockSymbolToken("MISSING");
+        MockMToken token = new MockMToken("mMISSING", address(underlying));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert();
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        uint256 price = oracle.getUnderlyingPrice(address(token));
+        oracle.getUnderlyingPrice(address(token));
+    }
 
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        uint256 expected = (uint256(rawPrice) * (10 ** (36 - feedDecimals))) / (10 ** underlyingDecimals);
-        assertEq(price, expected, "expected price to equal expected");
+    function test_unit_getUnderlyingPrice_revertsWith_ChainlinkOracle_ZeroPrice() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        MockAggregatorV3 feed = new MockAggregatorV3(8, 0);
+        MockSymbolToken underlying = new MockSymbolToken("MOCK");
+        MockMToken token = new MockMToken("mMOCK", address(underlying));
+        ChainlinkOracle oracle = _deployOracle("MOCK", feed, 1e8);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(ChainlinkOracle.ChainlinkOracle_ZeroPrice.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        oracle.getUnderlyingPrice(address(token));
     }
 
     ////////////////////////////////////////////////////////////

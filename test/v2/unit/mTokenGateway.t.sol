@@ -372,7 +372,11 @@ contract mTokenGatewayTest is BaseMTokenTest {
         // it should revert
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert();
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ImTokenGateway.mTokenGateway_Paused.selector, ImTokenOperationTypes.OperationType.Liquidate
+            )
+        );
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.liquidate(borrower, amount, address(mWethHost), address(this));
@@ -387,7 +391,11 @@ contract mTokenGatewayTest is BaseMTokenTest {
         // it should revert
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert();
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ImTokenGateway.mTokenGateway_Paused.selector, ImTokenOperationTypes.OperationType.AmountIn
+            )
+        );
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.liquidate(borrower, amount, address(mWethHost), address(this));
@@ -619,7 +627,11 @@ contract mTokenGatewayTest is BaseMTokenTest {
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.AmountOutHere, true);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert();
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ImTokenGateway.mTokenGateway_Paused.selector, ImTokenOperationTypes.OperationType.AmountOutHere
+            )
+        );
         uint256[] memory amounts = new uint256[](1);
         amounts[0] = amount;
 
@@ -935,7 +947,11 @@ contract mTokenGatewayTest is BaseMTokenTest {
         // it should revert
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert();
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ImTokenGateway.mTokenGateway_Paused.selector, ImTokenOperationTypes.OperationType.AmountIn
+            )
+        );
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         mWethExtension.supplyOnHost(amount, address(this), LINEA_MINT_SELECTOR);
@@ -1092,6 +1108,17 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertGt(accAmountInAfter, accAmountInBefore, "expected accAmountInAfter to be greater than accAmountInBefore");
+    }
+
+    function test_fuzz_setGasFee_success(uint256 gasFee) external {
+        gasFee = bound(gasFee, 0, 10 ether);
+
+        vm.expectEmit(true, true, true, true);
+        emit ImTokenGateway.mTokenGateway_GasFeeUpdated(gasFee);
+
+        mWethExtension.setGasFee(gasFee);
+
+        assertEq(mWethExtension.gasFee(), gasFee, "expected mWethExtension.gasFee() to equal gasFee");
     }
 
     ////////////////////////////////////////////////////////////

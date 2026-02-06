@@ -410,6 +410,25 @@ contract OperatorTest is BaseUnitTest {
     }
 
     ////////////////////////////////////////////////////////////
+    //                    setWhitelistedUser                  //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_setWhitelistedUser_success(address user, bool state) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(user != address(0));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true, address(operator));
+        emit OperatorStorage.UserWhitelisted(user, state);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        operator.setWhitelistedUser(user, state);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(operator.userWhitelisted(user), state, "expected operator.userWhitelisted(user) to equal state");
+    }
+
+    ////////////////////////////////////////////////////////////
     //                    setRolesOperator                    //
     ////////////////////////////////////////////////////////////
 
@@ -444,6 +463,22 @@ contract OperatorTest is BaseUnitTest {
     ////////////////////////////////////////////////////////////
     //                     setPriceOracle                     //
     ////////////////////////////////////////////////////////////
+
+    function test_fuzz_setPriceOracle_success(address newOracle) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(newOracle != address(0));
+        address previous = operator.oracleOperator();
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, false, true, address(operator));
+        emit OperatorStorage.NewPriceOracle(previous, newOracle);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        operator.setPriceOracle(newOracle);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(operator.oracleOperator(), newOracle, "expected operator.oracleOperator() to equal newOracle");
+    }
 
     function test_unit_setPriceOracle_revertsWith_Operator_InvalidInput() public {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -486,6 +521,42 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setCloseFactor(CLOSE_FACTOR_MAX + 1);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                setLiquidationIncentive                //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_setLiquidationIncentive_success(address marketAddress, uint256 newIncentive) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(marketAddress != address(0));
+        uint256 previous = operator.liquidationIncentiveMantissa(marketAddress);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true, address(operator));
+        emit OperatorStorage.NewLiquidationIncentive(marketAddress, previous, newIncentive);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        operator.setLiquidationIncentive(marketAddress, newIncentive);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            operator.liquidationIncentiveMantissa(marketAddress),
+            newIncentive,
+            "expected operator.liquidationIncentiveMantissa(marketAddress) to equal newIncentive"
+        );
+    }
+
+    function test_unit_setLiquidationIncentive_revertsWith_OwnerCheck() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address unauthorized = users.alice;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert();
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(unauthorized);
+        operator.setLiquidationIncentive(address(market), 1e18);
     }
 
     ////////////////////////////////////////////////////////////
@@ -546,6 +617,21 @@ contract OperatorTest is BaseUnitTest {
     //                     supportMarket                      //
     ////////////////////////////////////////////////////////////
 
+    function test_unit_supportMarket_success() public {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(false, false, false, true, address(operator));
+        emit OperatorStorage.MarketListed(address(market));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        operator.supportMarket(address(market));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertTrue(
+            operator.isMarketListed(address(market)),
+            "expected condition to be true: operator.isMarketListed(address(market))"
+        );
+    }
+
     function test_unit_supportMarket_revertsWith_Operator_MarketAlreadyListed() public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _listMarket(market);
@@ -600,6 +686,25 @@ contract OperatorTest is BaseUnitTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         operator.setOutflowVolumeTimeWindow(0);
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                 setOutflowTimeLimitInUSD               //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_setOutflowTimeLimitInUSD_success(uint256 amount) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 previous = operator.limitPerTimePeriod();
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, false, false, true, address(operator));
+        emit OperatorStorage.OutflowLimitUpdated(address(this), previous, amount);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        operator.setOutflowTimeLimitInUSD(amount);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(operator.limitPerTimePeriod(), amount, "expected operator.limitPerTimePeriod() to equal amount");
     }
 
     ////////////////////////////////////////////////////////////
