@@ -142,12 +142,14 @@ contract JumpRateModelV4Test is BaseTest {
         model.updateJumpRateModelDirect(1, 1, 1, 0);
     }
 
-    function test_unit_updateJumpRateModelDirect_success() public {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        uint256 base = 0;
-        uint256 multiplier = 5e16;
-        uint256 jump = 7e16;
-        uint256 kink = 9e17;
+    function test_fuzz_updateJumpRateModelDirect_success(uint256 base, uint256 multiplier, uint256 jump, uint256 kink)
+        public
+    {
+        // Make sure required values are non-zero
+        base = bound(base, 0, type(uint256).max);
+        multiplier = bound(multiplier, 1, type(uint256).max);
+        jump = bound(jump, 1, type(uint256).max);
+        kink = bound(kink, 1, type(uint256).max);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(false, false, false, true);
@@ -168,12 +170,18 @@ contract JumpRateModelV4Test is BaseTest {
     //                  UpdateJumpRateModel                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_updateJumpRateModel_success() public {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        uint256 baseRatePerYear = 1000;
-        uint256 multiplierPerYear = 2000;
-        uint256 jumpMultiplierPerYear = 3000;
-        uint256 kink = 1e18;
+    function test_fuzz_updateJumpRateModel_success(
+        uint256 baseRatePerYear,
+        uint256 multiplierPerYear,
+        uint256 jumpMultiplierPerYear,
+        uint256 kink
+    ) public {
+        // Keep values valid while maximizing exploration range.
+        uint256 maxKink = type(uint256).max / model.blocksPerYear();
+        baseRatePerYear = bound(baseRatePerYear, 1, type(uint256).max);
+        multiplierPerYear = bound(multiplierPerYear, 1, type(uint256).max / 1e18);
+        jumpMultiplierPerYear = bound(jumpMultiplierPerYear, 1, type(uint256).max);
+        kink = bound(kink, 1, maxKink);
 
         uint256 expectedBase = baseRatePerYear / model.blocksPerYear();
         uint256 expectedMultiplier = multiplierPerYear * 1e18 / (model.blocksPerYear() * kink);
@@ -255,9 +263,9 @@ contract JumpRateModelV4Test is BaseTest {
     //                  updateBlocksPerYear                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_updateBlocksPerYear_success(uint256 newBlocksPerYear) public {
+    function test_fuzz_updateBlocksPerYear_success(uint256 newBlocksPerYear) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        newBlocksPerYear = bound(newBlocksPerYear, 1, 1e12);
+        newBlocksPerYear = bound(newBlocksPerYear, 1, type(uint256).max);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(false, false, false, true);
@@ -304,7 +312,7 @@ contract JumpRateModelV4Test is BaseTest {
 
     function test_fuzz_utilizationRate_success_zeroBorrows(uint256 cash, uint256 reserves) public view {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        cash = bound(cash, 0, 1e18);
+        cash = bound(cash, 0, type(uint256).max);
         reserves = bound(reserves, 0, cash);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
@@ -318,8 +326,9 @@ contract JumpRateModelV4Test is BaseTest {
         view
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        cash = bound(cash, 1, 1e18);
-        borrows = bound(borrows, 2, 1e18);
+        uint256 maxBorrowsForUtilization = type(uint256).max / 1e18;
+        cash = bound(cash, 1, type(uint256).max - maxBorrowsForUtilization);
+        borrows = bound(borrows, 2, maxBorrowsForUtilization);
         uint256 maxReserves = cash + borrows - 1;
         reserves = bound(reserves, cash + 1, maxReserves);
 
@@ -336,18 +345,17 @@ contract JumpRateModelV4Test is BaseTest {
 
     function test_fuzz_getBorrowRate_success_belowKink(uint256 cash, uint256 borrows, uint256 reserves) public view {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        cash = bound(cash, 1, 1e18);
-        borrows = bound(borrows, 1, 1e18);
+        uint256 maxBorrowsForUtilization = type(uint256).max / 1e18;
+        borrows = bound(borrows, 1, maxBorrowsForUtilization);
+        cash = bound(cash, 0, type(uint256).max - borrows);
         reserves = bound(reserves, 0, cash + borrows - 1);
 
         uint256 util = model.utilizationRate(cash, borrows, reserves);
-        uint256 kink = model.kink();
-        uint256 maxUtil = kink == 0 ? 1 : kink;
-        uint256 utilTarget = bound(util, 1, maxUtil);
-        cash = (borrows * 1e18 / utilTarget) - borrows + reserves;
-        if (cash == 0) {
-            cash = 1;
-        }
+        uint256 utilTarget = bound(util, 1, model.kink());
+        uint256 principalCash = borrows * 1e18 / utilTarget - borrows;
+        uint256 maxReservesForSafeDenominator = type(uint256).max - principalCash - borrows;
+        reserves = bound(reserves, 0, maxReservesForSafeDenominator);
+        cash = principalCash + reserves;
         util = model.utilizationRate(cash, borrows, reserves);
 
         uint256 expected = util * model.multiplierPerBlock() / 1e18 + model.baseRatePerBlock();
@@ -361,11 +369,14 @@ contract JumpRateModelV4Test is BaseTest {
 
     function test_fuzz_getBorrowRate_success_aboveKink(uint256 cash, uint256 borrows, uint256 reserves) public view {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        cash = bound(cash, 1, 1e18);
-        borrows = bound(borrows, 1, 1e18);
-        reserves = cash + borrows - 1;
+        uint256 maxBorrowsForUtilization = type(uint256).max / 1e18;
+        borrows = bound(borrows, 1, maxBorrowsForUtilization);
+        reserves = bound(reserves, 0, borrows);
+        uint256 utilTarget = bound(cash, model.kink() + 1, 1e18);
+        cash = (borrows * 1e18 / utilTarget) - borrows + reserves;
 
         uint256 util = model.utilizationRate(cash, borrows, reserves);
+        vm.assume(util > model.kink());
 
         uint256 normalRate = model.kink() * model.multiplierPerBlock() / 1e18 + model.baseRatePerBlock();
         uint256 expected = (util - model.kink()) * model.jumpMultiplierPerBlock() / 1e18 + normalRate;
@@ -382,8 +393,9 @@ contract JumpRateModelV4Test is BaseTest {
         view
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        cash = bound(cash, 1, 1e18);
-        borrows = bound(borrows, 1, 1e18);
+        uint256 maxBorrowsForUtilization = type(uint256).max / 1e18;
+        borrows = bound(borrows, 1, maxBorrowsForUtilization);
+        cash = bound(cash, 0, type(uint256).max - borrows);
         reserves = bound(reserves, 0, cash + borrows - 1);
         reserveFactor = bound(reserveFactor, 0, 1e18);
 

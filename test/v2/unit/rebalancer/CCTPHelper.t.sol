@@ -5,35 +5,8 @@ import {CCTPHelper} from "src/rebalancer/bridges/cctp/CCTPHelper.sol";
 
 import {ERC20Mock} from "test/mocks/ERC20Mock.sol";
 import {MockMessageTransmitter, MockTokenMessenger} from "test/v2/mocks/rebalancer/CCTPHelperMocks.t.sol";
+import {CCTPHelperHarness} from "test/v2/unit/rebalancer/harness/CCTPHelperHarness.sol";
 import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
-
-contract CCTPHelperHarness is CCTPHelper {
-    constructor(address _tokenMessenger, address _messageTransmitter)
-        CCTPHelper(_tokenMessenger, _messageTransmitter)
-    {}
-
-    function exposedCreateAndBurn(
-        address _token,
-        uint256 _amount,
-        uint32 _dstDomain,
-        bytes32 _receiver,
-        bytes calldata _payload,
-        uint32 _srcDomain
-    ) external returns (CCTPMessage memory msgData, bytes memory encoded) {
-        return createAndBurn(_token, _amount, _dstDomain, _receiver, _payload, _srcDomain);
-    }
-
-    function exposedHandleDestinationMsg(bytes calldata cctpMessage, bytes calldata attestation)
-        external
-        returns (CCTPMessage memory msgData)
-    {
-        return handleDestinationMsg(cctpMessage, attestation);
-    }
-
-    function setAcceptedToken(address token, bool allowed) external {
-        acceptedTokens[token] = allowed;
-    }
-}
 
 contract CCTPHelperTest is BaseTest {
     uint8 internal constant PAYLOAD_ID_V1 = 1;
@@ -72,7 +45,7 @@ contract CCTPHelperTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                  exposedCreateAndBurn                  //
+    //                      constructor                       //
     ////////////////////////////////////////////////////////////
 
     function test_unit_constructor_revertsWith_CCTPHelper_AddressZero_whenTokenMessengerIsZero() external {
@@ -91,7 +64,28 @@ contract CCTPHelperTest is BaseTest {
         new CCTPHelperHarness(address(messenger), address(0));
     }
 
-    function test_fuzz_exposedCreateAndBurn_success(uint256 amount, bytes calldata payload) external {
+    function test_unit_constructor_success() external {
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        CCTPHelperHarness localHelper = new CCTPHelperHarness(address(messenger), address(transmitter));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            localHelper.TOKEN_MESSENGER(),
+            address(messenger),
+            "expected localHelper.TOKEN_MESSENGER() to equal address(messenger)"
+        );
+        assertEq(
+            localHelper.MESSAGE_TRANSMITTER(),
+            address(transmitter),
+            "expected localHelper.MESSAGE_TRANSMITTER() to equal address(transmitter)"
+        );
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                      createAndBurn                     //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_createAndBurn_success(uint256 amount, bytes calldata payload) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 payloadLength = bound(payload.length, 0, 64);
         bytes memory boundedPayload = new bytes(payloadLength);
@@ -146,7 +140,7 @@ contract CCTPHelperTest is BaseTest {
         );
     }
 
-    function test_unit_exposedCreateAndBurn_revertsWith_CCTPHelper_AmountZero() external {
+    function test_unit_createAndBurn_revertsWith_CCTPHelper_AmountZero() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(CCTPHelper.CCTPHelper_AmountZero.selector);
 
@@ -155,7 +149,7 @@ contract CCTPHelperTest is BaseTest {
         helper.exposedCreateAndBurn(address(token), 0, DST, bytes32(uint256(uint160(users.bob))), "", SRC);
     }
 
-    function test_unit_exposedCreateAndBurn_revertsWith_CCTPHelper_AddressZero() external {
+    function test_unit_createAndBurn_revertsWith_CCTPHelper_AddressZero() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(CCTPHelper.CCTPHelper_AddressZero.selector);
 
@@ -164,7 +158,7 @@ contract CCTPHelperTest is BaseTest {
         helper.exposedCreateAndBurn(address(token), 100, DST, bytes32(0), "", SRC);
     }
 
-    function test_unit_exposedCreateAndBurn_revertsWith_CCTPHelper_TokenNotAccepted() external {
+    function test_unit_createAndBurn_revertsWith_CCTPHelper_TokenNotAccepted() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         ERC20Mock otherToken = new ERC20Mock("Other", "O", 18, address(this), address(0), 0);
         otherToken.mint(user, 1000);
@@ -180,10 +174,10 @@ contract CCTPHelperTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                exposedHandleDestinationMsg             //
+    //                   handleDestinationMsg                 //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_exposedHandleDestinationMsg_success() external {
+    function test_unit_handleDestinationMsg_success() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint16 payloadLength = 0;
         bytes memory fakeHook = abi.encodePacked(
@@ -217,7 +211,7 @@ contract CCTPHelperTest is BaseTest {
         assertEq(msgData.nonce, DEFAULT_NONCE, "expected msgData.nonce to equal DEFAULT_NONCE");
     }
 
-    function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_ReceiveFailed() external {
+    function test_unit_handleDestinationMsg_revertsWith_CCTPHelper_ReceiveFailed() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         transmitter.setShouldSucceed(false);
 
@@ -228,7 +222,7 @@ contract CCTPHelperTest is BaseTest {
         helper.exposedHandleDestinationMsg("msg", "att");
     }
 
-    function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_MsgTooShort() external {
+    function test_unit_handleDestinationMsg_revertsWith_CCTPHelper_MsgTooShort() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(CCTPHelper.CCTPHelper_MsgTooShort.selector);
 
@@ -236,9 +230,7 @@ contract CCTPHelperTest is BaseTest {
         helper.exposedHandleDestinationMsg(new bytes(10), "att");
     }
 
-    function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_MsgTooShort_whenBodyHeaderTooShort()
-        external
-    {
+    function test_unit_handleDestinationMsg_revertsWith_CCTPHelper_MsgTooShort_whenBodyHeaderTooShort() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 shortBodyHeaderLength = CCTP_BODY_HEADER_BYTES - 1;
         bytes memory fakeCCTPMessage = bytes.concat(new bytes(CCTP_HEADER_BYTES), new bytes(shortBodyHeaderLength));
@@ -250,7 +242,7 @@ contract CCTPHelperTest is BaseTest {
         helper.exposedHandleDestinationMsg(fakeCCTPMessage, "att");
     }
 
-    function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_MsgTooShort_whenHookTooShort() external {
+    function test_unit_handleDestinationMsg_revertsWith_CCTPHelper_MsgTooShort_whenHookTooShort() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint256 shortHookLength = MIN_HOOK_MESSAGE_LENGTH - 1;
         bytes memory fakeCCTPMessage =
@@ -263,7 +255,7 @@ contract CCTPHelperTest is BaseTest {
         helper.exposedHandleDestinationMsg(fakeCCTPMessage, "att");
     }
 
-    function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_PayloadMismatch() external {
+    function test_unit_handleDestinationMsg_revertsWith_CCTPHelper_PayloadMismatch() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory payload = abi.encode(users.bob);
 
@@ -290,7 +282,7 @@ contract CCTPHelperTest is BaseTest {
         helper.exposedHandleDestinationMsg(fakeCCTPMessage, "att");
     }
 
-    function test_unit_exposedHandleDestinationMsg_revertsWith_CCTPHelper_LengthMismatch() external {
+    function test_unit_handleDestinationMsg_revertsWith_CCTPHelper_LengthMismatch() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint64 mismatchedNonce = 1;
         uint16 mismatchedPayloadLen = 1;

@@ -11,6 +11,18 @@ import {EverclearFeeAdapterV2Mock} from "test/mocks/EverclearFeeAdapterMock.sol"
 import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 contract EverclearBridgeV2Test is BaseTest {
+    struct IntentInput {
+        uint32 dstChainId;
+        address receiver;
+        address inputAsset;
+        bytes32 outputAsset;
+        uint256 amount;
+        uint256 amountOutMin;
+        uint48 ttl;
+        bytes data;
+        IFeeAdapterV2.FeeParams feeParams;
+    }
+
     Roles internal roles;
     ERC20Mock internal token;
     EverclearFeeAdapterV2Mock internal feeAdapter;
@@ -54,6 +66,23 @@ contract EverclearBridgeV2Test is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         new EverclearBridgeV2(address(roles), address(0));
+    }
+
+    function test_unit_constructor_success() external {
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        EverclearBridgeV2 localBridge = new EverclearBridgeV2(address(roles), address(feeAdapter));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            address(localBridge.roles()),
+            address(roles),
+            "expected address(localBridge.roles()) to equal address(roles)"
+        );
+        assertEq(
+            address(localBridge.everclearFeeAdapter()),
+            address(feeAdapter),
+            "expected address(localBridge.everclearFeeAdapter()) to equal address(feeAdapter)"
+        );
     }
 
     ////////////////////////////////////////////////////////////
@@ -251,11 +280,7 @@ contract EverclearBridgeV2Test is BaseTest {
         bridge.sendMsg(input.amount, market, dstChainId, address(token), message, "");
     }
 
-    ////////////////////////////////////////////////////////////
-    //                         MsgSent                        //
-    ////////////////////////////////////////////////////////////
-
-    function test_fuzz_msgSent_success_returnsExcess(
+    function test_fuzz_sendMsg_success_returnsExcess(
         uint96 amountRaw,
         uint96 feeRaw,
         uint96 extraRaw,
@@ -336,7 +361,7 @@ contract EverclearBridgeV2Test is BaseTest {
         );
     }
 
-    function test_fuzz_msgSent_success_noExcess(
+    function test_fuzz_sendMsg_success_noExcess(
         uint96 amountRaw,
         uint96 feeRaw,
         uint48 ttl,
@@ -396,18 +421,6 @@ contract EverclearBridgeV2Test is BaseTest {
         assertEq(
             feeAdapter.lastDestinations(0), dstChainId, "expected feeAdapter.lastDestinations(0) to equal dstChainId"
         );
-    }
-
-    struct IntentInput {
-        uint32 dstChainId;
-        address receiver;
-        address inputAsset;
-        bytes32 outputAsset;
-        uint256 amount;
-        uint256 amountOutMin;
-        uint48 ttl;
-        bytes data;
-        IFeeAdapterV2.FeeParams feeParams;
     }
 
     ////////////////////////////////////////////////////////////

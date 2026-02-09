@@ -24,6 +24,10 @@ contract BadInterestRateModel {
 
 contract mTokenTest is BaseMTokenTest {
     uint256 internal constant EXP_SCALE = 1e18;
+    uint256 internal constant MIN_FUZZ_AMOUNT = 1;
+    uint256 internal constant MIN_FUZZ_MINT_AMOUNT = DEFAULT_INFLATION_INCREASE + 1;
+    uint256 internal constant MIN_FUZZ_AMOUNT_WITH_SETUP = DEFAULT_INFLATION_INCREASE * 2;
+    uint256 internal constant MAX_FUZZ_AMOUNT = type(uint128).max;
 
     function setUp() public override {
         super.setUp();
@@ -167,7 +171,7 @@ contract mTokenTest is BaseMTokenTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         operator.supportMarket(address(mWeth));
 
-        mintAmount = bound(mintAmount, SMALL, LARGE);
+        mintAmount = bound(mintAmount, MIN_FUZZ_MINT_AMOUNT, MAX_FUZZ_AMOUNT);
         newMax = bound(newMax, 0, 1e18);
 
         _getTokens(weth, address(this), mintAmount);
@@ -308,7 +312,7 @@ contract mTokenTest is BaseMTokenTest {
 
     function test_fuzz_approve_success(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, 0, LARGE);
+        amount = bound(amount, 0, MAX_FUZZ_AMOUNT);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
@@ -336,7 +340,7 @@ contract mTokenTest is BaseMTokenTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         operator.supportMarket(address(mWeth));
 
-        mintAmount = bound(mintAmount, SMALL, LARGE);
+        mintAmount = bound(mintAmount, MIN_FUZZ_MINT_AMOUNT, MAX_FUZZ_AMOUNT);
         _getTokens(weth, address(this), mintAmount);
         weth.approve(address(mWeth), mintAmount);
         mWeth.mint(mintAmount, address(this), 0);
@@ -355,13 +359,13 @@ contract mTokenTest is BaseMTokenTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         operator.supportMarket(address(mWeth));
 
-        mintAmount = bound(mintAmount, SMALL, LARGE);
+        mintAmount = bound(mintAmount, MIN_FUZZ_MINT_AMOUNT, MAX_FUZZ_AMOUNT);
         _getTokens(weth, address(this), mintAmount);
         weth.approve(address(mWeth), mintAmount);
         mWeth.mint(mintAmount, address(this), 0);
 
         uint256 senderBalanceBefore = mWeth.balanceOf(address(this));
-        transferAmount = bound(transferAmount, 1, senderBalanceBefore);
+        transferAmount = bound(transferAmount, 0, senderBalanceBefore);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
@@ -392,14 +396,14 @@ contract mTokenTest is BaseMTokenTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         operator.supportMarket(address(mWeth));
 
-        mintAmount = bound(mintAmount, SMALL, LARGE);
+        mintAmount = bound(mintAmount, MIN_FUZZ_MINT_AMOUNT, MAX_FUZZ_AMOUNT);
         _getTokens(weth, users.alice, mintAmount);
         vm.startPrank(users.alice);
         weth.approve(address(mWeth), mintAmount);
         mWeth.mint(mintAmount, users.alice, 0);
 
         uint256 senderBalanceBefore = mWeth.balanceOf(users.alice);
-        transferAmount = bound(transferAmount, 1, senderBalanceBefore);
+        transferAmount = bound(transferAmount, 0, senderBalanceBefore);
         mWeth.approve(users.bob, transferAmount);
         vm.stopPrank();
 
@@ -436,14 +440,14 @@ contract mTokenTest is BaseMTokenTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         operator.supportMarket(address(mWeth));
 
-        mintAmount = bound(mintAmount, SMALL, LARGE);
+        mintAmount = bound(mintAmount, MIN_FUZZ_MINT_AMOUNT, MAX_FUZZ_AMOUNT);
         _getTokens(weth, users.alice, mintAmount);
         vm.startPrank(users.alice);
         weth.approve(address(mWeth), mintAmount);
         mWeth.mint(mintAmount, users.alice, 0);
 
         uint256 senderBalanceBefore = mWeth.balanceOf(users.alice);
-        transferAmount = bound(transferAmount, 1, senderBalanceBefore);
+        transferAmount = bound(transferAmount, 0, senderBalanceBefore);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
@@ -481,7 +485,7 @@ contract mTokenTest is BaseMTokenTest {
         whenMarketEntered(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        borrowAmount = bound(borrowAmount, SMALL, LARGE / 2);
+        borrowAmount = bound(borrowAmount, MIN_FUZZ_AMOUNT_WITH_SETUP, MAX_FUZZ_AMOUNT / 2);
         _borrowPrerequisites(address(mWeth), borrowAmount * 2);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -517,8 +521,8 @@ contract mTokenTest is BaseMTokenTest {
         whenMarketEntered(address(mWethHost))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        supplyAmount = bound(supplyAmount, MEDIUM, LARGE);
-        borrowAmount = bound(borrowAmount, SMALL, supplyAmount / 2);
+        supplyAmount = bound(supplyAmount, MIN_FUZZ_MINT_AMOUNT * 4, MAX_FUZZ_AMOUNT);
+        borrowAmount = bound(borrowAmount, MIN_FUZZ_MINT_AMOUNT, supplyAmount / 4);
 
         _getTokens(weth, address(this), supplyAmount);
         weth.approve(address(mWethHost), supplyAmount);
@@ -559,7 +563,7 @@ contract mTokenTest is BaseMTokenTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         operator.supportMarket(address(mWeth));
 
-        mintAmount = bound(mintAmount, SMALL, LARGE);
+        mintAmount = bound(mintAmount, MIN_FUZZ_MINT_AMOUNT, MAX_FUZZ_AMOUNT);
         _getTokens(weth, address(this), mintAmount);
         weth.approve(address(mWeth), mintAmount);
         mWeth.mint(mintAmount, address(this), 0);
@@ -584,7 +588,7 @@ contract mTokenTest is BaseMTokenTest {
 
     function test_fuzz_getCash_success(uint256 mintAmount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        mintAmount = bound(mintAmount, SMALL, LARGE);
+        mintAmount = bound(mintAmount, MIN_FUZZ_MINT_AMOUNT, MAX_FUZZ_AMOUNT);
         operator.supportMarket(address(mWeth));
 
         _getTokens(weth, address(this), mintAmount);
@@ -623,7 +627,7 @@ contract mTokenTest is BaseMTokenTest {
 
     function test_fuzz_reduceReserves_success_asAdmin(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, 0, MAX_FUZZ_AMOUNT);
 
         _getTokens(weth, address(this), amount);
         weth.approve(address(mWeth), amount);
@@ -655,7 +659,7 @@ contract mTokenTest is BaseMTokenTest {
 
     function test_fuzz_reduceReserves_success_asGuardian(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, 0, MAX_FUZZ_AMOUNT);
 
         _getTokens(weth, address(this), amount);
         weth.approve(address(mWethHost), amount);
@@ -684,7 +688,7 @@ contract mTokenTest is BaseMTokenTest {
 
     function test_fuzz_reduceReserves_revertsWith_mt_OnlyAdminOrRole(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, 0, MAX_FUZZ_AMOUNT);
 
         _getTokens(weth, address(this), amount);
         weth.approve(address(mWeth), amount);

@@ -13,28 +13,18 @@ import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
 import {LiquidationHelper} from "src/utils/LiquidationHelper.sol";
 import {WrapAndSupply} from "src/utils/WrapAndSupply.sol";
 
+import {mErc20UpgradableHarnessV2} from "test/v2/unit/harness/mErc20UpgradableHarnessV2.sol";
 import {BaseMTokenTest} from "test/v2/utils/BaseMTokenTest.t.sol";
 
-contract mErc20UpgradableHarnessV2 is mErc20Upgradable {
-    function initializeHarness(
-        address underlying_,
-        address operator_,
-        address interestRateModel_,
-        uint256 initialExchangeRateMantissa_,
-        string calldata name_,
-        string calldata symbol_,
-        uint8 decimals_,
-        address payable admin_
-    ) external {
-        _proxyInitialize(
-            underlying_, operator_, interestRateModel_, initialExchangeRateMantissa_, name_, symbol_, decimals_, admin_
-        );
-    }
-}
-
 contract mErc20Test is BaseMTokenTest {
-    mErc20UpgradableHarnessV2 internal harness;
     uint256 internal constant EXP_SCALE = 1e18;
+    uint256 internal constant MIN_FUZZ_AMOUNT = 1;
+    uint256 internal constant MIN_FUZZ_AMOUNT_WITH_SETUP = DEFAULT_INFLATION_INCREASE * 2;
+    uint256 internal constant MIN_FUZZ_WITH_SLIPPAGE = DEFAULT_INFLATION_INCREASE + 1;
+    uint256 internal constant MAX_FUZZ_AMOUNT = type(uint128).max;
+    mErc20UpgradableHarnessV2 internal harness;
+    LiquidationHelper internal helper;
+    address internal borrower;
 
     function setUp() public override {
         super.setUp();
@@ -48,6 +38,31 @@ contract mErc20Test is BaseMTokenTest {
     ////////////////////////////////////////////////////////////
     //                      Constructor                       //
     ////////////////////////////////////////////////////////////
+
+    function test_unit_constructor_success() external {
+        mErc20Immutable token = new mErc20Immutable(
+            address(weth),
+            address(operator),
+            address(interestModel),
+            1e18,
+            "Market WETH",
+            "mWeth",
+            18,
+            payable(address(this))
+        );
+
+        assertEq(token.underlying(), address(weth), "expected token.underlying() to equal address(weth)");
+        assertEq(token.operator(), address(operator), "expected token.operator() to equal address(operator)");
+        assertEq(
+            token.interestRateModel(),
+            address(interestModel),
+            "expected token.interestRateModel() to equal address(interestModel)"
+        );
+        assertEq(token.name(), "Market WETH", "expected token.name() to equal Market WETH");
+        assertEq(token.symbol(), "mWeth", "expected token.symbol() to equal mWeth");
+        assertEq(token.decimals(), 18, "expected token.decimals() to equal 18");
+        assertEq(token.admin(), address(this), "expected token.admin() to equal address(this)");
+    }
 
     function test_unit_constructor_revertsWith_mErc20Immutable_AdminNotValid() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
@@ -65,10 +80,10 @@ contract mErc20Test is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                   InitializeHarness                    //
+    //                    ProxyInitialize                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_initializeHarness_revertsWith_mErc20Upgradable_AdminNotValid() external {
+    function test_unit_proxyInitialize_revertsWith_mErc20Upgradable_AdminNotValid() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mErc20Upgradable.mErc20Upgradable_AdminNotValid.selector);
 
@@ -85,7 +100,7 @@ contract mErc20Test is BaseMTokenTest {
         );
     }
 
-    function test_unit_initializeHarness_revertsWith_mt_AddressNotValid_whenUnderlyingZero() external {
+    function test_unit_proxyInitialize_revertsWith_mt_AddressNotValid_whenUnderlyingZero() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_AddressNotValid.selector);
 
@@ -102,7 +117,7 @@ contract mErc20Test is BaseMTokenTest {
         );
     }
 
-    function test_unit_initializeHarness_revertsWith_mt_AddressNotValid_whenOperatorZero() external {
+    function test_unit_proxyInitialize_revertsWith_mt_AddressNotValid_whenOperatorZero() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_AddressNotValid.selector);
 
@@ -112,7 +127,7 @@ contract mErc20Test is BaseMTokenTest {
         );
     }
 
-    function test_unit_initializeHarness_revertsWith_mt_AddressNotValid_whenInterestModelZero() external {
+    function test_unit_proxyInitialize_revertsWith_mt_AddressNotValid_whenInterestModelZero() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_AddressNotValid.selector);
 
@@ -122,7 +137,7 @@ contract mErc20Test is BaseMTokenTest {
         );
     }
 
-    function test_unit_initializeHarness_revertsWith_mt_NameNotValid() external {
+    function test_unit_proxyInitialize_revertsWith_mt_NameNotValid() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_NameNotValid.selector);
 
@@ -132,7 +147,7 @@ contract mErc20Test is BaseMTokenTest {
         );
     }
 
-    function test_unit_initializeHarness_revertsWith_mt_SymbolNotValid() external {
+    function test_unit_proxyInitialize_revertsWith_mt_SymbolNotValid() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_SymbolNotValid.selector);
 
@@ -149,7 +164,7 @@ contract mErc20Test is BaseMTokenTest {
         );
     }
 
-    function test_unit_initializeHarness_revertsWith_mt_DecimalsNotValid() external {
+    function test_unit_proxyInitialize_revertsWith_mt_DecimalsNotValid() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_DecimalsNotValid.selector);
 
@@ -166,7 +181,7 @@ contract mErc20Test is BaseMTokenTest {
         );
     }
 
-    function test_unit_initializeHarness_revertsWith_mt_ExchangeRateNotValid() external {
+    function test_unit_proxyInitialize_revertsWith_mt_ExchangeRateNotValid() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(mTokenStorage.mt_ExchangeRateNotValid.selector);
 
@@ -183,7 +198,7 @@ contract mErc20Test is BaseMTokenTest {
         );
     }
 
-    function test_unit_initializeHarness_revertsWith_mt_AlreadyInitialized() external {
+    function test_unit_proxyInitialize_revertsWith_mt_AlreadyInitialized() external {
         harness.initializeHarness(
             address(weth),
             address(operator),
@@ -220,7 +235,7 @@ contract mErc20Test is BaseMTokenTest {
         whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
@@ -234,7 +249,7 @@ contract mErc20Test is BaseMTokenTest {
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
@@ -251,9 +266,7 @@ contract mErc20Test is BaseMTokenTest {
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
-
-        // it should revert
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_EmptyPrice.selector);
@@ -262,7 +275,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.borrow(amount);
     }
 
-    function test_unit_borrow_revertsWith(uint256 amount)
+    function test_unit_borrow_revertsWith_Operator_InsufficientLiquidity_whenBorrowCashNotAvailable(uint256 amount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
@@ -270,7 +283,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketEntered(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // it should revert with mt_BorrowCashNotAvailable but it actually reverts with InsufficientLiquidity for non cross-chain tokens
         // cannot test this in a non-external flow
@@ -310,7 +323,7 @@ contract mErc20Test is BaseMTokenTest {
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, 2, MAX_FUZZ_AMOUNT);
 
         _whenBorrowCapIsReached(address(mWeth), amount);
 
@@ -331,7 +344,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketEntered(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_WITH_SLIPPAGE, MAX_FUZZ_AMOUNT);
 
         _borrowPrerequisites(address(mWeth), amount);
 
@@ -349,7 +362,7 @@ contract mErc20Test is BaseMTokenTest {
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT_WITH_SETUP, MAX_FUZZ_AMOUNT);
 
         // supply tokens; assure collateral factor is met
         _borrowPrerequisites(address(mWeth), amount * 2);
@@ -389,7 +402,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketEntered(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT_WITH_SETUP, MAX_FUZZ_AMOUNT);
 
         // supply tokens; assure collateral factor is met
         _borrowPrerequisites(address(mWeth), amount * 2);
@@ -404,10 +417,6 @@ contract mErc20Test is BaseMTokenTest {
             amount, balanceUnderlyingBefore, balanceUnderlyingMTokenBefore, supplyUnderlyingBefore, totalBorrowsBefore
         );
     }
-
-    LiquidationHelper internal helper;
-
-    address internal borrower;
 
     ////////////////////////////////////////////////////////////
     //                  GetBorrowerPosition                   //
@@ -450,7 +459,7 @@ contract mErc20Test is BaseMTokenTest {
     function test_fuzz_getBorrowerPosition_success_skipsNoShortfall(address account, uint256 borrowBalance) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(account != address(0));
-        borrowBalance = bound(borrowBalance, 1, 1e30);
+        borrowBalance = bound(borrowBalance, 0, MAX_FUZZ_AMOUNT);
 
         vm.mockCall(
             address(mWeth),
@@ -479,9 +488,9 @@ contract mErc20Test is BaseMTokenTest {
     ) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(account != address(0));
-        borrowBalance = bound(borrowBalance, 1, 1e30);
-        closeFactor = bound(closeFactor, 1, 1e18);
-        shortfall = bound(shortfall, 1, 1e30);
+        borrowBalance = bound(borrowBalance, 1, MAX_FUZZ_AMOUNT);
+        closeFactor = bound(closeFactor, 0, 1e18);
+        shortfall = bound(shortfall, 1, MAX_FUZZ_AMOUNT);
 
         vm.mockCall(
             address(mWeth),
@@ -515,9 +524,9 @@ contract mErc20Test is BaseMTokenTest {
         uint256 shortfall
     ) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        borrowBalance = bound(borrowBalance, 1, 1e30);
-        closeFactor = bound(closeFactor, 1, 1e18);
-        shortfall = bound(shortfall, 1, 1e30);
+        borrowBalance = bound(borrowBalance, 1, MAX_FUZZ_AMOUNT);
+        closeFactor = bound(closeFactor, 0, 1e18);
+        shortfall = bound(shortfall, 1, MAX_FUZZ_AMOUNT);
 
         vm.mockCall(
             address(mWeth),
@@ -554,7 +563,7 @@ contract mErc20Test is BaseMTokenTest {
         whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Mint)
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
@@ -568,7 +577,7 @@ contract mErc20Test is BaseMTokenTest {
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Mint)
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_WITH_SLIPPAGE, MAX_FUZZ_AMOUNT);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
@@ -582,7 +591,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketIsListed(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_WITH_SLIPPAGE, MAX_FUZZ_AMOUNT);
         _whenSupplyCapIsReached(address(mWeth), amount);
 
         _getTokens(weth, address(this), amount);
@@ -603,7 +612,7 @@ contract mErc20Test is BaseMTokenTest {
 
     function test_unit_checkMembership_success(uint256 amount) external whenMarketIsListed(address(mWeth)) {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_WITH_SLIPPAGE, MAX_FUZZ_AMOUNT);
 
         _getTokens(weth, address(this), amount);
         weth.approve(address(mWeth), amount);
@@ -696,7 +705,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketIsListed(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_WITH_SLIPPAGE, MAX_FUZZ_AMOUNT);
 
         _getTokens(weth, address(this), amount);
         weth.approve(address(mWeth), amount);
@@ -756,7 +765,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketIsListed(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
@@ -773,7 +782,7 @@ contract mErc20Test is BaseMTokenTest {
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
@@ -791,7 +800,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketIsListed(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         _getTokens(weth, address(mWeth), amount / 2);
 
@@ -825,7 +834,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketIsListed(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // it should revert with mt_RedeemCashNotAvailable
 
@@ -850,7 +859,7 @@ contract mErc20Test is BaseMTokenTest {
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_WITH_SLIPPAGE, MAX_FUZZ_AMOUNT);
 
         _redeem(amount, false);
     }
@@ -862,7 +871,7 @@ contract mErc20Test is BaseMTokenTest {
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_WITH_SLIPPAGE, MAX_FUZZ_AMOUNT);
 
         _redeem(amount, true);
     }
@@ -877,7 +886,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketIsListed(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
@@ -891,7 +900,7 @@ contract mErc20Test is BaseMTokenTest {
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
@@ -913,7 +922,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketEntered(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT_WITH_SETUP, MAX_FUZZ_AMOUNT);
 
         _repayPrerequisites(address(mWeth), amount * 2, amount);
 
@@ -966,7 +975,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketEntered(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT_WITH_SETUP, MAX_FUZZ_AMOUNT);
 
         {
             _repayPrerequisites(address(mWeth), amount * 2, amount);
@@ -1041,7 +1050,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketEntered(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT_WITH_SETUP, MAX_FUZZ_AMOUNT);
 
         mErc20_repayBehalf_RepayStateInternal memory vars;
 
@@ -1111,7 +1120,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketIsListed(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_Paused.selector);
@@ -1125,7 +1134,7 @@ contract mErc20Test is BaseMTokenTest {
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(OperatorStorage.Operator_MarketNotListed.selector);
@@ -1147,7 +1156,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketEntered(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT_WITH_SETUP, MAX_FUZZ_AMOUNT);
 
         _repayPrerequisites(address(mWeth), amount * 2, amount);
 
@@ -1195,7 +1204,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketEntered(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT_WITH_SETUP, MAX_FUZZ_AMOUNT);
 
         {
             _repayPrerequisites(address(mWeth), amount * 2, amount);
@@ -1258,7 +1267,7 @@ contract mErc20Test is BaseMTokenTest {
         whenMarketEntered(address(mWeth))
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT_WITH_SETUP, MAX_FUZZ_AMOUNT);
 
         mErc20_repay_RepayStateInternal memory vars;
 
@@ -1330,7 +1339,7 @@ contract mErc20Test is BaseMTokenTest {
     }
 
     function test_fuzz_iERC20_success(uint256 amount) external {
-        amount = bound(amount, 1, LARGE);
+        amount = bound(amount, 0, MAX_FUZZ_AMOUNT);
         _getTokens(dai, address(mWeth), amount);
 
         uint256 adminBalanceBefore = dai.balanceOf(address(this));

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
 
-import {OracleMockPerToken} from "test/mocks/OracleMockPerToken.sol";
 import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
+
+import {OracleMockPerToken} from "test/mocks/OracleMockPerToken.sol";
 import {BaseMTokenTest} from "test/v2/utils/BaseMTokenTest.t.sol";
 
 contract LiquidationTest is BaseMTokenTest {
@@ -31,16 +32,16 @@ contract LiquidationTest is BaseMTokenTest {
         markets[0] = address(mWeth);
         operator.enterMarkets(markets);
         operator.setCollateralFactor(address(mWeth), DEFAULT_COLLATERAL_FACTOR);
-        operator.setCloseFactor(9e17); //90%
+        operator.setCloseFactor(9e17); // 90%
         operator.setLiquidationIncentive(address(mWeth), 1e17);
         operator.setLiquidationIncentive(address(mDaiHost), 1e17);
     }
 
     ////////////////////////////////////////////////////////////
-    //                       BalanceOf                        //
+    //                       liquidate                        //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_balanceOf_success_simulation_WhenCollateralFactorDropped(uint256 repayAmount) public {
+    function test_fuzz_liquidate_success_whenCollateralFactorDropped(uint256 repayAmount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         repayAmount = bound(repayAmount, 1 ether, 900 ether);
 
@@ -92,7 +93,7 @@ contract LiquidationTest is BaseMTokenTest {
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
 
-    function test_fuzz_balanceOf_success_simulation_PriceDropHalf(uint256 repayAmount) public {
+    function test_fuzz_liquidate_success_whenCollateralPriceDropsByHalf(uint256 repayAmount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         repayAmount = bound(repayAmount, 1 ether, 900 ether);
 
@@ -143,7 +144,7 @@ contract LiquidationTest is BaseMTokenTest {
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
 
-    function test_fuzz_balanceOf_success_simulation_PriceDropHalf_AndLog(uint256 repayAmount) public {
+    function test_fuzz_liquidate_success_whenCollateralPriceDropsByHalfWithLogs(uint256 repayAmount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         repayAmount = bound(repayAmount, 1 ether, 900 ether);
 
@@ -277,10 +278,10 @@ contract LiquidationTest is BaseMTokenTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                   SetUnderlyingPrice                   //
+    //                  liquidate price walk                  //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_setUnderlyingPrice_success() public {
+    function test_unit_liquidate_success_whenCollateralPriceDropsInSteps() public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
@@ -313,13 +314,12 @@ contract LiquidationTest is BaseMTokenTest {
         // drop in steps; 5% basically for each
         uint256 price = 1e18;
         while (true) {
-            vm.startPrank(liquidator);
+            vm.prank(liquidator);
             try mDaiHost.liquidate(borrower, 100 ether, address(mWeth)) {
                 break;
             } catch {
                 // drop price 5%
                 price = (price * 95) / 100;
-                vm.stopPrank();
                 newOracle.setUnderlyingPrice(address(mWeth), price);
 
                 // avoid infinite loop

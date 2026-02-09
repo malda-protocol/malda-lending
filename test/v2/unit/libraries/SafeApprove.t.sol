@@ -9,15 +9,8 @@ import {
     MockApproveReturnFalse,
     MockApproveReturnTrue
 } from "test/v2/mocks/libraries/SafeApproveMocks.t.sol";
+import {SafeApproveHarness} from "test/v2/unit/libraries/harness/SafeApproveHarness.sol";
 import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
-
-contract SafeApproveHarness {
-    using SafeApprove for address;
-
-    function callSafeApprove(address token, address spender, uint256 value) external {
-        token.safeApprove(spender, value);
-    }
-}
 
 contract SafeApproveTest is BaseTest {
     SafeApproveHarness internal harness;

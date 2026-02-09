@@ -145,7 +145,7 @@ contract OracleUnderlyingTest is Operator, BaseTest {
         DummyMToken badMToken = new DummyMToken(address(badToken));
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert();
+        vm.expectRevert(MixedPriceOracleV3.MixedPriceOracle_InvalidConfig.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         this.exposed_convertMarketAmountToUSDValue(1e18, address(badMToken));

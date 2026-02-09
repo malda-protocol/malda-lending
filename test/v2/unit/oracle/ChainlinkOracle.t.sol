@@ -5,17 +5,8 @@ import {ChainlinkOracle} from "src/oracles/ChainlinkOracle.sol";
 import {IAggregatorV3} from "src/interfaces/external/chainlink/IAggregatorV3.sol";
 
 import {MockAggregatorV3, MockMToken, MockSymbolToken} from "test/v2/mocks/oracles/ChainlinkOracleMocks.t.sol";
+import {ChainlinkOracleHarness} from "test/v2/unit/oracle/harness/ChainlinkOracleHarness.sol";
 import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
-
-contract ChainlinkOracleHarness is ChainlinkOracle {
-    constructor(string[] memory symbols_, IAggregatorV3[] memory feeds_, uint256[] memory baseUnits_)
-        ChainlinkOracle(symbols_, feeds_, baseUnits_)
-    {}
-
-    function exposed_getLatestPrice(string calldata symbol) external view returns (uint256, uint256) {
-        return _getLatestPrice(symbol);
-    }
-}
 
 contract ChainlinkOracleTest is BaseTest {
     ////////////////////////////////////////////////////////////

@@ -112,6 +112,15 @@ contract DeployerTest is BaseTest {
         deployer.setNewAdmin(address(0));
     }
 
+    function test_unit_setNewAdmin_revertsWith_NotAuthorized_whenCallerIsNotAdmin() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(abi.encodeWithSelector(Deployer.NotAuthorized.selector, admin, other));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(other);
+        deployer.setNewAdmin(other);
+    }
+
     function test_fuzz_setNewAdmin_success(address newAdmin) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(newAdmin != address(0));
@@ -239,7 +248,7 @@ contract DeployerTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                          create                        //
+    //                         create                         //
     ////////////////////////////////////////////////////////////
 
     function test_fuzz_create_success(bytes32 salt, uint96 valueRaw, uint256 storedValueRaw) external {

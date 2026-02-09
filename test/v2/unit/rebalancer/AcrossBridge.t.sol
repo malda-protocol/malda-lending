@@ -53,6 +53,29 @@ contract AcrossBridgeTest is BaseTest {
         new AccrossBridge(address(roles), address(spokePool), address(0));
     }
 
+    function test_unit_constructor_success() external {
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        AccrossBridge localBridge = new AccrossBridge(address(roles), address(spokePool), address(rebalancer));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            address(localBridge.roles()),
+            address(roles),
+            "expected address(localBridge.roles()) to equal address(roles)"
+        );
+        assertEq(
+            localBridge.ACROSS_SPOKE_POOL(),
+            address(spokePool),
+            "expected localBridge.ACROSS_SPOKE_POOL() to equal address(spokePool)"
+        );
+        assertEq(
+            localBridge.REBALANCER(),
+            address(rebalancer),
+            "expected localBridge.REBALANCER() to equal address(rebalancer)"
+        );
+        assertEq(localBridge.MAX_SLIPPAGE(), 1e4, "expected localBridge.MAX_SLIPPAGE() to equal 1e4");
+    }
+
     ////////////////////////////////////////////////////////////
     //                 setWhitelistedRelayer                  //
     ////////////////////////////////////////////////////////////
@@ -125,21 +148,22 @@ contract AcrossBridgeTest is BaseTest {
         bridge.handleV3AcrossMessage(address(token), 1, address(0), abi.encode(address(otherMarket)));
     }
 
-    function test_unit_handleV3AcrossMessage_success() external {
+    function test_fuzz_handleV3AcrossMessage_success(uint256 amountRaw) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 amount = bound(amountRaw, 1, 1e18);
         rebalancer.setWhitelisted(address(market), true);
-        token.mint(address(bridge), 5e18);
+        token.mint(address(bridge), amount);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, false, false, true);
-        emit AccrossBridge.Rebalanced(address(market), 5e18);
+        emit AccrossBridge.Rebalanced(address(market), amount);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(spokePool));
-        bridge.handleV3AcrossMessage(address(token), 5e18, address(0), abi.encode(address(market)));
+        bridge.handleV3AcrossMessage(address(token), amount, address(0), abi.encode(address(market)));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(token.balanceOf(address(market)), 5e18, "expected token.balanceOf(address(market)) to equal 5e18");
+        assertEq(token.balanceOf(address(market)), amount, "expected token.balanceOf(address(market)) to equal amount");
     }
 
     ////////////////////////////////////////////////////////////

@@ -9,22 +9,8 @@ import {ERC20Mock} from "test/mocks/ERC20Mock.sol";
 import {MockMessageTransmitter, MockTokenMessenger} from "test/v2/mocks/rebalancer/CCTPHelperMocks.t.sol";
 import {MockMarket, MockRebalancer} from "test/v2/mocks/rebalancer/AcrossBridgeMocks.t.sol";
 import {MockRoles} from "test/v2/mocks/rebalancer/CCTPBridgeRolesMocks.t.sol";
+import {CCTPBridgeHarness} from "test/v2/unit/rebalancer/harness/CCTPBridgeHarness.sol";
 import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
-
-contract CCTPBridgeHarness is CCTPBridge {
-    constructor(address _roles, address _tokenMessenger, address _messageTransmitter, address _rebalancer)
-        CCTPBridge(_roles, _tokenMessenger, _messageTransmitter, _rebalancer)
-    {}
-
-    function harnessSetDomain(uint32 chainId, uint32 domain) external {
-        chainIdToDomain[chainId] = domain;
-        domainSet[chainId] = true;
-    }
-
-    function harnessSetAcceptedToken(address token, bool allowed) external {
-        acceptedTokens[token] = allowed;
-    }
-}
 
 contract CCTPBridgeTest is BaseTest {
     CCTPBridgeHarness internal bridge;
@@ -70,7 +56,7 @@ contract CCTPBridgeTest is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                     setDomainMapping                   //
+    //                      constructor                       //
     ////////////////////////////////////////////////////////////
 
     function test_unit_constructor_revertsWith_CCTPBridge_AddressNotValid() external {
@@ -82,6 +68,38 @@ contract CCTPBridgeTest is BaseTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         new CCTPBridgeHarness(address(roles), address(messenger), address(transmitter), invalidRebalancer);
     }
+
+    function test_unit_constructor_success() external {
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        CCTPBridgeHarness localBridge =
+            new CCTPBridgeHarness(address(roles), address(messenger), address(transmitter), address(rebalancer));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            address(localBridge.roles()),
+            address(roles),
+            "expected address(localBridge.roles()) to equal address(roles)"
+        );
+        assertEq(
+            localBridge.REBALANCER(),
+            address(rebalancer),
+            "expected localBridge.REBALANCER() to equal address(rebalancer)"
+        );
+        assertEq(
+            localBridge.TOKEN_MESSENGER(),
+            address(messenger),
+            "expected localBridge.TOKEN_MESSENGER() to equal address(messenger)"
+        );
+        assertEq(
+            localBridge.MESSAGE_TRANSMITTER(),
+            address(transmitter),
+            "expected localBridge.MESSAGE_TRANSMITTER() to equal address(transmitter)"
+        );
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                     setDomainMapping                   //
+    ////////////////////////////////////////////////////////////
 
     function test_unit_setDomainMapping_success(uint32 chainId, uint32 domain) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
@@ -98,6 +116,15 @@ contract CCTPBridgeTest is BaseTest {
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(bridge.chainIdToDomain(chainId), domain, "expected bridge.chainIdToDomain(chainId) to equal domain");
         assertTrue(bridge.domainSet(chainId), "expected condition to be true: bridge.domainSet(chainId)");
+    }
+
+    function test_unit_setDomainMapping_revertsWith_BaseBridge_NotAuthorized() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
+        bridge.setDomainMapping(dstChainId, dstDomain);
     }
 
     ////////////////////////////////////////////////////////////
@@ -121,6 +148,15 @@ contract CCTPBridgeTest is BaseTest {
             allowed,
             "expected bridge.acceptedTokens(address(other)) to equal allowed"
         );
+    }
+
+    function test_unit_setAcceptedToken_revertsWith_BaseBridge_NotAuthorized() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
+        bridge.setAcceptedToken(address(token), false);
     }
 
     ////////////////////////////////////////////////////////////

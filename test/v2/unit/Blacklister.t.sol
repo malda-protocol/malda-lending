@@ -47,11 +47,19 @@ contract BlacklisterTest is BaseTest {
         new ERC1967Proxy(address(blacklisterImp), initData);
     }
 
+    function test_unit_constructor_success() external {
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        Blacklister blacklisterImp = new Blacklister();
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(address(blacklisterImp.rolesOperator()), address(0), "expected rolesOperator to be zero address");
+    }
+
     ////////////////////////////////////////////////////////////
     //                        blacklist                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_blacklist_success_emits() external {
+    function test_unit_blacklist_success_whenCalledByOwner() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, false, false, true);
         emit IBlacklister.Blacklisted(user);
@@ -73,28 +81,6 @@ contract BlacklisterTest is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertFalse(blacklister.isBlacklisted(user), "expected condition to be false: blacklister.isBlacklisted(user)");
-    }
-
-    function test_unit_blacklist_revertsWith_Blacklister_AlreadyBlacklisted() external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        vm.startPrank(owner);
-        blacklister.blacklist(user);
-
-        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(IBlacklister.Blacklister_AlreadyBlacklisted.selector);
-
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        blacklister.blacklist(user);
-        vm.stopPrank();
-    }
-
-    function test_unit_blacklist_revertsWith_Blacklister_NotAllowed() external {
-        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(IBlacklister.Blacklister_NotAllowed.selector);
-
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(user);
-        blacklister.blacklist(user);
     }
 
     function test_unit_blacklist_success_whenCalledByGuardian() external {
@@ -122,6 +108,28 @@ contract BlacklisterTest is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertFalse(blacklister.isBlacklisted(user), "expected condition to be false: blacklister.isBlacklisted(user)");
+    }
+
+    function test_unit_blacklist_revertsWith_Blacklister_AlreadyBlacklisted() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.startPrank(owner);
+        blacklister.blacklist(user);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(IBlacklister.Blacklister_AlreadyBlacklisted.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        blacklister.blacklist(user);
+        vm.stopPrank();
+    }
+
+    function test_unit_blacklist_revertsWith_Blacklister_NotAllowed() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(IBlacklister.Blacklister_NotAllowed.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(user);
+        blacklister.blacklist(user);
     }
 
     ////////////////////////////////////////////////////////////

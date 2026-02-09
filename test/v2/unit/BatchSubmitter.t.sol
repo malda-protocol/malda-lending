@@ -3,6 +3,7 @@ pragma solidity 0.8.28;
 
 import {stdError} from "forge-std/StdError.sol";
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 import {ImErc20Host} from "src/interfaces/ImErc20Host.sol";
@@ -88,6 +89,32 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(BatchSubmitter.BatchSubmitter_AddressNotValid.selector);
         new BatchSubmitter(address(1), address(0), address(this));
+    }
+
+    function test_unit_constructor_revertsWith_OwnableInvalidOwner_whenOwnerZero() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableInvalidOwner.selector, address(0)));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        new BatchSubmitter(address(1), address(1), address(0));
+    }
+
+    function test_unit_constructor_success() external {
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        BatchSubmitter newBatchSubmitter = new BatchSubmitter(address(roles), address(zkVerifier), users.admin);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            address(newBatchSubmitter.ROLES_OPERATOR()),
+            address(roles),
+            "expected address(newBatchSubmitter.ROLES_OPERATOR()) to equal address(roles)"
+        );
+        assertEq(
+            address(newBatchSubmitter.verifier()),
+            address(zkVerifier),
+            "expected address(newBatchSubmitter.verifier()) to equal address(zkVerifier)"
+        );
+        assertEq(newBatchSubmitter.owner(), users.admin, "expected newBatchSubmitter.owner() to equal users.admin");
     }
 
     ////////////////////////////////////////////////////////////
@@ -238,6 +265,59 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
         );
     }
 
+    function test_fuzz_batchProcess_revertsWith_BatchSubmitter_InvalidSelector(bytes4 invalidSelector)
+        external
+        givenSenderHasProofForwarderRole
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        vm.assume(
+            invalidSelector != MINT_SELECTOR && invalidSelector != REPAY_SELECTOR
+                && invalidSelector != OUT_HERE_SELECTOR && invalidSelector != LIQUIDATE_SELECTOR
+        );
+
+        mTokens = new address[](1);
+        mTokens[0] = address(mWethExtension);
+
+        amounts = new uint256[](1);
+        amounts[0] = 1 ether;
+
+        receivers = new address[](1);
+        receivers[0] = address(this);
+
+        selectors = new bytes4[](1);
+        selectors[0] = invalidSelector;
+
+        address[] memory senders = new address[](1);
+        senders[0] = address(this);
+
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
+        journals = abi.decode(encodedJournals, (bytes[]));
+
+        initHashes = new bytes32[](1);
+        initHashes[0] = keccak256(journals[0]);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BatchSubmitter.BatchSubmitter_InvalidSelector.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
+            )
+        );
+    }
+
     function test_unit_batchProcess_revertsWith_JournalsDoNotMatch() external givenSenderHasProofForwarderRole {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bytes memory encodedJournals = abi.encode(journals);
@@ -314,6 +394,116 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
                 mTokens,
                 amounts,
                 invalidTokenAmounts,
+                selectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
+            )
+        );
+    }
+
+    function test_unit_batchProcess_revertsWith_ReceiversLengthMismatch() external givenSenderHasProofForwarderRole {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address[] memory invalidReceivers = new address[](1);
+        invalidReceivers[0] = address(this);
+
+        bytes memory encodedJournals = abi.encode(journals);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.indexOOBError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                invalidReceivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
+            )
+        );
+    }
+
+    function test_unit_batchProcess_revertsWith_mTokensLengthMismatch() external givenSenderHasProofForwarderRole {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address[] memory invalidMTokens = new address[](1);
+        invalidMTokens[0] = mTokens[0];
+
+        bytes memory encodedJournals = abi.encode(journals);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.indexOOBError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers,
+                encodedJournals,
+                "",
+                invalidMTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
+            )
+        );
+    }
+
+    function test_unit_batchProcess_revertsWith_SelectorsLengthMismatch() external givenSenderHasProofForwarderRole {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bytes4[] memory invalidSelectors = new bytes4[](1);
+        invalidSelectors[0] = selectors[0];
+
+        bytes memory encodedJournals = abi.encode(journals);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.indexOOBError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                invalidSelectors,
+                initHashes,
+                0,
+                new address[](0),
+                new address[](0)
+            )
+        );
+    }
+
+    function test_unit_batchProcess_revertsWith_ProofVerificationFailure() external givenSenderHasProofForwarderRole {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        verifierMock.setStatus(true);
+        bytes memory encodedJournals = abi.encode(journals);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(abi.encodeWithSignature("Error(string)", "Failure"));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
                 selectors,
                 initHashes,
                 0,
@@ -764,6 +954,114 @@ contract BatchSubmitterTest is BaseBatchSubmitterTest {
                 initHashes,
                 0,
                 usersToLiquidate,
+                collateral
+            )
+        );
+    }
+
+    function test_unit_batchProcess_revertsWith_UserToLiquidateLengthMismatch_whenLiquidate()
+        external
+        givenSenderHasProofForwarderRole
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        BatchSubmitterCallTargetMock target = new BatchSubmitterCallTargetMock();
+
+        mTokens = new address[](1);
+        mTokens[0] = address(target);
+
+        selectors = new bytes4[](1);
+        selectors[0] = LIQUIDATE_SELECTOR;
+
+        amounts = new uint256[](1);
+        amounts[0] = 1 ether;
+
+        receivers = new address[](1);
+        receivers[0] = address(this);
+
+        address[] memory senders = new address[](1);
+        senders[0] = address(this);
+
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
+        journals = abi.decode(encodedJournals, (bytes[]));
+
+        initHashes = new bytes32[](1);
+        initHashes[0] = keccak256(journals[0]);
+
+        address[] memory userToLiquidate = new address[](0);
+        address[] memory collateral = new address[](1);
+        collateral[0] = address(mWethHost);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.indexOOBError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                userToLiquidate,
+                collateral
+            )
+        );
+    }
+
+    function test_unit_batchProcess_revertsWith_CollateralLengthMismatch_whenLiquidate()
+        external
+        givenSenderHasProofForwarderRole
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        BatchSubmitterCallTargetMock target = new BatchSubmitterCallTargetMock();
+
+        mTokens = new address[](1);
+        mTokens[0] = address(target);
+
+        selectors = new bytes4[](1);
+        selectors[0] = LIQUIDATE_SELECTOR;
+
+        amounts = new uint256[](1);
+        amounts[0] = 1 ether;
+
+        receivers = new address[](1);
+        receivers[0] = address(this);
+
+        address[] memory senders = new address[](1);
+        senders[0] = address(this);
+
+        bytes memory encodedJournals =
+            _createBatchJournals(senders, mTokens, amounts, TEST_SOURCE_CHAIN_ID, uint32(block.chainid), true);
+        journals = abi.decode(encodedJournals, (bytes[]));
+
+        initHashes = new bytes32[](1);
+        initHashes[0] = keccak256(journals[0]);
+
+        address[] memory userToLiquidate = new address[](1);
+        userToLiquidate[0] = users.bob;
+        address[] memory collateral = new address[](0);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(stdError.indexOOBError);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        batchSubmitter.batchProcess(
+            BatchSubmitter.BatchProcessMsg(
+                receivers,
+                encodedJournals,
+                "",
+                mTokens,
+                amounts,
+                amounts,
+                selectors,
+                initHashes,
+                0,
+                userToLiquidate,
                 collateral
             )
         );

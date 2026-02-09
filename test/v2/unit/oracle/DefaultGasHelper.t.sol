@@ -39,20 +39,6 @@ contract DefaultGasHelperTest is BaseTest {
     ////////////////////////////////////////////////////////////
     //                        setGasFee                       //
     ////////////////////////////////////////////////////////////
-
-    function test_fuzz_setGasFee_success(uint32 chainId, uint256 amount) external {
-        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectEmit(true, false, false, true);
-        emit DefaultGasHelper.GasFeeUpdated(chainId, amount);
-
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        vm.prank(owner);
-        helper.setGasFee(chainId, amount);
-
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(helper.gasFees(chainId), amount, "expected helper.gasFees(chainId) to equal amount");
-    }
-
     function test_unit_setGasFee_revertsWith_OwnableUnauthorizedAccount() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, nonOwner));
@@ -62,11 +48,7 @@ contract DefaultGasHelperTest is BaseTest {
         helper.setGasFee(1, 1);
     }
 
-    function test_fuzz_setGasFee_success_overwritesPreviousValue(
-        uint32 chainId,
-        uint256 firstAmount,
-        uint256 secondAmount
-    ) external {
+    function test_fuzz_setGasFee_success(uint32 chainId, uint256 firstAmount, uint256 secondAmount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.prank(owner);
         helper.setGasFee(chainId, firstAmount);

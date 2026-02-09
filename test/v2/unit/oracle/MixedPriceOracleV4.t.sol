@@ -9,6 +9,7 @@ import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
 
 contract MixedPriceOracleV4Test is BaseTest {
     string internal constant SYMBOL = "MOCK";
+    uint256 internal constant DEFAULT_STALENESS = 1 days;
 
     MixedPriceOracleV4 internal oracle;
     MockAdapter internal api3;
@@ -24,13 +25,8 @@ contract MixedPriceOracleV4Test is BaseTest {
         roles = new MockRoles();
         token = new MockToken();
 
-        string[] memory symbols = new string[](1);
-        symbols[0] = SYMBOL;
-
-        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](1);
-        configs[0] = _config(address(api3), address(chainlink), "USD", "USD", 18);
-
-        oracle = new MixedPriceOracleV4(symbols, configs, address(roles), 1 days);
+        MixedPriceOracleV4.PriceConfig memory config = _config(address(api3), address(chainlink), "USD", "USD", 18);
+        oracle = _deployOracleWithConfig(SYMBOL, config, address(roles), DEFAULT_STALENESS);
         roles.allow(address(this));
 
         vm.warp(100 days);
@@ -74,6 +70,31 @@ contract MixedPriceOracleV4Test is BaseTest {
         new MixedPriceOracleV4(symbols, configs, address(roles), 1 days);
     }
 
+    function test_fuzz_constructor_success(uint8 underlyingDecimals, uint256 staleness) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        underlyingDecimals = uint8(bound(underlyingDecimals, 4, 18));
+        staleness = bound(staleness, 1, 30 days);
+        MixedPriceOracleV4.PriceConfig memory config =
+            _config(address(api3), address(chainlink), "USD", "USD", underlyingDecimals);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        MixedPriceOracleV4 newOracle = _deployOracleWithConfig(SYMBOL, config, address(roles), staleness);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        (
+            address api3Feed,
+            address chainlinkFeed,
+            string memory api3ToSymbol,
+            string memory chainlinkToSymbol,
+            uint256 decimals
+        ) = newOracle.configs(SYMBOL);
+        assertEq(api3Feed, address(api3), "expected api3Feed to equal address(api3)");
+        assertEq(chainlinkFeed, address(chainlink), "expected chainlinkFeed to equal address(chainlink)");
+        assertEq(api3ToSymbol, "USD", "expected api3ToSymbol to equal USD");
+        assertEq(chainlinkToSymbol, "USD", "expected chainlinkToSymbol to equal USD");
+        assertEq(decimals, underlyingDecimals, "expected decimals to equal underlyingDecimals");
+    }
+
     ////////////////////////////////////////////////////////////
     //                      setStaleness                      //
     ////////////////////////////////////////////////////////////
@@ -101,13 +122,8 @@ contract MixedPriceOracleV4Test is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         newStaleness = bound(newStaleness, 1, 30 days);
         MockRoles newRoles = new MockRoles();
-        string[] memory symbols = new string[](1);
-        symbols[0] = SYMBOL;
-
-        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](1);
-        configs[0] = _config(address(api3), address(chainlink), "USD", "USD", 18);
-
-        MixedPriceOracleV4 newOracle = new MixedPriceOracleV4(symbols, configs, address(newRoles), 1 days);
+        MixedPriceOracleV4.PriceConfig memory config = _config(address(api3), address(chainlink), "USD", "USD", 18);
+        MixedPriceOracleV4 newOracle = _deployOracleWithConfig(SYMBOL, config, address(newRoles), DEFAULT_STALENESS);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_Unauthorized.selector);
@@ -169,12 +185,10 @@ contract MixedPriceOracleV4Test is BaseTest {
         underlyingDecimals = uint8(bound(underlyingDecimals, 4, 18));
         MockRoles noAccessRoles = new MockRoles();
 
-        string[] memory symbols = new string[](1);
-        symbols[0] = SYMBOL;
-
-        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](1);
-        configs[0] = _config(address(api3), address(chainlink), "USD", "USD", 18);
-        MixedPriceOracleV4 newOracle = new MixedPriceOracleV4(symbols, configs, address(noAccessRoles), 1 days);
+        MixedPriceOracleV4.PriceConfig memory initialConfig =
+            _config(address(api3), address(chainlink), "USD", "USD", 18);
+        MixedPriceOracleV4 newOracle =
+            _deployOracleWithConfig(SYMBOL, initialConfig, address(noAccessRoles), DEFAULT_STALENESS);
 
         MixedPriceOracleV4.PriceConfig memory config =
             _config(address(api3), address(chainlink), "USD", "USD", underlyingDecimals);
@@ -190,7 +204,7 @@ contract MixedPriceOracleV4Test is BaseTest {
     //                    setMaxPriceDelta                    //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_setMaxPriceDelta_success_updatesAndEmits(uint256 newVal) external {
+    function test_fuzz_setMaxPriceDelta_success(uint256 newVal) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         newVal = bound(newVal, 0, oracle.PRICE_DELTA_EXP());
         uint256 oldVal = oracle.maxPriceDelta();
@@ -222,12 +236,9 @@ contract MixedPriceOracleV4Test is BaseTest {
         delta = bound(delta, 0, oracle.PRICE_DELTA_EXP());
         MockRoles noAccessRoles = new MockRoles();
 
-        string[] memory symbols = new string[](1);
-        symbols[0] = SYMBOL;
-
-        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](1);
-        configs[0] = _config(address(api3), address(chainlink), "USD", "USD", 18);
-        MixedPriceOracleV4 newOracle = new MixedPriceOracleV4(symbols, configs, address(noAccessRoles), 1 days);
+        MixedPriceOracleV4.PriceConfig memory config = _config(address(api3), address(chainlink), "USD", "USD", 18);
+        MixedPriceOracleV4 newOracle =
+            _deployOracleWithConfig(SYMBOL, config, address(noAccessRoles), DEFAULT_STALENESS);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_Unauthorized.selector);
@@ -271,12 +282,9 @@ contract MixedPriceOracleV4Test is BaseTest {
         delta = bound(delta, 0, oracle.PRICE_DELTA_EXP());
         MockRoles noAccessRoles = new MockRoles();
 
-        string[] memory symbols = new string[](1);
-        symbols[0] = SYMBOL;
-
-        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](1);
-        configs[0] = _config(address(api3), address(chainlink), "USD", "USD", 18);
-        MixedPriceOracleV4 newOracle = new MixedPriceOracleV4(symbols, configs, address(noAccessRoles), 1 days);
+        MixedPriceOracleV4.PriceConfig memory config = _config(address(api3), address(chainlink), "USD", "USD", 18);
+        MixedPriceOracleV4 newOracle =
+            _deployOracleWithConfig(SYMBOL, config, address(noAccessRoles), DEFAULT_STALENESS);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_Unauthorized.selector);
@@ -441,41 +449,6 @@ contract MixedPriceOracleV4Test is BaseTest {
         assertEq(price, expected, "expected price to equal expected");
     }
 
-    ////////////////////////////////////////////////////////////
-    //                   getUnderlyingPrice                   //
-    ////////////////////////////////////////////////////////////
-
-    function test_fuzz_getUnderlyingPrice_success(uint8 underlyingDecimals, uint64 rawPrice) external {
-        // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        underlyingDecimals = uint8(bound(underlyingDecimals, 4, 18));
-        rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
-
-        MixedPriceOracleV4.PriceConfig memory config =
-            _config(address(api3), address(chainlink), "USD", "USD", underlyingDecimals);
-
-        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectEmit(false, false, false, true);
-        emit MixedPriceOracleV4.ConfigSet(SYMBOL, config);
-        oracle.setConfig(SYMBOL, config);
-
-        api3.setPrice(int256(uint256(rawPrice)));
-        chainlink.setPrice(int256(uint256(rawPrice)));
-        api3.setUpdatedAt(block.timestamp);
-        chainlink.setUpdatedAt(block.timestamp);
-
-        // ~~~~~~~~~~ Call ~~~~~~~~~~
-        uint256 price = oracle.getUnderlyingPrice(address(token));
-
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        uint256 priceUsd = uint256(rawPrice) * 10 ** (18 - api3.decimals());
-        uint256 expected = priceUsd * 10 ** (18 - underlyingDecimals);
-        assertEq(price, expected, "expected price to equal expected");
-    }
-
-    ////////////////////////////////////////////////////////////
-    //                    chained symbols                     //
-    ////////////////////////////////////////////////////////////
-
     function test_fuzz_getPrice_success_handlesChainedSymbols(uint64 ethRaw, uint64 weEthRaw) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         ethRaw = uint64(bound(ethRaw, 1, type(uint64).max));
@@ -563,39 +536,86 @@ contract MixedPriceOracleV4Test is BaseTest {
     }
 
     ////////////////////////////////////////////////////////////
-    //                        fuzzing                         //
+    //                   getUnderlyingPrice                   //
     ////////////////////////////////////////////////////////////
 
-    function test_fuzz_setMaxPriceDelta_success(uint256 delta) external {
+    function test_fuzz_getUnderlyingPrice_success(uint8 underlyingDecimals, uint64 rawPrice) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        delta = bound(delta, 0, oracle.PRICE_DELTA_EXP());
-        uint256 oldVal = oracle.maxPriceDelta();
+        underlyingDecimals = uint8(bound(underlyingDecimals, 4, 18));
+        rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
+
+        MixedPriceOracleV4.PriceConfig memory config =
+            _config(address(api3), address(chainlink), "USD", "USD", underlyingDecimals);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(false, false, false, true);
-        emit MixedPriceOracleV4.PriceDeltaUpdated(oldVal, delta);
+        emit MixedPriceOracleV4.ConfigSet(SYMBOL, config);
+        oracle.setConfig(SYMBOL, config);
+
+        api3.setPrice(int256(uint256(rawPrice)));
+        chainlink.setPrice(int256(uint256(rawPrice)));
+        api3.setUpdatedAt(block.timestamp);
+        chainlink.setUpdatedAt(block.timestamp);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        oracle.setMaxPriceDelta(delta);
+        uint256 price = oracle.getUnderlyingPrice(address(token));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(oracle.maxPriceDelta(), delta, "expected oracle.maxPriceDelta() to equal delta");
+        uint256 priceUsd = uint256(rawPrice) * 10 ** (18 - api3.decimals());
+        uint256 expected = priceUsd * 10 ** (18 - underlyingDecimals);
+        assertEq(price, expected, "expected price to equal expected");
     }
 
-    function test_fuzz_setSymbolMaxPriceDelta_success(uint256 delta) external {
+    function test_fuzz_getUnderlyingPrice_revertsWith_MixedPriceOracle_MissingFeed(uint8 underlyingDecimals) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        delta = bound(delta, 0, oracle.PRICE_DELTA_EXP());
-        uint256 oldVal = oracle.deltaPerSymbol(SYMBOL);
+        underlyingDecimals = uint8(bound(underlyingDecimals, 4, 18));
+        MixedPriceOracleV4.PriceConfig memory config =
+            _config(address(0), address(chainlink), "USD", "USD", underlyingDecimals);
+        MixedPriceOracleV4 newOracle = _deployOracleWithConfig(SYMBOL, config, address(roles), DEFAULT_STALENESS);
+
+        token.setUnderlying(address(token));
+        token.setSymbol(SYMBOL);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectEmit(false, false, false, true);
-        emit MixedPriceOracleV4.PriceSymbolDeltaUpdated(oldVal, delta, SYMBOL);
+        vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_MissingFeed.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        oracle.setSymbolMaxPriceDelta(delta, SYMBOL);
+        newOracle.getUnderlyingPrice(address(token));
+    }
 
-        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        assertEq(oracle.deltaPerSymbol(SYMBOL), delta, "expected oracle.deltaPerSymbol(SYMBOL) to equal delta");
+    function test_fuzz_getUnderlyingPrice_revertsWith_MixedPriceOracle_ApiV3StalePrice_whenChainlinkMissing(uint256 staleDelta)
+        external
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        staleDelta = bound(staleDelta, DEFAULT_STALENESS + 1, DEFAULT_STALENESS + 30 days);
+        MixedPriceOracleV4.PriceConfig memory config = _config(address(api3), address(0), "USD", "USD", 18);
+
+        vm.expectEmit(false, false, false, true);
+        emit MixedPriceOracleV4.ConfigSet(SYMBOL, config);
+        oracle.setConfig(SYMBOL, config);
+
+        api3.setUpdatedAt(block.timestamp - staleDelta);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_ApiV3StalePrice.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        oracle.getUnderlyingPrice(address(token));
+    }
+
+    function test_fuzz_getUnderlyingPrice_revertsWith_MixedPriceOracle_ChainlinkStalePrice_whenApi3Stale(uint256 staleDelta)
+        external
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        staleDelta = bound(staleDelta, DEFAULT_STALENESS + 1, DEFAULT_STALENESS + 30 days);
+        api3.setUpdatedAt(block.timestamp - staleDelta);
+        chainlink.setUpdatedAt(block.timestamp - staleDelta);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(MixedPriceOracleV4.MixedPriceOracle_ChainlinkStalePrice.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        oracle.getUnderlyingPrice(address(token));
     }
 
     ////////////////////////////////////////////////////////////
@@ -616,5 +636,45 @@ contract MixedPriceOracleV4Test is BaseTest {
             chainlinkToSymbol: chainlinkToSymbol,
             underlyingDecimals: underlyingDecimals
         });
+    }
+
+    function _deployOracleWithConfig(
+        string memory symbol,
+        MixedPriceOracleV4.PriceConfig memory config,
+        address rolesAddr,
+        uint256 staleness
+    ) internal returns (MixedPriceOracleV4) {
+        string[] memory symbols = new string[](1);
+        symbols[0] = symbol;
+
+        MixedPriceOracleV4.PriceConfig[] memory configs = new MixedPriceOracleV4.PriceConfig[](1);
+        configs[0] = config;
+
+        MixedPriceOracleV4 newOracle = new MixedPriceOracleV4(symbols, configs, rolesAddr, staleness);
+
+        assertEq(address(newOracle.ROLES()), rolesAddr, "expected newOracle.ROLES() to equal rolesAddr");
+        assertEq(newOracle.STALENESS_PERIOD(), staleness, "expected newOracle.STALENESS_PERIOD() to equal staleness");
+
+        (
+            address api3Feed,
+            address chainlinkFeed,
+            string memory api3ToSymbol,
+            string memory chainlinkToSymbol,
+            uint256 storedUnderlyingDecimals
+        ) = newOracle.configs(symbol);
+
+        assertEq(api3Feed, config.api3Feed, "expected api3Feed to equal config.api3Feed");
+        assertEq(chainlinkFeed, config.chainlinkFeed, "expected chainlinkFeed to equal config.chainlinkFeed");
+        assertEq(api3ToSymbol, config.api3ToSymbol, "expected api3ToSymbol to equal config.api3ToSymbol");
+        assertEq(
+            chainlinkToSymbol, config.chainlinkToSymbol, "expected chainlinkToSymbol to equal config.chainlinkToSymbol"
+        );
+        assertEq(
+            storedUnderlyingDecimals,
+            config.underlyingDecimals,
+            "expected storedUnderlyingDecimals to equal config.underlyingDecimals"
+        );
+
+        return newOracle;
     }
 }

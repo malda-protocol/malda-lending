@@ -6,7 +6,6 @@ import {rsEthOftMessageExecutor} from "src/rebalancer/bridges/helpers/rsEthOftMe
 import {weEthOftMessageExecutor} from "src/rebalancer/bridges/helpers/weEthOftMessageExecutor.sol";
 
 import {MessagingFee, SendParam} from "src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol";
-import {MessagingReceipt} from "src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol";
 import {
     MockOFTToken,
     MockWrapperToken,
@@ -14,42 +13,8 @@ import {
     RevertingWrapperToken,
     TestToken
 } from "test/v2/mocks/rebalancer/OftMessageExecutorMocks.t.sol";
+import {BaseOftExecutorHarness} from "test/v2/unit/rebalancer/harness/BaseOftExecutorHarness.sol";
 import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
-
-contract BaseOftExecutorHarness is BaseOftMessageExecutor {
-    function executeSend(address, address, SendParam calldata, MessagingFee calldata, address, address)
-        external
-        payable
-        override
-        returns (MessagingReceipt memory)
-    {
-        revert("not implemented");
-    }
-
-    function pullFromRebalancer(address underlying, uint256 amount, address rebalancer) external {
-        _pullFromRebalancer(underlying, amount, rebalancer);
-    }
-
-    function approveToken(address token, address spender, uint256 amount) external {
-        _approve(token, spender, amount);
-    }
-
-    function sendOFT(address oft, SendParam calldata params, MessagingFee calldata fees, address refundAddress)
-        external
-        payable
-        returns (MessagingReceipt memory)
-    {
-        return _sendOFT(oft, params, fees, refundAddress);
-    }
-
-    function fallbackToUnderlying(address market, address underlying, address bridgeContract) external {
-        _fallbackToUnderlying(market, underlying, bridgeContract);
-    }
-
-    function verifyMinted(address oft, uint256 required) external view {
-        _verifyMinted(oft, required);
-    }
-}
 
 contract BaseOftMessageExecutorTest is BaseTest {
     BaseOftExecutorHarness internal harness;
@@ -181,7 +146,13 @@ contract BaseOftMessageExecutorTest is BaseTest {
         harness.sendOFT(address(oft), params, fees, users.bob);
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        (,, uint256 amountLD, uint256 minAmountLD,,,) = oft.lastParams();
+        (uint256 nativeFee, uint256 lzTokenFee) = oft.lastFee();
         assertEq(oft.lastRefund(), users.bob, "expected oft.lastRefund() to equal users.bob");
+        assertEq(amountLD, params.amountLD, "expected amountLD to equal params.amountLD");
+        assertEq(minAmountLD, params.minAmountLD, "expected minAmountLD to equal params.minAmountLD");
+        assertEq(nativeFee, fees.nativeFee, "expected nativeFee to equal fees.nativeFee");
+        assertEq(lzTokenFee, fees.lzTokenFee, "expected lzTokenFee to equal fees.lzTokenFee");
     }
 
     ////////////////////////////////////////////////////////////
@@ -269,6 +240,22 @@ contract rsEthOftMessageExecutorTest is BaseTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(oft.balanceOf(address(executor)), 2e18, "expected oft.balanceOf(address(executor)) to equal 2e18");
+        (,, uint256 amountLD,,,,) = oft.lastParams();
+        assertEq(oft.lastRefund(), users.bob, "expected oft.lastRefund() to equal users.bob");
+        assertEq(amountLD, params.amountLD, "expected amountLD to equal params.amountLD");
+    }
+
+    function test_unit_executeSend_revertsWith_Executor_NotRebalancer() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        MockOFTToken underlying = new MockOFTToken("U", "U", address(0));
+        SendParam memory params = _sendParam(1e18);
+        MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseOftMessageExecutor.Executor_NotRebalancer.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        executor.executeSend(address(underlying), address(underlying), params, fees, address(this), users.bob);
     }
 
     function test_unit_executeSend_revertsWith_Executor_DifferentInnerToken() external {
@@ -351,6 +338,11 @@ contract rsEthOftMessageExecutorTest is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         executor.executeSend(address(underlying), address(underlying), params, fees, rebalancer, users.bob);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        (,, uint256 amountLD,,,,) = underlying.lastParams();
+        assertEq(underlying.lastRefund(), users.bob, "expected underlying.lastRefund() to equal users.bob");
+        assertEq(amountLD, params.amountLD, "expected amountLD to equal params.amountLD");
     }
 
     ////////////////////////////////////////////////////////////
@@ -394,6 +386,24 @@ contract weEthOftMessageExecutorTest is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        (,, uint256 amountLD,,,,) = oft.lastParams();
+        assertEq(oft.lastRefund(), users.bob, "expected oft.lastRefund() to equal users.bob");
+        assertEq(amountLD, params.amountLD, "expected amountLD to equal params.amountLD");
+    }
+
+    function test_unit_executeSend_revertsWith_Executor_NotRebalancer() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        MockOFTToken underlying = new MockOFTToken("U", "U", address(0));
+        SendParam memory params = _sendParam(1e18);
+        MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseOftMessageExecutor.Executor_NotRebalancer.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        executor.executeSend(address(underlying), address(underlying), params, fees, address(this), users.bob);
     }
 
     function test_unit_executeSend_revertsWith_Executor_DifferentInnerToken() external {

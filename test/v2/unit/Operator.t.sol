@@ -13,37 +13,14 @@ import {Roles} from "src/Roles.sol";
 
 import {MockFirewall} from "test/mocks/MockFirewall.sol";
 import {MockMToken} from "test/mocks/MockMToken.sol";
+import {OperatorHarness} from "test/v2/unit/harness/OperatorHarness.sol";
 import {BaseUnitTest} from "test/v2/utils/BaseUnitTest.t.sol";
-
-contract OperatorHarness is Operator {
-    function callOnlyAllowedUser(address user) external onlyAllowedUser(user) {}
-
-    function callIfNotBlacklisted(address user) external ifNotBlacklisted(user) {}
-
-    function pushAllMarkets(address mToken) external {
-        allMarkets.push(mToken);
-    }
-
-    function setMarketListed(address mToken, bool listed) external {
-        markets[mToken].isListed = listed;
-    }
-
-    function setAccountMembership(address mToken, address account, bool status) external {
-        markets[mToken].accountMembership[account] = status;
-    }
-
-    function setAccountAssets(address account, address[] calldata assets) external {
-        delete accountAssets[account];
-        for (uint256 i; i < assets.length; ++i) {
-            accountAssets[account].push(assets[i]);
-        }
-    }
-}
 
 contract OperatorTest is BaseUnitTest {
     uint256 private constant CLOSE_FACTOR_MIN = 0.05e18;
     uint256 private constant CLOSE_FACTOR_MAX = 0.9e18;
     uint256 private constant COLLATERAL_FACTOR_MAX = 0.9e18;
+    uint256 private constant MAX_FUZZ_AMOUNT = type(uint128).max;
 
     MockMToken internal market;
     MockMToken internal market2;
@@ -337,7 +314,7 @@ contract OperatorTest is BaseUnitTest {
 
     function test_fuzz_setBorrowSizeMin_success(uint8 len, uint256 seed, uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        len = uint8(bound(len, 1, 4));
+        len = uint8(bound(len, 1, 8));
         amount = bound(amount, 0, type(uint256).max - len);
 
         address[] memory markets = new address[](len);
@@ -601,7 +578,7 @@ contract OperatorTest is BaseUnitTest {
 
     function test_fuzz_markets_success(uint256 factor) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        factor = bound(factor, 1, COLLATERAL_FACTOR_MAX);
+        factor = bound(factor, 0, COLLATERAL_FACTOR_MAX);
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
 
@@ -713,7 +690,7 @@ contract OperatorTest is BaseUnitTest {
 
     function test_fuzz_resetOutflowVolume_success(uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, 1, 1e11);
+        amount = bound(amount, 0, 1e11);
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         _setOutflowTimeLimitInUSD(10);
@@ -755,7 +732,7 @@ contract OperatorTest is BaseUnitTest {
 
     function test_fuzz_checkOutflowVolumeLimit_success(uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, 1, 1e18);
+        amount = bound(amount, 0, MAX_FUZZ_AMOUNT);
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
 
@@ -769,7 +746,7 @@ contract OperatorTest is BaseUnitTest {
 
     function test_fuzz_checkOutflowVolumeLimit_success_whenWindowElapsed(uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, 1e10, 1e11);
+        amount = bound(amount, 0, 1e11);
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         _setOutflowTimeLimitInUSD(10);
@@ -796,7 +773,7 @@ contract OperatorTest is BaseUnitTest {
 
     function test_fuzz_checkOutflowVolumeLimit_success_whenWindowNotElapsed(uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, 1e10, 1e11);
+        amount = bound(amount, 0, 1e11);
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         _setOutflowTimeLimitInUSD(10);
@@ -853,7 +830,7 @@ contract OperatorTest is BaseUnitTest {
 
     function test_fuzz_setMarketBorrowCaps_success_whenGuardian(uint256 cap) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        cap = bound(cap, 0, 1e30);
+        cap = bound(cap, 0, MAX_FUZZ_AMOUNT);
         _allowRole(guardian, roles.GUARDIAN_BORROW_CAP(), true);
 
         address[] memory markets = new address[](1);
@@ -877,7 +854,7 @@ contract OperatorTest is BaseUnitTest {
 
     function test_fuzz_setMarketBorrowCaps_success_whenAdmin(uint256 cap) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        cap = bound(cap, 0, 1e30);
+        cap = bound(cap, 0, MAX_FUZZ_AMOUNT);
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
         markets[0] = address(market);
@@ -942,7 +919,7 @@ contract OperatorTest is BaseUnitTest {
 
     function test_fuzz_setMarketSupplyCaps_success_whenGuardian(uint256 cap) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        cap = bound(cap, 0, 1e30);
+        cap = bound(cap, 0, MAX_FUZZ_AMOUNT);
         _allowRole(guardian, roles.GUARDIAN_SUPPLY_CAP(), true);
 
         address[] memory markets = new address[](1);
@@ -966,7 +943,7 @@ contract OperatorTest is BaseUnitTest {
 
     function test_fuzz_setMarketSupplyCaps_success_whenAdmin(uint256 cap) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        cap = bound(cap, 0, 1e30);
+        cap = bound(cap, 0, MAX_FUZZ_AMOUNT);
         address[] memory markets = new address[](1);
         uint256[] memory caps = new uint256[](1);
         markets[0] = address(market);
@@ -1465,7 +1442,7 @@ contract OperatorTest is BaseUnitTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(sender != address(0));
         vm.assume(receiver != address(0));
-        amount = bound(amount, 1, 1e18);
+        amount = bound(amount, 0, MAX_FUZZ_AMOUNT);
 
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
@@ -1555,7 +1532,7 @@ contract OperatorTest is BaseUnitTest {
     function test_fuzz_beforeMTokenRepay_success_whenBorrowFlowPrepared(address account, uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(account != address(0));
-        amount = bound(amount, 1, 1e18);
+        amount = bound(amount, 1, MAX_FUZZ_AMOUNT);
 
         address receiver = account == users.alice ? users.bob : users.alice;
 
@@ -1682,7 +1659,7 @@ contract OperatorTest is BaseUnitTest {
     function test_fuzz_beforeMTokenBorrow_success_whenWhitelistEnabled(address account, uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(account != address(0));
-        amount = bound(amount, 1, 1e18);
+        amount = bound(amount, 1, MAX_FUZZ_AMOUNT);
 
         _listMarket(market);
         _setWhitelistStatus(operator, true);
@@ -1732,7 +1709,7 @@ contract OperatorTest is BaseUnitTest {
     function test_fuzz_beforeMTokenBorrow_success_whenBorrowCapZero(address account, uint256 amount) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(account != address(0));
-        amount = bound(amount, 1, 1e18);
+        amount = bound(amount, 1, MAX_FUZZ_AMOUNT);
 
         _listMarket(market);
         _setWhitelistStatus(operator, true);
@@ -1786,7 +1763,7 @@ contract OperatorTest is BaseUnitTest {
         vm.assume(account != address(0));
         vm.assume(caller != address(0));
         vm.assume(caller != address(market));
-        amount = bound(amount, 1, 50);
+        amount = bound(amount, 1, MAX_FUZZ_AMOUNT);
 
         oracleOperator.setUnderlyingPrice(1e18);
         _supportMarketAndJoin(market, account);
@@ -1819,7 +1796,7 @@ contract OperatorTest is BaseUnitTest {
 
     function test_fuzz_afterMTokenMint_success(uint256 cap, uint256 totalSupply) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        cap = bound(cap, 1, 1e30);
+        cap = bound(cap, 0, MAX_FUZZ_AMOUNT);
         totalSupply = bound(totalSupply, 0, cap);
         _listMarket(market);
         _setSupplyCaps(market, cap);
@@ -1836,7 +1813,7 @@ contract OperatorTest is BaseUnitTest {
     function test_fuzz_beforeMTokenRedeem_success_whenNotInMarket(address account, uint256 redeemTokens) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(account != address(0));
-        redeemTokens = bound(redeemTokens, 1, 1e18);
+        redeemTokens = bound(redeemTokens, 0, MAX_FUZZ_AMOUNT);
         _listMarket(market);
 
         operator.beforeMTokenRedeem(address(market), account, redeemTokens);
@@ -1873,7 +1850,7 @@ contract OperatorTest is BaseUnitTest {
     function test_fuzz_beforeMTokenRedeem_success_whenInMarket(address account, uint256 redeemTokens) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(account != address(0));
-        redeemTokens = bound(redeemTokens, 1, 1e18);
+        redeemTokens = bound(redeemTokens, 0, MAX_FUZZ_AMOUNT);
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
         _setCollateralFactor(market, 0.5e18);
@@ -2153,7 +2130,7 @@ contract OperatorTest is BaseUnitTest {
     function test_fuzz_getHypotheticalAccountLiquidity_success(address account, uint256 supplyTokens) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         vm.assume(account != address(0));
-        supplyTokens = bound(supplyTokens, 1, 1e24);
+        supplyTokens = bound(supplyTokens, 0, MAX_FUZZ_AMOUNT);
 
         _listMarket(market);
         oracleOperator.setUnderlyingPrice(1e18);
@@ -2193,7 +2170,7 @@ contract OperatorTest is BaseUnitTest {
 
     function test_fuzz_getUSDValueForAllMarkets_success(uint256 totalUnderlying) public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        totalUnderlying = bound(totalUnderlying, 1, 1e12);
+        totalUnderlying = bound(totalUnderlying, 0, MAX_FUZZ_AMOUNT);
         _listMarket(market);
         _listMarket(market2);
         oracleOperator.setUnderlyingPrice(1e18);

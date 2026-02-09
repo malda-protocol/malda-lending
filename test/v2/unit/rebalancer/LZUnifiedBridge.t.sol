@@ -4,7 +4,14 @@ pragma solidity 0.8.28;
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 import {LZUnifiedBridge} from "src/rebalancer/bridges/LZUnifiedBridge.sol";
 
-import {MessagingFee, SendParam, ILayerZeroOFT} from "src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol";
+import {
+    MessagingFee,
+    OFTFeeDetail,
+    OFTLimit,
+    OFTReceipt,
+    SendParam,
+    ILayerZeroOFT
+} from "src/interfaces/external/layerzero/v2/ILayerZeroOFT.sol";
 import {MessagingReceipt} from "src/interfaces/external/layerzero/v2/ILayerZeroEndpointV2.sol";
 import {IOftMessageExecutor} from "src/interfaces/IOftMessageExecutor.sol";
 
@@ -16,6 +23,66 @@ import {
     LZBridgeRevertingExecutor
 } from "test/v2/mocks/rebalancer/LZUnifiedBridgeMocks.t.sol";
 import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
+
+contract LZOftQuoteClearsExecutor is ILayerZeroOFT {
+    uint256 internal constant OFT_EXECUTORS_SLOT = 2;
+
+    LZUnifiedBridge internal immutable BRIDGE;
+    uint256 internal immutable NATIVE_FEE;
+
+    constructor(LZUnifiedBridge _bridge, uint256 _nativeFee) {
+        BRIDGE = _bridge;
+        NATIVE_FEE = _nativeFee;
+    }
+
+    function oftVersion() external pure returns (bytes4 interfaceId, uint64 version) {
+        return (bytes4(0), 0);
+    }
+
+    function token() external view returns (address) {
+        return address(this);
+    }
+
+    function approvalRequired() external pure returns (bool) {
+        return false;
+    }
+
+    function sharedDecimals() external pure returns (uint8) {
+        return 18;
+    }
+
+    function quoteOFT(SendParam calldata)
+        external
+        pure
+        returns (OFTLimit memory, OFTFeeDetail[] memory, OFTReceipt memory)
+    {
+        return (OFTLimit({minAmountLD: 0, maxAmountLD: 0}), new OFTFeeDetail[](0), OFTReceipt(0, 0));
+    }
+
+    function quoteSend(SendParam calldata, bool) external view returns (MessagingFee memory) {
+        // Coverage-only helper: clear oftExecutors[underlying] between pre-check and delegate path.
+        bytes32 executorSlot = keccak256(abi.encode(address(this), OFT_EXECUTORS_SLOT));
+        bytes memory payload = abi.encodeWithSelector(
+            bytes4(keccak256("store(address,bytes32,bytes32)")), address(BRIDGE), executorSlot, bytes32(0)
+        );
+        address vmAddress = address(uint160(uint256(keccak256("hevm cheat code"))));
+
+        assembly ("memory-safe") {
+            pop(staticcall(gas(), vmAddress, add(payload, 0x20), mload(payload), 0x00, 0x00))
+        }
+
+        return MessagingFee({nativeFee: NATIVE_FEE, lzTokenFee: 0});
+    }
+
+    function send(SendParam calldata, MessagingFee calldata fee, address)
+        external
+        payable
+        returns (MessagingReceipt memory receipt, OFTReceipt memory oftReceipt)
+    {
+        receipt = MessagingReceipt({guid: bytes32("guid"), nonce: 1, fee: fee});
+        oftReceipt = OFTReceipt({amountSentLD: 0, amountReceivedLD: 0});
+    }
+}
 
 contract LZOftSendExecutor is IOftMessageExecutor {
     function executeSend(
@@ -72,6 +139,22 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         new LZUnifiedBridge(address(roles), address(0));
     }
 
+    function test_unit_constructor_success() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        address endpoint = users.alice;
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        LZUnifiedBridge localBridge = new LZUnifiedBridge(address(roles), endpoint);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            address(localBridge.roles()),
+            address(roles),
+            "expected address(localBridge.roles()) to equal address(roles)"
+        );
+        assertEq(localBridge.ENDPOINT(), endpoint, "expected localBridge.ENDPOINT() to equal endpoint");
+    }
+
     ////////////////////////////////////////////////////////////
     //                    setBridgeContract                   //
     ////////////////////////////////////////////////////////////
@@ -95,6 +178,15 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
         );
     }
 
+    function test_unit_setBridgeContract_revertsWith_BaseBridge_NotAuthorized() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
+        bridge.setBridgeContract(address(oft), users.bob);
+    }
+
     ////////////////////////////////////////////////////////////
     //                 setOftExecutorContract                 //
     ////////////////////////////////////////////////////////////
@@ -116,6 +208,15 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
             newExecutor,
             "expected bridge.oftExecutors(address(oft)) to equal newExecutor"
         );
+    }
+
+    function test_unit_setOftExecutorContract_revertsWith_BaseBridge_NotAuthorized() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseBridge.BaseBridge_NotAuthorized.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
+        bridge.setOftExecutorContract(address(oft), users.bob);
     }
 
     ////////////////////////////////////////////////////////////
@@ -219,6 +320,23 @@ contract LZUnifiedBridgeUnitTest is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge2.sendMsg(amount, address(market), dstChainId, address(oft), message, extraData);
+    }
+
+    function test_unit_sendMsg_revertsWith_LZBridge_ExecutorNotSet_whenExecutorClearedAfterFeeQuote() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        LZUnifiedBridge bridge2 = new LZUnifiedBridge(address(roles), address(this));
+        LZOftQuoteClearsExecutor quoteBridge = new LZOftQuoteClearsExecutor(bridge2, 0);
+        LZBridgeMockMarket quoteMarket = new LZBridgeMockMarket(address(quoteBridge));
+        bytes memory message = abi.encode(address(quoteMarket), amount, minAmount, bytes(""));
+        bytes memory extraData = _extraData(users.bob);
+
+        bridge2.setOftExecutorContract(address(quoteBridge), address(executor));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(LZUnifiedBridge.LZBridge_ExecutorNotSet.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bridge2.sendMsg(amount, address(quoteMarket), dstChainId, address(quoteBridge), message, extraData);
     }
 
     function test_unit_sendMsg_revertsWith_LZBridge_NotEnoughFees() external {

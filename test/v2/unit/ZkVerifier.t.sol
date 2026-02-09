@@ -7,15 +7,8 @@ import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 
 import {Risc0VerifierMock} from "test/mocks/Risc0VerifierMock.sol";
+import {ZkVerifierHarness} from "test/v2/unit/harness/ZkVerifierHarness.sol";
 import {BaseTest} from "test/v2/utils/BaseTest.t.sol";
-
-contract ZkVerifierHarness is ZkVerifier {
-    constructor(address owner_, bytes32 imageId_, address verifier_) ZkVerifier(owner_, imageId_, verifier_) {}
-
-    function setVerifierUnsafe(address verifier_) external {
-        verifier = IRiscZeroVerifier(verifier_);
-    }
-}
 
 contract ZkVerifierTest is BaseTest {
     address internal owner;

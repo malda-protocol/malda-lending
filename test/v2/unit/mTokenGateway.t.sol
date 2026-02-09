@@ -15,6 +15,9 @@ import {BaseMTokenTest} from "test/v2/utils/BaseMTokenTest.t.sol";
 
 contract mTokenGatewayTest is BaseMTokenTest {
     bytes4 internal constant LINEA_MINT_SELECTOR = ImErc20Host.mintExternal.selector;
+    uint256 internal constant MIN_FUZZ_AMOUNT = 1;
+    uint256 internal constant MAX_FUZZ_AMOUNT = type(uint128).max;
+    uint256 internal constant MAX_FUZZ_GAS_FEE = type(uint96).max;
 
     address internal borrower;
     address internal receiver;
@@ -153,7 +156,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_fuzz_extractForRebalancing_success(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, 0, MAX_FUZZ_AMOUNT);
         _getTokens(weth, address(mWethExtension), amount);
         roles.allowFor(users.alice, roles.REBALANCER(), true);
 
@@ -365,7 +368,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_liquidate_revertsWith_liquidate_RevertsWhen_MarketPaused(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.Liquidate, true);
 
@@ -384,7 +387,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_liquidate_revertsWith_AmountInPaused(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.AmountIn, true);
 
@@ -403,7 +406,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_liquidate_revertsWith_liquidate_RevertGiven_UserHasNotEnoughBalance(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // it should revert
         weth.approve(address(mWethExtension), amount);
@@ -421,7 +424,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_liquidate_success_withPayoutReceiver_givenUserHasEnoughBalance(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         _getTokens(weth, address(this), amount);
 
@@ -460,7 +463,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_liquidate_revertsWith_mTokenGateway_UserBlacklisted(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         _getTokens(weth, address(this), amount);
 
@@ -479,7 +482,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         external
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         _getTokens(weth, address(this), amount);
 
@@ -500,7 +503,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_liquidate_revertsWith_mTokenGateway_UserNotWhitelisted(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         _getTokens(weth, address(this), amount);
 
@@ -546,7 +549,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_fuzz_liquidate_success_withPayoutReceiver(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
         address userToLiquidate = otherUser;
         address collateral = address(mDaiHost);
         address payoutReceiver = receiver;
@@ -575,8 +578,9 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_fuzz_liquidate_success_withGasFee(uint256 amount, uint256 gasFee) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
-        gasFee = bound(gasFee, 1, 1 ether);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
+        gasFee = bound(gasFee, 0, MAX_FUZZ_GAS_FEE);
+        vm.deal(address(this), MAX_FUZZ_GAS_FEE);
 
         mWethExtension.setGasFee(gasFee);
 
@@ -622,7 +626,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_outHere_revertsWith_IsPaused_revertGiven(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.AmountOutHere, true);
 
@@ -648,7 +652,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         givenMarketIsNotPaused
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // it should revert
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethExtension), amount);
@@ -667,7 +671,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         givenMarketIsNotPaused
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // it should revert with mTokenGateway_AmountTooBig
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethExtension), amount - 1);
@@ -686,7 +690,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         givenMarketIsNotPaused
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // it should revert with mTokenGateway_ReleaseCashNotAvailable
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethExtension), amount);
@@ -705,7 +709,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         givenMarketIsNotPaused
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // it should revert
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethExtension), amount);
@@ -865,7 +869,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_balanceOf_success_whenCallerIsSender(uint256 amount) external givenMarketIsNotPaused {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         bytes memory journalData = _createAccumulatedAmountJournal(address(this), address(mWethExtension), amount);
 
@@ -893,7 +897,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_balanceOf_success_whenCallerIsAllowed(uint256 amount) external givenMarketIsNotPaused {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         vm.chainId(LINEA_CHAIN_ID);
         address[] memory allowerdCallers = new address[](1);
@@ -940,7 +944,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_supplyOnHost_revertsWith_supplyOnHost_RevertsWhen_MarketPaused(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         ImTokenGateway(address(mWethExtension)).setPaused(ImTokenOperationTypes.OperationType.AmountIn, true);
 
@@ -961,7 +965,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         external
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         // it should revert
         weth.approve(address(mWethExtension), amount);
@@ -979,7 +983,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_accAmountIn_success_supplyOnHost_GivenUserHasEnoughBalance(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         _getTokens(weth, address(this), amount);
 
@@ -1013,7 +1017,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_supplyOnHost_revertsWith_mTokenGateway_UserBlacklisted(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         _getTokens(weth, address(this), amount);
 
@@ -1032,7 +1036,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
         external
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         _getTokens(weth, address(this), amount);
         weth.approve(address(mWethExtension), amount);
@@ -1048,7 +1052,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
 
     function test_unit_supplyOnHost_revertsWith_mTokenGateway_UserNotWhitelisted(uint256 amount) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        amount = bound(amount, SMALL, LARGE);
+        amount = bound(amount, MIN_FUZZ_AMOUNT, MAX_FUZZ_AMOUNT);
 
         _getTokens(weth, address(this), amount);
 
@@ -1111,7 +1115,7 @@ contract mTokenGatewayTest is BaseMTokenTest {
     }
 
     function test_fuzz_setGasFee_success(uint256 gasFee) external {
-        gasFee = bound(gasFee, 0, 10 ether);
+        gasFee = bound(gasFee, 0, MAX_FUZZ_GAS_FEE);
 
         vm.expectEmit(true, true, true, true);
         emit ImTokenGateway.mTokenGateway_GasFeeUpdated(gasFee);
