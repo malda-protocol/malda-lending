@@ -1,19 +1,19 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.28;
+pragma solidity 0.8.28;
 
-// contracts
-import {Operator} from "src/Operator/Operator.sol";
-import {mToken_Unit_Shared} from "test/unit/shared/mToken_Unit_Shared.t.sol";
+import {mTokenStorage} from "src/mToken/mTokenStorage.sol";
+
 import {OracleMockPerToken} from "test/mocks/OracleMockPerToken.sol";
+import {BaseMTokenTest} from "test/utils/BaseMTokenTest.t.sol";
 
-import {console} from "forge-std/console.sol";
-
-contract LiquidationTest is mToken_Unit_Shared {
-    address internal borrower = address(0x1);
-    address internal liquidator = address(0x2);
+contract LiquidationTest is BaseMTokenTest {
+    address internal borrower;
+    address internal liquidator;
 
     function setUp() public virtual override {
         super.setUp();
+        borrower = users.alice;
+        liquidator = users.bob;
 
         operator.supportMarket(address(mWeth));
         operator.supportMarket(address(mDaiHost));
@@ -32,12 +32,19 @@ contract LiquidationTest is mToken_Unit_Shared {
         markets[0] = address(mWeth);
         operator.enterMarkets(markets);
         operator.setCollateralFactor(address(mWeth), DEFAULT_COLLATERAL_FACTOR);
-        operator.setCloseFactor(9e17); //90%
+        operator.setCloseFactor(9e17); // 90%
         operator.setLiquidationIncentive(address(mWeth), 1e17);
         operator.setLiquidationIncentive(address(mDaiHost), 1e17);
     }
 
-    function test_Liquidate_Simulation_WhenCollateralFactorDropped() public {
+    ////////////////////////////////////////////////////////////
+    //                       liquidate                        //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_liquidate_success_whenCollateralFactorDropped(uint256 repayAmount) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        repayAmount = bound(repayAmount, 1 ether, 900 ether);
+
         _getTokens(weth, borrower, 1000 ether);
         vm.startPrank(borrower);
         weth.approve(address(mWeth), type(uint256).max);
@@ -54,12 +61,14 @@ contract LiquidationTest is mToken_Unit_Shared {
         dai.approve(address(mDaiHost), type(uint256).max);
         mDaiHost.mint(5000 ether, address(this), 5000 ether - 1000);
 
-        vm.prank(borrower);
+        vm.startPrank(borrower);
         mDaiHost.borrow(1000 ether);
+        vm.stopPrank();
 
         _getTokens(dai, liquidator, 2000 ether);
-        vm.prank(liquidator);
+        vm.startPrank(liquidator);
         dai.approve(address(mDaiHost), type(uint256).max);
+        vm.stopPrank();
 
         // force undercollateralization; reduce collateral factor to 10%
         operator.setCollateralFactor(address(mWeth), 0.1e18);
@@ -68,17 +77,26 @@ contract LiquidationTest is mToken_Unit_Shared {
         uint256 liquidatorCollatBefore = mWeth.balanceOf(liquidator);
 
         // perform liquidation
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.expectEmit(true, true, true, false);
+        emit mTokenStorage.LiquidateBorrow(liquidator, borrower, repayAmount, address(mWeth), 0);
         vm.prank(liquidator);
-        mDaiHost.liquidate(borrower, 500 ether, address(mWeth));
+        mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
 
         uint256 borrowerCollatAfter = mWeth.balanceOf(borrower);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 liquidatorCollatAfter = mWeth.balanceOf(liquidator);
 
         assertLt(borrowerCollatAfter, borrowerCollatBefore, "should decrease");
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
 
-    function test_Liquidate_Simulation_PriceDropHalf() public {
+    function test_fuzz_liquidate_success_whenCollateralPriceDropsByHalf(uint256 repayAmount) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        repayAmount = bound(repayAmount, 1 ether, 900 ether);
+
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
         newOracle.setUnderlyingPrice(address(mWeth), 1e18);
@@ -94,12 +112,14 @@ contract LiquidationTest is mToken_Unit_Shared {
         dai.approve(address(mDaiHost), type(uint256).max);
         mDaiHost.mint(5000 ether, address(this), 5000 ether - 1000);
 
-        vm.prank(borrower);
+        vm.startPrank(borrower);
         mDaiHost.borrow(1000 ether);
+        vm.stopPrank();
 
         _getTokens(dai, liquidator, 2000 ether);
-        vm.prank(liquidator);
+        vm.startPrank(liquidator);
         dai.approve(address(mDaiHost), type(uint256).max);
+        vm.stopPrank();
 
         // price drop
         newOracle.setUnderlyingPrice(address(mWeth), 5e17); // $0.50
@@ -108,17 +128,26 @@ contract LiquidationTest is mToken_Unit_Shared {
         uint256 liquidatorCollatBefore = mWeth.balanceOf(liquidator);
 
         // perform liquidation
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.expectEmit(true, true, true, false);
+        emit mTokenStorage.LiquidateBorrow(liquidator, borrower, repayAmount, address(mWeth), 0);
         vm.prank(liquidator);
-        mDaiHost.liquidate(borrower, 500 ether, address(mWeth));
+        mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
 
         uint256 borrowerCollatAfter = mWeth.balanceOf(borrower);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 liquidatorCollatAfter = mWeth.balanceOf(liquidator);
 
         assertLt(borrowerCollatAfter, borrowerCollatBefore, "should decrease");
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
 
-    function test_Liquidate_Simulation_PriceDropHalf_AndLog() public {
+    function test_fuzz_liquidate_success_whenCollateralPriceDropsByHalfWithLogs(uint256 repayAmount) public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        repayAmount = bound(repayAmount, 1 ether, 900 ether);
+
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
         newOracle.setUnderlyingPrice(address(mWeth), 1e18);
@@ -134,63 +163,64 @@ contract LiquidationTest is mToken_Unit_Shared {
         dai.approve(address(mDaiHost), type(uint256).max);
         mDaiHost.mint(5000 ether, address(this), 5000 ether - 1000);
 
-        vm.prank(borrower);
+        vm.startPrank(borrower);
         mDaiHost.borrow(1000 ether);
+        vm.stopPrank();
 
         _getTokens(dai, liquidator, 2000 ether);
-        vm.prank(liquidator);
+        vm.startPrank(liquidator);
         dai.approve(address(mDaiHost), type(uint256).max);
-
-        uint256 collatTokens = mWeth.balanceOf(borrower);
-        uint256 collatPrice = newOracle.getUnderlyingPrice(address(mWeth));
-        uint256 collatValue = (collatTokens * collatPrice) / 1e18;
-
-        uint256 borrowBalance = mDaiHost.borrowBalanceStored(borrower);
-        uint256 daiPrice = newOracle.getUnderlyingPrice(address(mDaiHost));
-        uint256 borrowValue = (borrowBalance * daiPrice) / 1e18;
-
-        console.log("--- BEFORE price drop ---");
-        console.log("Collateral balance   :", collatTokens);
-        console.log("Collateral price     :", collatPrice);
-        console.log("Collateral value (USD):", collatValue);
-        console.log("Borrow balance       :", borrowBalance);
-        console.log("Borrow value (USD)   :", borrowValue);
+        vm.stopPrank();
 
         // price drop
         newOracle.setUnderlyingPrice(address(mWeth), 5e17);
-
-        collatPrice = newOracle.getUnderlyingPrice(address(mWeth));
-        collatValue = (collatTokens * collatPrice) / 1e18;
-        borrowValue = (borrowBalance * daiPrice) / 1e18;
-
-        console.log("--- AFTER price drop ---");
-        console.log("Collateral price     :", collatPrice);
-        console.log("Collateral value (USD):", collatValue);
-        console.log("Borrow value (USD)   :", borrowValue);
 
         uint256 borrowerCollatBefore = mWeth.balanceOf(borrower);
         uint256 liquidatorCollatBefore = mWeth.balanceOf(liquidator);
 
         // perform liquidation
-        vm.prank(liquidator);
-        mDaiHost.liquidate(borrower, 500 ether, address(mWeth));
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.expectEmit(true, true, true, false);
+        emit mTokenStorage.LiquidateBorrow(liquidator, borrower, repayAmount, address(mWeth), 0);
+        vm.prank(liquidator);
+        mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         uint256 borrowerCollatAfter = mWeth.balanceOf(borrower);
         uint256 liquidatorCollatAfter = mWeth.balanceOf(liquidator);
-
-        uint256 seized = liquidatorCollatAfter - liquidatorCollatBefore;
-
-        console.log("--- AFTER liquidation ---");
-        console.log("Borrower collateral before:", borrowerCollatBefore);
-        console.log("Borrower collateral after :", borrowerCollatAfter);
-        console.log("Seized collateral         :", seized);
-        console.log("Liquidator collateral after:", liquidatorCollatAfter);
 
         assertLt(borrowerCollatAfter, borrowerCollatBefore, "should decrease");
         assertGt(liquidatorCollatAfter, liquidatorCollatBefore, "should seize collateral");
     }
 
-    function test_Liquidate_Simulation_PriceDropNormal_AndLog() public {
+    function test_unit_liquidate_revertsWith_mt_InvalidInput_whenRepayAmountZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 repayAmount = 0;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(mTokenStorage.mt_InvalidInput.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
+    }
+
+    function test_unit_liquidate_revertsWith_mt_InvalidInput_whenBorrowerEqualsLiquidator() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 repayAmount = 1 ether;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(mTokenStorage.mt_InvalidInput.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(borrower);
+        mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
+    }
+
+    function test_fuzz_liquidate_success_emitsLiquidateBorrow(uint256 repayAmount) external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        repayAmount = bound(repayAmount, 1 ether, 100 ether);
+
         OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
         operator.setPriceOracle(address(newOracle));
         newOracle.setUnderlyingPrice(address(mWeth), 1e18);
@@ -210,46 +240,86 @@ contract LiquidationTest is mToken_Unit_Shared {
         mDaiHost.borrow(1000 ether);
 
         _getTokens(dai, liquidator, 2000 ether);
+        vm.prank(liquidator);
+        dai.approve(address(mDaiHost), type(uint256).max);
+
+        newOracle.setUnderlyingPrice(address(mWeth), 5e17);
+
+        uint256 borrowerBorrowBefore = mDaiHost.borrowBalanceStored(borrower);
+        uint256 borrowerCollateralBefore = mWeth.balanceOf(borrower);
+        uint256 liquidatorCollateralBefore = mWeth.balanceOf(liquidator);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, true, false);
+        emit mTokenStorage.LiquidateBorrow(liquidator, borrower, repayAmount, address(mWeth), 0);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(liquidator);
+        mDaiHost.liquidate(borrower, repayAmount, address(mWeth));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        uint256 borrowerBorrowAfter = mDaiHost.borrowBalanceStored(borrower);
+        uint256 borrowerCollateralAfter = mWeth.balanceOf(borrower);
+        uint256 liquidatorCollateralAfter = mWeth.balanceOf(liquidator);
+
+        assertLt(
+            borrowerBorrowAfter, borrowerBorrowBefore, "expected borrower borrow balance to decrease after liquidation"
+        );
+        assertLt(
+            borrowerCollateralAfter,
+            borrowerCollateralBefore,
+            "expected borrower collateral balance to decrease after liquidation"
+        );
+        assertGt(
+            liquidatorCollateralAfter,
+            liquidatorCollateralBefore,
+            "expected liquidator collateral balance to increase after liquidation"
+        );
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                  liquidate price walk                  //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_liquidate_success_whenCollateralPriceDropsInSteps() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        OracleMockPerToken newOracle = new OracleMockPerToken(address(this));
+        operator.setPriceOracle(address(newOracle));
+        newOracle.setUnderlyingPrice(address(mWeth), 1e18);
+        newOracle.setUnderlyingPrice(address(mDaiHost), 1e18);
+
+        _getTokens(weth, borrower, 1000 ether);
+        vm.startPrank(borrower);
+        weth.approve(address(mWeth), type(uint256).max);
+        mWeth.mint(1000 ether, borrower, 1000 ether - 1000);
+        vm.stopPrank();
+
+        _getTokens(dai, address(this), 5000 ether);
+        dai.approve(address(mDaiHost), type(uint256).max);
+        mDaiHost.mint(5000 ether, address(this), 5000 ether - 1000);
+
+        vm.startPrank(borrower);
+        mDaiHost.borrow(1000 ether);
+        vm.stopPrank();
+
+        _getTokens(dai, liquidator, 2000 ether);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(liquidator);
         dai.approve(address(mDaiHost), type(uint256).max);
 
         // uint256 borrowBalance = mDaiHost.borrowBalanceStored(borrower); // unused
         // uint256 daiPrice = newOracle.getUnderlyingPrice(address(mDaiHost)); // unused
 
-        (, uint256 collatFactor) = Operator(operator).markets(address(mWeth));
-
         // drop in steps; 5% basically for each
-        console.log("--- Drop starts ---");
         uint256 price = 1e18;
         while (true) {
-            uint256 collatBal = mWeth.balanceOf(borrower);
-            uint256 collatPrice = newOracle.getUnderlyingPrice(address(mWeth));
-            uint256 borrowBal = mDaiHost.borrowBalanceStored(borrower);
-
-            uint256 collatValue = (collatBal * collatPrice) / 1e18;
-            uint256 borrowValue = borrowBal; // DAI is $1
-
-            // health factor scaled by 1e18
-            uint256 healthFactor = (collatValue * collatFactor) / borrowValue;
-            uint256 healthFactorNormalized = (collatValue * collatFactor) / borrowValue;
-
-            console.log("---> step <---");
-            console.log("  Collateral price       :", collatPrice);
-            console.log("  Collateral value (USD) :", collatValue);
-            console.log("  Borrow value (USD)     :", borrowValue);
-            console.log("  Health factor          :", healthFactor, "/", collatFactor);
-            console.log("  Health factor (scaled 1e18):", healthFactorNormalized);
-            // HF >= 1e18 → healthy
-            // HF < 1e18 → liquidatable
-
-            vm.startPrank(liquidator);
+            vm.prank(liquidator);
             try mDaiHost.liquidate(borrower, 100 ether, address(mWeth)) {
-                console.log(">>> Liquidation succeeded at price:", price);
                 break;
             } catch {
                 // drop price 5%
                 price = (price * 95) / 100;
-                vm.stopPrank();
                 newOracle.setUnderlyingPrice(address(mWeth), price);
 
                 // avoid infinite loop

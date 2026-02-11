@@ -1,53 +1,139 @@
-// SPDX-License-Identifier: BSL-1.1
-pragma solidity =0.8.28;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.28;
 
-import {Test} from "forge-std/Test.sol";
 import {LZOptions} from "src/libraries/LZOptions.sol";
 
-contract LZOptionsTest is Test {
-    function test_newOptions_returnsType3Prefix() external {
-        bytes memory options = LZOptions.newOptions();
-        assertEq(options, abi.encodePacked(uint16(3)));
+import {BaseTest} from "test/utils/BaseTest.t.sol";
+
+contract LZOptionsTest is BaseTest {
+    bytes internal options_;
+
+    function setUp() public override {
+        super.setUp();
+
+        options_ = LZOptions.newOptions();
     }
 
-    function test_addExecutorLzReceiveOption_appendsData() external {
-        bytes memory options = LZOptions.newOptions();
-        uint128 gas = 1000;
-        uint128 value = 2000;
+    ////////////////////////////////////////////////////////////
+    //                       newOptions                       //
+    ////////////////////////////////////////////////////////////
 
-        bytes memory updated = LZOptions.addExecutorLzReceiveOption(options, gas, value);
+    function test_unit_newOptions_success() external view {
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(options_, abi.encodePacked(uint16(3)), "expected options_ to equal abi.encodePacked(uint16(3))");
+    }
 
+    ////////////////////////////////////////////////////////////
+    //               addExecutorLzReceiveOption               //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_addExecutorLzReceiveOption_success(uint128 gas, uint128 value) external view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bytes memory updated = LZOptions.addExecutorLzReceiveOption(options_, gas, value);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         bytes memory data = abi.encodePacked(gas, value);
         uint16 size = uint16(1 + data.length);
-        bytes memory expected = abi.encodePacked(options, uint8(1), size, uint8(1), data);
 
-        assertEq(updated, expected);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bytes memory expected = abi.encodePacked(options_, uint8(1), size, uint8(1), data);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        assertEq(updated, expected, "expected updated to equal expected");
     }
 
-    function test_addExecutorLzComposeOption_appendsData() external {
-        bytes memory options = LZOptions.newOptions();
-        uint16 index = 4;
-        uint128 gas = 1111;
-        uint128 value = 2222;
+    function test_fuzz_addExecutorLzReceiveOption_success_whenExistingOptions(
+        bytes calldata existingOptions,
+        uint128 gas,
+        uint128 value
+    ) external pure {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bytes memory updated = LZOptions.addExecutorLzReceiveOption(existingOptions, gas, value);
 
-        bytes memory updated = LZOptions.addExecutorLzComposeOption(options, index, gas, value);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        bytes memory data = abi.encodePacked(gas, value);
+        uint16 size = uint16(1 + data.length);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bytes memory expected = abi.encodePacked(existingOptions, uint8(1), size, uint8(1), data);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        assertEq(updated, expected, "expected updated to equal expected");
+    }
+
+    ////////////////////////////////////////////////////////////
+    //               addExecutorLzComposeOption               //
+    ////////////////////////////////////////////////////////////
+
+    function test_fuzz_addExecutorLzComposeOption_success(uint16 index, uint128 gas, uint128 value) external view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bytes memory updated = LZOptions.addExecutorLzComposeOption(options_, index, gas, value);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         bytes memory data = abi.encodePacked(index, gas, value);
         uint16 size = uint16(1 + data.length);
-        bytes memory expected = abi.encodePacked(options, uint8(1), size, uint8(3), data);
 
-        assertEq(updated, expected);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bytes memory expected = abi.encodePacked(options_, uint8(1), size, uint8(3), data);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        assertEq(updated, expected, "expected updated to equal expected");
     }
 
-    function test_addExecutorOrderedExecutionOption_appendsData() external {
-        bytes memory options = LZOptions.newOptions();
+    function test_fuzz_addExecutorLzComposeOption_success_whenExistingOptions(
+        bytes calldata existingOptions,
+        uint16 index,
+        uint128 gas,
+        uint128 value
+    ) external pure {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bytes memory updated = LZOptions.addExecutorLzComposeOption(existingOptions, index, gas, value);
 
-        bytes memory updated = LZOptions.addExecutorOrderedExecutionOption(options);
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        bytes memory data = abi.encodePacked(index, gas, value);
+        uint16 size = uint16(1 + data.length);
 
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bytes memory expected = abi.encodePacked(existingOptions, uint8(1), size, uint8(3), data);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        assertEq(updated, expected, "expected updated to equal expected");
+    }
+
+    ////////////////////////////////////////////////////////////
+    //           addExecutorOrderedExecutionOption            //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_addExecutorOrderedExecutionOption_success() external view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bytes memory updated = LZOptions.addExecutorOrderedExecutionOption(options_);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         bytes memory data = bytes("");
         uint16 size = uint16(1 + data.length);
-        bytes memory expected = abi.encodePacked(options, uint8(1), size, uint8(4), data);
 
-        assertEq(updated, expected);
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bytes memory expected = abi.encodePacked(options_, uint8(1), size, uint8(4), data);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        assertEq(updated, expected, "expected updated to equal expected");
+    }
+
+    function test_fuzz_addExecutorOrderedExecutionOption_success_whenExistingOptions(bytes calldata existingOptions)
+        external
+        pure
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bytes memory updated = LZOptions.addExecutorOrderedExecutionOption(existingOptions);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        bytes memory data = bytes("");
+        uint16 size = uint16(1 + data.length);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        bytes memory expected = abi.encodePacked(existingOptions, uint8(1), size, uint8(4), data);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        assertEq(updated, expected, "expected updated to equal expected");
     }
 }
