@@ -144,9 +144,46 @@ contract WrapAndSupplyTest is BaseTest {
         helper.wrapAndSupplyOnExtensionMarket{value: 1 ether}(address(gateway), address(this), bytes4(0));
     }
 
+    function test_unit_wrapAndSupplyOnExtensionMarket_success_whenGasFeeZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        WrapAndSupply helper = new WrapAndSupply(address(wrapped));
+        MockGateway gateway = new MockGateway(address(wrapped), 0);
+        bytes4 selector = bytes4(keccak256("mintExternal(bytes,bytes,uint256[],uint256[],address)"));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectEmit(true, true, true, true, address(helper));
+        emit WrapAndSupply.WrappedAndSupplied(address(this), address(this), address(gateway), 1 ether);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        helper.wrapAndSupplyOnExtensionMarket{value: 1 ether}(address(gateway), address(this), selector);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(gateway.lastAmount(), 1 ether, "expected gateway.lastAmount() to equal 1 ether");
+        assertEq(gateway.lastValue(), 0, "expected gateway.lastValue() to equal 0");
+        assertEq(gateway.lastSelector(), selector, "expected gateway.lastSelector() to equal selector");
+    }
+
     ////////////////////////////////////////////////////////////
     //                         Supply                         //
     ////////////////////////////////////////////////////////////
+
+    // NOTE (as of 2026-02-11): unreachable invariant.
+    // `_wrap` receives an amount derived from `msg.value` (`msg.value` or `msg.value - gasFee` after checked arithmetic),
+    // so `amountToWrap > msg.value` cannot be reached through public entry points.
+    function test_unit_unreachableInvariant_wrapAmountNeverExceedsMsgValue() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 sentValue = 1 ether;
+        uint256 gasFee = 0.25 ether;
+        WrapAndSupply helper = new WrapAndSupply(address(wrapped));
+        MockGateway gateway = new MockGateway(address(wrapped), gasFee);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        helper.wrapAndSupplyOnExtensionMarket{value: sentValue}(address(gateway), address(this), bytes4(0));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertLe(gateway.lastAmount(), sentValue, "expected gateway.lastAmount() to be <= sentValue");
+        assertEq(gateway.lastAmount(), sentValue - gasFee, "expected gateway.lastAmount() to equal sentValue - gasFee");
+    }
 
     function test_fuzz_wrapAndSupplyOnExtensionMarket_success(
         uint256 amount,

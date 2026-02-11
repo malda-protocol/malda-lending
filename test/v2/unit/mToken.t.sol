@@ -102,6 +102,15 @@ contract mTokenTest is BaseMTokenTest {
         mWeth.setRolesOperator(address(0));
     }
 
+    function test_unit_setRolesOperator_revertsWith_mt_OnlyAdmin() external {
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(mTokenStorage.mt_OnlyAdmin.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
+        mWeth.setRolesOperator(address(roles));
+    }
+
     ////////////////////////////////////////////////////////////
     //                  SetInterestRateModel                  //
     ////////////////////////////////////////////////////////////
@@ -243,6 +252,18 @@ contract mTokenTest is BaseMTokenTest {
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(mWeth.borrowRateMaxMantissa(), 1e18, "expected mWeth.borrowRateMaxMantissa() to equal 1e18");
+    }
+
+    function test_unit_accrueInterest_revertsWith_mt_BorrowRateTooHigh() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        mWeth.setBorrowRateMaxMantissa(1);
+        vm.warp(block.timestamp + 1);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(mTokenStorage.mt_BorrowRateTooHigh.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        mWeth.accrueInterest();
     }
 
     ////////////////////////////////////////////////////////////
@@ -744,6 +765,85 @@ contract mTokenTest is BaseMTokenTest {
             totalSupplyBefore + amount,
             "expected mWeth.totalSupply() to equal totalSupplyBefore + amount"
         );
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                         Redeem                         //
+    ////////////////////////////////////////////////////////////
+
+    function test_unit_redeemUnderlying_success()
+        external
+        whenMarketIsListed(address(mWeth))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 amount = SMALL;
+        uint256 redeemAmount = amount / 4;
+        _getTokens(weth, address(this), amount);
+        weth.approve(address(mWeth), amount);
+        mWeth.mint(amount, address(this), 0);
+
+        uint256 underlyingBalanceBefore = weth.balanceOf(address(this));
+        uint256 totalSupplyBefore = mWeth.totalSupply();
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        mWeth.redeemUnderlying(redeemAmount);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            weth.balanceOf(address(this)),
+            underlyingBalanceBefore + redeemAmount,
+            "expected weth.balanceOf(address(this)) to equal underlyingBalanceBefore + redeemAmount"
+        );
+        assertLt(
+            mWeth.totalSupply(), totalSupplyBefore, "expected mWeth.totalSupply() to be less than totalSupplyBefore"
+        );
+    }
+
+    function test_unit_redeem_success()
+        external
+        whenMarketIsListed(address(mWeth))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 amount = SMALL;
+        _getTokens(weth, address(this), amount);
+        weth.approve(address(mWeth), amount);
+        mWeth.mint(amount, address(this), 0);
+
+        uint256 redeemTokens = mWeth.balanceOf(address(this)) / 2;
+        uint256 underlyingBalanceBefore = weth.balanceOf(address(this));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        mWeth.redeem(redeemTokens);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertGt(
+            weth.balanceOf(address(this)),
+            underlyingBalanceBefore,
+            "expected weth.balanceOf(address(this)) to be greater than underlyingBalanceBefore"
+        );
+    }
+
+    // NOTE (as of 2026-02-11): unreachable invariant.
+    // Public redeem entrypoints are mutually exclusive by construction:
+    // `redeem(x)` maps to `(redeemTokensIn=x, redeemAmountIn=0)` and
+    // `redeemUnderlying(y)` maps to `(redeemTokensIn=0, redeemAmountIn=y)`.
+    function test_unit_unreachableInvariant_publicRedeemEntryPointsAreMutuallyExclusive()
+        external
+        whenMarketIsListed(address(mWeth))
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 amount = SMALL;
+        _getTokens(weth, address(this), amount * 2);
+        weth.approve(address(mWeth), amount * 2);
+        mWeth.mint(amount, address(this), 0);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        mWeth.redeem(amount / 4);
+        mWeth.mint(amount, address(this), 0);
+        mWeth.redeemUnderlying(amount / 4);
     }
 
     ////////////////////////////////////////////////////////////

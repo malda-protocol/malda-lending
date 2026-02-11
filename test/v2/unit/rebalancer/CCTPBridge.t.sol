@@ -236,6 +236,18 @@ contract CCTPBridgeTest is BaseTest {
         bridge.sendMsg(0, address(market), dstChainId, address(token), "", "");
     }
 
+    function test_unit_sendMsg_revertsWith_CCTPHelper_TokenNotAccepted() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bridge.setAcceptedToken(address(token), false);
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(CCTPHelper.CCTPHelper_TokenNotAccepted.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(address(rebalancer));
+        bridge.sendMsg(1, address(market), dstChainId, address(token), "", "");
+    }
+
     function test_unit_sendMsg_revertsWith_CCTPBridge_DomainNotSet_whenDstNotSet() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         CCTPBridgeHarness bridge2 =
@@ -266,6 +278,21 @@ contract CCTPBridgeTest is BaseTest {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(rebalancer));
         bridge2.sendMsg(1000, address(market), dstChainId, address(token), "", "");
+    }
+
+    // NOTE (as of 2026-02-11): unreachable invariant.
+    // `createAndBurn` returns `CCTPMessage.amount` from the same `_extractedAmount` argument,
+    // so `cctpMsg.amount != _extractedAmount` in `sendMsg` cannot be reached with current code.
+    function test_unit_unreachableInvariant_sendMsgMessageAmountAlwaysMatchesInput() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 amount = 777;
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(address(rebalancer));
+        bridge.sendMsg(amount, address(market), dstChainId, address(token), "", "");
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(messenger.lastAmount(), amount, "expected messenger.lastAmount() to equal amount");
     }
 
     ////////////////////////////////////////////////////////////

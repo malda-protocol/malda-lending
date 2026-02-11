@@ -322,6 +322,21 @@ contract mTokenGatewayTest is BaseMTokenTest {
         new ERC1967Proxy(address(impl), initData);
     }
 
+    // NOTE (as of 2026-02-11): unreachable invariant.
+    // `initialize` checks `_roles != address(0)` twice; once the first guard fails, execution reverts,
+    // so the duplicated second guard is unreachable.
+    function test_unit_unreachableInvariant_initialize_duplicateRolesGuardUnreachable() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        mTokenGateway impl = new mTokenGateway();
+        bytes memory initData = _gatewayInitData(address(weth), address(0), address(blacklister), address(zkVerifier));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(ImTokenGateway.mTokenGateway_AddressNotValid.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        new ERC1967Proxy(address(impl), initData);
+    }
+
     function test_unit_constructor_revertsWith_mTokenGateway_AddressNotValid_whenZkVerifierZero() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         mTokenGateway impl = new mTokenGateway();
@@ -350,6 +365,34 @@ contract mTokenGatewayTest is BaseMTokenTest {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectRevert(ImTokenGateway.mTokenGateway_AddressNotValid.selector);
         new ERC1967Proxy(address(impl), initData);
+    }
+
+    function test_unit_constructor_success_setsCoreDependencies() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        mTokenGateway impl = new mTokenGateway();
+        bytes memory initData =
+            _gatewayInitData(address(weth), address(roles), address(blacklister), address(zkVerifier));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        mTokenGateway gateway = mTokenGateway(address(new ERC1967Proxy(address(impl), initData)));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(gateway.underlying(), address(weth), "expected gateway.underlying() to equal address(weth)");
+        assertEq(
+            address(gateway.rolesOperator()),
+            address(roles),
+            "expected address(gateway.rolesOperator()) to equal address(roles)"
+        );
+        assertEq(
+            address(gateway.blacklistOperator()),
+            address(blacklister),
+            "expected address(gateway.blacklistOperator()) to equal address(blacklister)"
+        );
+        assertEq(
+            address(gateway.verifier()),
+            address(zkVerifier),
+            "expected address(gateway.verifier()) to equal address(zkVerifier)"
+        );
     }
 
     ////////////////////////////////////////////////////////////

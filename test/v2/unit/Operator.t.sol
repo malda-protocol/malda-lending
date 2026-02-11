@@ -1643,6 +1643,58 @@ contract OperatorTest is BaseUnitTest {
         operator.beforeMTokenBorrow(address(market), users.alice, 1);
     }
 
+    function test_unit_beforeMTokenBorrow_success_activatesMembership_whenBorrowerNotMember() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _listMarket(market);
+        oracleOperator.setUnderlyingPrice(1e18);
+        _setCollateralFactor(market, 0.5e18);
+        _setBorrowCaps(market, 2000);
+        market.setTotals(1, 0, 0);
+        market.setSnapshot(users.alice, 2001, 0, 1e18);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertFalse(
+            operator.checkMembership(users.alice, address(market)),
+            "expected condition to be false: operator.checkMembership(users.alice, address(market))"
+        );
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(address(market));
+        operator.beforeMTokenBorrow(address(market), users.alice, 1000);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertTrue(
+            operator.checkMembership(users.alice, address(market)),
+            "expected condition to be true: operator.checkMembership(users.alice, address(market))"
+        );
+        address[] memory assets = operator.getAssetsIn(users.alice);
+        assertEq(assets.length, 1, "expected assets.length to equal 1");
+        assertEq(assets[0], address(market), "expected assets[0] to equal address(market)");
+    }
+
+    // NOTE (as of 2026-02-11): unreachable invariant.
+    // In `beforeMTokenBorrow`, after `_activateMarket`, membership is immediately set for listed markets,
+    // so the post-activation `Operator_WrongMarket` check is unreachable in current implementation.
+    function test_unit_unreachableInvariant_beforeMTokenBorrow_postActivationMembershipHolds() public {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        _listMarket(market);
+        oracleOperator.setUnderlyingPrice(1e18);
+        _setCollateralFactor(market, 0.5e18);
+        _setBorrowCaps(market, 2000);
+        market.setTotals(1, 0, 0);
+        market.setSnapshot(users.alice, 2001, 0, 1e18);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(address(market));
+        operator.beforeMTokenBorrow(address(market), users.alice, 1000);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertTrue(
+            operator.checkMembership(users.alice, address(market)),
+            "expected condition to be true: operator.checkMembership(users.alice, address(market))"
+        );
+    }
+
     function test_unit_beforeMTokenBorrow_revertsWith_Operator_UserNotWhitelisted() public {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         _listMarket(market);

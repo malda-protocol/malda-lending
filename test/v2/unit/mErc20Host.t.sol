@@ -1274,6 +1274,29 @@ contract mErc20HostTest is BaseMTokenTest {
         mWethHost.mintExternal(journalData, "0x123", mintAmounts, minAmountsOut, users.alice);
     }
 
+    function test_unit_mintExternal_revertsWith_mErc20Host_CallerNotAllowed_whenSenderDiffersAndCallerUnauthorized()
+        external
+        whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
+    {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        operator.supportMarket(address(mWethHost));
+        bytes memory journal =
+            _encodeJournal(users.bob, address(mWethHost), 1, 1, uint32(block.chainid), uint32(block.chainid), true);
+        bytes memory journalData = _wrapJournal(journal);
+
+        uint256[] memory mintAmounts = new uint256[](1);
+        mintAmounts[0] = 1;
+        uint256[] memory minAmountsOut = new uint256[](1);
+        minAmountsOut[0] = 0;
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(ImErc20Host.mErc20Host_CallerNotAllowed.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(users.alice);
+        mWethHost.mintExternal(journalData, "0x123", mintAmounts, minAmountsOut, users.alice);
+    }
+
     ////////////////////////////////////////////////////////////
     //                    SetReserveFactor                    //
     ////////////////////////////////////////////////////////////

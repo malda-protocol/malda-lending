@@ -245,6 +245,27 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         assertEq(amountLD, params.amountLD, "expected amountLD to equal params.amountLD");
     }
 
+    function test_unit_executeSend_success_withWrapper_whenAmountZero() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        MockWrapperToken underlying = new MockWrapperToken("U", "U");
+        MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
+        underlying.setAllowed(address(oft), true);
+
+        address rebalancer = users.alice;
+        vm.prank(rebalancer);
+        underlying.approve(address(executor), 0);
+
+        SendParam memory params = _sendParam(0);
+        MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(oft.balanceOf(address(executor)), 0, "expected oft.balanceOf(address(executor)) to equal 0");
+        assertEq(oft.lastRefund(), users.bob, "expected oft.lastRefund() to equal users.bob");
+    }
+
     function test_unit_executeSend_revertsWith_Executor_NotRebalancer() external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         MockOFTToken underlying = new MockOFTToken("U", "U", address(0));
@@ -343,6 +364,30 @@ contract rsEthOftMessageExecutorTest is BaseTest {
         (,, uint256 amountLD,,,,) = underlying.lastParams();
         assertEq(underlying.lastRefund(), users.bob, "expected underlying.lastRefund() to equal users.bob");
         assertEq(amountLD, params.amountLD, "expected amountLD to equal params.amountLD");
+    }
+
+    // NOTE (as of 2026-02-11): unreachable invariant.
+    // The rsETH catch branch is terminal (`require(false, Executor_NoOft())`),
+    // so execution cannot continue when `allowedTokens` reverts.
+    function test_unit_unreachableInvariant_executeSendCatchBranchIsTerminal() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        RevertingWrapperToken underlying = new RevertingWrapperToken();
+        MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
+
+        address rebalancer = users.alice;
+        underlying.mint(rebalancer, 1e18);
+        vm.startPrank(rebalancer);
+        underlying.approve(address(executor), 1e18);
+        vm.stopPrank();
+
+        SendParam memory params = _sendParam(1e18);
+        MessagingFee memory fees = MessagingFee({nativeFee: 0, lzTokenFee: 0});
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(BaseOftMessageExecutor.Executor_NoOft.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        executor.executeSend(address(underlying), address(oft), params, fees, rebalancer, users.bob);
     }
 
     ////////////////////////////////////////////////////////////

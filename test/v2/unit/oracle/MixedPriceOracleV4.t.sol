@@ -449,6 +449,46 @@ contract MixedPriceOracleV4Test is BaseTest {
         assertEq(price, expected, "expected price to equal expected");
     }
 
+    function test_unit_getPrice_success_usesApi3_whenSymbolStalenessOverridesGlobal() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 staleWindow = 2 days;
+        uint256 api3Raw = 2_000 * 1e8;
+        uint256 chainlinkRaw = 1_999 * 1e8;
+
+        oracle.setStaleness(SYMBOL, staleWindow);
+        api3.setPrice(int256(api3Raw));
+        chainlink.setPrice(int256(chainlinkRaw));
+        api3.setUpdatedAt(block.timestamp - 1 days);
+        chainlink.setUpdatedAt(block.timestamp - 1 days);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 price = oracle.getPrice(address(token));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        uint256 expected = api3Raw * 10 ** (18 - api3.decimals());
+        assertEq(price, expected, "expected price to equal expected");
+    }
+
+    // NOTE (as of 2026-02-11): unreachable invariant.
+    // When a secondary feed is configured and API3 is stale, flow enters the chainlink fallback branch;
+    // the late API3 stale require path is therefore unreachable in this stale-API3 configuration.
+    function test_unit_unreachableInvariant_getPrice_staleApi3UsesChainlinkFallback() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 api3Raw = 2_100e8;
+        uint256 chainlinkRaw = 2_000e8;
+        api3.setPrice(int256(api3Raw));
+        chainlink.setPrice(int256(chainlinkRaw));
+        api3.setUpdatedAt(block.timestamp - 2 days);
+        chainlink.setUpdatedAt(block.timestamp);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 price = oracle.getPrice(address(token));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        uint256 expected = chainlinkRaw * 10 ** (18 - chainlink.decimals());
+        assertEq(price, expected, "expected price to equal expected");
+    }
+
     function test_fuzz_getPrice_success_handlesChainedSymbols(uint64 ethRaw, uint64 weEthRaw) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         ethRaw = uint64(bound(ethRaw, 1, type(uint64).max));
