@@ -266,7 +266,7 @@ contract EverclearBridgeV2Test is BaseTest {
     {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         IntentInput memory input = _defaultInput();
-        input.amount = bound(amountRaw, 10, 1e18);
+        input.amount = bound(amountRaw, 2, type(uint96).max);
         input.amountOutMin = bound(amountOutMinRaw, 0, input.amount * 9 / 10 - 1);
         input.feeParams = IFeeAdapterV2.FeeParams(0, 0, "");
 
@@ -290,25 +290,25 @@ contract EverclearBridgeV2Test is BaseTest {
         uint256 deadline
     ) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        uint256 dataLength = bound(data.length, 0, 64);
+        uint256 dataLength = bound(data.length, 0, type(uint8).max);
         bytes memory boundedData = new bytes(dataLength);
         for (uint256 i; i < dataLength; ++i) {
             boundedData[i] = data[i];
         }
 
-        uint256 sigLength = bound(sig.length, 0, 64);
+        uint256 sigLength = bound(sig.length, 0, type(uint8).max);
         bytes memory boundedSig = new bytes(sigLength);
         for (uint256 i; i < sigLength; ++i) {
             boundedSig[i] = sig[i];
         }
 
         IntentInput memory input = _defaultInput();
-        input.amount = bound(amountRaw, 1, 1e18);
+        input.amount = bound(amountRaw, 1, type(uint96).max);
         input.amountOutMin = input.amount;
         input.ttl = ttl;
         input.data = boundedData;
         input.feeParams = IFeeAdapterV2.FeeParams(bound(feeRaw, 0, input.amount / 2), deadline, boundedSig);
-        uint256 extra = bound(extraRaw, 1, 1e18);
+        uint256 extra = bound(extraRaw, 1, type(uint96).max);
 
         (bytes memory message, uint32 dstChainId) = _buildMessage(1, input);
 
@@ -370,20 +370,20 @@ contract EverclearBridgeV2Test is BaseTest {
         uint256 deadline
     ) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        uint256 dataLength = bound(data.length, 0, 64);
+        uint256 dataLength = bound(data.length, 0, type(uint8).max);
         bytes memory boundedData = new bytes(dataLength);
         for (uint256 i; i < dataLength; ++i) {
             boundedData[i] = data[i];
         }
 
-        uint256 sigLength = bound(sig.length, 0, 64);
+        uint256 sigLength = bound(sig.length, 0, type(uint8).max);
         bytes memory boundedSig = new bytes(sigLength);
         for (uint256 i; i < sigLength; ++i) {
             boundedSig[i] = sig[i];
         }
 
         IntentInput memory input = _defaultInput();
-        input.amount = bound(amountRaw, 1, 1e18);
+        input.amount = bound(amountRaw, 1, type(uint96).max);
         input.amountOutMin = input.amount * 9 / 10;
         input.ttl = ttl;
         input.data = boundedData;

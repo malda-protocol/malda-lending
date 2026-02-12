@@ -32,7 +32,7 @@ contract BaseOftMessageExecutorTest is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         TestToken underlying = new TestToken("U", "U");
         address rebalancer = users.alice;
-        uint256 amount = bound(amountRaw, 1, 1e24);
+        uint256 amount = bound(amountRaw, 1, type(uint256).max);
         underlying.mint(rebalancer, amount);
 
         vm.prank(rebalancer);
@@ -69,7 +69,7 @@ contract BaseOftMessageExecutorTest is BaseTest {
         TestToken underlying = new TestToken("U", "U");
         address market = users.bob;
 
-        uint256 amount = bound(amountRaw, 1, 1e24);
+        uint256 amount = bound(amountRaw, 1, type(uint256).max);
         underlying.mint(address(harness), amount);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
@@ -98,7 +98,7 @@ contract BaseOftMessageExecutorTest is BaseTest {
         MockOFTToken oft = new MockOFTToken("OFT", "OFT", address(underlying));
         address market = users.bob;
 
-        uint256 amount = bound(amountRaw, 1, 1e24);
+        uint256 amount = bound(amountRaw, 1, type(uint256).max);
         oft.mint(address(harness), amount);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~

@@ -106,8 +106,8 @@ contract CCTPBridgeForkTest is BaseForkTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         uint8 payloadId = 1;
         uint64 nonce = 0;
-        uint256 amount = bound(amountRaw, 1, 300e6);
         uint256 balBeforeRebalancer = IERC20(MAINNET_USDC).balanceOf(rebalancer);
+        uint256 amount = bound(amountRaw, 1, balBeforeRebalancer);
         uint256 balBeforeBridge = IERC20(MAINNET_USDC).balanceOf(address(bridge));
         address market = users.bob;
         bytes memory payload = abi.encode(market);

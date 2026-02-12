@@ -82,7 +82,8 @@ contract FirewallForkTest is BaseForkTest {
 
     function test_fork_fuzz_supplyOnHost_success(uint256 amountRaw) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        uint256 amount = bound(amountRaw, 1, 2e17);
+        uint256 holderBalance = IERC20(baseChainUnderlying).balanceOf(BASE_WETH_HOLDER);
+        uint256 amount = bound(amountRaw, 1, holderBalance);
 
         _fundErc20FromHolder(baseChainUnderlying, BASE_WETH_HOLDER, address(this), amount);
         IERC20(baseChainUnderlying).approve(address(extensionMarket), amount);

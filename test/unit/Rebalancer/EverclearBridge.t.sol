@@ -210,7 +210,7 @@ contract EverclearBridgeTest is BaseTest {
     function test_fuzz_sendMsg_revertsWith_Everclear_MaxFeeExceeded(uint96 amountRaw, uint24 maxFeeRaw) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         IntentInput memory input = _defaultInput();
-        input.amount = bound(amountRaw, 1, 10_000_000);
+        input.amount = bound(amountRaw, 1, uint256(type(uint24).max - 1) * 10);
         input.maxFee = uint24(bound(uint256(maxFeeRaw), input.amount / 10 + 1, type(uint24).max));
 
         (bytes memory message, uint32 dstChainId) = _buildMessage(1, input);
@@ -234,27 +234,31 @@ contract EverclearBridgeTest is BaseTest {
         uint256 deadline
     ) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        uint256 dataLength = bound(data.length, 0, 64);
+        uint256 dataLength = bound(data.length, 0, type(uint8).max);
         bytes memory boundedData = new bytes(dataLength);
         for (uint256 i; i < dataLength; ++i) {
             boundedData[i] = data[i];
         }
 
-        uint256 sigLength = bound(sig.length, 0, 64);
+        uint256 sigLength = bound(sig.length, 0, type(uint8).max);
         bytes memory boundedSig = new bytes(sigLength);
         for (uint256 i; i < sigLength; ++i) {
             boundedSig[i] = sig[i];
         }
 
         IntentInput memory input = _defaultInput();
-        input.amount = bound(amountRaw, 1, 1e18);
+        input.amount = bound(amountRaw, 1, type(uint96).max);
         input.fee = bound(feeRaw, 0, input.amount / 2);
-        input.maxFee = uint24(bound(uint256(maxFeeRaw), 0, input.amount / 10));
+        uint256 maxFeeUpper = input.amount / 10;
+        if (maxFeeUpper > type(uint24).max) {
+            maxFeeUpper = type(uint24).max;
+        }
+        input.maxFee = uint24(bound(uint256(maxFeeRaw), 0, maxFeeUpper));
         input.ttl = ttl;
         input.data = boundedData;
         input.deadline = deadline;
         input.sig = boundedSig;
-        uint256 extra = bound(extraRaw, 1, 1e18);
+        uint256 extra = bound(extraRaw, 1, type(uint96).max);
 
         (bytes memory message, uint32 dstChainId) = _buildMessage(1, input);
 
@@ -310,22 +314,26 @@ contract EverclearBridgeTest is BaseTest {
         uint256 deadline
     ) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        uint256 dataLength = bound(data.length, 0, 64);
+        uint256 dataLength = bound(data.length, 0, type(uint8).max);
         bytes memory boundedData = new bytes(dataLength);
         for (uint256 i; i < dataLength; ++i) {
             boundedData[i] = data[i];
         }
 
-        uint256 sigLength = bound(sig.length, 0, 64);
+        uint256 sigLength = bound(sig.length, 0, type(uint8).max);
         bytes memory boundedSig = new bytes(sigLength);
         for (uint256 i; i < sigLength; ++i) {
             boundedSig[i] = sig[i];
         }
 
         IntentInput memory input = _defaultInput();
-        input.amount = bound(amountRaw, 1, 1e18);
+        input.amount = bound(amountRaw, 1, type(uint96).max);
         input.fee = bound(feeRaw, 0, input.amount / 2);
-        input.maxFee = uint24(bound(uint256(maxFeeRaw), 0, input.amount / 10));
+        uint256 maxFeeUpper = input.amount / 10;
+        if (maxFeeUpper > type(uint24).max) {
+            maxFeeUpper = type(uint24).max;
+        }
+        input.maxFee = uint24(bound(uint256(maxFeeRaw), 0, maxFeeUpper));
         input.ttl = ttl;
         input.data = boundedData;
         input.deadline = deadline;

@@ -403,7 +403,7 @@ contract MigrationForkTest is BaseForkTest {
 
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         address user = makeAddr("FundedUser");
-        uint256 boundedMax = bound(uint256(maxAmount), 1e9, ETH_FUND_FOR_COLLATERAL_ONLY);
+        uint256 boundedMax = bound(uint256(maxAmount), 1, type(uint96).max);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         uint256 funded = _fundUserWithEth(user, boundedMax);

@@ -219,7 +219,7 @@ contract DeployerTest is BaseTest {
 
     function test_fuzz_saveEth_success(uint96 amountRaw) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        uint256 amount = bound(amountRaw, 1, 5 ether);
+        uint256 amount = bound(amountRaw, 1, type(uint96).max);
         vm.deal(address(deployer), amount);
         uint256 adminBalanceBefore = admin.balance;
 
@@ -253,8 +253,8 @@ contract DeployerTest is BaseTest {
 
     function test_fuzz_create_success(bytes32 salt, uint96 valueRaw, uint256 storedValueRaw) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        uint256 value = bound(valueRaw, 0, 1 ether);
-        uint256 storedValue = bound(storedValueRaw, 0, 1e18);
+        uint256 value = bound(valueRaw, 0, type(uint96).max);
+        uint256 storedValue = bound(storedValueRaw, 0, type(uint256).max);
 
         bytes memory code = abi.encodePacked(type(DeployableMock).creationCode, abi.encode(storedValue));
         address expected = deployer.precompute(salt);
@@ -285,6 +285,27 @@ contract DeployerTest is BaseTest {
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(other);
+        deployer.create(salt, code);
+    }
+
+    function test_unit_create_revertsWith_DEPLOYMENT_FAILED_whenSaltIsReused() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        bytes32 salt = keccak256("SALT_COLLISION");
+        bytes memory code = abi.encodePacked(type(DeployableMock).creationCode, abi.encode(uint256(123)));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        vm.prank(admin);
+        address deployed = deployer.create(salt, code);
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertGt(deployed.code.length, 0, "expected deployed.code.length to be greater than 0");
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(bytes("DEPLOYMENT_FAILED"));
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        // attempt to deploy with the same salt
+        vm.prank(admin);
         deployer.create(salt, code);
     }
 }

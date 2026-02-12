@@ -15,7 +15,7 @@ contract MTokenHandler is BaseTest {
     }
 
     function mint(uint256 amount) external {
-        amount = bound(amount, 1e6, 1e24);
+        amount = bound(amount, 1, type(uint96).max);
         vm.startPrank(actor);
         mToken.mint(amount, actor, amount - 1);
         vm.stopPrank();
@@ -38,7 +38,7 @@ contract MTokenInvariantTest is BaseMTokenTest {
     function setUp() public override {
         super.setUp();
 
-        _getTokens(weth, users.alice, 1e24);
+        _getTokens(weth, users.alice, type(uint96).max);
         vm.startPrank(users.alice);
         weth.approve(address(mWethHost), type(uint256).max);
         vm.stopPrank();

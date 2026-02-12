@@ -30,7 +30,7 @@ contract MarketHostForkTest is BaseForkTest {
     uint256 internal constant STANDARD_SUPPLY_MULTIPLIER = 20;
     uint256 internal constant INSUFFICIENT_LIQUIDITY_SUPPLY_MULTIPLIER = 5;
     uint256 internal constant SAFE_ZONE_UTILIZATION_UPPER_BOUND = 0.5e18;
-    uint256 internal constant FUZZ_INPUT_UPPER_BOUND = 1e30;
+    uint256 internal constant FUZZ_INPUT_UPPER_BOUND = type(uint192).max;
     uint256 internal constant ONE_MANTISSA = 1e18;
 
     address internal ownerOnChain;
@@ -472,7 +472,7 @@ contract MarketHostForkTest is BaseForkTest {
         uint256 totalReserves
     ) public view {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        cash = bound(cash, 1, FUZZ_INPUT_UPPER_BOUND);
+        cash = bound(cash, 0, FUZZ_INPUT_UPPER_BOUND);
         totalBorrows = bound(totalBorrows, 0, FUZZ_INPUT_UPPER_BOUND);
         totalReserves = bound(totalReserves, 0, cash);
 
@@ -502,7 +502,7 @@ contract MarketHostForkTest is BaseForkTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         JumpRateModelV4 model = JumpRateModelV4(mToken(address(market)).interestRateModel());
 
-        cash = bound(cash, 1, FUZZ_INPUT_UPPER_BOUND);
+        cash = bound(cash, 0, FUZZ_INPUT_UPPER_BOUND);
         totalReserves = bound(totalReserves, 0, cash);
         borrowLowRaw = bound(borrowLowRaw, 0, FUZZ_INPUT_UPPER_BOUND - 1);
         borrowDeltaRaw = bound(borrowDeltaRaw, 1, FUZZ_INPUT_UPPER_BOUND - borrowLowRaw);
@@ -531,7 +531,7 @@ contract MarketHostForkTest is BaseForkTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         JumpRateModelV4 model = JumpRateModelV4(mToken(address(market)).interestRateModel());
 
-        cash = bound(cash, 1, FUZZ_INPUT_UPPER_BOUND);
+        cash = bound(cash, 0, FUZZ_INPUT_UPPER_BOUND);
         totalReserves = bound(totalReserves, 0, cash);
         reserveFactorMantissa = bound(reserveFactorMantissa, 0, ONE_MANTISSA);
 
@@ -551,8 +551,8 @@ contract MarketHostForkTest is BaseForkTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         JumpRateModelV4 model = JumpRateModelV4(mToken(address(market)).interestRateModel());
 
-        cash = bound(cash, 1, FUZZ_INPUT_UPPER_BOUND);
-        totalBorrows = bound(totalBorrows, 1, FUZZ_INPUT_UPPER_BOUND);
+        cash = bound(cash, 0, FUZZ_INPUT_UPPER_BOUND);
+        totalBorrows = bound(totalBorrows, 0, FUZZ_INPUT_UPPER_BOUND);
         totalReserves = bound(totalReserves, 0, cash);
         reserveFactorMantissa = bound(reserveFactorMantissa, 0, ONE_MANTISSA);
 
