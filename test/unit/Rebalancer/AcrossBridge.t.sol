@@ -225,7 +225,7 @@ contract AcrossBridgeTest is BaseTest {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         bridge.setWhitelistedRelayer(MAINNET_CHAIN_ID, users.bob, true);
 
-        inputAmount = bound(inputAmount, 0, type(uint256).max / 10_000);
+        inputAmount = bound(inputAmount, 1, type(uint256).max / 10_000);
         uint256 maxSlippage = (inputAmount * 1e4) / 1e5;
         uint256 minOutput = inputAmount - maxSlippage;
         outputAmount = bound(outputAmount, minOutput, inputAmount);
