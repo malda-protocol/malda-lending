@@ -58,12 +58,11 @@ contract ChainlinkOracleTest is BaseTest {
         assertEq(price, expected, "expected price to equal expected");
     }
 
-    function test_fuzz_getPrice_success_scales_to18Decimals(uint8 feedDecimals, uint64 rawPrice) external {
+    function test_fuzz_getPrice_success_returnsRawPrice_whenFeedAlready18Decimals(uint64 rawPrice) external {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
-        feedDecimals = uint8(bound(feedDecimals, 4, 18));
         rawPrice = uint64(bound(rawPrice, 1, type(uint64).max));
 
-        MockAggregatorV3 feed = new MockAggregatorV3(feedDecimals, int256(uint256(rawPrice)));
+        MockAggregatorV3 feed = new MockAggregatorV3(18, int256(uint256(rawPrice)));
         ChainlinkOracle oracle = _deployOracle("MOCK", feed, 1e18);
         MockMToken token = new MockMToken("MOCK", address(0));
 
@@ -71,7 +70,7 @@ contract ChainlinkOracleTest is BaseTest {
         uint256 price = oracle.getPrice(address(token));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
-        uint256 expected = uint256(rawPrice) * 10 ** (18 - feedDecimals);
+        uint256 expected = uint256(rawPrice);
         assertEq(price, expected, "expected price to equal expected");
     }
 

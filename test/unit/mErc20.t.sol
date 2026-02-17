@@ -230,7 +230,7 @@ contract mErc20Test is BaseMTokenTest {
     //                         Borrow                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_borrow_revertsWith_Operator_Paused_revertGiven(uint256 amount)
+    function test_fuzz_borrow_revertsWith_Operator_Paused_revertGiven(uint256 amount)
         external
         whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
     {
@@ -244,7 +244,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.borrow(amount);
     }
 
-    function test_unit_borrow_revertsWith_Operator_MarketNotListed(uint256 amount)
+    function test_fuzz_borrow_revertsWith_Operator_MarketNotListed(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
     {
@@ -258,7 +258,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.borrow(amount);
     }
 
-    function test_unit_borrow_revertsWith_Operator_EmptyPrice_revertGiven(uint256 amount)
+    function test_fuzz_borrow_revertsWith_Operator_EmptyPrice_revertGiven(uint256 amount)
         external
         whenPriceIs(ZERO_VALUE)
         whenUnderlyingPriceIs(ZERO_VALUE)
@@ -275,7 +275,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.borrow(amount);
     }
 
-    function test_unit_borrow_revertsWith_Operator_InsufficientLiquidity_whenBorrowCashNotAvailable(uint256 amount)
+    function test_fuzz_borrow_revertsWith_Operator_InsufficientLiquidity_whenBorrowCashNotAvailable(uint256 amount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
@@ -316,7 +316,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.borrow(1 ether);
     }
 
-    function test_unit_borrow_revertsWith_Operator_MarketBorrowCapReached_whenBorrowCapIsReached(uint256 amount)
+    function test_fuzz_borrow_revertsWith_Operator_MarketBorrowCapReached_whenBorrowCapIsReached(uint256 amount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
@@ -336,7 +336,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.borrow(amount);
     }
 
-    function test_unit_borrow_revertsWith_Operator_InsufficientLiquidity_whenBorrowTooMuch(uint256 amount)
+    function test_fuzz_borrow_revertsWith_Operator_InsufficientLiquidity_whenBorrowTooMuch(uint256 amount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
@@ -355,7 +355,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.borrow(amount);
     }
 
-    function test_unit_borrow_revertsWith_Operator_InsufficientLiquidity_givenMarketIsNotEntered(uint256 amount)
+    function test_fuzz_borrow_revertsWith_Operator_InsufficientLiquidity_givenMarketIsNotEntered(uint256 amount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
@@ -394,7 +394,7 @@ contract mErc20Test is BaseMTokenTest {
     //                      TotalBorrows                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_totalBorrows_success(uint256 amount)
+    function test_fuzz_totalBorrows_success(uint256 amount)
         external
         whenUnderlyingPriceIs(DEFAULT_ORACLE_PRICE)
         whenMarketIsListed(address(mWeth))
@@ -558,7 +558,7 @@ contract mErc20Test is BaseMTokenTest {
     //                          Mint                          //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_mint_revertsWith_Operator_Paused_revertGiven(uint256 amount)
+    function test_fuzz_mint_revertsWith_Operator_Paused_revertGiven(uint256 amount)
         external
         whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Mint)
     {
@@ -572,7 +572,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.mint(amount, address(this), amount);
     }
 
-    function test_unit_mint_revertsWith_Operator_MarketNotListed(uint256 amount)
+    function test_fuzz_mint_revertsWith_Operator_MarketNotListed(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Mint)
     {
@@ -586,7 +586,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.mint(amount, address(this), amount - 1000);
     }
 
-    function test_unit_mint_revertsWith_Operator_MarketSupplyReached_revertGiven(uint256 amount)
+    function test_fuzz_mint_revertsWith_Operator_MarketSupplyReached_revertGiven(uint256 amount)
         external
         whenMarketIsListed(address(mWeth))
     {
@@ -610,7 +610,7 @@ contract mErc20Test is BaseMTokenTest {
     //                    CheckMembership                     //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_checkMembership_success(uint256 amount) external whenMarketIsListed(address(mWeth)) {
+    function test_fuzz_checkMembership_success(uint256 amount) external whenMarketIsListed(address(mWeth)) {
         // ~~~~~~~~~~ Setup ~~~~~~~~~~
         amount = bound(amount, MIN_FUZZ_WITH_SLIPPAGE, MAX_FUZZ_AMOUNT);
 
@@ -700,7 +700,7 @@ contract mErc20Test is BaseMTokenTest {
     //                          Mint                          //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_mint_revertsWith_Operator_UserNotWhitelisted_whenSupplyCapIsGreater(uint256 amount)
+    function test_fuzz_mint_revertsWith_Operator_UserNotWhitelisted_whenSupplyCapIsGreater(uint256 amount)
         external
         whenMarketIsListed(address(mWeth))
     {
@@ -759,7 +759,7 @@ contract mErc20Test is BaseMTokenTest {
     //                    RedeemUnderlying                    //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_redeemUnderlying_revertsWith_Operator_Paused_revertGiven(uint256 amount)
+    function test_fuzz_redeemUnderlying_revertsWith_Operator_Paused_revertGiven(uint256 amount)
         external
         whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWeth))
@@ -777,7 +777,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.redeemUnderlying(amount);
     }
 
-    function test_unit_redeemUnderlying_revertsWith_Operator_MarketNotListed_givenMarketIsNotListed(uint256 amount)
+    function test_fuzz_redeemUnderlying_revertsWith_Operator_MarketNotListed_givenMarketIsNotListed(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
     {
@@ -794,7 +794,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.redeemUnderlying(amount);
     }
 
-    function test_unit_redeemUnderlying_revertsWith(uint256 amount)
+    function test_fuzz_redeemUnderlying_revertsWith(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWeth))
@@ -828,7 +828,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.redeemUnderlying(0);
     }
 
-    function test_unit_redeemUnderlying_revertsWith_mt_RedeemCashNotAvailable_whenTheMarketDoesNotHaveEnoughAssetsForTheRedeemOperation(uint256 amount)
+    function test_fuzz_redeemUnderlying_revertsWith_mt_RedeemCashNotAvailable_whenTheMarketDoesNotHaveEnoughAssetsForTheRedeemOperation(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWeth))
@@ -852,7 +852,7 @@ contract mErc20Test is BaseMTokenTest {
     //                         Redeem                         //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_redeem_success_redeemTokens(uint256 amount)
+    function test_fuzz_redeem_success_redeemTokens(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWeth))
@@ -864,7 +864,7 @@ contract mErc20Test is BaseMTokenTest {
         _redeem(amount, false);
     }
 
-    function test_unit_redeem_success_redeemUnderlying(uint256 amount)
+    function test_fuzz_redeem_success_redeemUnderlying(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Redeem)
         whenMarketIsListed(address(mWeth))
@@ -880,7 +880,7 @@ contract mErc20Test is BaseMTokenTest {
     //                      RepayBehalf                       //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_repayBehalf_revertsWith_Operator_Paused(uint256 amount)
+    function test_fuzz_repayBehalf_revertsWith_Operator_Paused(uint256 amount)
         external
         whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenMarketIsListed(address(mWeth))
@@ -895,7 +895,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.repayBehalf(address(this), amount);
     }
 
-    function test_unit_repayBehalf_revertsWith_Operator_MarketNotListed(uint256 amount)
+    function test_fuzz_repayBehalf_revertsWith_Operator_MarketNotListed(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
     {
@@ -913,7 +913,7 @@ contract mErc20Test is BaseMTokenTest {
     //                      TotalBorrows                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_totalBorrows_success_repayBehalf_GivenAmountIs0(uint256 amount)
+    function test_fuzz_totalBorrows_success_repayBehalf_GivenAmountIs0(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
@@ -966,7 +966,7 @@ contract mErc20Test is BaseMTokenTest {
     //                        Overflow                        //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_overflow_revertsWith_repayBehalf_WhenRepayTooMuch(uint256 amount)
+    function test_fuzz_overflow_revertsWith_repayBehalf_WhenRepayTooMuch(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
@@ -1041,7 +1041,7 @@ contract mErc20Test is BaseMTokenTest {
     //                  BorrowBalanceStored                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_borrowBalanceStored_success_repayBehalf_WhenRepayLess(uint256 amount)
+    function test_fuzz_borrowBalanceStored_success_repayBehalf_WhenRepayLess(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
@@ -1114,7 +1114,7 @@ contract mErc20Test is BaseMTokenTest {
     //                         Repay                          //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_repay_revertsWith_Operator_Paused(uint256 amount)
+    function test_fuzz_repay_revertsWith_Operator_Paused(uint256 amount)
         external
         whenPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenMarketIsListed(address(mWeth))
@@ -1129,7 +1129,7 @@ contract mErc20Test is BaseMTokenTest {
         mWeth.repay(amount);
     }
 
-    function test_unit_repay_revertsWith_Operator_MarketNotListed(uint256 amount)
+    function test_fuzz_repay_revertsWith_Operator_MarketNotListed(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
     {
@@ -1147,7 +1147,7 @@ contract mErc20Test is BaseMTokenTest {
     //                      TotalBorrows                      //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_totalBorrows_success_repay_GivenAmountIs0(uint256 amount)
+    function test_fuzz_totalBorrows_success_repay_GivenAmountIs0(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
@@ -1195,7 +1195,7 @@ contract mErc20Test is BaseMTokenTest {
     //                         Repay                          //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_repay_revertsWith_repay_WhenRepayTooMuch(uint256 amount)
+    function test_fuzz_repay_revertsWith_repay_WhenRepayTooMuch(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)
@@ -1258,7 +1258,7 @@ contract mErc20Test is BaseMTokenTest {
     //                  BorrowBalanceStored                   //
     ////////////////////////////////////////////////////////////
 
-    function test_unit_borrowBalanceStored_success_repay_WhenRepayLess(uint256 amount)
+    function test_fuzz_borrowBalanceStored_success_repay_WhenRepayLess(uint256 amount)
         external
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Repay)
         whenNotPaused(address(mWeth), ImTokenOperationTypes.OperationType.Borrow)

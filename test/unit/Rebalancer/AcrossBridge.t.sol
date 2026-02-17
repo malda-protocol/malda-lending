@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.28;
 
-import {AccrossBridge} from "src/rebalancer/bridges/AcrossBridge.sol";
+import {AccrossBridge as AcrossBridge} from "src/rebalancer/bridges/AcrossBridge.sol";
 import {BaseBridge} from "src/rebalancer/bridges/BaseBridge.sol";
 import {Roles} from "src/Roles.sol";
 
@@ -11,7 +11,7 @@ import {BaseTest} from "test/utils/BaseTest.t.sol";
 
 contract AcrossBridgeTest is BaseTest {
     Roles internal roles;
-    AccrossBridge internal bridge;
+    AcrossBridge internal bridge;
     MockAcrossSpokePool internal spokePool;
     MockRebalancer internal rebalancer;
     ERC20Mock internal token;
@@ -27,7 +27,7 @@ contract AcrossBridgeTest is BaseTest {
         token = new ERC20Mock("Token", "TOK", 18, address(this), address(0), type(uint256).max);
         market = new MockMarket(address(token));
 
-        bridge = new AccrossBridge(address(roles), address(spokePool), address(rebalancer));
+        bridge = new AcrossBridge(address(roles), address(spokePool), address(rebalancer));
 
         roles.allowFor(address(this), roles.GUARDIAN_BRIDGE(), true);
         roles.allowFor(address(this), roles.REBALANCER(), true);
@@ -39,23 +39,23 @@ contract AcrossBridgeTest is BaseTest {
 
     function test_unit_constructor_revertsWith_AcrossBridge_AddressNotValid_whenSpokePoolZero() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(AccrossBridge.AcrossBridge_AddressNotValid.selector);
+        vm.expectRevert(AcrossBridge.AcrossBridge_AddressNotValid.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        new AccrossBridge(address(roles), address(0), address(rebalancer));
+        new AcrossBridge(address(roles), address(0), address(rebalancer));
     }
 
     function test_unit_constructor_revertsWith_AcrossBridge_AddressNotValid_whenRebalancerZero() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(AccrossBridge.AcrossBridge_AddressNotValid.selector);
+        vm.expectRevert(AcrossBridge.AcrossBridge_AddressNotValid.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        new AccrossBridge(address(roles), address(spokePool), address(0));
+        new AcrossBridge(address(roles), address(spokePool), address(0));
     }
 
     function test_unit_constructor_success() external {
         // ~~~~~~~~~~ Call ~~~~~~~~~~
-        AccrossBridge localBridge = new AccrossBridge(address(roles), address(spokePool), address(rebalancer));
+        AcrossBridge localBridge = new AcrossBridge(address(roles), address(spokePool), address(rebalancer));
 
         // ~~~~~~~~~~ Assertions ~~~~~~~~~~
         assertEq(
@@ -93,7 +93,7 @@ contract AcrossBridgeTest is BaseTest {
 
     function test_unit_setWhitelistedRelayer_revertsWith_AcrossBridge_AddressNotValid() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(AccrossBridge.AcrossBridge_AddressNotValid.selector);
+        vm.expectRevert(AcrossBridge.AcrossBridge_AddressNotValid.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.setWhitelistedRelayer(MAINNET_CHAIN_ID, address(0), true);
@@ -102,7 +102,7 @@ contract AcrossBridgeTest is BaseTest {
     function test_unit_setWhitelistedRelayer_success() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, true, true, true);
-        emit AccrossBridge.WhitelistedRelayerStatusUpdated(address(this), MAINNET_CHAIN_ID, users.bob, true);
+        emit AcrossBridge.WhitelistedRelayerStatusUpdated(address(this), MAINNET_CHAIN_ID, users.bob, true);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.setWhitelistedRelayer(MAINNET_CHAIN_ID, users.bob, true);
@@ -120,7 +120,7 @@ contract AcrossBridgeTest is BaseTest {
 
     function test_unit_handleV3AcrossMessage_revertsWith_AcrossBridge_NotAuthorized() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(AccrossBridge.AcrossBridge_NotAuthorized.selector);
+        vm.expectRevert(AcrossBridge.AcrossBridge_NotAuthorized.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.handleV3AcrossMessage(address(token), 1, address(0), abi.encode(address(market)));
@@ -128,7 +128,7 @@ contract AcrossBridgeTest is BaseTest {
 
     function test_unit_handleV3AcrossMessage_revertsWith_AcrossBridge_InvalidReceiver() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(AccrossBridge.AcrossBridge_InvalidReceiver.selector);
+        vm.expectRevert(AcrossBridge.AcrossBridge_InvalidReceiver.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(spokePool));
@@ -141,7 +141,7 @@ contract AcrossBridgeTest is BaseTest {
         rebalancer.setWhitelisted(address(otherMarket), true);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(AccrossBridge.AcrossBridge_TokenMismatch.selector);
+        vm.expectRevert(AcrossBridge.AcrossBridge_TokenMismatch.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(spokePool));
@@ -156,7 +156,7 @@ contract AcrossBridgeTest is BaseTest {
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
         vm.expectEmit(true, false, false, true);
-        emit AccrossBridge.Rebalanced(address(market), amount);
+        emit AcrossBridge.Rebalanced(address(market), amount);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         vm.prank(address(spokePool));
@@ -186,7 +186,7 @@ contract AcrossBridgeTest is BaseTest {
         bytes memory message = _encodeMessage(10, 10, users.bob);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(AccrossBridge.AcrossBridge_RelayerNotValid.selector);
+        vm.expectRevert(AcrossBridge.AcrossBridge_RelayerNotValid.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.sendMsg(10, address(market), MAINNET_CHAIN_ID, address(token), message, "");
@@ -198,7 +198,7 @@ contract AcrossBridgeTest is BaseTest {
         bytes memory message = _encodeMessage(100, 80, users.bob);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(AccrossBridge.AcrossBridge_MaxFeeExceeded.selector);
+        vm.expectRevert(AcrossBridge.AcrossBridge_MaxFeeExceeded.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.sendMsg(100, address(market), MAINNET_CHAIN_ID, address(token), message, "");
@@ -215,7 +215,7 @@ contract AcrossBridgeTest is BaseTest {
         token.approve(address(bridge), inputAmount);
 
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(AccrossBridge.AcrossBridge_SlippageNotValid.selector);
+        vm.expectRevert(AcrossBridge.AcrossBridge_SlippageNotValid.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.sendMsg(inputAmount, address(market), MAINNET_CHAIN_ID, address(token), message, "");
@@ -276,7 +276,7 @@ contract AcrossBridgeTest is BaseTest {
 
     function test_unit_getFee_revertsWith_AcrossBridge_NotImplemented() external {
         // ~~~~~~~~~~ Expectations ~~~~~~~~~~
-        vm.expectRevert(AccrossBridge.AcrossBridge_NotImplemented.selector);
+        vm.expectRevert(AcrossBridge.AcrossBridge_NotImplemented.selector);
 
         // ~~~~~~~~~~ Call ~~~~~~~~~~
         bridge.getFee(MAINNET_CHAIN_ID, "", "");

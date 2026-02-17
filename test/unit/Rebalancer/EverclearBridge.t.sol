@@ -11,6 +11,9 @@ import {EverclearFeeAdapterMock} from "test/mocks/EverclearFeeAdapterMock.sol";
 import {BaseTest} from "test/utils/BaseTest.t.sol";
 
 contract EverclearBridgeTest is BaseTest {
+    uint32 internal constant PRIMARY_DESTINATION_CHAIN_ID = 8453;
+    uint32 internal constant SECONDARY_DESTINATION_CHAIN_ID = 42_161;
+
     struct IntentInput {
         address receiver;
         address inputAsset;
@@ -390,6 +393,14 @@ contract EverclearBridgeTest is BaseTest {
     {
         uint32[] memory destinations = new uint32[](destinationsLength);
         bytes32 receiverBytes = bytes32(uint256(uint160(input.receiver)));
+
+        if (destinationsLength > 0) {
+            destinations[0] = PRIMARY_DESTINATION_CHAIN_ID;
+        }
+        if (destinationsLength > 1) {
+            destinations[1] = SECONDARY_DESTINATION_CHAIN_ID;
+        }
+
         bytes memory base = abi.encode(
             destinations,
             receiverBytes,
@@ -400,28 +411,35 @@ contract EverclearBridgeTest is BaseTest {
             input.ttl,
             input.data
         );
-        uint32 offset = uint32(base.length);
+        uint256 relocatedDestinationsOffset = base.length;
+        base = bytes.concat(base, _encodeDestinationsTail(destinations));
 
-        if (destinationsLength > 0) {
-            destinations[0] = offset;
-        }
-        if (destinationsLength > 1) {
-            destinations[1] = offset + 1;
-        }
+        bytes memory feeParamsData = _encodeFeeParams(input);
+        uint256 feeParamsOffset = base.length;
 
-        base = abi.encode(
-            destinations,
-            receiverBytes,
-            input.inputAsset,
-            input.outputAsset,
-            input.amount,
-            input.maxFee,
-            input.ttl,
-            input.data
-        );
+        // Keep realistic destination chain IDs while preserving legacy pointer extraction in EverclearBridge.
+        _writeUint256(base, 0x00, relocatedDestinationsOffset);
+        _writeUint256(base, 0x120, feeParamsOffset);
 
-        bytes memory feeParamsData = abi.encode(input.fee, input.deadline, input.sig);
         message = abi.encodePacked(IFeeAdapter.newIntent.selector, base, feeParamsData);
         dstChainId = destinationsLength > 0 ? destinations[0] : 0;
+    }
+
+    function _encodeFeeParams(IntentInput memory input) internal pure returns (bytes memory) {
+        return abi.encode(input.fee, input.deadline, input.sig);
+    }
+
+    function _encodeDestinationsTail(uint32[] memory destinations) internal pure returns (bytes memory tail) {
+        tail = abi.encode(destinations.length);
+        uint256 len = destinations.length;
+        for (uint256 i; i < len; ++i) {
+            tail = bytes.concat(tail, abi.encode(destinations[i]));
+        }
+    }
+
+    function _writeUint256(bytes memory data, uint256 offset, uint256 value) internal pure {
+        assembly {
+            mstore(add(add(data, 0x20), offset), value)
+        }
     }
 }
