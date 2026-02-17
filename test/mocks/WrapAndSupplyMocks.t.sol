@@ -39,8 +39,12 @@ contract MockHostMarket is ImErc20 {
     function redeem(uint256) external {}
     function redeemUnderlying(uint256) external {}
     function borrow(uint256) external {}
-    function repay(uint256) external returns (uint256) {}
-    function repayBehalf(address, uint256) external returns (uint256) {}
+    function repay(uint256) external returns (uint256) {
+        return 0;
+    }
+    function repayBehalf(address, uint256) external returns (uint256) {
+        return 0;
+    }
     function liquidate(address, uint256, address) external {}
     function addReserves(uint256) external {}
 }
