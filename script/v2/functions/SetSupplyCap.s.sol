@@ -14,8 +14,11 @@ contract SetSupplyCap is FunctionCallScriptBase {
     ////////////////////////////////////////////////////////////
 
     struct DeployConfig {
+        /// @notice The address of the Operator.sol contract
         address operator;
+        /// @notice The address of the market
         address market;
+        /// @notice The supply cap
         uint256 cap;
     }
 
@@ -23,9 +26,13 @@ contract SetSupplyCap is FunctionCallScriptBase {
     //                         Errors                         //
     ////////////////////////////////////////////////////////////
 
+    /// @notice Error thrown when the operator address is invalid
     error InvalidOperator();
+    /// @notice Error thrown when the market address is invalid
     error InvalidMarket();
+    /// @notice Error thrown when the supply cap read fails
     error SupplyCapReadFailed();
+    /// @notice Error thrown when the supply cap mismatch occurs
     error SupplyCapMismatch(uint256 expected, uint256 actual);
 
     ////////////////////////////////////////////////////////////

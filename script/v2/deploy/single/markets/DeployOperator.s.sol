@@ -17,13 +17,21 @@ contract DeployOperator is DeploymentScriptBase {
     ////////////////////////////////////////////////////////////
 
     struct DeployConfig {
+        /// @notice The address of the Deployer.sol contract
         address deployer;
+        /// @notice The address of the BlacklistOperator.sol contract
         address blacklistOperator;
+        /// @notice The address of the Oracle.sol contract
         address oracle;
+        /// @notice The address of the RewardDistributor.sol contract
         address rewardDistributor;
+        /// @notice The address of the Roles.sol contract
         address roles;
+        /// @notice The address of the owner of the contract
         address owner;
+        /// @notice The salt for the implementation contract
         string implementationSalt;
+        /// @notice The salt for the proxy contract
         string proxySalt;
     }
 
@@ -31,14 +39,25 @@ contract DeployOperator is DeploymentScriptBase {
     //                         Errors                         //
     ////////////////////////////////////////////////////////////
 
+    /// @notice Error thrown when the deployer address is invalid
     error InvalidDeployer();
+    /// @notice Error thrown when the blacklist operator address is invalid
     error InvalidBlacklistOperator();
+    /// @notice Error thrown when the oracle address is invalid
     error InvalidOracle();
+    /// @notice Error thrown when the roles address is invalid
     error InvalidRoles();
+    /// @notice Error thrown when the owner address is invalid
     error InvalidOwner();
+    /// @notice Error thrown when the implementation salt is invalid
     error InvalidImplementationSalt();
+    /// @notice Error thrown when the proxy salt is invalid
     error InvalidProxySalt();
+    /// @notice Error thrown when the proxy address is invalid
     error InvalidProxyAddress();
+
+    /// @notice Tracks whether the current run deployed a new proxy (used by post-deploy parity logic)
+    bool private _isFreshProxyDeployment;
 
     ////////////////////////////////////////////////////////////
     //              Internal / Private Functions              //
@@ -50,16 +69,16 @@ contract DeployOperator is DeploymentScriptBase {
         DeployConfig memory cfg = abi.decode(deployConfig, (DeployConfig));
 
         // Effects: bind configured create3 deployer
-        Deployer create3Deployer = Deployer(payable(cfg.deployer));
+        Deployer deployer = Deployer(payable(cfg.deployer));
         bytes32 implementationSalt = _toBytes32Salt(cfg.implementationSalt);
         bytes32 proxySalt = _toBytes32Salt(cfg.proxySalt);
 
         // Interactions: precompute implementation address
-        address implementation = create3Deployer.precompute(implementationSalt);
+        address implementation = deployer.precompute(implementationSalt);
         if (implementation.code.length == 0) {
             // Interactions: deploy implementation if absent
             vm.startBroadcast();
-            implementation = create3Deployer.create(implementationSalt, abi.encodePacked(type(Operator).creationCode));
+            implementation = deployer.create(implementationSalt, abi.encodePacked(type(Operator).creationCode));
             vm.stopBroadcast();
         }
 
@@ -68,24 +87,21 @@ contract DeployOperator is DeploymentScriptBase {
             abi.encodeWithSelector(Operator.initialize.selector, cfg.roles, cfg.blacklistOperator, cfg.owner);
 
         // Interactions: precompute proxy address
-        operatorAddress = create3Deployer.precompute(proxySalt);
+        operatorAddress = deployer.precompute(proxySalt);
 
         // Effects: branch for first deploy vs rerun
         bool isFreshProxy = operatorAddress.code.length == 0;
+        _isFreshProxyDeployment = isFreshProxy;
         if (isFreshProxy) {
             // Interactions: deploy proxy and execute initializer
             vm.startBroadcast();
-            operatorAddress = create3Deployer.create(
+            operatorAddress = deployer.create(
                 proxySalt,
                 abi.encodePacked(
                     type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, cfg.owner, initData)
                 )
             );
             vm.stopBroadcast();
-
-            // Interactions: keep legacy parity by setting oracle only on fresh proxy path
-            vm.broadcast();
-            Operator(operatorAddress).setPriceOracle(cfg.oracle);
         }
 
         // Requirements: deployed or reused proxy must be valid
@@ -95,16 +111,25 @@ contract DeployOperator is DeploymentScriptBase {
         // Requirements: owner must match configuration
         require(Operator(operatorAddress).owner() == cfg.owner, InvalidOwner());
 
-        // Requirements: fresh deployment path must wire oracle as configured
-        if (isFreshProxy) {
-            require(Operator(operatorAddress).oracleOperator() == cfg.oracle, InvalidOracle());
-        }
-
         return operatorAddress;
     }
 
     /// @inheritdoc DeploymentScriptBase
-    function _postDeploymentConfiguration(bytes memory, address) internal override {}
+    function _postDeploymentConfiguration(bytes memory deployConfig, address operatorAddress) internal override {
+        DeployConfig memory cfg = abi.decode(deployConfig, (DeployConfig));
+
+        // Requirements: keep legacy parity by setting oracle only for fresh proxy deployments
+        if (!_isFreshProxyDeployment) {
+            return;
+        }
+
+        // Interactions: set oracle only on first proxy deployment
+        vm.broadcast();
+        Operator(operatorAddress).setPriceOracle(cfg.oracle);
+
+        // Requirements: configured oracle must be wired after fresh deployment
+        require(Operator(operatorAddress).oracleOperator() == cfg.oracle, InvalidOracle());
+    }
 
     /// @inheritdoc ScriptBase
     function _serializeConfig(bytes memory config, string memory namespace_)
