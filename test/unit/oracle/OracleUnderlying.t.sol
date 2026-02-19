@@ -1,146 +1,182 @@
-// SPDX-License-Identifier: BSL-1.1
-pragma solidity =0.8.28;
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity 0.8.28;
 
-import {Roles} from "src/Roles.sol";
-import {MixedPriceOracleV3} from "src/oracles/MixedPriceOracleV3.sol";
 import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
-import {Test} from "forge-std/Test.sol";
-import {console} from "forge-std/console.sol";
+import {MixedPriceOracleV3} from "src/oracles/MixedPriceOracleV3.sol";
 import {Operator} from "src/Operator/Operator.sol";
+import {Roles} from "src/Roles.sol";
 
-contract MockChainlinkOracle {
-    uint256 public decimals;
-    uint256 public price;
+import {DummyMToken, DummyToken, MockChainlinkOracle} from "test/mocks/oracles/OracleUnderlyingMocks.t.sol";
+import {BaseTest} from "test/utils/BaseTest.t.sol";
 
-    constructor(uint256 _price, uint256 _decimals) {
-        price = _price;
-        decimals = _decimals;
-    }
+contract OracleUnderlyingTest is Operator, BaseTest {
+    uint256 internal constant FEED_DECIMALS = 8;
 
-    function latestRoundData()
-        external
-        view
-        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
-    {
-        roundId = 1;
-        answer = int256(price);
-        startedAt = block.timestamp;
-        updatedAt = block.timestamp;
-        answeredInRound = 1;
-    }
-}
+    uint256 internal constant USD_PER_BITCOIN = 70_000;
+    uint256 internal constant USD_PER_ETH = 2_500;
+    uint256 internal constant USD_PER_USDC = 1;
 
-contract DummyToken {
-    string public symbol;
-    uint256 public decimals;
+    uint256 internal constant BITCOIN_DECIMALS = 8;
+    uint256 internal constant ETH_DECIMALS = 18;
+    uint256 internal constant USDC_DECIMALS = 6;
 
-    constructor(string memory _symbol, uint256 _decimals) {
-        symbol = _symbol;
-        decimals = _decimals;
-    }
-}
-
-contract DummyMToken {
-    address public underlying;
-
-    constructor(address _underlying) {
-        underlying = _underlying;
-    }
-}
-
-contract MixedPriceOracleV3_Test is Operator, Test {
     MixedPriceOracleV3 internal mixedPriceOracle;
+    Roles internal roles;
 
-    DummyToken internal BTC;
-    DummyMToken internal mBTC;
-    uint256 internal usdPerBitcoin = 70_000;
-    uint256 internal bitcoinDecimals = 8;
+    DummyToken internal btc;
+    DummyMToken internal mBtc;
 
-    DummyToken internal ETH;
-    DummyMToken internal mETH;
-    uint256 internal usdPerEth = 2_500;
-    uint256 internal ethDecimals = 18;
+    DummyToken internal eth;
+    DummyMToken internal mEth;
 
-    DummyToken internal USDC;
-    DummyMToken internal mUSDC;
-    uint256 internal usdPerUsdc = 1;
-    uint256 internal usdcDecimals = 6;
+    DummyToken internal usdc;
+    DummyMToken internal mUsdc;
 
-    DummyToken internal LargeDecimalsToken;
-    DummyMToken internal mLargeDecimalsToken;
-    uint256 internal usdPerLargeToken = 1;
-    uint256 internal largeTokenDecimals = 30;
+    function setUp() public override {
+        super.setUp();
 
-    uint256 internal feedDecimals = 8; //chainlink returns answers in 8 decimals
+        roles = new Roles(users.admin);
 
-    function newUSDOracle(uint256 usdPerToken) public returns (MockChainlinkOracle) {
-        uint256 decimals = feedDecimals;
-        uint256 price = 10 ** decimals * usdPerToken;
-        return new MockChainlinkOracle(price, decimals);
-    }
+        btc = new DummyToken("BTC", BITCOIN_DECIMALS);
+        eth = new DummyToken("ETH", ETH_DECIMALS);
+        usdc = new DummyToken("USDC", USDC_DECIMALS);
 
-    function newOracleInBase(uint256 usdPerQuotedToken, uint256 usdPerBaseToken) public returns (MockChainlinkOracle) {
-        uint256 decimals = feedDecimals;
-        uint256 price = 10 ** decimals * usdPerQuotedToken / usdPerBaseToken;
-        return new MockChainlinkOracle(price, decimals);
-    }
+        mBtc = new DummyMToken(address(btc));
+        mEth = new DummyMToken(address(eth));
+        mUsdc = new DummyMToken(address(usdc));
 
-    function setUp() public {
-        BTC = new DummyToken("BTC", bitcoinDecimals);
-        ETH = new DummyToken("ETH", ethDecimals);
-        USDC = new DummyToken("USDC", usdcDecimals);
-        LargeDecimalsToken = new DummyToken("Large", largeTokenDecimals);
+        MockChainlinkOracle usdPerUsdcOracle = _newUsdOracle(USD_PER_USDC);
+        MockChainlinkOracle usdcPerEthOracle = _newOracleInBase(USD_PER_ETH, USD_PER_USDC);
+        MockChainlinkOracle ethPerBtcOracle = _newOracleInBase(USD_PER_BITCOIN, USD_PER_ETH);
 
-        mBTC = new DummyMToken(address(BTC));
-        mETH = new DummyMToken(address(ETH));
-        mUSDC = new DummyMToken(address(USDC));
-        mLargeDecimalsToken = new DummyMToken(address(LargeDecimalsToken));
-
-        MockChainlinkOracle usdPerUSDCOracle = newUSDOracle(usdPerUsdc);
-        MockChainlinkOracle usdcPerEthOracle = newOracleInBase(usdPerEth, usdPerUsdc);
-        MockChainlinkOracle ethPerBTCOracle = newOracleInBase(usdPerBitcoin, usdPerEth);
-
-        uint256 numOracles = 3;
-        string[] memory symbols = new string[](numOracles);
-        IDefaultAdapter.PriceConfig[] memory configs = new IDefaultAdapter.PriceConfig[](numOracles);
+        string[] memory symbols = new string[](3);
+        IDefaultAdapter.PriceConfig[] memory configs = new IDefaultAdapter.PriceConfig[](3);
 
         symbols[0] = "USDC";
         configs[0] = IDefaultAdapter.PriceConfig({
-            defaultFeed: address(usdPerUSDCOracle), toSymbol: "USD", underlyingDecimals: usdcDecimals
+            defaultFeed: address(usdPerUsdcOracle), toSymbol: "USD", underlyingDecimals: USDC_DECIMALS
         });
 
         symbols[1] = "ETH";
         configs[1] = IDefaultAdapter.PriceConfig({
-            defaultFeed: address(usdcPerEthOracle), toSymbol: "USDC", underlyingDecimals: ethDecimals
+            defaultFeed: address(usdcPerEthOracle), toSymbol: "USDC", underlyingDecimals: ETH_DECIMALS
         });
 
         symbols[2] = "BTC";
         configs[2] = IDefaultAdapter.PriceConfig({
-            defaultFeed: address(ethPerBTCOracle), toSymbol: "ETH", underlyingDecimals: bitcoinDecimals
+            defaultFeed: address(ethPerBtcOracle), toSymbol: "ETH", underlyingDecimals: BITCOIN_DECIMALS
         });
 
-        address roles = address(new Roles(address(this)));
-        uint256 stalenessPeriod = 100;
-
-        mixedPriceOracle = new MixedPriceOracleV3(symbols, configs, roles, stalenessPeriod);
-        // Set the oracleOperator to our mocked oracle
+        mixedPriceOracle = new MixedPriceOracleV3(symbols, configs, address(roles), 100);
         oracleOperator = address(mixedPriceOracle);
     }
 
-    function test_getPriceUSD() public view {
-        uint256 btcPrice = mixedPriceOracle.getUnderlyingPrice(address(mBTC));
-        uint256 ethPrice = mixedPriceOracle.getUnderlyingPrice(address(mETH));
-        uint256 usdcPrice = mixedPriceOracle.getUnderlyingPrice(address(mUSDC));
+    ////////////////////////////////////////////////////////////
+    //                   getUnderlyingPrice                   //
+    ////////////////////////////////////////////////////////////
 
-        console.log("btcPrice", btcPrice);
-        console.log("ethPrice", ethPrice);
-        console.log("usdcPrice", usdcPrice);
-        assertEq(btcPrice, 10 ** (36 - bitcoinDecimals) * usdPerBitcoin);
-        assertEq(ethPrice, 10 ** (36 - ethDecimals) * usdPerEth);
-        assertEq(usdcPrice, 10 ** (36 - usdcDecimals) * usdPerUsdc);
+    function test_unit_getUnderlyingPrice_success() external view {
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 btcPrice = mixedPriceOracle.getUnderlyingPrice(address(mBtc));
+        uint256 ethPrice = mixedPriceOracle.getUnderlyingPrice(address(mEth));
+        uint256 usdcPrice = mixedPriceOracle.getUnderlyingPrice(address(mUsdc));
 
-        assertEq(usdPerBitcoin * 1e8, _convertMarketAmountToUSDValue(1e8, address(mBTC)), "A");
-        assertEq(usdPerEth * 1e8, _convertMarketAmountToUSDValue(1e18, address(mETH)), "B");
-        assertEq(usdPerUsdc * 1e8, _convertMarketAmountToUSDValue(1e6, address(mUSDC)), "C");
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            btcPrice,
+            10 ** (36 - BITCOIN_DECIMALS) * USD_PER_BITCOIN,
+            "expected btcPrice to equal 10 ** (36 - BITCOIN_DECIMALS) * USD_PER_BITCOIN"
+        );
+        assertEq(
+            ethPrice,
+            10 ** (36 - ETH_DECIMALS) * USD_PER_ETH,
+            "expected ethPrice to equal 10 ** (36 - ETH_DECIMALS) * USD_PER_ETH"
+        );
+        assertEq(
+            usdcPrice,
+            10 ** (36 - USDC_DECIMALS) * USD_PER_USDC,
+            "expected usdcPrice to equal 10 ** (36 - USDC_DECIMALS) * USD_PER_USDC"
+        );
+    }
+
+    function test_fuzz_convertMarketAmountToUSDValue_success(uint256 rawAmount) external view {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        uint256 maxPrice = 10 ** (36 - BITCOIN_DECIMALS) * USD_PER_BITCOIN;
+        uint256 maxAmount = type(uint256).max / maxPrice;
+        uint256 amount = bound(rawAmount, 1, maxAmount);
+
+        uint256 btcValue = _convertMarketAmountToUSDValue(amount, address(mBtc));
+        uint256 ethValue = _convertMarketAmountToUSDValue(amount, address(mEth));
+        uint256 usdcValue = _convertMarketAmountToUSDValue(amount, address(mUsdc));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(
+            btcValue,
+            _expectedUsdValue(amount, USD_PER_BITCOIN, BITCOIN_DECIMALS),
+            "expected btcValue to equal _expectedUsdValue(amount, USD_PER_BITCOIN, BITCOIN_DECIMALS)"
+        );
+        assertEq(
+            ethValue,
+            _expectedUsdValue(amount, USD_PER_ETH, ETH_DECIMALS),
+            "expected ethValue to equal _expectedUsdValue(amount, USD_PER_ETH, ETH_DECIMALS)"
+        );
+        assertEq(
+            usdcValue,
+            _expectedUsdValue(amount, USD_PER_USDC, USDC_DECIMALS),
+            "expected usdcValue to equal _expectedUsdValue(amount, USD_PER_USDC, USDC_DECIMALS)"
+        );
+    }
+
+    function test_unit_convertMarketAmountToUSDValue_success_whenAmountIsZero() external view {
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        uint256 btcValue = _convertMarketAmountToUSDValue(0, address(mBtc));
+        uint256 ethValue = _convertMarketAmountToUSDValue(0, address(mEth));
+        uint256 usdcValue = _convertMarketAmountToUSDValue(0, address(mUsdc));
+
+        // ~~~~~~~~~~ Assertions ~~~~~~~~~~
+        assertEq(btcValue, 0, "expected btcValue to equal 0");
+        assertEq(ethValue, 0, "expected ethValue to equal 0");
+        assertEq(usdcValue, 0, "expected usdcValue to equal 0");
+    }
+
+    function test_unit_convertMarketAmountToUSDValue_revertsWhenUnderlyingHasNoConfig() external {
+        // ~~~~~~~~~~ Setup ~~~~~~~~~~
+        DummyToken badToken = new DummyToken("BAD", 18);
+        DummyMToken badMToken = new DummyMToken(address(badToken));
+
+        // ~~~~~~~~~~ Expectations ~~~~~~~~~~
+        vm.expectRevert(MixedPriceOracleV3.MixedPriceOracle_InvalidConfig.selector);
+
+        // ~~~~~~~~~~ Call ~~~~~~~~~~
+        this.exposed_convertMarketAmountToUSDValue(1e18, address(badMToken));
+    }
+
+    ////////////////////////////////////////////////////////////
+    //                        Helpers                         //
+    ////////////////////////////////////////////////////////////
+
+    function _newUsdOracle(uint256 usdPerToken) internal returns (MockChainlinkOracle) {
+        uint256 price = 10 ** FEED_DECIMALS * usdPerToken;
+        return new MockChainlinkOracle(price, FEED_DECIMALS);
+    }
+
+    function exposed_convertMarketAmountToUSDValue(uint256 amount, address mToken) external view returns (uint256) {
+        return _convertMarketAmountToUSDValue(amount, mToken);
+    }
+
+    function _newOracleInBase(uint256 usdPerQuotedToken, uint256 usdPerBaseToken)
+        internal
+        returns (MockChainlinkOracle)
+    {
+        uint256 price = (10 ** FEED_DECIMALS) * usdPerQuotedToken / usdPerBaseToken;
+        return new MockChainlinkOracle(price, FEED_DECIMALS);
+    }
+
+    function _expectedUsdValue(uint256 amount, uint256 usdPerToken, uint256 decimals) internal pure returns (uint256) {
+        if (decimals <= 8) {
+            return amount * usdPerToken * (10 ** (8 - decimals));
+        }
+
+        return (amount * usdPerToken) / (10 ** (decimals - 8));
     }
 }
