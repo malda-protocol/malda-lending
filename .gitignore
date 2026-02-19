@@ -24,6 +24,7 @@ coverage
 coverage.json
 .VSCodeCounter/
 docs/**
+.agents
 
 # Deployment logs
 script/deployment/testnet/logs/
