@@ -129,6 +129,11 @@ contract SetSupplyCap is FunctionCallScriptBase {
         deployConfig = abi.encode(cfg);
     }
 
+    /// @notice Reads the supply cap from the operator
+    /// @param operator The address of the operator
+    /// @param market The address of the market
+    /// @return success Whether the supply cap read was successful
+    /// @return cap The supply cap
     function _readSupplyCap(address operator, address market) internal view returns (bool success, uint256 cap) {
         // Interactions: query supply cap using operator public getter
         (bool callSuccess, bytes memory data) =

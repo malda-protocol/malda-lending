@@ -36,6 +36,13 @@ contract DeployOperator is DeploymentScriptBase {
     }
 
     ////////////////////////////////////////////////////////////
+    //                        Storage                         //
+    ////////////////////////////////////////////////////////////
+
+    /// @notice Tracks whether the current run deployed a new proxy (used by post-deploy parity logic)
+    bool private _isFreshProxyDeployment;
+
+    ////////////////////////////////////////////////////////////
     //                         Errors                         //
     ////////////////////////////////////////////////////////////
 
@@ -55,9 +62,6 @@ contract DeployOperator is DeploymentScriptBase {
     error InvalidProxySalt();
     /// @notice Error thrown when the proxy address is invalid
     error InvalidProxyAddress();
-
-    /// @notice Tracks whether the current run deployed a new proxy (used by post-deploy parity logic)
-    bool private _isFreshProxyDeployment;
 
     ////////////////////////////////////////////////////////////
     //              Internal / Private Functions              //
