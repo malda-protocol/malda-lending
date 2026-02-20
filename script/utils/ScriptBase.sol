@@ -203,6 +203,45 @@ abstract contract ScriptBase is Script {
         Logger.functionArg(property, value);
     }
 
+    /// @notice Reads a string array from JSON and logs its length
+    /// @param json Raw JSON string
+    /// @param property Property key (without step prefix)
+    /// @return value The string array read from the JSON file
+    function _readAndLogStringArray(string memory json, string memory property)
+        internal
+        view
+        returns (string[] memory value)
+    {
+        value = JsonReader.readStringArray(json, JsonReader.getPropertyPath(namespace, property));
+        Logger.functionArg(property, value.length);
+    }
+
+    /// @notice Reads an address array from JSON and logs its length
+    /// @param json Raw JSON string
+    /// @param property Property key (without step prefix)
+    /// @return value The address array read from the JSON file
+    function _readAndLogAddressArray(string memory json, string memory property)
+        internal
+        view
+        returns (address[] memory value)
+    {
+        value = JsonReader.readAddressArray(json, JsonReader.getPropertyPath(namespace, property));
+        Logger.functionArg(property, value.length);
+    }
+
+    /// @notice Reads a uint256 array from JSON and logs its length
+    /// @param json Raw JSON string
+    /// @param property Property key (without step prefix)
+    /// @return value The uint256 array read from the JSON file
+    function _readAndLogUintArray(string memory json, string memory property)
+        internal
+        view
+        returns (uint256[] memory value)
+    {
+        value = JsonReader.readUintArray(json, JsonReader.getPropertyPath(namespace, property));
+        Logger.functionArg(property, value.length);
+    }
+
     /// @notice Returns the namespace of the script. Hardcoded by each script.
     /// @dev Must be overridden by the child contract. In deployment scripts, this is the name of the contract being
     /// deployed. In function call scripts, this is the name of the function being called.
