@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Role} from "script/deploy/Types.sol";
+import {Role} from "script/deployers/Types.sol";
 import {DeployerUtil} from "script/utils/DeployerUtil.sol";
 import {JsonReader} from "script/utils/JsonReader.sol";
 import {Logger} from "script/utils/Logger.sol";
@@ -153,7 +153,7 @@ abstract contract DeploymentScriptBase is ScriptBase {
     /// @param roleName The role name
     /// @return role The role
     function _readRole(string memory json, string memory roleName) internal view returns (Role memory role) {
-        role.id = uint8(JsonReader.readUint(json, JsonReader.getPropertyPath("roles", roleName, "id")));
-        role.users = JsonReader.readAddressArray(json, JsonReader.getPropertyPath("roles", roleName, "users"));
+        role.roleName = roleName;
+        role.accounts = JsonReader.readAddressArray(json, JsonReader.getPropertyPath("roles", roleName, "users"));
     }
 }

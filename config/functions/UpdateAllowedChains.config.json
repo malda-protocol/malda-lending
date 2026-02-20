@@ -1,0 +1,7 @@
+{
+  "updateAllowedChains": {
+    "market": "0x3333333333333333333333333333333333333333",
+    "chainId": 59144,
+    "isAllowed": true
+  }
+}

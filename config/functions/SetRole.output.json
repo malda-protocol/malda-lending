@@ -1,0 +1,8 @@
+{
+  "setRole": {
+    "rolesContract": "0x2222222222222222222222222222222222222222",
+    "receiver": "0x3333333333333333333333333333333333333333",
+    "role": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "status": true
+  }
+}

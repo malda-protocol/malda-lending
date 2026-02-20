@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity =0.8.28;
 
-import {Strings} from "@oz/utils/Strings.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {Vm} from "forge-std/Vm.sol";
 import {console} from "forge-std/console.sol";

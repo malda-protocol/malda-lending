@@ -38,6 +38,38 @@ library JsonReader {
         value = json.readAddressArrayOr(path, new address[](0));
     }
 
+    /// @notice Reads a uint256 array from the JSON file
+    /// @param json The JSON file contents
+    /// @param path The path to the uint256 array
+    /// @return value The uint256 array read from the JSON file
+    function readUintArray(string memory json, string memory path) internal view returns (uint256[] memory value) {
+        value = json.readUintArrayOr(path, new uint256[](0));
+    }
+
+    /// @notice Reads a string array from the JSON file
+    /// @param json The JSON file contents
+    /// @param path The path to the string array
+    /// @return value The string array read from the JSON file
+    function readStringArray(string memory json, string memory path) internal view returns (string[] memory value) {
+        value = json.readStringArrayOr(path, new string[](0));
+    }
+
+    /// @notice Reads a bool array from the JSON file
+    /// @param json The JSON file contents
+    /// @param path The path to the bool array
+    /// @return value The bool array read from the JSON file
+    function readBoolArray(string memory json, string memory path) internal view returns (bool[] memory value) {
+        value = json.readBoolArrayOr(path, new bool[](0));
+    }
+
+    /// @notice Reads a bytes32 array from the JSON file
+    /// @param json The JSON file contents
+    /// @param path The path to the bytes32 array
+    /// @return value The bytes32 array read from the JSON file
+    function readBytes32Array(string memory json, string memory path) internal view returns (bytes32[] memory value) {
+        value = json.readBytes32ArrayOr(path, new bytes32[](0));
+    }
+
     /// @notice Reads a uint256 from the JSON file
     /// @param json The JSON file contents
     /// @param path The path to the uint256

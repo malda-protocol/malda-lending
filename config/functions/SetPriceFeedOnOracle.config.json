@@ -1,0 +1,9 @@
+{
+  "setPriceFeedOnOracle": {
+    "oracle": "0x2222222222222222222222222222222222222222",
+    "symbol": "WETH",
+    "priceFeed": "0x3333333333333333333333333333333333333333",
+    "toSymbol": "USD",
+    "underlyingDecimals": 18
+  }
+}

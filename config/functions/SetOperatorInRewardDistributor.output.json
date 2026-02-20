@@ -1,0 +1,6 @@
+{
+  "setOperatorInRewardDistributor": {
+    "operator": "0x2222222222222222222222222222222222222222",
+    "rewardDistributor": "0x3333333333333333333333333333333333333333"
+  }
+}

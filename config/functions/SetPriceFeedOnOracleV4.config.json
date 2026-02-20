@@ -1,0 +1,30 @@
+{
+  "setPriceFeedOnOracleV4": {
+    "oracle": "0x2222222222222222222222222222222222222222",
+    "useSingleMode": false,
+    "singleSymbol": "WETH",
+    "singleApi3Feed": "0x3333333333333333333333333333333333333333",
+    "singleChainlinkFeed": "0x4444444444444444444444444444444444444444",
+    "singleApi3ToSymbol": "USD",
+    "singleChainlinkToSymbol": "USD",
+    "singleUnderlyingDecimals": 18,
+    "symbols": [
+      "WETH"
+    ],
+    "api3Feeds": [
+      "0x3333333333333333333333333333333333333333"
+    ],
+    "chainlinkFeeds": [
+      "0x4444444444444444444444444444444444444444"
+    ],
+    "api3ToSymbols": [
+      "USD"
+    ],
+    "chainlinkToSymbols": [
+      "USD"
+    ],
+    "underlyingDecimals": [
+      18
+    ]
+  }
+}

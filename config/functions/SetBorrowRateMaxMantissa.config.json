@@ -1,0 +1,6 @@
+{
+  "setBorrowRateMaxMantissa": {
+    "market": "0x3333333333333333333333333333333333333333",
+    "borrowRateMaxMantissa": 5000000000000
+  }
+}

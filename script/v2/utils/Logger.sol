@@ -86,6 +86,41 @@ library Logger {
         console.log("\t- %s: %s", key, value);
     }
 
+    /// @notice Logs an address array argument
+    /// @param key The name of the function argument
+    /// @param value The value of the function argument
+    function functionArg(string memory key, address[] memory value) internal pure {
+        console.log("\t- %s length: %s", key, value.length);
+    }
+
+    /// @notice Logs a uint256 array argument
+    /// @param key The name of the function argument
+    /// @param value The value of the function argument
+    function functionArg(string memory key, uint256[] memory value) internal pure {
+        console.log("\t- %s length: %s", key, value.length);
+    }
+
+    /// @notice Logs a string array argument
+    /// @param key The name of the function argument
+    /// @param value The value of the function argument
+    function functionArg(string memory key, string[] memory value) internal pure {
+        console.log("\t- %s length: %s", key, value.length);
+    }
+
+    /// @notice Logs a bool array argument
+    /// @param key The name of the function argument
+    /// @param value The value of the function argument
+    function functionArg(string memory key, bool[] memory value) internal pure {
+        console.log("\t- %s length: %s", key, value.length);
+    }
+
+    /// @notice Logs a bytes32 array argument
+    /// @param key The name of the function argument
+    /// @param value The value of the function argument
+    function functionArg(string memory key, bytes32[] memory value) internal pure {
+        console.log("\t- %s length: %s", key, value.length);
+    }
+
     /// @notice Logs the function result
     /// @param functionName The name of the function being called
     /// @param success Whether the function call was successful
