@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {Operator} from "src/Operator/Operator.sol";
 
@@ -66,12 +67,13 @@ contract SetSupplyCap is FunctionCallScriptBase {
         uint256[] memory caps = new uint256[](1);
         mTokens[0] = cfg.market;
         caps[0] = cfg.cap;
+        bytes memory callData = abi.encodeWithSelector(Operator.setMarketSupplyCaps.selector, mTokens, caps);
+        Logger.logCalldata("Operator", cfg.operator, "setMarketSupplyCaps", callData);
 
         // Interactions: perform setMarketSupplyCaps call as active broadcaster
         vm.broadcast();
         // solhint-disable avoid-low-level-calls
-        (success, err) =
-            address(cfg.operator).call(abi.encodeWithSelector(Operator.setMarketSupplyCaps.selector, mTokens, caps));
+        (success, err) = address(cfg.operator).call(callData);
         // solhint-enable avoid-low-level-calls
         if (!success) {
             return (false, err);

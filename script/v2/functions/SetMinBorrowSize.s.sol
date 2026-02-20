@@ -3,8 +3,9 @@ pragma solidity =0.8.28;
 
 // solhint-disable avoid-low-level-calls
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {Operator} from "src/Operator/Operator.sol";
 
@@ -64,10 +65,11 @@ contract SetMinBorrowSize is FunctionCallScriptBase {
         uint256[] memory sizes = new uint256[](1);
         mTokens[0] = cfg.market;
         sizes[0] = cfg.size;
+        bytes memory callData = abi.encodeWithSelector(Operator.setBorrowSizeMin.selector, mTokens, sizes);
+        Logger.logCalldata("Operator", cfg.operator, "setBorrowSizeMin", callData);
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
-        (success, err) =
-            address(cfg.operator).call(abi.encodeWithSelector(Operator.setBorrowSizeMin.selector, mTokens, sizes));
+        (success, err) = address(cfg.operator).call(callData);
         if (!success) {
             return (false, err);
         }

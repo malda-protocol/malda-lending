@@ -3,8 +3,9 @@ pragma solidity =0.8.28;
 
 // solhint-disable avoid-low-level-calls
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {Operator} from "src/Operator/Operator.sol";
 
@@ -65,8 +66,9 @@ contract SetWhitelistEnabled is FunctionCallScriptBase {
             vm.startBroadcast();
             broadcastStarted = true;
 
-            (success, err) = address(cfg.operator)
-                .call(abi.encodeWithSelector(Operator.setWhitelistStatus.selector, cfg.whitelistEnabled));
+            bytes memory callData = abi.encodeWithSelector(Operator.setWhitelistStatus.selector, cfg.whitelistEnabled);
+            Logger.logCalldata("Operator", cfg.operator, "setWhitelistStatus", callData);
+            (success, err) = address(cfg.operator).call(callData);
             if (!success) {
                 vm.stopBroadcast();
                 return (false, err);
@@ -113,8 +115,9 @@ contract SetWhitelistEnabled is FunctionCallScriptBase {
                 broadcastStarted = true;
             }
 
-            (success, err) = address(cfg.operator)
-                .call(abi.encodeWithSelector(Operator.setWhitelistedUser.selector, user, cfg.userStatus));
+            bytes memory callData = abi.encodeWithSelector(Operator.setWhitelistedUser.selector, user, cfg.userStatus);
+            Logger.logCalldata("Operator", cfg.operator, "setWhitelistedUser", callData);
+            (success, err) = address(cfg.operator).call(callData);
             if (!success) {
                 vm.stopBroadcast();
                 return (false, err);

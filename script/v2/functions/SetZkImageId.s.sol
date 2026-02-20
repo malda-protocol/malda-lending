@@ -3,8 +3,9 @@ pragma solidity =0.8.28;
 
 // solhint-disable avoid-low-level-calls
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {ZkVerifier} from "src/verifier/ZkVerifier.sol";
 
@@ -56,10 +57,11 @@ contract SetZkImageId is FunctionCallScriptBase {
         if (currentImageId == cfg.imageId) {
             return (true, bytes(""));
         }
+        bytes memory callData = abi.encodeWithSelector(ZkVerifier.setImageId.selector, cfg.imageId);
+        Logger.logCalldata("ZkVerifier", cfg.zkVerifier, "setImageId", callData);
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
-        (success, err) =
-            address(cfg.zkVerifier).call(abi.encodeWithSelector(ZkVerifier.setImageId.selector, cfg.imageId));
+        (success, err) = address(cfg.zkVerifier).call(callData);
         if (!success) {
             return (false, err);
         }

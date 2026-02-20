@@ -3,8 +3,9 @@ pragma solidity =0.8.28;
 
 // solhint-disable avoid-low-level-calls
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 /// @title SetWhitelistDisabled
 /// @notice Function-call script that disables whitelist on gateway markets
@@ -66,7 +67,9 @@ contract SetWhitelistDisabled is FunctionCallScriptBase {
                 broadcastStarted = true;
             }
 
-            (success, err) = address(market).call(abi.encodeWithSignature("disableWhitelist()"));
+            bytes memory callData = abi.encodeWithSignature("disableWhitelist()");
+            Logger.logCalldata("mTokenGateway", market, "disableWhitelist", callData);
+            (success, err) = address(market).call(callData);
             if (!success) {
                 vm.stopBroadcast();
                 return (false, err);

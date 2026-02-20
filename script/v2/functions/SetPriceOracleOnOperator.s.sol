@@ -3,8 +3,9 @@ pragma solidity =0.8.28;
 
 // solhint-disable avoid-low-level-calls
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {Operator} from "src/Operator/Operator.sol";
 
@@ -56,10 +57,11 @@ contract SetPriceOracleOnOperator is FunctionCallScriptBase {
         if (currentOracle == cfg.oracle) {
             return (true, bytes(""));
         }
+        bytes memory callData = abi.encodeWithSelector(Operator.setPriceOracle.selector, cfg.oracle);
+        Logger.logCalldata("Operator", cfg.operator, "setPriceOracle", callData);
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
-        (success, err) =
-            address(cfg.operator).call(abi.encodeWithSelector(Operator.setPriceOracle.selector, cfg.oracle));
+        (success, err) = address(cfg.operator).call(callData);
         if (!success) {
             return (false, err);
         }

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {Operator} from "src/Operator/Operator.sol";
 
@@ -56,12 +57,13 @@ contract SetCloseFactor is FunctionCallScriptBase {
         if (currentFactor == cfg.factor) {
             return (true, bytes(""));
         }
+        bytes memory callData = abi.encodeWithSelector(Operator.setCloseFactor.selector, cfg.factor);
+        Logger.logCalldata("Operator", cfg.operator, "setCloseFactor", callData);
 
         // Interactions: perform setCloseFactor call as active broadcaster
         vm.broadcast();
         // solhint-disable avoid-low-level-calls
-        (success, err) =
-            address(cfg.operator).call(abi.encodeWithSelector(Operator.setCloseFactor.selector, cfg.factor));
+        (success, err) = address(cfg.operator).call(callData);
         // solhint-enable avoid-low-level-calls
         if (!success) {
             return (false, err);

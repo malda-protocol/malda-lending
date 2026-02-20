@@ -3,8 +3,9 @@ pragma solidity =0.8.28;
 
 // solhint-disable avoid-low-level-calls
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {mTokenGateway} from "src/mToken/extension/mTokenGateway.sol";
 
@@ -86,13 +87,7 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
                     broadcastStarted = true;
                 }
 
-                if (cfg.whitelistEnabled) {
-                    (success, err) =
-                        address(market).call(abi.encodeWithSelector(mTokenGateway.enableWhitelist.selector));
-                } else {
-                    (success, err) =
-                        address(market).call(abi.encodeWithSelector(mTokenGateway.disableWhitelist.selector));
-                }
+                (success, err) = _setWhitelistStatus(market, cfg.whitelistEnabled);
 
                 if (!success) {
                     if (!cfg.continueOnFailure) {
@@ -147,8 +142,7 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
                     broadcastStarted = true;
                 }
 
-                (success, err) = address(market)
-                    .call(abi.encodeWithSelector(mTokenGateway.setWhitelistedUser.selector, user, cfg.userStatus));
+                (success, err) = _setWhitelistedUser(market, user, cfg.userStatus);
                 if (!success) {
                     if (!cfg.continueOnFailure) {
                         vm.stopBroadcast();
@@ -201,6 +195,33 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
         vm.serializeBool(json, "continueOnFailure", cfg.continueOnFailure);
         vm.serializeUint(json, "marketsCount", cfg.markets.length);
         serialized = vm.serializeUint(json, "usersCount", cfg.users.length);
+    }
+
+    /// @notice Updates whitelist enabled status on a gateway
+    function _setWhitelistStatus(address market, bool whitelistEnabled)
+        internal
+        returns (bool success, bytes memory err)
+    {
+        bytes memory callData;
+        if (whitelistEnabled) {
+            callData = abi.encodeWithSelector(mTokenGateway.enableWhitelist.selector);
+            Logger.logCalldata("mTokenGateway", market, "enableWhitelist", callData);
+            return address(market).call(callData);
+        }
+
+        callData = abi.encodeWithSelector(mTokenGateway.disableWhitelist.selector);
+        Logger.logCalldata("mTokenGateway", market, "disableWhitelist", callData);
+        return address(market).call(callData);
+    }
+
+    /// @notice Updates user whitelist status on a gateway
+    function _setWhitelistedUser(address market, address user, bool userStatus)
+        internal
+        returns (bool success, bytes memory err)
+    {
+        bytes memory callData = abi.encodeWithSelector(mTokenGateway.setWhitelistedUser.selector, user, userStatus);
+        Logger.logCalldata("mTokenGateway", market, "setWhitelistedUser", callData);
+        return address(market).call(callData);
     }
 
     /// @inheritdoc ScriptBase

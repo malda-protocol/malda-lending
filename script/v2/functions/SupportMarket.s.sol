@@ -3,8 +3,9 @@ pragma solidity =0.8.28;
 
 // solhint-disable avoid-low-level-calls
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {Operator} from "src/Operator/Operator.sol";
 
@@ -55,9 +56,11 @@ contract SupportMarket is FunctionCallScriptBase {
         if (isListedBefore) {
             return (true, bytes(""));
         }
+        bytes memory callData = abi.encodeWithSelector(Operator.supportMarket.selector, cfg.market);
+        Logger.logCalldata("Operator", cfg.operator, "supportMarket", callData);
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
-        (success, err) = address(cfg.operator).call(abi.encodeWithSelector(Operator.supportMarket.selector, cfg.market));
+        (success, err) = address(cfg.operator).call(callData);
         if (!success) {
             return (false, err);
         }

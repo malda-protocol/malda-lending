@@ -3,8 +3,9 @@ pragma solidity =0.8.28;
 
 // solhint-disable avoid-low-level-calls
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {mErc20Host} from "src/mToken/host/mErc20Host.sol";
 
@@ -58,10 +59,12 @@ contract UpdateAllowedChains is FunctionCallScriptBase {
         if (currentAllowed == cfg.isAllowed) {
             return (true, bytes(""));
         }
+        bytes memory callData =
+            abi.encodeWithSelector(mErc20Host.updateAllowedChain.selector, cfg.chainId, cfg.isAllowed);
+        Logger.logCalldata("mErc20Host", cfg.market, "updateAllowedChain", callData);
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
-        (success, err) = address(cfg.market)
-            .call(abi.encodeWithSelector(mErc20Host.updateAllowedChain.selector, cfg.chainId, cfg.isAllowed));
+        (success, err) = address(cfg.market).call(callData);
         if (!success) {
             return (false, err);
         }

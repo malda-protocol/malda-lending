@@ -3,8 +3,9 @@ pragma solidity =0.8.28;
 
 // solhint-disable avoid-low-level-calls
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {Roles} from "src/Roles.sol";
 
@@ -62,10 +63,11 @@ contract SetRole is FunctionCallScriptBase {
         if (currentStatus == cfg.status) {
             return (true, bytes(""));
         }
+        bytes memory callData = abi.encodeWithSelector(Roles.allowFor.selector, cfg.receiver, cfg.role, cfg.status);
+        Logger.logCalldata("Roles", cfg.rolesContract, "allowFor", callData);
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
-        (success, err) = address(cfg.rolesContract)
-            .call(abi.encodeWithSelector(Roles.allowFor.selector, cfg.receiver, cfg.role, cfg.status));
+        (success, err) = address(cfg.rolesContract).call(callData);
         if (!success) {
             return (false, err);
         }

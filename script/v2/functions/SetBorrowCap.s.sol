@@ -3,8 +3,9 @@ pragma solidity =0.8.28;
 
 // solhint-disable avoid-low-level-calls
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {Operator} from "src/Operator/Operator.sol";
 
@@ -64,10 +65,11 @@ contract SetBorrowCap is FunctionCallScriptBase {
         uint256[] memory caps = new uint256[](1);
         mTokens[0] = cfg.market;
         caps[0] = cfg.cap;
+        bytes memory callData = abi.encodeWithSelector(Operator.setMarketBorrowCaps.selector, mTokens, caps);
+        Logger.logCalldata("Operator", cfg.operator, "setMarketBorrowCaps", callData);
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
-        (success, err) =
-            address(cfg.operator).call(abi.encodeWithSelector(Operator.setMarketBorrowCaps.selector, mTokens, caps));
+        (success, err) = address(cfg.operator).call(callData);
         if (!success) {
             return (false, err);
         }

@@ -3,8 +3,8 @@ pragma solidity =0.8.28;
 
 import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
-import {DeploymentScriptBase} from "script/v2/utils/DeploymentScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {DeploymentScriptBase} from "script/utils/DeploymentScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
 
 import {Operator} from "src/Operator/Operator.sol";
 import {Deployer} from "src/utils/Deployer.sol";

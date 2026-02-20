@@ -3,8 +3,9 @@ pragma solidity =0.8.28;
 
 // solhint-disable avoid-low-level-calls
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {RewardDistributor} from "src/rewards/RewardDistributor.sol";
 
@@ -56,10 +57,11 @@ contract SetOperatorInRewardDistributor is FunctionCallScriptBase {
         if (currentOperator == cfg.operator) {
             return (true, bytes(""));
         }
+        bytes memory callData = abi.encodeWithSelector(RewardDistributor.setOperator.selector, cfg.operator);
+        Logger.logCalldata("RewardDistributor", cfg.rewardDistributor, "setOperator", callData);
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
-        (success, err) = address(cfg.rewardDistributor)
-            .call(abi.encodeWithSelector(RewardDistributor.setOperator.selector, cfg.operator));
+        (success, err) = address(cfg.rewardDistributor).call(callData);
         if (!success) {
             return (false, err);
         }

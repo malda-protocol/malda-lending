@@ -3,8 +3,9 @@ pragma solidity =0.8.28;
 
 // solhint-disable avoid-low-level-calls
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {mTokenConfiguration} from "src/mToken/mTokenConfiguration.sol";
 
@@ -54,12 +55,12 @@ contract SetBorrowRateMaxMantissa is FunctionCallScriptBase {
         if (currentMantissa == cfg.borrowRateMaxMantissa) {
             return (true, bytes(""));
         }
+        bytes memory callData =
+            abi.encodeWithSelector(mTokenConfiguration.setBorrowRateMaxMantissa.selector, cfg.borrowRateMaxMantissa);
+        Logger.logCalldata("mTokenConfiguration", cfg.market, "setBorrowRateMaxMantissa", callData);
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
-        (success, err) = address(cfg.market)
-            .call(
-                abi.encodeWithSelector(mTokenConfiguration.setBorrowRateMaxMantissa.selector, cfg.borrowRateMaxMantissa)
-            );
+        (success, err) = address(cfg.market).call(callData);
         if (!success) {
             return (false, err);
         }

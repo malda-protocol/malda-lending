@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {IDefaultAdapter} from "src/interfaces/IDefaultAdapter.sol";
 import {MixedPriceOracleV3} from "src/oracles/MixedPriceOracleV3.sol";
@@ -75,12 +76,14 @@ contract SetPriceFeedOnOracle is FunctionCallScriptBase {
         if (_isSameConfig(currentConfig, expectedConfig)) {
             return (true, bytes(""));
         }
+        bytes memory callData =
+            abi.encodeWithSelector(MixedPriceOracleV3.setConfig.selector, cfg.symbol, expectedConfig);
+        Logger.logCalldata("MixedPriceOracleV3", cfg.oracle, "setConfig", callData);
 
         // Interactions: perform setConfig call as active broadcaster
         vm.broadcast();
         // solhint-disable avoid-low-level-calls
-        (success, err) = address(cfg.oracle)
-            .call(abi.encodeWithSelector(MixedPriceOracleV3.setConfig.selector, cfg.symbol, expectedConfig));
+        (success, err) = address(cfg.oracle).call(callData);
         // solhint-enable avoid-low-level-calls
         if (!success) {
             return (false, err);

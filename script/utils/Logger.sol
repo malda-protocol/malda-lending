@@ -8,6 +8,8 @@ import {console} from "forge-std/console.sol";
 import {DeployerUtil} from "script/utils/DeployerUtil.sol";
 
 library Logger {
+    bytes16 private constant HEX_DIGITS = "0123456789abcdef";
+
     /// @notice Prints the output path to the console
     /// @param configPath The path to the config file
     function logConfigPath(Vm vm, string memory configPath) internal view {
@@ -116,6 +118,31 @@ library Logger {
         console.log("\t- %s: %s", key, value);
     }
 
+    /// @notice Prints calldata for a broadcasted function call
+    /// @param contractName The name of the contract being called
+    /// @param contractAddress The target contract address
+    /// @param functionName The name of the function being called
+    /// @param callData The calldata payload passed to the call
+    function logCalldata(
+        string memory contractName,
+        address contractAddress,
+        string memory functionName,
+        bytes memory callData
+    ) internal pure {
+        console.log(
+            string.concat(
+                "\t>>> Calling ",
+                contractName,
+                "'s '",
+                functionName,
+                "' function at ",
+                Strings.toHexString(contractAddress),
+                " with the following calldata: ",
+                _toHexString(callData)
+            )
+        );
+    }
+
     /// @notice Prints a role to the console
     /// @param target The address of the target
     /// @param roleName The name of the role
@@ -186,5 +213,26 @@ library Logger {
         console.log(
             "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
         );
+    }
+
+    //////////////////////////////////////////////////////////
+    //                       Helpers                        //
+    //////////////////////////////////////////////////////////
+
+    /// @notice Converts bytes payload into 0x-prefixed lowercase hex string
+    /// @param value The bytes payload to convert
+    /// @return The 0x-prefixed lowercase hex string
+    function _toHexString(bytes memory value) private pure returns (string memory) {
+        bytes memory buffer = new bytes(value.length * 2 + 2);
+        buffer[0] = "0";
+        buffer[1] = "x";
+
+        for (uint256 i; i < value.length; ++i) {
+            uint8 char = uint8(value[i]);
+            buffer[2 + i * 2] = HEX_DIGITS[char >> 4];
+            buffer[3 + i * 2] = HEX_DIGITS[char & 0x0f];
+        }
+
+        return string(buffer);
     }
 }

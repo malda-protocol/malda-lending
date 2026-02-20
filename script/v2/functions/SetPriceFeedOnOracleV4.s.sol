@@ -3,8 +3,9 @@ pragma solidity =0.8.28;
 
 // solhint-disable avoid-low-level-calls
 
-import {FunctionCallScriptBase} from "script/v2/utils/FunctionCallScriptBase.sol";
-import {ScriptBase} from "script/v2/utils/ScriptBase.sol";
+import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
+import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {MixedPriceOracleV4} from "src/oracles/MixedPriceOracleV4.sol";
 
@@ -146,10 +147,12 @@ contract SetPriceFeedOnOracleV4 is FunctionCallScriptBase {
             chainlinkToSymbol: feed.chainlinkToSymbol,
             underlyingDecimals: feed.underlyingDecimals
         });
+        bytes memory callData =
+            abi.encodeWithSelector(MixedPriceOracleV4.setConfig.selector, feed.symbol, expectedConfig);
+        Logger.logCalldata("MixedPriceOracleV4", oracle, "setConfig", callData);
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
-        (success, err) = address(oracle)
-            .call(abi.encodeWithSelector(MixedPriceOracleV4.setConfig.selector, feed.symbol, expectedConfig));
+        (success, err) = address(oracle).call(callData);
         if (!success) {
             return (false, err);
         }
