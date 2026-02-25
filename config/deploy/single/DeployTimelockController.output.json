@@ -1,0 +1,11 @@
+{
+  "TimelockController": {
+    "admin": "0x3333333333333333333333333333333333333333",
+    "deployer": "0x2222222222222222222222222222222222222222",
+    "executorsCount": 1,
+    "minDelay": 3600,
+    "proposersCount": 1,
+    "salt": "TimelockController1.0.0"
+  },
+  "deployedContracts": {}
+}

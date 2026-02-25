@@ -35,6 +35,7 @@
     "function-max-lines": "off",
     "gas-struct-packing": "off",
     "gas-custom-errors": "off",
-    "max-states-count": "off"
+    "max-states-count": "off",
+    "avoid-low-level-calls": "off"
   }
 }

@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-// solhint-disable avoid-low-level-calls
-
 import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
 import {ScriptBase} from "script/utils/ScriptBase.sol";
 import {Logger} from "script/utils/Logger.sol";
@@ -50,12 +48,13 @@ contract UpdateAllowedChains is FunctionCallScriptBase {
         DeployConfig memory cfg = abi.decode(deployConfig, (DeployConfig));
 
         (bool readBeforeSuccess, bool currentAllowed) = _readAllowedChain(cfg.market, cfg.chainId);
-        // Requirements: pre-call state read must succeed
+        // Requirements: pre-call state read should succeed.
         if (!readBeforeSuccess) {
             return (false, abi.encodeWithSelector(AllowedChainReadFailed.selector));
         }
 
-        // Effects: short-circuit when requested value is already set
+        // Effects + Requirements: short-circuit when requested value is already set; skip mutation when current allowed already
+        // equals cfg.isAllowed.
         if (currentAllowed == cfg.isAllowed) {
             return (true, bytes(""));
         }
@@ -65,17 +64,18 @@ contract UpdateAllowedChains is FunctionCallScriptBase {
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
         (success, err) = address(cfg.market).call(callData);
+        // Requirements: external call should succeed.
         if (!success) {
             return (false, err);
         }
 
         (bool readAfterSuccess, bool updatedAllowed) = _readAllowedChain(cfg.market, cfg.chainId);
-        // Requirements: post-call state read must succeed
+        // Requirements: post-call state read should succeed.
         if (!readAfterSuccess) {
             return (false, abi.encodeWithSelector(AllowedChainReadFailed.selector));
         }
 
-        // Requirements: resulting onchain state must match requested value
+        // Requirements: updated allowed should equal cfg.isAllowed after the call.
         if (updatedAllowed != cfg.isAllowed) {
             return (false, abi.encodeWithSelector(AllowedChainMismatch.selector, cfg.isAllowed, updatedAllowed));
         }
@@ -110,6 +110,7 @@ contract UpdateAllowedChains is FunctionCallScriptBase {
         chainIdRaw = _readAndLogUint(json, "chainId");
         cfg.isAllowed = _readAndLogBool(json, "isAllowed");
 
+        // Requirements: cfg.market should not be the zero address; chainIdRaw should be less than 2 ** 32.
         require(cfg.market != address(0), InvalidMarket());
         require(chainIdRaw < 2 ** 32, InvalidChainId());
 
@@ -124,7 +125,7 @@ contract UpdateAllowedChains is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(market).staticcall(abi.encodeWithSignature("allowedChains(uint32)", chainId));
 
-        // Requirements: staticcall must return the expected payload
+        // Requirements: read call should succeed and return at least 32 bytes.
         if (!callSuccess || data.length < 32) {
             return (false, false);
         }

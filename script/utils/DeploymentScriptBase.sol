@@ -132,10 +132,12 @@ abstract contract DeploymentScriptBase is ScriptBase {
     /// @notice Deploys the contract and asserts the resulting contract's state
     /// @dev This function must be overridden by the child contract
     /// @param deployConfig The encoded deploy config
+    /// @return contractAddress The address of the deployed contract
     function _deployAndAssertResult(bytes memory deployConfig) internal virtual returns (address contractAddress);
 
     /// @notice Performs post-deployment configuration
     /// @dev This function must be overridden by the child contract
+    /// @param deployConfig The encoded deploy config
     /// @param contractAddress The address of the deployed contract
     function _postDeploymentConfiguration(bytes memory deployConfig, address contractAddress) internal virtual {}
 

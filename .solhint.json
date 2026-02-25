@@ -15,7 +15,7 @@
         "ignoreConstructors": true
       }
     ],
-    "max-line-length": ["error", 125],
+    "max-line-length": ["error", 130],
     "one-contract-per-file": "warn",
     "named-parameters-mapping": "warn",
     "func-param-name-mixedcase": "error",

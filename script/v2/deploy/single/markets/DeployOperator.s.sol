@@ -5,12 +5,14 @@ import {TransparentUpgradeableProxy} from "@openzeppelin/contracts/proxy/transpa
 
 import {DeploymentScriptBase} from "script/utils/DeploymentScriptBase.sol";
 import {ScriptBase} from "script/utils/ScriptBase.sol";
+import {Logger} from "script/utils/Logger.sol";
 
 import {Operator} from "src/Operator/Operator.sol";
 import {Deployer} from "src/utils/Deployer.sol";
 
 /// @title DeployOperator
-/// @notice Deployment script that deploys Operator using DeploymentScriptBase pattern
+/// @author Merge Layers Inc.
+/// @notice Single deployment script that deploys Operator
 contract DeployOperator is DeploymentScriptBase {
     ////////////////////////////////////////////////////////////
     //                        Structs                         //
@@ -74,21 +76,31 @@ contract DeployOperator is DeploymentScriptBase {
 
         // Effects: bind configured create3 deployer
         Deployer deployer = Deployer(payable(cfg.deployer));
-        bytes32 implementationSalt = _toBytes32Salt(cfg.implementationSalt);
-        bytes32 proxySalt = _toBytes32Salt(cfg.proxySalt);
+        bytes32 implementationSalt = keccak256(bytes(cfg.implementationSalt));
+        bytes32 proxySalt = keccak256(bytes(cfg.proxySalt));
 
         // Interactions: precompute implementation address
         address implementation = deployer.precompute(implementationSalt);
         if (implementation.code.length == 0) {
             // Interactions: deploy implementation if absent
-            vm.startBroadcast();
-            implementation = deployer.create(implementationSalt, abi.encodePacked(type(Operator).creationCode));
-            vm.stopBroadcast();
-        }
+            bytes memory callData = abi.encodeWithSelector(
+                deployer.create.selector, implementationSalt, abi.encodePacked(type(Operator).creationCode)
+            );
+            Logger.logCalldata("Deployer", cfg.deployer, "create", callData);
 
-        // Effects: build initialization calldata for proxy constructor
-        bytes memory initData =
-            abi.encodeWithSelector(Operator.initialize.selector, cfg.roles, cfg.blacklistOperator, cfg.owner);
+            // Interactions: broadcast exact logged calldata payload to deployer
+            vm.broadcast();
+            (bool success, bytes memory returnData) = cfg.deployer.call(callData);
+
+            // Requirements: external call should succeed.
+            if (!success) {
+                assembly {
+                    revert(add(returnData, 0x20), mload(returnData))
+                }
+            }
+
+            implementation = abi.decode(returnData, (address));
+        }
 
         // Interactions: precompute proxy address
         operatorAddress = deployer.precompute(proxySalt);
@@ -97,22 +109,40 @@ contract DeployOperator is DeploymentScriptBase {
         bool isFreshProxy = operatorAddress.code.length == 0;
         _isFreshProxyDeployment = isFreshProxy;
         if (isFreshProxy) {
-            // Interactions: deploy proxy and execute initializer
-            vm.startBroadcast();
-            operatorAddress = deployer.create(
+            bytes memory callData = abi.encodeWithSelector(
+                deployer.create.selector,
                 proxySalt,
                 abi.encodePacked(
-                    type(TransparentUpgradeableProxy).creationCode, abi.encode(implementation, cfg.owner, initData)
+                    type(TransparentUpgradeableProxy).creationCode,
+                    abi.encode(
+                        implementation,
+                        cfg.owner,
+                        abi.encodeWithSelector(
+                            Operator.initialize.selector, cfg.roles, cfg.blacklistOperator, cfg.owner
+                        )
+                    )
                 )
             );
-            vm.stopBroadcast();
+            Logger.logCalldata("Deployer", cfg.deployer, "create", callData);
+
+            // Interactions: broadcast exact logged calldata payload to deployer
+            vm.broadcast();
+            (bool success, bytes memory returnData) = cfg.deployer.call(callData);
+
+            // Requirements: external call should succeed.
+            if (!success) {
+                assembly {
+                    revert(add(returnData, 0x20), mload(returnData))
+                }
+            }
+
+            operatorAddress = abi.decode(returnData, (address));
         }
 
-        // Requirements: deployed or reused proxy must be valid
+        // Requirements: operatorAddress should not be the zero address; operatorAddress code length should be greater than zero;
+        // owner should equal cfg.owner.
         require(operatorAddress != address(0), InvalidProxyAddress());
         require(operatorAddress.code.length > 0, InvalidProxyAddress());
-
-        // Requirements: owner must match configuration
         require(Operator(operatorAddress).owner() == cfg.owner, InvalidOwner());
 
         return operatorAddress;
@@ -122,16 +152,13 @@ contract DeployOperator is DeploymentScriptBase {
     function _postDeploymentConfiguration(bytes memory deployConfig, address operatorAddress) internal override {
         DeployConfig memory cfg = abi.decode(deployConfig, (DeployConfig));
 
-        // Requirements: keep legacy parity by setting oracle only for fresh proxy deployments
-        if (!_isFreshProxyDeployment) {
-            return;
-        }
+        if (!_isFreshProxyDeployment) return;
 
         // Interactions: set oracle only on first proxy deployment
         vm.broadcast();
         Operator(operatorAddress).setPriceOracle(cfg.oracle);
 
-        // Requirements: configured oracle must be wired after fresh deployment
+        // Requirement: oracleOperator should equal cfg.oracle.
         require(Operator(operatorAddress).oracleOperator() == cfg.oracle, InvalidOracle());
     }
 
@@ -173,7 +200,7 @@ contract DeployOperator is DeploymentScriptBase {
         cfg.implementationSalt = _readAndLogString(json, "implementationSalt");
         cfg.proxySalt = _readAndLogString(json, "proxySalt");
 
-        // Requirements: validate critical config fields before deployment
+        // Requirement: all conditions must be satisfied
         require(cfg.deployer != address(0), InvalidDeployer());
         require(cfg.blacklistOperator != address(0), InvalidBlacklistOperator());
         require(cfg.oracle != address(0), InvalidOracle());
@@ -199,9 +226,5 @@ contract DeployOperator is DeploymentScriptBase {
     /// @inheritdoc ScriptBase
     function _defaultOutputPath() internal pure override returns (string memory path) {
         path = "config/deploy/single/DeployOperator.output.json";
-    }
-
-    function _toBytes32Salt(string memory salt) internal pure returns (bytes32) {
-        return keccak256(bytes(salt));
     }
 }

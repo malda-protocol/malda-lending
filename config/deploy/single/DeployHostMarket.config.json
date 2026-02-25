@@ -1,0 +1,17 @@
+{
+  "HostMarket": {
+    "deployer": "0x2222222222222222222222222222222222222222",
+    "underlyingToken": "0x3333333333333333333333333333333333333333",
+    "operator": "0x4444444444444444444444444444444444444444",
+    "interestModel": "0x5555555555555555555555555555555555555555",
+    "exchangeRateMantissa": 20000000000000000,
+    "name": "mWETH",
+    "symbol": "mWETH",
+    "decimals": 8,
+    "owner": "0x6666666666666666666666666666666666666666",
+    "zkVerifier": "0x7777777777777777777777777777777777777777",
+    "roles": "0x8888888888888888888888888888888888888888",
+    "implementationSalt": "mTokenHost-implementationV1.0.1",
+    "proxySalt": "mWETHV1.0.1"
+  }
+}

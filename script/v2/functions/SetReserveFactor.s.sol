@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-// solhint-disable avoid-low-level-calls
-
 import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
 import {ScriptBase} from "script/utils/ScriptBase.sol";
 import {Logger} from "script/utils/Logger.sol";
@@ -46,12 +44,13 @@ contract SetReserveFactor is FunctionCallScriptBase {
         DeployConfig memory cfg = abi.decode(deployConfig, (DeployConfig));
 
         (bool readBeforeSuccess, uint256 currentFactor) = _readReserveFactor(cfg.market);
-        // Requirements: pre-call state read must succeed
+        // Requirements: pre-call state read should succeed.
         if (!readBeforeSuccess) {
             return (false, abi.encodeWithSelector(ReserveFactorReadFailed.selector));
         }
 
-        // Effects: short-circuit when requested value is already set
+        // Effects + Requirements: short-circuit when requested value is already set; skip mutation when current factor already
+        // equals cfg.factor.
         if (currentFactor == cfg.factor) {
             return (true, bytes(""));
         }
@@ -60,17 +59,18 @@ contract SetReserveFactor is FunctionCallScriptBase {
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
         (success, err) = address(cfg.market).call(callData);
+        // Requirements: external call should succeed.
         if (!success) {
             return (false, err);
         }
 
         (bool readAfterSuccess, uint256 updatedFactor) = _readReserveFactor(cfg.market);
-        // Requirements: post-call state read must succeed
+        // Requirements: post-call state read should succeed.
         if (!readAfterSuccess) {
             return (false, abi.encodeWithSelector(ReserveFactorReadFailed.selector));
         }
 
-        // Requirements: resulting onchain state must match requested value
+        // Requirements: updated factor should equal cfg.factor after the call.
         if (updatedFactor != cfg.factor) {
             return (false, abi.encodeWithSelector(ReserveFactorMismatch.selector, cfg.factor, updatedFactor));
         }
@@ -101,6 +101,7 @@ contract SetReserveFactor is FunctionCallScriptBase {
         cfg.market = _readAndLogAddress(json, "market");
         cfg.factor = _readAndLogUint(json, "factor");
 
+        // Requirement: cfg.market should not be the zero address.
         require(cfg.market != address(0), InvalidMarket());
 
         deployConfig = abi.encode(cfg);
@@ -112,7 +113,7 @@ contract SetReserveFactor is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(market).staticcall(abi.encodeWithSignature("reserveFactorMantissa()"));
 
-        // Requirements: staticcall must return the expected payload
+        // Requirements: read call should succeed and return at least 32 bytes.
         if (!callSuccess || data.length < 32) {
             return (false, 0);
         }

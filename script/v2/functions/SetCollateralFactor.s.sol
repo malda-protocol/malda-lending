@@ -52,12 +52,13 @@ contract SetCollateralFactor is FunctionCallScriptBase {
         // Interactions: read current collateral factor from operator
         (bool readBeforeSuccess, uint256 currentFactor) = _readCollateralFactor(cfg.operator, cfg.market);
 
-        // Requirements: pre-call state read must succeed
+        // Requirements: pre-call state read should succeed.
         if (!readBeforeSuccess) {
             return (false, abi.encodeWithSelector(CollateralFactorReadFailed.selector));
         }
 
-        // Effects: short-circuit if requested collateral factor is already set
+        // Effects + Requirements: short-circuit if requested collateral factor is already set; skip mutation when current factor
+        // already equals cfg.factor.
         if (currentFactor == cfg.factor) {
             return (true, bytes(""));
         }
@@ -66,9 +67,9 @@ contract SetCollateralFactor is FunctionCallScriptBase {
 
         // Interactions: perform setCollateralFactor call as active broadcaster
         vm.broadcast();
-        // solhint-disable avoid-low-level-calls
         (success, err) = address(cfg.operator).call(callData);
-        // solhint-enable avoid-low-level-calls
+
+        // Requirements: external call should succeed.
         if (!success) {
             return (false, err);
         }
@@ -76,12 +77,12 @@ contract SetCollateralFactor is FunctionCallScriptBase {
         // Interactions: read collateral factor after the call for invariant checks
         (bool readAfterSuccess, uint256 updatedFactor) = _readCollateralFactor(cfg.operator, cfg.market);
 
-        // Requirements: post-call state read must succeed
+        // Requirements: post-call state read should succeed.
         if (!readAfterSuccess) {
             return (false, abi.encodeWithSelector(CollateralFactorReadFailed.selector));
         }
 
-        // Requirements: resulting onchain state must match requested collateral factor
+        // Requirements: updated factor should equal cfg.factor after the call.
         if (updatedFactor != cfg.factor) {
             return (false, abi.encodeWithSelector(CollateralFactorMismatch.selector, cfg.factor, updatedFactor));
         }
@@ -117,7 +118,7 @@ contract SetCollateralFactor is FunctionCallScriptBase {
         cfg.market = _readAndLogAddress(json, "market");
         cfg.factor = _readAndLogUint(json, "factor");
 
-        // Requirements: validate critical config fields before execution
+        // Requirements: cfg.operator should not be the zero address; cfg.market should not be the zero address.
         require(cfg.operator != address(0), InvalidOperator());
         require(cfg.market != address(0), InvalidMarket());
 
@@ -139,7 +140,7 @@ contract SetCollateralFactor is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(operator).staticcall(abi.encodeWithSignature("markets(address)", market));
 
-        // Requirements: staticcall must return full market tuple payload
+        // Requirements: read call should succeed and return at least 64 bytes.
         if (!callSuccess || data.length < 64) {
             return (false, 0);
         }

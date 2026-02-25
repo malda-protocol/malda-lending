@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-// solhint-disable avoid-low-level-calls
-
 import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
 import {ScriptBase} from "script/utils/ScriptBase.sol";
 import {Logger} from "script/utils/Logger.sol";
@@ -48,31 +46,35 @@ contract SetOperatorInRewardDistributor is FunctionCallScriptBase {
         DeployConfig memory cfg = abi.decode(deployConfig, (DeployConfig));
 
         (bool readBeforeSuccess, address currentOperator) = _readOperator(cfg.rewardDistributor);
-        // Requirements: pre-call state read must succeed
+        // Requirements: pre-call state read should succeed.
         if (!readBeforeSuccess) {
             return (false, abi.encodeWithSelector(OperatorReadFailed.selector));
         }
 
-        // Effects: short-circuit when requested value is already set
+        // Effects + Requirements: short-circuit when requested value is already set; skip mutation when current operator already
+        // equals cfg.operator.
         if (currentOperator == cfg.operator) {
             return (true, bytes(""));
         }
         bytes memory callData = abi.encodeWithSelector(RewardDistributor.setOperator.selector, cfg.operator);
         Logger.logCalldata("RewardDistributor", cfg.rewardDistributor, "setOperator", callData);
+
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
         (success, err) = address(cfg.rewardDistributor).call(callData);
+
+        // Requirements: external call should succeed.
         if (!success) {
             return (false, err);
         }
 
         (bool readAfterSuccess, address updatedOperator) = _readOperator(cfg.rewardDistributor);
-        // Requirements: post-call state read must succeed
+        // Requirements: post-call state read should succeed.
         if (!readAfterSuccess) {
             return (false, abi.encodeWithSelector(OperatorReadFailed.selector));
         }
 
-        // Requirements: resulting onchain state must match requested value
+        // Requirements: updated operator should equal cfg.operator after the call.
         if (updatedOperator != cfg.operator) {
             return (false, abi.encodeWithSelector(OperatorMismatch.selector, cfg.operator, updatedOperator));
         }
@@ -103,6 +105,7 @@ contract SetOperatorInRewardDistributor is FunctionCallScriptBase {
         cfg.operator = _readAndLogAddress(json, "operator");
         cfg.rewardDistributor = _readAndLogAddress(json, "rewardDistributor");
 
+        // Requirements: cfg.operator should not be the zero address; cfg.rewardDistributor should not be the zero address.
         require(cfg.operator != address(0), InvalidOperator());
         require(cfg.rewardDistributor != address(0), InvalidRewardDistributor());
 
@@ -115,7 +118,7 @@ contract SetOperatorInRewardDistributor is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(rewardDistributor).staticcall(abi.encodeWithSignature("operator()"));
 
-        // Requirements: staticcall must return the expected payload
+        // Requirements: read call should succeed and return at least 32 bytes.
         if (!callSuccess || data.length < 32) {
             return (false, address(0));
         }

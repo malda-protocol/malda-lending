@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-// solhint-disable avoid-low-level-calls
-
 import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
 import {ScriptBase} from "script/utils/ScriptBase.sol";
 import {Logger} from "script/utils/Logger.sol";
@@ -50,12 +48,13 @@ contract SetBorrowCap is FunctionCallScriptBase {
         DeployConfig memory cfg = abi.decode(deployConfig, (DeployConfig));
 
         (bool readBeforeSuccess, uint256 currentCap) = _readBorrowCap(cfg.operator, cfg.market);
-        // Requirements: pre-call state read must succeed
+        // Requirements: pre-call state read should succeed.
         if (!readBeforeSuccess) {
             return (false, abi.encodeWithSelector(BorrowCapReadFailed.selector));
         }
 
-        // Effects: short-circuit when requested value is already set
+        // Effects + Requirements: short-circuit when requested value is already set; skip mutation when current cap already
+        // equals cfg.cap.
         if (currentCap == cfg.cap) {
             return (true, bytes(""));
         }
@@ -70,17 +69,18 @@ contract SetBorrowCap is FunctionCallScriptBase {
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
         (success, err) = address(cfg.operator).call(callData);
+        // Requirements: external call should succeed.
         if (!success) {
             return (false, err);
         }
 
         (bool readAfterSuccess, uint256 updatedCap) = _readBorrowCap(cfg.operator, cfg.market);
-        // Requirements: post-call state read must succeed
+        // Requirements: post-call state read should succeed.
         if (!readAfterSuccess) {
             return (false, abi.encodeWithSelector(BorrowCapReadFailed.selector));
         }
 
-        // Requirements: resulting onchain state must match requested value
+        // Requirements: updated cap should equal cfg.cap after the call.
         if (updatedCap != cfg.cap) {
             return (false, abi.encodeWithSelector(BorrowCapMismatch.selector, cfg.cap, updatedCap));
         }
@@ -113,6 +113,7 @@ contract SetBorrowCap is FunctionCallScriptBase {
         cfg.market = _readAndLogAddress(json, "market");
         cfg.cap = _readAndLogUint(json, "cap");
 
+        // Requirements: cfg.operator should not be the zero address; cfg.market should not be the zero address.
         require(cfg.operator != address(0), InvalidOperator());
         require(cfg.market != address(0), InvalidMarket());
 
@@ -125,7 +126,7 @@ contract SetBorrowCap is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(operator).staticcall(abi.encodeWithSignature("borrowCaps(address)", market));
 
-        // Requirements: staticcall must return the expected payload
+        // Requirements: read call should succeed and return at least 32 bytes.
         if (!callSuccess || data.length < 32) {
             return (false, 0);
         }

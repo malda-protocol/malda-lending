@@ -1,0 +1,7 @@
+{
+  "ReferralSigning": {
+    "deployer": "0x2222222222222222222222222222222222222222",
+    "salt": "ReferralSigningV1.0.0"
+  },
+  "deployedContracts": {}
+}

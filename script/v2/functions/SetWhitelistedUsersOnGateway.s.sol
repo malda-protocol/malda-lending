@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-// solhint-disable avoid-low-level-calls
-
 import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
 import {ScriptBase} from "script/utils/ScriptBase.sol";
 import {Logger} from "script/utils/Logger.sol";
@@ -70,6 +68,7 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
             }
 
             (bool readStatusSuccess, bool currentWhitelistStatus) = _readWhitelistStatus(market);
+            // Requirements: whitelist status read should succeed.
             if (!readStatusSuccess) {
                 if (!cfg.continueOnFailure) {
                     if (broadcastStarted) {
@@ -89,6 +88,7 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
 
                 (success, err) = _setWhitelistStatus(market, cfg.whitelistEnabled);
 
+                // Requirements: external call should succeed.
                 if (!success) {
                     if (!cfg.continueOnFailure) {
                         vm.stopBroadcast();
@@ -98,6 +98,7 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
                 }
 
                 (bool readAfterStatusSuccess, bool updatedWhitelistStatus) = _readWhitelistStatus(market);
+                // Requirements: post-call state read should succeed.
                 if (!readAfterStatusSuccess) {
                     if (!cfg.continueOnFailure) {
                         vm.stopBroadcast();
@@ -106,7 +107,7 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
                     continue;
                 }
 
-                // Requirements: resulting onchain state must match requested value
+                // Requirements: updated whitelist status should equal cfg.whitelistEnabled after the call.
                 if (updatedWhitelistStatus != cfg.whitelistEnabled) {
                     if (!cfg.continueOnFailure) {
                         vm.stopBroadcast();
@@ -121,6 +122,7 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
                 address user = cfg.users[j];
 
                 (bool readUserSuccess, bool currentUserStatus) = _readUserStatus(market, user);
+                // Requirements: user status read should succeed.
                 if (!readUserSuccess) {
                     if (!cfg.continueOnFailure) {
                         if (broadcastStarted) {
@@ -131,7 +133,8 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
                     continue;
                 }
 
-                // Effects: short-circuit when requested value is already set
+                // Effects + Requirements: short-circuit when requested value is already set; skip mutation when current user
+                // status already equals cfg.userStatus.
                 if (currentUserStatus == cfg.userStatus) {
                     continue;
                 }
@@ -143,6 +146,7 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
                 }
 
                 (success, err) = _setWhitelistedUser(market, user, cfg.userStatus);
+                // Requirements: external call should succeed.
                 if (!success) {
                     if (!cfg.continueOnFailure) {
                         vm.stopBroadcast();
@@ -152,6 +156,7 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
                 }
 
                 (bool readAfterUserSuccess, bool updatedUserStatus) = _readUserStatus(market, user);
+                // Requirements: post-call state read should succeed.
                 if (!readAfterUserSuccess) {
                     if (!cfg.continueOnFailure) {
                         vm.stopBroadcast();
@@ -160,7 +165,7 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
                     continue;
                 }
 
-                // Requirements: resulting onchain state must match requested value
+                // Requirements: updated user status should equal cfg.userStatus after the call.
                 if (updatedUserStatus != cfg.userStatus) {
                     if (!cfg.continueOnFailure) {
                         vm.stopBroadcast();
@@ -237,15 +242,18 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
         cfg.userStatus = _readAndLogBool(json, "userStatus");
         cfg.continueOnFailure = _readAndLogBool(json, "continueOnFailure");
 
+        // Requirement: cfg.markets.length should be greater than zero.
         require(cfg.markets.length > 0, EmptyMarkets());
 
         uint256 marketsLength = cfg.markets.length;
         for (uint256 i; i < marketsLength; ++i) {
+            // Requirement: cfg.markets[i] should not be the zero address.
             require(cfg.markets[i] != address(0), InvalidMarket(i));
         }
 
         uint256 usersLength = cfg.users.length;
         for (uint256 i; i < usersLength; ++i) {
+            // Requirement: cfg.users[i] should not be the zero address.
             require(cfg.users[i] != address(0), InvalidUser(i));
         }
 
@@ -258,7 +266,7 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(market).staticcall(abi.encodeWithSignature("whitelistEnabled()"));
 
-        // Requirements: staticcall must return the expected payload
+        // Requirements: read call should succeed and return at least 32 bytes.
         if (!callSuccess || data.length < 32) {
             return (false, false);
         }
@@ -274,7 +282,7 @@ contract SetWhitelistedUsersOnGateway is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(market).staticcall(abi.encodeWithSignature("userWhitelisted(address)", user));
 
-        // Requirements: staticcall must return the expected payload
+        // Requirements: read call should succeed and return at least 32 bytes.
         if (!callSuccess || data.length < 32) {
             return (false, false);
         }

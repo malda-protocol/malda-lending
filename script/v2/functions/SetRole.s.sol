@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-// solhint-disable avoid-low-level-calls
-
 import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
 import {ScriptBase} from "script/utils/ScriptBase.sol";
 import {Logger} from "script/utils/Logger.sol";
@@ -54,12 +52,13 @@ contract SetRole is FunctionCallScriptBase {
         DeployConfig memory cfg = abi.decode(deployConfig, (DeployConfig));
 
         (bool readBeforeSuccess, bool currentStatus) = _readRoleStatus(cfg.rolesContract, cfg.receiver, cfg.role);
-        // Requirements: pre-call state read must succeed
+        // Requirements: pre-call state read should succeed.
         if (!readBeforeSuccess) {
             return (false, abi.encodeWithSelector(RoleReadFailed.selector));
         }
 
-        // Effects: short-circuit when requested value is already set
+        // Effects + Requirements: short-circuit when requested value is already set; skip mutation when current status already
+        // equals cfg.status.
         if (currentStatus == cfg.status) {
             return (true, bytes(""));
         }
@@ -68,17 +67,18 @@ contract SetRole is FunctionCallScriptBase {
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
         (success, err) = address(cfg.rolesContract).call(callData);
+        // Requirements: external call should succeed.
         if (!success) {
             return (false, err);
         }
 
         (bool readAfterSuccess, bool updatedStatus) = _readRoleStatus(cfg.rolesContract, cfg.receiver, cfg.role);
-        // Requirements: post-call state read must succeed
+        // Requirements: post-call state read should succeed.
         if (!readAfterSuccess) {
             return (false, abi.encodeWithSelector(RoleReadFailed.selector));
         }
 
-        // Requirements: resulting onchain state must match requested value
+        // Requirements: updated status should equal cfg.status after the call.
         if (updatedStatus != cfg.status) {
             return (false, abi.encodeWithSelector(RoleMismatch.selector, cfg.status, updatedStatus));
         }
@@ -113,6 +113,8 @@ contract SetRole is FunctionCallScriptBase {
         cfg.role = _readAndLogBytes32(json, "role");
         cfg.status = _readAndLogBool(json, "status");
 
+        // Requirements: cfg.rolesContract should not be the zero address; cfg.receiver should not be the zero address; cfg.role
+        // should not be zero.
         require(cfg.rolesContract != address(0), InvalidRolesContract());
         require(cfg.receiver != address(0), InvalidReceiver());
         require(cfg.role != bytes32(0), InvalidRole());
@@ -130,7 +132,7 @@ contract SetRole is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(rolesContract).staticcall(abi.encodeWithSignature("isAllowedFor(address,bytes32)", receiver, role));
 
-        // Requirements: staticcall must return the expected payload
+        // Requirements: read call should succeed and return at least 32 bytes.
         if (!callSuccess || data.length < 32) {
             return (false, false);
         }

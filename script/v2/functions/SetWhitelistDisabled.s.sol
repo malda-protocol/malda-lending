@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-// solhint-disable avoid-low-level-calls
-
 import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
 import {ScriptBase} from "script/utils/ScriptBase.sol";
 import {Logger} from "script/utils/Logger.sol";
@@ -49,7 +47,7 @@ contract SetWhitelistDisabled is FunctionCallScriptBase {
             address market = cfg.markets[i];
 
             (bool readBeforeSuccess, bool whitelistEnabledBefore) = _readWhitelistStatus(market);
-            // Requirements: pre-call state read must succeed
+            // Requirements: pre-call state read should succeed.
             if (!readBeforeSuccess) {
                 if (broadcastStarted) {
                     vm.stopBroadcast();
@@ -70,13 +68,14 @@ contract SetWhitelistDisabled is FunctionCallScriptBase {
             bytes memory callData = abi.encodeWithSignature("disableWhitelist()");
             Logger.logCalldata("mTokenGateway", market, "disableWhitelist", callData);
             (success, err) = address(market).call(callData);
+            // Requirements: external call should succeed.
             if (!success) {
                 vm.stopBroadcast();
                 return (false, err);
             }
 
             (bool readAfterSuccess, bool whitelistEnabledAfter) = _readWhitelistStatus(market);
-            // Requirements: post-call state read must succeed
+            // Requirements: post-call state read should succeed.
             if (!readAfterSuccess) {
                 vm.stopBroadcast();
                 return (false, abi.encodeWithSelector(WhitelistStatusReadFailed.selector, market));
@@ -121,10 +120,12 @@ contract SetWhitelistDisabled is FunctionCallScriptBase {
         DeployConfig memory cfg;
         cfg.markets = _readAndLogAddressArray(json, "markets");
 
+        // Requirement: cfg.markets.length should be greater than zero.
         require(cfg.markets.length > 0, EmptyMarkets());
 
         uint256 marketsLength = cfg.markets.length;
         for (uint256 i; i < marketsLength; ++i) {
+            // Requirement: cfg.markets[i] should not be the zero address.
             require(cfg.markets[i] != address(0), InvalidMarket(i));
         }
 
@@ -137,7 +138,7 @@ contract SetWhitelistDisabled is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(market).staticcall(abi.encodeWithSignature("whitelistEnabled()"));
 
-        // Requirements: staticcall must return the expected payload
+        // Requirements: read call should succeed and return at least 32 bytes.
         if (!callSuccess || data.length < 32) {
             return (false, false);
         }

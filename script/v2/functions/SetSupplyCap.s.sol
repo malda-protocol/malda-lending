@@ -52,12 +52,13 @@ contract SetSupplyCap is FunctionCallScriptBase {
         // Interactions: read current cap from operator
         (bool readBeforeSuccess, uint256 currentCap) = _readSupplyCap(cfg.operator, cfg.market);
 
-        // Requirements: pre-call state read must succeed
+        // Requirements: pre-call state read should succeed.
         if (!readBeforeSuccess) {
             return (false, abi.encodeWithSelector(SupplyCapReadFailed.selector));
         }
 
-        // Effects: short-circuit if requested cap already set
+        // Effects + Requirements: short-circuit if requested cap already set; skip mutation when current cap already equals
+        // cfg.cap.
         if (currentCap == cfg.cap) {
             return (true, bytes(""));
         }
@@ -72,9 +73,9 @@ contract SetSupplyCap is FunctionCallScriptBase {
 
         // Interactions: perform setMarketSupplyCaps call as active broadcaster
         vm.broadcast();
-        // solhint-disable avoid-low-level-calls
         (success, err) = address(cfg.operator).call(callData);
-        // solhint-enable avoid-low-level-calls
+
+        // Requirements: external call should succeed.
         if (!success) {
             return (false, err);
         }
@@ -82,12 +83,12 @@ contract SetSupplyCap is FunctionCallScriptBase {
         // Interactions: read cap after the call for invariant checks
         (bool readAfterSuccess, uint256 updatedCap) = _readSupplyCap(cfg.operator, cfg.market);
 
-        // Requirements: post-call state read must succeed
+        // Requirements: post-call state read should succeed.
         if (!readAfterSuccess) {
             return (false, abi.encodeWithSelector(SupplyCapReadFailed.selector));
         }
 
-        // Requirements: resulting onchain state must match requested cap
+        // Requirements: updated cap should equal cfg.cap after the call.
         if (updatedCap != cfg.cap) {
             return (false, abi.encodeWithSelector(SupplyCapMismatch.selector, cfg.cap, updatedCap));
         }
@@ -123,7 +124,7 @@ contract SetSupplyCap is FunctionCallScriptBase {
         cfg.market = _readAndLogAddress(json, "market");
         cfg.cap = _readAndLogUint(json, "cap");
 
-        // Requirements: validate critical config fields before execution
+        // Requirements: cfg.operator should not be the zero address; cfg.market should not be the zero address.
         require(cfg.operator != address(0), InvalidOperator());
         require(cfg.market != address(0), InvalidMarket());
 
@@ -141,7 +142,7 @@ contract SetSupplyCap is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(operator).staticcall(abi.encodeWithSignature("supplyCaps(address)", market));
 
-        // Requirements: staticcall must return a full uint256 payload
+        // Requirements: read call should succeed and return at least 32 bytes.
         if (!callSuccess || data.length < 32) {
             return (false, 0);
         }

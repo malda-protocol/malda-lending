@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-// solhint-disable avoid-low-level-calls
-
 import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
 import {ScriptBase} from "script/utils/ScriptBase.sol";
 import {Logger} from "script/utils/Logger.sol";
@@ -48,12 +46,13 @@ contract SetZkImageId is FunctionCallScriptBase {
         DeployConfig memory cfg = abi.decode(deployConfig, (DeployConfig));
 
         (bool readBeforeSuccess, bytes32 currentImageId) = _readImageId(cfg.zkVerifier);
-        // Requirements: pre-call state read must succeed
+        // Requirements: pre-call state read should succeed.
         if (!readBeforeSuccess) {
             return (false, abi.encodeWithSelector(ImageIdReadFailed.selector));
         }
 
-        // Effects: short-circuit when requested value is already set
+        // Effects + Requirements: short-circuit when requested value is already set; skip mutation when current image id already
+        // equals cfg.imageId.
         if (currentImageId == cfg.imageId) {
             return (true, bytes(""));
         }
@@ -62,17 +61,18 @@ contract SetZkImageId is FunctionCallScriptBase {
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
         (success, err) = address(cfg.zkVerifier).call(callData);
+        // Requirements: external call should succeed.
         if (!success) {
             return (false, err);
         }
 
         (bool readAfterSuccess, bytes32 updatedImageId) = _readImageId(cfg.zkVerifier);
-        // Requirements: post-call state read must succeed
+        // Requirements: post-call state read should succeed.
         if (!readAfterSuccess) {
             return (false, abi.encodeWithSelector(ImageIdReadFailed.selector));
         }
 
-        // Requirements: resulting onchain state must match requested value
+        // Requirements: updated image id should equal cfg.imageId after the call.
         if (updatedImageId != cfg.imageId) {
             return (false, abi.encodeWithSelector(ImageIdMismatch.selector, cfg.imageId, updatedImageId));
         }
@@ -103,6 +103,7 @@ contract SetZkImageId is FunctionCallScriptBase {
         cfg.zkVerifier = _readAndLogAddress(json, "zkVerifier");
         cfg.imageId = _readAndLogBytes32(json, "imageId");
 
+        // Requirements: cfg.zkVerifier should not be the zero address; cfg.imageId should not be zero.
         require(cfg.zkVerifier != address(0), InvalidZkVerifier());
         require(cfg.imageId != bytes32(0), InvalidImageId());
 
@@ -114,7 +115,7 @@ contract SetZkImageId is FunctionCallScriptBase {
         // Interactions: query target contract state with staticcall
         (bool callSuccess, bytes memory data) = address(zkVerifier).staticcall(abi.encodeWithSignature("imageId()"));
 
-        // Requirements: staticcall must return the expected payload
+        // Requirements: read call should succeed and return at least 32 bytes.
         if (!callSuccess || data.length < 32) {
             return (false, bytes32(0));
         }

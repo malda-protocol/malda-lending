@@ -1,0 +1,13 @@
+{
+  "JumpRateModelV4": {
+    "deployer": "0x2222222222222222222222222222222222222222",
+    "kink": 750000000000000000,
+    "name": "Example Interest Model",
+    "blocksPerYear": 2102400,
+    "baseRatePerYear": 20000000000000000,
+    "multiplierPerYear": 100000000000000000,
+    "jumpMultiplierPerYear": 500000000000000000,
+    "owner": "0x3333333333333333333333333333333333333333",
+    "salt": "ExampleJumpRateModelV1.0.0"
+  }
+}

@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-// solhint-disable avoid-low-level-calls
-
 import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
 import {ScriptBase} from "script/utils/ScriptBase.sol";
 import {Logger} from "script/utils/Logger.sol";
@@ -56,6 +54,7 @@ contract SetWhitelistEnabled is FunctionCallScriptBase {
         DeployConfig memory cfg = abi.decode(deployConfig, (DeployConfig));
 
         (bool readStatusSuccess, bool currentWhitelistStatus) = _readWhitelistStatus(cfg.operator);
+        // Requirements: whitelist status read should succeed.
         if (!readStatusSuccess) {
             return (false, abi.encodeWithSelector(WhitelistStatusReadFailed.selector));
         }
@@ -69,18 +68,20 @@ contract SetWhitelistEnabled is FunctionCallScriptBase {
             bytes memory callData = abi.encodeWithSelector(Operator.setWhitelistStatus.selector, cfg.whitelistEnabled);
             Logger.logCalldata("Operator", cfg.operator, "setWhitelistStatus", callData);
             (success, err) = address(cfg.operator).call(callData);
+            // Requirements: external call should succeed.
             if (!success) {
                 vm.stopBroadcast();
                 return (false, err);
             }
 
             (bool readAfterStatusSuccess, bool updatedWhitelistStatus) = _readWhitelistStatus(cfg.operator);
+            // Requirements: post-call state read should succeed.
             if (!readAfterStatusSuccess) {
                 vm.stopBroadcast();
                 return (false, abi.encodeWithSelector(WhitelistStatusReadFailed.selector));
             }
 
-            // Requirements: resulting onchain state must match requested value
+            // Requirements: updated whitelist status should equal cfg.whitelistEnabled after the call.
             if (updatedWhitelistStatus != cfg.whitelistEnabled) {
                 vm.stopBroadcast();
                 return (
@@ -97,6 +98,7 @@ contract SetWhitelistEnabled is FunctionCallScriptBase {
             address user = cfg.users[i];
 
             (bool readUserSuccess, bool currentStatus) = _readUserStatus(cfg.operator, user);
+            // Requirements: user status read should succeed.
             if (!readUserSuccess) {
                 if (broadcastStarted) {
                     vm.stopBroadcast();
@@ -104,7 +106,8 @@ contract SetWhitelistEnabled is FunctionCallScriptBase {
                 return (false, abi.encodeWithSelector(UserWhitelistReadFailed.selector, user));
             }
 
-            // Effects: short-circuit when requested value is already set
+            // Effects + Requirements: short-circuit when requested value is already set; skip mutation when current status
+            // already equals cfg.userStatus.
             if (currentStatus == cfg.userStatus) {
                 continue;
             }
@@ -118,18 +121,20 @@ contract SetWhitelistEnabled is FunctionCallScriptBase {
             bytes memory callData = abi.encodeWithSelector(Operator.setWhitelistedUser.selector, user, cfg.userStatus);
             Logger.logCalldata("Operator", cfg.operator, "setWhitelistedUser", callData);
             (success, err) = address(cfg.operator).call(callData);
+            // Requirements: external call should succeed.
             if (!success) {
                 vm.stopBroadcast();
                 return (false, err);
             }
 
             (bool readAfterUserSuccess, bool updatedStatus) = _readUserStatus(cfg.operator, user);
+            // Requirements: post-call state read should succeed.
             if (!readAfterUserSuccess) {
                 vm.stopBroadcast();
                 return (false, abi.encodeWithSelector(UserWhitelistReadFailed.selector, user));
             }
 
-            // Requirements: resulting onchain state must match requested value
+            // Requirements: updated status should equal cfg.userStatus after the call.
             if (updatedStatus != cfg.userStatus) {
                 vm.stopBroadcast();
                 return
@@ -172,10 +177,12 @@ contract SetWhitelistEnabled is FunctionCallScriptBase {
         cfg.users = _readAndLogAddressArray(json, "users");
         cfg.userStatus = _readAndLogBool(json, "userStatus");
 
+        // Requirement: cfg.operator should not be the zero address.
         require(cfg.operator != address(0), InvalidOperator());
 
         uint256 usersLength = cfg.users.length;
         for (uint256 i; i < usersLength; ++i) {
+            // Requirement: cfg.users[i] should not be the zero address.
             require(cfg.users[i] != address(0), InvalidUser(i));
         }
 
@@ -188,7 +195,7 @@ contract SetWhitelistEnabled is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(operator).staticcall(abi.encodeWithSignature("whitelistEnabled()"));
 
-        // Requirements: staticcall must return the expected payload
+        // Requirements: read call should succeed and return at least 32 bytes.
         if (!callSuccess || data.length < 32) {
             return (false, false);
         }
@@ -204,7 +211,7 @@ contract SetWhitelistEnabled is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(operator).staticcall(abi.encodeWithSignature("userWhitelisted(address)", user));
 
-        // Requirements: staticcall must return the expected payload
+        // Requirements: read call should succeed and return at least 32 bytes.
         if (!callSuccess || data.length < 32) {
             return (false, false);
         }

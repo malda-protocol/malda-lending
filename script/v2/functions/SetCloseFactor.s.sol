@@ -48,12 +48,13 @@ contract SetCloseFactor is FunctionCallScriptBase {
         // Interactions: read current close factor from operator
         (bool readBeforeSuccess, uint256 currentFactor) = _readCloseFactor(cfg.operator);
 
-        // Requirements: pre-call state read must succeed
+        // Requirements: pre-call state read should succeed.
         if (!readBeforeSuccess) {
             return (false, abi.encodeWithSelector(CloseFactorReadFailed.selector));
         }
 
-        // Effects: short-circuit if requested close factor is already set
+        // Effects + Requirements: short-circuit if requested close factor is already set; skip mutation when current factor
+        // already equals cfg.factor.
         if (currentFactor == cfg.factor) {
             return (true, bytes(""));
         }
@@ -62,9 +63,8 @@ contract SetCloseFactor is FunctionCallScriptBase {
 
         // Interactions: perform setCloseFactor call as active broadcaster
         vm.broadcast();
-        // solhint-disable avoid-low-level-calls
         (success, err) = address(cfg.operator).call(callData);
-        // solhint-enable avoid-low-level-calls
+        // Requirements: external call should succeed.
         if (!success) {
             return (false, err);
         }
@@ -72,12 +72,12 @@ contract SetCloseFactor is FunctionCallScriptBase {
         // Interactions: read close factor after the call for invariant checks
         (bool readAfterSuccess, uint256 updatedFactor) = _readCloseFactor(cfg.operator);
 
-        // Requirements: post-call state read must succeed
+        // Requirements: post-call state read should succeed.
         if (!readAfterSuccess) {
             return (false, abi.encodeWithSelector(CloseFactorReadFailed.selector));
         }
 
-        // Requirements: resulting onchain state must match requested close factor
+        // Requirements: updated factor should equal cfg.factor after the call.
         if (updatedFactor != cfg.factor) {
             return (false, abi.encodeWithSelector(CloseFactorMismatch.selector, cfg.factor, updatedFactor));
         }
@@ -111,7 +111,7 @@ contract SetCloseFactor is FunctionCallScriptBase {
         cfg.operator = _readAndLogAddress(json, "operator");
         cfg.factor = _readAndLogUint(json, "factor");
 
-        // Requirements: validate critical config fields before execution
+        // Requirement: cfg.operator should not be the zero address.
         require(cfg.operator != address(0), InvalidOperator());
 
         // Effects: return encoded validated config to base runner
@@ -127,7 +127,7 @@ contract SetCloseFactor is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(operator).staticcall(abi.encodeWithSignature("closeFactorMantissa()"));
 
-        // Requirements: staticcall must return a full uint256 payload
+        // Requirements: read call should succeed and return at least 32 bytes.
         if (!callSuccess || data.length < 32) {
             return (false, 0);
         }

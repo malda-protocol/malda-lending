@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-// solhint-disable avoid-low-level-calls
-
 import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
 import {ScriptBase} from "script/utils/ScriptBase.sol";
 import {Logger} from "script/utils/Logger.sol";
@@ -48,7 +46,7 @@ contract SupportMarket is FunctionCallScriptBase {
         DeployConfig memory cfg = abi.decode(deployConfig, (DeployConfig));
 
         (bool readBeforeSuccess, bool isListedBefore) = _readMarketListed(cfg.operator, cfg.market);
-        // Requirements: pre-call state read must succeed
+        // Requirements: pre-call state read should succeed.
         if (!readBeforeSuccess) {
             return (false, abi.encodeWithSelector(MarketReadFailed.selector));
         }
@@ -61,12 +59,13 @@ contract SupportMarket is FunctionCallScriptBase {
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
         (success, err) = address(cfg.operator).call(callData);
+        // Requirements: external call should succeed.
         if (!success) {
             return (false, err);
         }
 
         (bool readAfterSuccess, bool isListedAfter) = _readMarketListed(cfg.operator, cfg.market);
-        // Requirements: post-call state read must succeed
+        // Requirements: post-call state read should succeed.
         if (!readAfterSuccess) {
             return (false, abi.encodeWithSelector(MarketReadFailed.selector));
         }
@@ -101,6 +100,7 @@ contract SupportMarket is FunctionCallScriptBase {
         cfg.operator = _readAndLogAddress(json, "operator");
         cfg.market = _readAndLogAddress(json, "market");
 
+        // Requirements: cfg.operator should not be the zero address; cfg.market should not be the zero address.
         require(cfg.operator != address(0), InvalidOperator());
         require(cfg.market != address(0), InvalidMarket());
 
@@ -113,7 +113,7 @@ contract SupportMarket is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(operator).staticcall(abi.encodeWithSignature("markets(address)", market));
 
-        // Requirements: staticcall must return the expected payload
+        // Requirements: read call should succeed and return at least 64 bytes.
         if (!callSuccess || data.length < 64) {
             return (false, false);
         }

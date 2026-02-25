@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-// solhint-disable avoid-low-level-calls
-
 import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
 import {ScriptBase} from "script/utils/ScriptBase.sol";
 import {Logger} from "script/utils/Logger.sol";
@@ -48,31 +46,35 @@ contract SetPriceOracleOnOperator is FunctionCallScriptBase {
         DeployConfig memory cfg = abi.decode(deployConfig, (DeployConfig));
 
         (bool readBeforeSuccess, address currentOracle) = _readOracle(cfg.operator);
-        // Requirements: pre-call state read must succeed
+        // Requirements: pre-call state read should succeed.
         if (!readBeforeSuccess) {
             return (false, abi.encodeWithSelector(OracleReadFailed.selector));
         }
 
-        // Effects: short-circuit when requested value is already set
+        // Effects: short-circuit when requested value is already set if current oracle already equals cfg.oracle.
         if (currentOracle == cfg.oracle) {
             return (true, bytes(""));
         }
+
         bytes memory callData = abi.encodeWithSelector(Operator.setPriceOracle.selector, cfg.oracle);
         Logger.logCalldata("Operator", cfg.operator, "setPriceOracle", callData);
+
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
         (success, err) = address(cfg.operator).call(callData);
+
+        // Requirements: external call should succeed.
         if (!success) {
             return (false, err);
         }
 
         (bool readAfterSuccess, address updatedOracle) = _readOracle(cfg.operator);
-        // Requirements: post-call state read must succeed
+        // Requirements: post-call state read should succeed.
         if (!readAfterSuccess) {
             return (false, abi.encodeWithSelector(OracleReadFailed.selector));
         }
 
-        // Requirements: resulting onchain state must match requested value
+        // Requirements: updated oracle should equal cfg.oracle after the call.
         if (updatedOracle != cfg.oracle) {
             return (false, abi.encodeWithSelector(OracleMismatch.selector, cfg.oracle, updatedOracle));
         }
@@ -103,6 +105,7 @@ contract SetPriceOracleOnOperator is FunctionCallScriptBase {
         cfg.operator = _readAndLogAddress(json, "operator");
         cfg.oracle = _readAndLogAddress(json, "oracle");
 
+        // Requirements: cfg.operator should not be the zero address; cfg.oracle should not be the zero address.
         require(cfg.operator != address(0), InvalidOperator());
         require(cfg.oracle != address(0), InvalidOracle());
 
@@ -115,7 +118,7 @@ contract SetPriceOracleOnOperator is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(operator).staticcall(abi.encodeWithSignature("oracleOperator()"));
 
-        // Requirements: staticcall must return the expected payload
+        // Requirements: read call should succeed and return at least 32 bytes.
         if (!callSuccess || data.length < 32) {
             return (false, address(0));
         }

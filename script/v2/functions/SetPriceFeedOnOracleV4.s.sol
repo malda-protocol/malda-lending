@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BSL-1.1
 pragma solidity =0.8.28;
 
-// solhint-disable avoid-low-level-calls
-
 import {FunctionCallScriptBase} from "script/utils/FunctionCallScriptBase.sol";
 import {ScriptBase} from "script/utils/ScriptBase.sol";
 import {Logger} from "script/utils/Logger.sol";
@@ -117,6 +115,7 @@ contract SetPriceFeedOnOracleV4 is FunctionCallScriptBase {
             });
 
             (success, err) = _setAndAssertFeed(cfg.oracle, feed);
+            // Requirements: external call should succeed.
             if (!success) {
                 return (false, err);
             }
@@ -131,11 +130,12 @@ contract SetPriceFeedOnOracleV4 is FunctionCallScriptBase {
         returns (bool success, bytes memory err)
     {
         (bool readBeforeSuccess, FeedConfig memory currentConfig) = _readConfig(oracle, feed.symbol);
-        // Requirements: pre-call state read must succeed
+        // Requirements: pre-call state read should succeed.
         if (!readBeforeSuccess) {
             return (false, abi.encodeWithSelector(OracleConfigReadFailed.selector));
         }
 
+        // Requirements: skip mutation when current config already matches expected config.
         if (_isSameConfig(currentConfig, feed)) {
             return (true, bytes(""));
         }
@@ -153,16 +153,18 @@ contract SetPriceFeedOnOracleV4 is FunctionCallScriptBase {
         // Interactions: perform target call as active broadcaster
         vm.broadcast();
         (success, err) = address(oracle).call(callData);
+        // Requirements: external call should succeed.
         if (!success) {
             return (false, err);
         }
 
         (bool readAfterSuccess, FeedConfig memory updatedConfig) = _readConfig(oracle, feed.symbol);
-        // Requirements: post-call state read must succeed
+        // Requirements: post-call state read should succeed.
         if (!readAfterSuccess) {
             return (false, abi.encodeWithSelector(OracleConfigReadFailed.selector));
         }
 
+        // Requirements: updated config should match expected config after the call.
         if (!_isSameConfig(updatedConfig, feed)) {
             return (false, abi.encodeWithSelector(OracleConfigMismatch.selector));
         }
@@ -218,9 +220,11 @@ contract SetPriceFeedOnOracleV4 is FunctionCallScriptBase {
         cfg.chainlinkToSymbols = _readAndLogStringArray(json, "chainlinkToSymbols");
         cfg.underlyingDecimals = _readAndLogUintArray(json, "underlyingDecimals");
 
+        // Requirement: cfg.oracle should not be the zero address.
         require(cfg.oracle != address(0), InvalidOracle());
 
         if (cfg.useSingleMode) {
+            // Requirement: sanity checks
             require(
                 bytes(cfg.singleSymbol).length > 0 && cfg.singleApi3Feed != address(0)
                     && bytes(cfg.singleApi3ToSymbol).length > 0 && bytes(cfg.singleChainlinkToSymbol).length > 0,
@@ -232,6 +236,7 @@ contract SetPriceFeedOnOracleV4 is FunctionCallScriptBase {
         }
 
         uint256 length = cfg.symbols.length;
+        // Requirement: sanity checks
         require(
             length > 0 && cfg.api3Feeds.length == length && cfg.chainlinkFeeds.length == length
                 && cfg.api3ToSymbols.length == length && cfg.chainlinkToSymbols.length == length
@@ -240,6 +245,7 @@ contract SetPriceFeedOnOracleV4 is FunctionCallScriptBase {
         );
 
         for (uint256 i; i < length; ++i) {
+            // Requirements: cfg.symbols[i] should not be empty; cfg.api3Feeds[i] should not be the zero address.
             require(bytes(cfg.symbols[i]).length > 0, InvalidSymbolAtIndex(i));
             require(cfg.api3Feeds[i] != address(0), InvalidApi3FeedAtIndex(i));
         }
@@ -257,6 +263,7 @@ contract SetPriceFeedOnOracleV4 is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(oracle).staticcall(abi.encodeWithSignature("configs(string)", symbol));
 
+        // Requirements: read call should succeed and return non-empty data.
         if (!callSuccess || data.length == 0) {
             return (false, cfg);
         }

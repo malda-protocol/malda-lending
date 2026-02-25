@@ -62,7 +62,7 @@ contract SetPriceFeedOnOracle is FunctionCallScriptBase {
         (bool readBeforeSuccess, IDefaultAdapter.PriceConfig memory currentConfig) =
             _readConfig(cfg.oracle, cfg.symbol, cfg.underlyingDecimals);
 
-        // Requirements: pre-call config read must succeed
+        // Requirements: pre-call state read should succeed.
         if (!readBeforeSuccess) {
             return (false, abi.encodeWithSelector(OracleConfigReadFailed.selector));
         }
@@ -72,7 +72,8 @@ contract SetPriceFeedOnOracle is FunctionCallScriptBase {
             defaultFeed: cfg.priceFeed, toSymbol: cfg.toSymbol, underlyingDecimals: cfg.underlyingDecimals
         });
 
-        // Effects: short-circuit when current config already matches expected values
+        // Effects + Requirements: short-circuit when current config already matches expected values; skip mutation when current
+        // config already matches expected config.
         if (_isSameConfig(currentConfig, expectedConfig)) {
             return (true, bytes(""));
         }
@@ -82,9 +83,9 @@ contract SetPriceFeedOnOracle is FunctionCallScriptBase {
 
         // Interactions: perform setConfig call as active broadcaster
         vm.broadcast();
-        // solhint-disable avoid-low-level-calls
         (success, err) = address(cfg.oracle).call(callData);
-        // solhint-enable avoid-low-level-calls
+
+        // Requirements: external call should succeed.
         if (!success) {
             return (false, err);
         }
@@ -93,12 +94,12 @@ contract SetPriceFeedOnOracle is FunctionCallScriptBase {
         (bool readAfterSuccess, IDefaultAdapter.PriceConfig memory updatedConfig) =
             _readConfig(cfg.oracle, cfg.symbol, cfg.underlyingDecimals);
 
-        // Requirements: post-call config read must succeed
+        // Requirements: post-call state read should succeed.
         if (!readAfterSuccess) {
             return (false, abi.encodeWithSelector(OracleConfigReadFailed.selector));
         }
 
-        // Requirements: resulting config must match requested values
+        // Requirements: updated config should match expected config after the call.
         if (!_isSameConfig(updatedConfig, expectedConfig)) {
             return (false, abi.encodeWithSelector(OracleConfigMismatch.selector));
         }
@@ -138,7 +139,7 @@ contract SetPriceFeedOnOracle is FunctionCallScriptBase {
         cfg.toSymbol = _readAndLogString(json, "toSymbol");
         cfg.underlyingDecimals = _readAndLogUint(json, "underlyingDecimals");
 
-        // Requirements: validate critical config fields before execution
+        // Requirement: all conditions must be satisfied
         require(cfg.oracle != address(0), InvalidOracle());
         require(bytes(cfg.symbol).length > 0, InvalidSymbol());
         require(cfg.priceFeed != address(0), InvalidPriceFeed());
@@ -163,7 +164,7 @@ contract SetPriceFeedOnOracle is FunctionCallScriptBase {
         (bool callSuccess, bytes memory data) =
             address(oracle).staticcall(abi.encodeWithSignature("configs(string)", symbol));
 
-        // Requirements: staticcall must return config payload
+        // Requirements: read call should succeed and return non-empty data.
         if (!callSuccess || data.length == 0) {
             return (false, cfg);
         }
