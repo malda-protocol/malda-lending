@@ -1,0 +1,274 @@
+{
+  "newChainDeployment": {
+    "isHostChain": true,
+    "marketPostConfiguration": {
+      "enabled": true,
+      "hostAllowedChainIds": [
+        1,
+        8453,
+        59144
+      ]
+    },
+    "rebalancerPostConfiguration": {
+      "enabled": true,
+      "whitelistDestinationChainIds": [
+        1,
+        8453,
+        59144
+      ],
+      "acrossAllowedTokens": [
+        "0x176211869cA2b568f2A7D4EE941E073a821EE1ff"
+      ],
+      "everclearAllowedTokens": [
+        "0x176211869cA2b568f2A7D4EE941E073a821EE1ff"
+      ]
+    },
+    "extensionWhitelistPostConfiguration": {
+      "enabled": false,
+      "users": [],
+      "skipMarkets": [],
+      "whitelistEnabled": true,
+      "userStatus": true
+    },
+    "hostMarketIds": [
+      "mUSDC"
+    ],
+    "extensionMarketIds": []
+  },
+  "newMarketDeployment": {
+    "isHostChain": true,
+    "hostMarketIds": [],
+    "extensionMarketIds": [],
+    "hostAllowedChainIds": [
+      1,
+      8453,
+      59144
+    ]
+  },
+  "Roles": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "owner": "0x2222222222222222222222222222222222222222",
+    "salt": "RolesV1"
+  },
+  "Blacklister": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "roles": "0x3333333333333333333333333333333333333333",
+    "owner": "0x2222222222222222222222222222222222222222",
+    "implementationSalt": "BlacklisterImplementationV1",
+    "proxySalt": "BlacklisterProxyV1"
+  },
+  "ZkVerifier": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "owner": "0x2222222222222222222222222222222222222222",
+    "verifier": "0x4444444444444444444444444444444444444444",
+    "imageId": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "salt": "ZkVerifierV1"
+  },
+  "BatchSubmitter": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "roles": "0x3333333333333333333333333333333333333333",
+    "zkVerifier": "0x4444444444444444444444444444444444444444",
+    "owner": "0x2222222222222222222222222222222222222222",
+    "salt": "BatchSubmitterV1"
+  },
+  "TimelockController": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "minDelay": 86400,
+    "proposers": [
+      "0x2222222222222222222222222222222222222222"
+    ],
+    "executors": [
+      "0x2222222222222222222222222222222222222222"
+    ],
+    "admin": "0x2222222222222222222222222222222222222222",
+    "salt": "TimelockV1"
+  },
+  "GasHelper": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "owner": "0x2222222222222222222222222222222222222222",
+    "salt": "GasHelperV1"
+  },
+  "Rebalancer": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "roles": "0x3333333333333333333333333333333333333333",
+    "saveAddress": "0x2222222222222222222222222222222222222222",
+    "admin": "0x2222222222222222222222222222222222222222",
+    "initData": "0x",
+    "salt": "RebalancerV1"
+  },
+  "AcrossBridge": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "roles": "0x3333333333333333333333333333333333333333",
+    "spoke": "0x5555555555555555555555555555555555555555",
+    "rebalancer": "0x6666666666666666666666666666666666666666",
+    "salt": "AcrossBridgeV1"
+  },
+  "EverclearBridge": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "roles": "0x3333333333333333333333333333333333333333",
+    "feeAdapter": "0x7777777777777777777777777777777777777777",
+    "salt": "EverclearBridgeV1"
+  },
+  "setRoleRebalancer": {
+    "rolesContract": "0x3333333333333333333333333333333333333333",
+    "receiver": "0x6666666666666666666666666666666666666666",
+    "role": "0x2fd04b3f0007799a4c6f9f50f9c6d977d61f9e2786f570f3d51612444932f324",
+    "status": true
+  },
+  "RewardDistributor": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "owner": "0x2222222222222222222222222222222222222222",
+    "implementationSalt": "RewardDistributorImplementationV1",
+    "proxySalt": "RewardDistributorProxyV1"
+  },
+  "MixedPriceOracleV4": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "roles": "0x3333333333333333333333333333333333333333",
+    "stalenessPeriod": 86400,
+    "salt": "MixedPriceOracleV4V1",
+    "feedsEncoded": "0x"
+  },
+  "Operator": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "blacklistOperator": "0x8888888888888888888888888888888888888888",
+    "oracle": "0x9999999999999999999999999999999999999999",
+    "rewardDistributor": "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+    "roles": "0x3333333333333333333333333333333333333333",
+    "owner": "0x2222222222222222222222222222222222222222",
+    "implementationSalt": "OperatorImplementationV1",
+    "proxySalt": "OperatorProxyV1"
+  },
+  "setOperatorInRewardDistributor": {
+    "operator": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "rewardDistributor": "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+  },
+  "Pauser": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "roles": "0x3333333333333333333333333333333333333333",
+    "operator": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "owner": "0x2222222222222222222222222222222222222222",
+    "salt": "PauserV1"
+  },
+  "JumpRateModelV4_mUSDC": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "kink": 920000000000000000,
+    "name": "mUSDC Interest Model",
+    "blocksPerYear": 31536000,
+    "baseRatePerYear": 0,
+    "multiplierPerYear": 1744038559,
+    "jumpMultiplierPerYear": 110984271943,
+    "owner": "0x2222222222222222222222222222222222222222",
+    "salt": "JumpRateModelV4_mUSDC_V1"
+  },
+  "HostMarket_mUSDC": {
+    "deployer": "0x1111111111111111111111111111111111111111",
+    "underlyingToken": "0x176211869cA2b568f2A7D4EE941E073a821EE1ff",
+    "operator": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "interestModel": "0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+    "exchangeRateMantissa": 20000000000000000,
+    "name": "mUSDC",
+    "symbol": "mUSDC",
+    "decimals": 6,
+    "owner": "0x2222222222222222222222222222222222222222",
+    "zkVerifier": "0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE",
+    "roles": "0x3333333333333333333333333333333333333333",
+    "implementationSalt": "HostMarketUSDCImplementationV1",
+    "proxySalt": "HostMarketUSDCProxyV1"
+  },
+  "setGasHelper__HostMarket_mUSDC": {
+    "market": "0x1212121212121212121212121212121212121212",
+    "gasHelper": "0x3434343434343434343434343434343434343434"
+  },
+  "setWhitelistEnabled": {
+    "operator": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "whitelistEnabled": true,
+    "users": [
+      "0x2222222222222222222222222222222222222222"
+    ],
+    "userStatus": true
+  },
+  "setCloseFactor": {
+    "operator": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "factor": 500000000000000000
+  },
+  "setPriceFeedOnOracleV4": {
+    "oracle": "0x9999999999999999999999999999999999999999",
+    "useSingleMode": false,
+    "singleSymbol": "USDC",
+    "singleApi3Feed": "0x5555555555555555555555555555555555555555",
+    "singleChainlinkFeed": "0x6666666666666666666666666666666666666666",
+    "singleApi3ToSymbol": "USD",
+    "singleChainlinkToSymbol": "USD",
+    "singleUnderlyingDecimals": 6,
+    "symbols": [
+      "USDC"
+    ],
+    "api3Feeds": [
+      "0x5555555555555555555555555555555555555555"
+    ],
+    "chainlinkFeeds": [
+      "0x6666666666666666666666666666666666666666"
+    ],
+    "api3ToSymbols": [
+      "USD"
+    ],
+    "chainlinkToSymbols": [
+      "USD"
+    ],
+    "underlyingDecimals": [
+      6
+    ]
+  },
+  "supportMarket__HostMarket_mUSDC": {
+    "operator": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "market": "0x1212121212121212121212121212121212121212"
+  },
+  "setCollateralFactor__HostMarket_mUSDC": {
+    "operator": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "market": "0x1212121212121212121212121212121212121212",
+    "factor": 900000000000000000
+  },
+  "setBorrowCap__HostMarket_mUSDC": {
+    "operator": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "market": "0x1212121212121212121212121212121212121212",
+    "cap": 0
+  },
+  "setMinBorrowSize__HostMarket_mUSDC": {
+    "operator": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "market": "0x1212121212121212121212121212121212121212",
+    "size": 10000000
+  },
+  "setSupplyCap__HostMarket_mUSDC": {
+    "operator": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "market": "0x1212121212121212121212121212121212121212",
+    "cap": 0
+  },
+  "setLiquidationBonus__HostMarket_mUSDC": {
+    "operator": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+    "market": "0x1212121212121212121212121212121212121212",
+    "factor": 1050000000000000000
+  },
+  "setReserveFactor__HostMarket_mUSDC": {
+    "market": "0x1212121212121212121212121212121212121212",
+    "factor": 100000000000000000
+  },
+  "setBorrowRateMaxMantissa__HostMarket_mUSDC": {
+    "market": "0x1212121212121212121212121212121212121212",
+    "borrowRateMaxMantissa": 5000000000000
+  },
+  "ownershipTransfer": {
+    "isHostChain": true,
+    "securityMultisig": "0x3E8545884FE2450A2E3973c341F8A22A645289C5",
+    "operatingMultisig": "0x91B945CbB063648C44271868a7A0c7BdFf64827D",
+    "legacyGuardian": "0xB819A871d20913839c37f316Dc914b0570bfc0eE",
+    "safeModule": "0x923B1e0e129fAc8949d6d0C8C2f932Be4B055637"
+  },
+  "initialMint": {
+    "enableInitialMint": false,
+    "initialMintReceiver": "0xB819A871d20913839c37f316Dc914b0570bfc0eE",
+    "initialMintAmount": 10000,
+    "initialMintHostMarketIndices": [
+      0
+    ]
+  }
+}
