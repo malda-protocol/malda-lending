@@ -694,6 +694,52 @@ mErc20Host.repayBehalf(borrowerAddress, repayAmount);
 <p>Cross-Chain Management</p>
 <pre><code class="language-solidity">    CHAINS_MANAGER – Can update the list of allowed destination chains on mErc20Host. Required for calling updateAllowedChain
 </code></pre>
+<hr />
+<h2 id="quickstart"><a class="header" href="#quickstart">Quickstart</a></h2>
+<h3 id="requirements"><a class="header" href="#requirements">Requirements</a></h3>
+<ul>
+<li>Foundry</li>
+<li>Node.js 18+</li>
+<li>RPC endpoints and explorer API keys in <code>.env</code></li>
+</ul>
+<h3 id="setup"><a class="header" href="#setup">Setup</a></h3>
+<pre><code class="language-bash">cp .env.example .env
+forge install
+npm install
+</code></pre>
+<h3 id="verify-build-and-tests"><a class="header" href="#verify-build-and-tests">Verify Build and Tests</a></h3>
+<pre><code class="language-bash">make test
+</code></pre>
+<h2 id="maintained-scope"><a class="header" href="#maintained-scope">Maintained Scope</a></h2>
+<ul>
+<li>Core lending contracts under <code>src/</code></li>
+<li>Rebalancer integrations under <code>src/rebalancer/</code></li>
+<li>Deployment and operational scripts under <code>script/</code></li>
+<li>Foundry tests under <code>test/</code></li>
+</ul>
+<h2 id="audit-status"><a class="header" href="#audit-status">Audit Status</a></h2>
+<ul>
+<li>This repository includes historical security reports in <code>audit/</code>.</li>
+<li>Audit coverage is point-in-time and should not be treated as blanket coverage for all current commits.</li>
+<li>Any changes introduced after a report date should be considered unaudited until re-reviewed.</li>
+</ul>
+<h2 id="disclaimer"><a class="header" href="#disclaimer">Disclaimer</a></h2>
+<ul>
+<li>This codebase is provided as-is, without warranty of safety, fitness, or production readiness.</li>
+<li>Integrators are responsible for independent review, threat modeling, and production hardening.</li>
+<li>Deployment and governance configuration choices can materially change risk.</li>
+</ul>
+<h2 id="known-limitations"><a class="header" href="#known-limitations">Known Limitations</a></h2>
+<ul>
+<li>Cross-chain flows rely on external infrastructure and bridge assumptions not fully controlled by this repository.</li>
+<li>Runtime safety depends on correct role assignment and parameterization during deployment.</li>
+<li>Script and config correctness is operationally critical and may require environment-specific adaptation.</li>
+</ul>
+<h2 id="unresolved-issues"><a class="header" href="#unresolved-issues">Unresolved Issues</a></h2>
+<ul>
+<li>Open pull requests are intentionally left unchanged in this cleanup pass and require manual triage.</li>
+<li>Security and architecture documentation should be refreshed after any substantial protocol or deployment changes.</li>
+</ul>
 
                     </main>
 
