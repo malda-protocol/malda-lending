@@ -591,3 +591,57 @@ Cross-Chain Management
 ```solidity
     CHAINS_MANAGER – Can update the list of allowed destination chains on mErc20Host. Required for calling updateAllowedChain
 ```
+
+---
+
+## Quickstart
+
+### Requirements
+
+- Foundry
+- Node.js 18+
+- RPC endpoints and explorer API keys in `.env`
+
+### Setup
+
+```bash
+cp .env.example .env
+forge install
+npm install
+```
+
+### Verify Build and Tests
+
+```bash
+make test
+```
+
+## Maintained Scope
+
+- Core lending contracts under `src/`
+- Rebalancer integrations under `src/rebalancer/`
+- Deployment and operational scripts under `script/`
+- Foundry tests under `test/`
+
+## Audit Status
+
+- This repository includes historical security reports in `audit/`.
+- Audit coverage is point-in-time and should not be treated as blanket coverage for all current commits.
+- Any changes introduced after a report date should be considered unaudited until re-reviewed.
+
+## Disclaimer
+
+- This codebase is provided as-is, without warranty of safety, fitness, or production readiness.
+- Integrators are responsible for independent review, threat modeling, and production hardening.
+- Deployment and governance configuration choices can materially change risk.
+
+## Known Limitations
+
+- Cross-chain flows rely on external infrastructure and bridge assumptions not fully controlled by this repository.
+- Runtime safety depends on correct role assignment and parameterization during deployment.
+- Script and config correctness is operationally critical and may require environment-specific adaptation.
+
+## Unresolved Issues
+
+- Open pull requests are intentionally left unchanged in this cleanup pass and require manual triage.
+- Security and architecture documentation should be refreshed after any substantial protocol or deployment changes.

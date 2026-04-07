@@ -28,3 +28,4 @@ docs/**
 
 # Deployment logs
 script/deployment/testnet/logs/
+errors.csv
